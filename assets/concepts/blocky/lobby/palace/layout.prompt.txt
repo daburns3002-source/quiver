@@ -1,0 +1,31 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as lobby_layout_reference.png
+
+This is a detailed art-direction reference sheet for building a mobile game's lobby in 3D. It must be precise enough for a modeller to work from.
+
+Reference images attached, in order:
+1. THE CHOSEN LOBBY. Keep its world, light, colours, materials and mood exactly: a ruined white-and-cream marble palace courtyard reclaimed by the forest at golden hour, moss in the floor joints, gold inlaid rings, vine-wrapped broken columns, red carpets, waterfalls past the edges, long warm light with soft purple shadows.
+2. The roof landmark sheet. Use exactly these: WEAPON SHOP = row 1, A. HATCH EGGS = row 2, C. YOUR GEAR = row 3, A.
+3. THE DEX HALL as it stands in the game. Copy it faithfully and do not redesign it: purple roof with gold corners, brown walls, white square columns with gold bands, brown timber gable, red carpet with gold edges, two book lecterns on stone pads, and the huge open book on the roof with a red ribbon and loose pages flying.
+4. The hatchery fairy. 5. The blacksmith. Keep them simple and chunky so they match the buildings.
+
+Style throughout: clean, smooth, chunky low-poly shapes, flat saturated colours, simple bevels. No pixel textures and no noisy voxel surfaces.
+
+Sheet layout: a thin light-grey frame holding three areas.
+
+AREA 1, about two thirds of the sheet, on the left: THE LOBBY from the game's high three-quarter camera, the whole courtyard in view, with north at the top. Include all of the following in these places:
+- North edge: the portal terrace, two raised rows of stone arches with broad steps and a central red carpet up to them. The front row has six arches and the back row, higher and behind it, has five. Front row, west to east: green swirl MOSSY GLADE, purple swirl THORNWOOD, then four dark locked arches with gold padlocks, DROWNED VILLAGE, BOGHEART CAVERNS, WINDSWEPT CLIFFS, FROSTPEAK PASS. Back row: four dark locked arches with gold padlocks, EMBER MINES, OBSIDIAN FORGE, SHATTERED KINGDOM, VOID RIFT, then a cyan swirl ENDLESS. Each name is on a small stone plaque above its arch.
+- Centre, slightly south of the middle: the round fountain plaza with gold rings and water lilies.
+- North-west corner: WEAPON SHOP, orange-red roof, the colossal sword driven through the roof with a glowing chimney, an anvil at the door with the blacksmith.
+- North-east corner: HATCH EGGS, golden-yellow roof, three giant colourful eggs on golden stands, the middle one floating and glowing, and the fairy at the door. Do not draw a nest or a cracked egg.
+- South-west corner: YOUR GEAR, light-blue roof, the giant helmet and round shield, armour stands by the door.
+- South-east corner: the Dex Hall, exactly as in image 3.
+- Each building is turned to face the fountain and joined to it by a red carpet with gold edges.
+- South of the fountain: a round gold-ringed arrival circle on the floor, and beyond it, at the south edge, two tall stone leaderboards standing either side of a carpeted walkway. Their faces are blank dark panels.
+- Above each building float big glowing blocky pixel-font words with no board behind them: WEAPON SHOP in orange, HATCH EGGS in yellow, YOUR GEAR in light blue, THE DEXES in purple.
+- A low broken marble balustrade rings the whole courtyard. Past it are chunky green trees, cliffs and waterfalls. Keep wide open walkable floor between everything.
+
+AREA 2, top right: A TOP-DOWN PLAN of the same courtyard, drawn as a simple clean map on warm cream: the outline of the balustrade, footprints of the four buildings in their roof colours, the fountain, the arrival circle, the two portal rows as small arches, the two leaderboards, red lines for the carpets. A small N arrow. Label it PLAN, and label the footprints WEAPON SHOP, HATCH EGGS, YOUR GEAR, THE DEXES, FOUNTAIN, ARRIVAL, PORTALS, LEADERBOARDS.
+
+AREA 3, bottom right: ATMOSPHERE, a row of four small square close-ups, each labelled: LIGHT (a low golden sun with long purple shadows across marble), FLOOR (cracked cream marble, moss in the joints, a gold inlay and a carpet edge), RUIN (a broken white column wrapped in vines with a gold band), LIFE (drifting gold motes, falling leaves, and a waterfall's mist past the balustrade). Beneath them, a strip of eight flat colour swatches: cream marble, warm shadow purple, gold, carpet red, vine green, sunset pink, water turquoise, timber brown.
+
+Only the words listed above may appear. Spell every word exactly.

@@ -24,6 +24,7 @@
 	draws him where the server has him; one that does unwelds them locally.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -101,6 +102,23 @@ local RESTING_TRANSPARENCY = "RestingTransparency"
 --[[ One template per uploaded mesh, made once and cloned for every enemy:
      CreateMeshPartAsync yields and fetches, which a spawn must not wait on. ]]
 local meshTemplates: { [string]: MeshPart } = {}
+
+--[[
+	A texture Studio's 3D importer uploaded as a SurfaceAppearance's colour
+	map has no picture Roblox can draw as a mesh's `TextureID` ("No asset
+	content representation found"): Spore Puff, Glowcap, Shellback and
+	Grandmother Gulp were drawn bare (the content sweep, 2026-11-26). Their
+	imports' SurfaceAppearances are kept in the place, under
+	`ReplicatedStorage.EnemySurfaces`, each named by its colour map's id, and
+	a part with that texture wears a copy instead. A place without the
+	folder (a fresh `rojo build`) falls back to the `TextureID`.
+]]
+local function surfaceFor(textureId: string): SurfaceAppearance?
+	local surfaces = ReplicatedStorage:FindFirstChild("EnemySurfaces")
+	local digits = string.match(textureId, "%d+")
+	local stored = if surfaces and digits then surfaces:FindFirstChild(digits) else nil
+	return if stored and stored:IsA("SurfaceAppearance") then stored else nil
+end
 
 --[[ Roblox's smallest part size. ]]
 local SMALLEST = 0.001
@@ -262,6 +280,45 @@ function EnemyModel.preload()
 	meshTemplates = MeshTemplates.load(ids)
 end
 
+--[[ One unseen copy of each mesh the enemies called `names` are drawn with, for
+     `Arena.prepare` to send ahead: a client can only fetch a mesh through an
+     instance that holds it. ]]
+function EnemyModel.meshesFor(names: { string }): { Instance }
+	local out: { Instance } = {}
+	local seen: { [string]: boolean } = {}
+	local function add(id: any)
+		local template = if type(id) == "string" and not seen[id] then meshTemplates[id] else nil
+		if template then
+			seen[id] = true
+			local copy = template:Clone()
+			copy.Anchored = true
+			copy.CanCollide = false
+			copy.CanQuery = false
+			copy.CanTouch = false
+			copy.Transparency = 1
+			table.insert(out, copy)
+		end
+	end
+	for _, name in names do
+		local design = (EnemyDesigns :: any)[name]
+		if type(design) == "table" then
+			for _, spec in design do
+				if type(spec) == "table" then
+					add(spec.meshId)
+				end
+			end
+		end
+		local imported = (EnemyDesigns.Imported :: any)[name]
+		if type(imported) == "table" and type(imported.model) == "string" then
+			local rows: { ImportedPart } = importedParts(imported.model) or {}
+			for _, row in rows do
+				add(row.meshId)
+			end
+		end
+	end
+	return out
+end
+
 --[[ A skinned mesh's bones, from its rig (`Config/EnemyRigs`), shrunk to
      the size the body is drawn at: a skinned mesh binds its vertices to
      bones by name, so these are what bend it. ]]
@@ -303,7 +360,12 @@ local function buildPart(spec: BuiltPart, config: EnemyConfig): BasePart
 	if template then
 		part = template:Clone()
 		if spec.textureId then
-			(part :: MeshPart).TextureID = spec.textureId
+			local surface = surfaceFor(spec.textureId)
+			if surface then
+				surface:Clone().Parent = part
+			else
+				(part :: MeshPart).TextureID = spec.textureId
+			end
 		end
 		if spec.rig then
 			addBones(part, spec.rig)
@@ -389,6 +451,8 @@ function EnemyModel.build(config: EnemyConfig, position: Vector3): (Model, BaseP
 	hitbox.Size = config.hitboxSize
 	hitbox.Position = position
 	hitbox.Anchored = true
+	-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+	CollectionService:AddTag(hitbox, "SmoothMotion")
 	--[[
 		Collision is resolved analytically in Arena.resolve, so the hitbox is
 		only ever a raycast target. Leaving CanCollide on would let enemies shove

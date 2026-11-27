@@ -174,7 +174,7 @@ function BossBar.start()
 	local frame = Instance.new("Frame")
 	frame.AnchorPoint = Vector2.new(0.5, 0)
 	--[[ Below the run banner's XP bar and its level label, which grew 26
-	     points for the blocky font (CLAUDE.md rule 11). ]]
+	     points for the game's font (CLAUDE.md rule 11). ]]
 	frame.Position = UDim2.new(0.5, 0, 0.135, 26)
 	frame.Size = UDim2.fromScale(0.5, 0.06)
 	frame.BackgroundTransparency = 1
@@ -188,7 +188,7 @@ function BossBar.start()
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.fromScale(1, 0.45)
 	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.Arcade
+	title.Font = Enum.Font.FredokaOne
 	title.TextScaled = true
 	title.TextColor3 = Color3.new(1, 1, 1)
 	title.TextStrokeTransparency = 0.4

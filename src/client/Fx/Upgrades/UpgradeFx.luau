@@ -26,6 +26,7 @@ local Players = game:GetService("Players")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Parent.Device)
+local DeviceTiers = require(ReplicatedStorage.Shared.Config.DeviceTiers)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 
 local UpgradeFx = {}
@@ -118,6 +119,19 @@ end
 function UpgradeFx.flat(v: Vector3): Vector3
 	local f = Vector3.new(v.X, 0, v.Z)
 	return if f.Magnitude > 1e-3 then f.Unit else Vector3.new(0, 0, -1)
+end
+
+--[[ This device's share of the best device's effects, 0 to 1, for an effect
+     built in code to scale its own caps and counts by (`LightningFx`,
+     `SoulFireFx`): the same `maxUpgradeFx` the imported effects are capped
+     by. ]]
+function UpgradeFx.share(): number
+	return math.clamp(Device.tier().maxUpgradeFx / DeviceTiers.High.maxUpgradeFx, 0, 1)
+end
+
+--[[ `count` on the best device, scaled to this one and never under `least`. ]]
+function UpgradeFx.budget(count: number, least: number): number
+	return math.max(least, math.floor(count * UpgradeFx.share() + 0.5))
 end
 
 function UpgradeFx.ready(key: string): boolean

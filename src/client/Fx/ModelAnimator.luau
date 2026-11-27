@@ -66,6 +66,20 @@ local STRETCH_ATTRIBUTE = "ModelClipStretch"
 local STRETCH_JOINT_ATTRIBUTE = "ModelClipStretchJoint"
 local STRETCH_KEEP_ATTRIBUTE = "ModelClipStretchKeep"
 local SCALE_ATTRIBUTE = "ModelClipScale"
+--[[ How many of the model's parts ride its clips, when its builder says
+     (an enemy: `Enemies/EnemyManager`). A model reaches a client over
+     several frames, and one fitted while half of it is here is fitted wrong:
+     a node of several primitives is several parts of one name, the fit reads
+     only names that came in once, and with one of the two here that name
+     counts, at one primitive's place and not the node's. That is what
+     "Boarlet's parts do not line up with BrambleSow (fit error 0.088)" was
+     (the every-class run-through, 2026-11-16; at 60 frames a second the same
+     Boarlet fits with an error of 0.0000). With the count, a model is left
+     alone until all of it is here. ]]
+local PARTS_ATTRIBUTE = "ModelClipParts"
+--[[ Seconds a model may be short of that count before it is fitted with
+     what is here: parts the server has since taken away never arrive. ]]
+local ARRIVE_WAIT = 3
 --[[ Set before a model is tagged: its parts that ride no joint ride the
      pivot instead (an effect with no clip, still placed and scaled). Off,
      they are left where they are, as the King's and the pets' are. ]]
@@ -102,6 +116,8 @@ type Animator = {
 }
 
 local animators: { [Model]: Animator } = {}
+--[[ When each model still arriving was first found short of its parts. ]]
+local arriving: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
 local folder: Instance? = nil
 
 --[[ Starts moving `part` with its joint: unwelded and anchored for as long
@@ -160,6 +176,15 @@ function ModelAnimator.attach(model: Model, key: string, quiet: boolean?): boole
 			count[d.Name] = (count[d.Name] or 0) + 1
 		end
 	end
+	-- still arriving: `watch` tries again as each part comes, and once more after the wait
+	local expected = model:GetAttribute(PARTS_ATTRIBUTE)
+	if type(expected) == "number" and #parts < expected then
+		local since = arriving[model] or os.clock()
+		arriving[model] = since
+		if os.clock() - since < ARRIVE_WAIT then
+			return false
+		end
+	end
 	--[[ Where each part rests in the pivot's space: its `RestCFrame` when
 	     the builder gave one (an enemy's skin: a welded part lags its moving
 	     hitbox by a frame on a client, which read as a bad fit and left the
@@ -176,7 +201,9 @@ function ModelAnimator.attach(model: Model, key: string, quiet: boolean?): boole
 	end
 	local fit = ModelClip.fit(data, observed)
 	if not fit or fit.error > MAX_FIT_ERROR * fit.spread then
-		if quiet then
+		--[[ Nothing to fit yet is no failure: the tag came first, and `watch`
+		     tries again as the parts arrive. ]]
+		if quiet or not fit then
 			return false
 		end
 		log.warn(
@@ -346,7 +373,18 @@ local function watch(model: Instance)
 	local function check()
 		local key = model:GetAttribute(KEY_ATTRIBUTE)
 		if type(key) == "string" and key ~= "" then
-			ModelAnimator.attach(model, key)
+			if not ModelAnimator.attach(model, key) and arriving[model] then
+				-- short of its parts: once more when the wait is over, whatever has come
+				task.delay(ARRIVE_WAIT + 0.1, function()
+					if
+						model.Parent
+						and not animators[model]
+						and model:GetAttribute(KEY_ATTRIBUTE) == key
+					then
+						ModelAnimator.attach(model, key)
+					end
+				end)
+			end
 		else
 			ModelAnimator.detach(model)
 		end

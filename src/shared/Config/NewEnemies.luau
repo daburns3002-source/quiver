@@ -22,7 +22,7 @@
 
 	Keyed by the kind's `EnemyConfig.displayName`. The sheet is the stage's
 	area's (`Balance.Stages` `area`), or the enemy's own `area` in a stage
-	with none. Acts 1–3 only; Drowned Village's four wait for their enemies.
+	with none. Areas 1-4; Drowned Village's four wait for their enemies.
 ]]
 
 export type Box = { x: number, y: number, w: number, h: number }
@@ -49,16 +49,30 @@ export type Enemy = {
 	--[[ The area it is from, for a stage without one. ]]
 	area: string,
 	--[[ Out of the game but kept here, so it shows on neither the loading
-	     screen nor the dex. No enemy is benched at the moment: the Ember
-	     Wilf was, and on 2026-11-01 the owner took it out for good ("take
-	     the ember wilf out all the way"), so the field is here for the
-	     next one rather than for anything in the game today. ]]
+	     screen nor the dex. The Drowned Village's three unbuilt
+	     enemies are (2026-11-07); the Ember Wilf was, until the owner took
+	     it out for good on 2026-11-01. ]]
 	benched: boolean?,
 }
 
 local WHITE = Color3.fromRGB(248, 248, 240)
 
 local NewEnemies = {
+	--[[ How a first meeting is shown. True: this screen, the run held until
+	     GOT IT! (the owner's pick of 2026-10-25). False (owner, 2026-11-14,
+	     after the kid playtest: four of these stopped the first ten minutes,
+	     two inside one fight; "Build top 5"): a NEW! name tag over the enemy
+	     for `tagFor` seconds and nothing held. The sheets stay for the
+	     screen's `Preview` and for turning this back on. ]]
+	card = false,
+	tagFor = 2.6,
+	--[[ The tag's size in points, its letters' sizes, and how high over the
+	     enemy's middle it floats, in studs. ]]
+	tagSize = Vector2.new(260, 64),
+	tagNewSize = 22,
+	tagNameSize = 30,
+	tagLift = 4.2,
+	tagNew = Color3.fromRGB(255, 214, 64),
 	canvas = Vector2.new(1024, 1536),
 	--[[ Share of the screen's height the sheet fills (the end screens' 97%,
 	     less, so the room's edge still frames it), and how dark the room is
@@ -112,6 +126,17 @@ local NewEnemies = {
 			button = { x = 228, y = 1302, w = 568, h = 186 },
 			text = WHITE,
 		},
+		--[[ Bogheart Caverns (Codex, 2026-11-06, `sheet_bogheart_caverns_a.png`):
+		     not yet approved by the owner. ]]
+		BogheartCaverns = {
+			top = "rbxassetid://115969921487794",
+			bottom = "rbxassetid://114438065574510",
+			picture = { x = 257, y = 420, w = 510, h = 510 },
+			name = { x = 230, y = 975, w = 564, h = 90 },
+			description = { x = 130, y = 1110, w = 764, h = 170 },
+			button = { x = 200, y = 1320, w = 630, h = 150 },
+			text = WHITE,
+		},
 	} :: { [string]: Sheet },
 
 	enemies = {
@@ -150,51 +175,75 @@ local NewEnemies = {
 		BurrThistle = {
 			name = "BURR THISTLE",
 			description = "Throws three burrs from anywhere in the room. Find the gaps!",
-			picture = "rbxassetid://81570620844062",
+			picture = "rbxassetid://139645328652669",
 			area = "Thornwood",
 		},
 		BrambleLurker = {
 			name = "BRAMBLE LURKER",
 			description = "Dives underground, then bursts up on a marked spot spraying thorns. Move!",
-			picture = "rbxassetid://95764970646025",
+			picture = "rbxassetid://135528365602715",
 			area = "Thornwood",
 		},
 		BrambleSow = {
 			name = "BRAMBLE SOW",
 			description = "Big and slow. When it falls, three Boarlets tumble out of its brambles!",
-			picture = "rbxassetid://103634987119000",
+			picture = "rbxassetid://136498803142994",
 			area = "Thornwood",
 		},
 		Boarlet = {
 			name = "BOARLET",
 			description = "A quick little piglet from a Bramble Sow. Don't let it nip you!",
-			picture = "rbxassetid://98588195192346",
+			picture = "rbxassetid://98945040362699",
 			area = "Thornwood",
 		},
-		-- Drowned Village: designed, not built yet; named as they will be
+		--[[ Drowned Village: designed, not built yet; named as they will be,
+		     and benched until each is modelled and in a roster (the area
+		     opened 2026-11-07 with the Hollow Fisherman alone). ]]
 		DrownedZombie = {
 			name = "DROWNED ZOMBIE",
 			description = "Slow but relentless. Rises again after it falls - unless it burns!",
-			picture = "rbxassetid://135335649602513",
+			picture = "rbxassetid://94789496316745",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		DitchEel = {
 			name = "DITCH EEL",
 			description = "Slides through the flooded ground, under walls, and surfaces to bite!",
-			picture = "rbxassetid://108442404362621",
+			picture = "rbxassetid://103799368773499",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		BellRinger = {
 			name = "BELL RINGER",
 			description = "Rings out a wide cone of sound. Step outside the wave!",
 			picture = "rbxassetid://79054509181559",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		HollowFisherman = {
 			name = "HOLLOW FISHERMAN",
 			description = "Casts its hook and reels you in. Dodge the line and keep your distance!",
-			picture = "rbxassetid://114005826538649",
+			picture = "rbxassetid://121382456047030",
 			area = "DrownedVillage",
+		},
+		-- Bogheart Caverns
+		SporePuff = {
+			name = "SPORE PUFF",
+			description = "Rushes right at you and bursts into poison spores. Kill it from range!",
+			picture = "rbxassetid://136475916127415",
+			area = "BogheartCaverns",
+		},
+		Glowcap = {
+			name = "GLOWCAP",
+			description = "Never moves, but sprays spores in a turning spiral. Walk with the gaps!",
+			picture = "rbxassetid://121343854223078",
+			area = "BogheartCaverns",
+		},
+		Shellback = {
+			name = "SHELLBACK",
+			description = "Slow, heavy and tough. A walking wall - shoot past it at the turrets!",
+			picture = "rbxassetid://127886942453836",
+			area = "BogheartCaverns",
 		},
 	} :: { [string]: Enemy },
 }

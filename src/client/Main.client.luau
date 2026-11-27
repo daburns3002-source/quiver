@@ -11,39 +11,60 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local ArcanistBuildFx = require(script.Parent.Fx.Upgrades.ArcanistBuildFx)
 local ArcanistFx = require(script.Parent.Fx.Upgrades.ArcanistFx)
+local AreaLoading = require(script.Parent.UI.AreaLoading)
+local AreaScreen = require(script.Parent.UI.AreaScreen)
+local AssassinFx = require(script.Parent.Fx.Upgrades.AssassinFx)
+local BadgeCase = require(script.Parent.UI.BadgeCase)
 local Balance = require(Shared.Config.Balance)
+local BoardYou = require(script.Parent.UI.BoardYou)
+local BoostBanner = require(script.Parent.UI.BoostBanner)
 local BossBanner = require(script.Parent.UI.BossBanner)
 local BossBar = require(script.Parent.UI.BossBar)
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local CardPreload = require(script.Parent.UI.Cards.CardPreload)
+local ClassCardFx = require(script.Parent.Fx.Upgrades.ClassCardFx)
 local ClassScreen = require(script.Parent.UI.ClassScreen)
 local Classes = require(Shared.Config.Classes)
+local CoinDrops = require(script.Parent.Fx.CoinDrops)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local ControlMenu = require(script.Parent.UI.ControlMenu)
+local CoopHud = require(script.Parent.UI.CoopHud)
+local DaggerFx = require(script.Parent.Fx.Upgrades.DaggerFx)
 local DashBar = require(script.Parent.UI.DashBar)
 local DevKeys = require(script.Parent.DevKeys)
 local Device = require(script.Parent.Device)
 local DexScreen = require(script.Parent.UI.DexScreen)
+local DoorPointer = require(script.Parent.Fx.DoorPointer)
 local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
 local EggScreen = require(script.Parent.UI.EggScreen)
 local EndScreen = require(script.Parent.UI.EndScreen)
 local EndlessCheckpoint = require(script.Parent.UI.EndlessCheckpoint)
+local EndlessPrize = require(script.Parent.UI.EndlessPrize)
 local EnemyHealthBars = require(script.Parent.Fx.EnemyHealthBars)
 local EnemyRig = require(script.Parent.Fx.EnemyRig)
 local EnemySounds = require(script.Parent.Fx.EnemySounds)
+local FavouritePrompt = require(script.Parent.UI.FavouritePrompt)
+local FirstTips = require(script.Parent.UI.FirstTips)
 local ForestAmbience = require(script.Parent.Fx.ForestAmbience)
+local FxEvents = require(script.Parent.Fx.Upgrades.FxEvents)
 local Game = require(Shared.Config.Game)
 local GearScreen = require(script.Parent.UI.GearScreen)
+local Haptics = require(script.Parent.Fx.Haptics)
+local HatcheryPointer = require(script.Parent.Fx.HatcheryPointer)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
 local IntroCutscene = require(script.Parent.UI.IntroCutscene)
+local LobbyHud = require(script.Parent.UI.LobbyHud)
+local LobbyMotes = require(script.Parent.Fx.LobbyMotes)
+local LobbyPreload = require(script.Parent.Fx.LobbyPreload)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
 local Log = require(Shared.Util.Log)
 local ModelAnimator = require(script.Parent.Fx.ModelAnimator)
@@ -51,40 +72,65 @@ local MoveController = require(script.Parent.Input.MoveController)
 local MusicFx = require(script.Parent.Fx.MusicFx)
 local NameTags = require(script.Parent.UI.NameTags)
 local NewEnemyScreen = require(script.Parent.UI.NewEnemyScreen)
+local NotifyPrompt = require(script.Parent.UI.NotifyPrompt)
+local PartyAsk = require(script.Parent.UI.PartyAsk)
+local PartyScreen = require(script.Parent.UI.PartyScreen)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
+local PlayerTrails = require(script.Parent.Fx.PlayerTrails)
+local PlaytimeButton = require(script.Parent.UI.PlaytimeButton)
 local PortalScreen = require(script.Parent.UI.PortalScreen)
+local PortalVortex = require(script.Parent.Fx.PortalVortex)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
+local PurchaseFx = require(script.Parent.UI.PurchaseFx)
 local RangerBuildFx = require(script.Parent.Fx.Upgrades.RangerBuildFx)
 local RangerFx = require(script.Parent.Fx.Upgrades.RangerFx)
 local Remotes = require(Shared.Net.Remotes)
 local Reveal = require(script.Parent.UI.Reveal)
 local ReviveFx = require(script.Parent.Fx.ReviveFx)
+local RewardPick = require(script.Parent.UI.RewardPick)
+local RewardsScreen = require(script.Parent.UI.RewardsScreen)
+local RobuxOffer = require(script.Parent.UI.RobuxOffer)
+local RobuxStore = require(script.Parent.UI.RobuxStore)
 local RoomPreload = require(script.Parent.Fx.RoomPreload)
 local RoomSign = require(script.Parent.UI.RoomSign)
 local RootHoldFx = require(script.Parent.Fx.RootHoldFx)
 local RunBanner = require(script.Parent.UI.RunBanner)
+local RunHudRules = require(Shared.Util.RunHudRules)
 local RunPaused = require(script.Parent.RunPaused)
 local SandboxMenu = require(script.Parent.UI.SandboxMenu)
+local SettingsScreen = require(script.Parent.UI.SettingsScreen)
 local SharedFx = require(script.Parent.Fx.Upgrades.SharedFx)
 local ShopScreen = require(script.Parent.UI.ShopScreen)
+local ShotDrift = require(script.Parent.Fx.ShotDrift)
+local Shoutout = require(script.Parent.UI.Shoutout)
 local Shove = require(script.Parent.Input.Shove)
 local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local SlimeHop = require(script.Parent.Fx.SlimeHop)
 local SlimeResidue = require(script.Parent.Fx.SlimeResidue)
+local SmoothMotion = require(script.Parent.Fx.SmoothMotion)
+local SoulFireFx = require(script.Parent.Fx.Upgrades.SoulFireFx)
+local SoulstoneShop = require(script.Parent.UI.SoulstoneShop)
 local SoundFx = require(script.Parent.Fx.SoundFx)
+local StoryBeat = require(script.Parent.UI.StoryBeat)
 local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
+local ThornwoodFx = require(script.Parent.Fx.Upgrades.ThornwoodFx)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
+local TournamentPrize = require(script.Parent.UI.TournamentPrize)
 local TutorialPrompts = require(script.Parent.UI.TutorialPrompts)
+local TutorialSkip = require(script.Parent.UI.TutorialSkip)
 local Types = require(Shared.Types)
 local UpgradeFx = require(script.Parent.Fx.Upgrades.UpgradeFx)
 local VitalFx = require(script.Parent.Fx.Upgrades.VitalFx)
 local WardenBuildFx = require(script.Parent.Fx.Upgrades.WardenBuildFx)
 local WardenFx = require(script.Parent.Fx.Upgrades.WardenFx)
+local WaterSteps = require(script.Parent.Fx.WaterSteps)
+local WaveTwoFx = require(script.Parent.Fx.Upgrades.WaveTwoFx)
 local WeaponGlow = require(script.Parent.Fx.WeaponGlow)
 local WeaponPose = require(script.Parent.Fx.WeaponPose)
+local WeaponPreload = require(script.Parent.Fx.WeaponPreload)
 local Weapons = require(Shared.Config.Weapons)
 
 type ShotEvent = Types.ShotEvent
@@ -100,6 +146,17 @@ task.spawn(function()
 	local bloom = Lighting:WaitForChild("ArenaBloom", 10)
 	if bloom and bloom:IsA("BloomEffect") then
 		bloom.Enabled = Device.tier().enableBloom
+	end
+	--[[ The lobby's wide glow: the server turns it on and off with the
+	     lobby, so a low tier has to keep turning its own copy off. ]]
+	local glow = Lighting:WaitForChild("Bloom", 10)
+	if glow and glow:IsA("BloomEffect") and not Device.tier().enableBloom then
+		glow.Enabled = false
+		glow:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if glow.Enabled then
+				glow.Enabled = false
+			end
+		end)
 	end
 end)
 
@@ -149,6 +206,8 @@ local function beginRun()
 	Remotes.event(Remotes.IntroBegin):FireServer()
 end
 local function playStory()
+	-- for the onboarding funnel (`Data/Analytics`)
+	Remotes.event(Remotes.FunnelStep):FireServer("Story")
 	-- the cards' images, once the title has given the story's frames their turn
 	CardPreload.start()
 	local ok, problem = pcall(function()
@@ -160,36 +219,142 @@ local function playStory()
 		beginRun()
 	end
 end
-if IntroCutscene.skipped() then
-	CardPreload.start()
-else
-	MusicFx.setQuiet(true)
-	RoomSign.setWaiting(true)
-	StoryCutscene.preload()
-	local ok, problem = pcall(function()
-		IntroCutscene.start(playStory)
+--[[ What follows the loading screen, as the server decides it from the
+     saved profile (`Run/Party.ROUTE`, Fable's loop review, 2026-11-11): a
+     player owed the tutorial is sent to its server behind this loading
+     screen and sees the title and the story there (`story` in the teleport
+     data); a returning player sees the title and skips the story. ]]
+local ROUTE_WAIT = 12
+local TRAVEL_WAIT = 30
+local function sentHere(): string?
+	local ok, data = pcall(function()
+		return TeleportService:GetLocalPlayerTeleportData()
 	end)
+	if ok and type(data) == "table" and (data :: any).story == true then
+		return if (data :: any).seen == true then "Lobby" else "Story"
+	end
+	return nil
+end
+local function awaitRoute(): string
+	local sent = sentHere()
+	if sent then
+		return sent
+	end
+	local deadline = os.clock() + ROUTE_WAIT
+	while player:GetAttribute("JoinRoute") == nil and os.clock() < deadline do
+		task.wait(0.1)
+	end
+	-- on its way to the tutorial: the loading screen stays until it lands,
+	-- or the title plays here if the trip never goes
+	deadline = os.clock() + TRAVEL_WAIT
+	while player:GetAttribute("JoinRoute") == "Tutorial" and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	local route = player:GetAttribute("JoinRoute")
+	return if route == "Lobby" then "Lobby" else "Story"
+end
+local function startIntro(story: boolean)
+	if story then
+		StoryCutscene.preload()
+	end
+	local ok, problem = pcall(function()
+		IntroCutscene.start(if story
+			then playStory
+			else function()
+				CardPreload.start()
+				beginRun()
+			end)
+	end)
+	if ok then
+		-- the title is up, for the onboarding funnel (`Data/Analytics`)
+		Remotes.event(Remotes.FunnelStep):FireServer("Title")
+	end
 	if not ok then
 		log.warn("intro cutscene failed to start: %s", tostring(problem))
 		IntroCutscene.stop()
+		CardPreload.start()
 		beginRun()
 	end
 end
 
---[[ The intro is up (or skipped): the loading screen can lift
-     (`first/Loading`). ]]
-player:SetAttribute("ClientReady", true)
+-- before the join screen lifts, so a run server's cover follows it at once
+AreaLoading.start()
+
+--[[ Sent to a run's own server (a level started from the lobby, or the
+     tutorial after the title): the server still has to load this save and
+     build the first room, about 20 s live, and until then this player stood
+     on a bare green plane under the run's HUD (the owner's live playtest,
+     2026-11-25). The loading screen holds until the run is under way, or
+     `RUN_ARRIVAL_WAIT` at most, short of the screen's own "TAKING A WHILE"
+     line. A trip back to the lobby holds the same way until the server has
+     put this player in the lobby (`RunSession.ARRIVED`): it stood about 8 s
+     on that green plane too, under the run's HUD (the same playtest). ]]
+local RUN_ARRIVAL_WAIT = 40
+local function sentToRun(): boolean
+	local ok, data = pcall(function()
+		return TeleportService:GetLocalPlayerTeleportData()
+	end)
+	return ok
+		and type(data) == "table"
+		and ((data :: any).portal ~= nil or (data :: any).tutorial ~= nil)
+end
+
+if IntroCutscene.skipped() then
+	CardPreload.start()
+	task.spawn(function()
+		local toRun = sentToRun()
+		local deadline = os.clock() + RUN_ARRIVAL_WAIT
+		while os.clock() < deadline do
+			if toRun and Workspace:GetAttribute("InLobby") == false then
+				break
+			end
+			if not toRun and player:GetAttribute("Arrived") == true then
+				break
+			end
+			task.wait(0.2)
+		end
+		-- the loading screen can lift (`first/Loading`)
+		player:SetAttribute("ClientReady", true)
+	end)
+else
+	MusicFx.setQuiet(true)
+	RoomSign.setWaiting(true)
+	--[[ Held as on the title from this frame, not from when the route is
+	     known: until then nothing that waits for the arrival may open (the
+	     class screen did, under the loading screen, and stayed up into the
+	     tutorial; `docs/FIXES.md`). ]]
+	RunPaused.setTitle(true)
+	task.spawn(function()
+		startIntro(awaitRoute() == "Story")
+		--[[ The intro is up: the loading screen can lift (`first/Loading`). ]]
+		player:SetAttribute("ClientReady", true)
+	end)
+end
 
 NameTags.start()
+-- co-op: the party line, downed players, the teammate arrow
+CoopHud.start()
 HealthBar.start()
 DashBar.start()
+--[[ Leaving Victory plays the story beat the win owes first (`UI/StoryBeat`). ]]
 EndScreen.start(function()
-	Remotes.event(Remotes.RunRestart):FireServer()
+	-- NEXT LEVEL and TRY AGAIN are never answered with an offer
+	StoryBeat.after(function()
+		Remotes.event(Remotes.RunRestart):FireServer()
+	end)
+end, function()
+	StoryBeat.after(function()
+		-- the starter pack's one offer, on the way back to the lobby
+		RobuxOffer.after(function()
+			Remotes.event(Remotes.RunLobby):FireServer()
+		end)
+	end)
 end)
 RunBanner.start()
 RoomSign.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
+SmoothMotion.start()
 HitSquash.start(Workspace)
 EnemySounds.start(Workspace)
 SlimeHop.start(Workspace)
@@ -201,18 +366,38 @@ MusicFx.start()
 --[[ The egg's and chest's models are fetched now, not when one is
      opened: a reveal has to be on screen the frame it is asked for. ]]
 Reveal.preloadModels()
+LobbyPreload.start()
 SharedFx.start()
+CoinDrops.start()
 VitalFx.start()
 RangerFx.start()
 WardenFx.start()
 WeaponGlow.start()
 ArcanistFx.start(Workspace)
+SoulFireFx.start(Workspace)
 -- the class upgrades of 2026-10-27, drawn big
 RangerBuildFx.start()
 ArcanistBuildFx.start()
 WardenBuildFx.start()
+ClassCardFx.start()
+AssassinFx.start()
+ThornwoodFx.start()
+WaveTwoFx.start()
+-- the themed sets' daggers' own effects (2026-11-18)
+DaggerFx.start()
 ForestAmbience.start()
+WaterSteps.start()
+LobbyMotes.start()
+-- every player's trail (`Config/Trails`)
+PlayerTrails.start()
+-- the way to the first egg, while it is affordable and no pet is owned
+HatcheryPointer.start()
+-- the way out of a cleared room, while its gate is open
+DoorPointer.start()
+PortalVortex.start()
 RoomPreload.start()
+-- the texture of the weapon each player holds or will hold, always ready
+WeaponPreload.start()
 BurnFx.start()
 RootHoldFx.start()
 EnemyHealthBars.start()
@@ -220,7 +405,22 @@ BossBar.start()
 BossBanner.start()
 NewEnemyScreen.start()
 EndlessCheckpoint.start()
+EndlessPrize.start()
+TournamentPrize.start()
+RewardPick.start()
+SoulstoneShop.start()
+RobuxStore.start()
+RobuxOffer.start()
+-- the burst every purchase plays, once the server says it went through
+PurchaseFx.start()
+SettingsScreen.start()
+-- hatch shout-outs and the once-ever favourite prompt (2026-11-18)
+Shoutout.start()
+FavouritePrompt.start()
 TutorialPrompts.start()
+TutorialSkip.start()
+-- a tip the first time each new thing is met, once ever (`Config/Tips`)
+FirstTips.start()
 PickupFx.start(Workspace)
 CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)
@@ -276,8 +476,30 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		on ownership alone would make the one ability that fires free arrows
 		fire invisible ones.
 	]]
-	if event.faction == "Player" and event.shooterId == player.UserId and event.predicted then
+	--[[ Chain Lightning's arc is lightning between two bodies, not a shot in
+	     flight: the server still flies it, and only the bolt is drawn. ]]
+	if event.arc then
+		local spec = event.specs[1]
+		FxEvents.arc:fire(
+			event.origin,
+			event.direction,
+			event.from,
+			event.to,
+			if spec then spec.speed else Balance.Projectile.arcSpeed
+		)
 		return
+	end
+
+	if event.faction == "Player" and event.shooterId == player.UserId and event.predicted then
+		--[[ Thrown away, but measured first: this is the only place the
+		     server's own origin and aim for a volley the client drew itself
+		     ever reach the client (`Fx/ShotDrift`). ]]
+		ShotDrift.server(event.origin, event.direction)
+		--[[ Unless this client never drew it: then it is drawn here, so no
+		     damage lands without its arrow (`LocalFiring.serverVolley`). ]]
+		if LocalFiring.serverVolley(event.direction) then
+			return
+		end
 	end
 
 	ProjectileRenderer.spawnVolley(
@@ -292,6 +514,7 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 end)
 
 Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)
+Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(EnemySounds.onTelegraph)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(SlimeResidue.onEnemyHit)
@@ -304,9 +527,9 @@ Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(function()
 end)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(function()
 	SoundFx.play("player_hurt")
+	Haptics.play("hit")
 end)
 Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
-Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(HitFeedback.onSoulLink)
 Remotes.event(Remotes.PlayerDodged).OnClientEvent:Connect(HitFeedback.onPlayerDodged)
 --[[ A boss's hit moving this player: pushed, or held still by a grab. ]]
 Remotes.event(Remotes.PlayerShoved).OnClientEvent:Connect(function(direction, distance)
@@ -319,6 +542,19 @@ Remotes.event(Remotes.PlayerGrabbed).OnClientEvent:Connect(function(seconds)
 		Shove.hold(os.clock(), seconds)
 	end
 end)
+Remotes.event(Remotes.PlayerDragged).OnClientEvent
+	:Connect(function(mouth, facing, reach, halfAngle, pull, seconds)
+		if
+			typeof(mouth) == "Vector3"
+			and typeof(facing) == "Vector3"
+			and type(reach) == "number"
+			and type(halfAngle) == "number"
+			and type(pull) == "number"
+			and type(seconds) == "number"
+		then
+			Shove.drag(os.clock(), mouth, facing, reach, halfAngle, pull, seconds)
+		end
+	end)
 Remotes.event(Remotes.PickupDropped).OnClientEvent:Connect(PickupFx.onDropped)
 Remotes.event(Remotes.PickupsTaken).OnClientEvent:Connect(PickupFx.onTaken)
 Remotes.event(Remotes.PickupsCleared).OnClientEvent:Connect(PickupFx.onCleared)
@@ -330,7 +566,10 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
 		RoomSign.onRunStateChanged(index, total, state, name, unit)
 		TutorialPrompts.onRunStateChanged(index, total, state)
+		TutorialSkip.onRunStateChanged(state)
 		ControlMenu.onRunStateChanged(index, total, state)
+		EndlessPrize.onRunStateChanged(state)
+		RobuxOffer.onRunStateChanged(state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]
@@ -344,7 +583,15 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		end
 	end)
 
-Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(EndScreen.show)
+Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(function(summary)
+	StoryBeat.owe(summary.story)
+	RobuxOffer.owe(summary.starter)
+	EndScreen.show(summary)
+	--[[ DEFEAT's revive, once the screen has landed (`Config/RobuxStore`). ]]
+	if not summary.won and summary.revive then
+		task.delay(1.2, RobuxOffer.revive, summary.revive)
+	end
+end)
 
 --[[ Prediction inputs only — move speed and dash cooldown. Nothing that
      decides an outcome arrives here. ]]
@@ -385,10 +632,26 @@ ShopScreen.start()
 EggScreen.start()
 GearScreen.start()
 DexScreen.start()
+-- the login calendar, quests and starter list, and each board's YOU row
+RewardsScreen.start()
+PlaytimeButton.start()
+-- the notifications' opt-in, asked once the REWARDS screen is put away
+NotifyPrompt.start()
+-- the lobby party: PARTY, its panel and news line, and the invite prompt
+PartyScreen.start()
+PartyAsk.start()
+-- the BADGES case: a badge for each boss beaten, under REWARDS
+BadgeCase.start()
+BoardYou.start()
 -- the pets in this player's two slots, at heel
 PetPreview.follow()
 -- a lit portal's screen and its level selector, in the lobby
 PortalScreen.start()
+AreaScreen.start()
+-- the lobby's pills, PLAY, and the fight HUD put away there
+LobbyHud.start()
+-- the live boosts over the lobby, and the owner's LIVE switch (docs/LIVE-EVENTS.md)
+BoostBanner.start()
 
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()
@@ -414,6 +677,9 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent
 		RunPaused.set(true)
 		DraftScreen.show(offer, level, source, rerolls)
 		TutorialPrompts.onOffer()
+		if RunHudRules.draftReroll(source, rerolls) then
+			FirstTips.show("Reroll")
+		end
 	end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)

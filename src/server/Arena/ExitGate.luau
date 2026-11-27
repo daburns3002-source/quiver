@@ -14,6 +14,7 @@
 	arrow.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -84,6 +85,8 @@ local function buildLeaf(
 	local hingeAt = CFrame.new(side * width / 2, height / 2, z)
 
 	local hinge = piece("DoorHinge", Vector3.new(0.2, 0.2, 0.2), hingeAt, config.doorColor, folder)
+	-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+	CollectionService:AddTag(hinge, "SmoothMotion")
 	hinge.Transparency = 1
 
 	local function attach(
@@ -161,7 +164,10 @@ end
 --[[ Builds the gate under `root`, closed. Its front sits on the inner face
      of the north wall, a hair into the room so the two never share a
      plane. ]]
-function ExitGate.build(root: Instance): Gate
+--[[ `framed`: the room's kit draws its own door round the gap, this many
+     studs tall, so the stone pillars, lintel and roof are left out and the
+     plaque hangs over the kit's door. ]]
+function ExitGate.build(root: Instance, framed: number?): Gate
 	local config = Balance.Run.gate
 	local folder = Instance.new("Folder")
 	folder.Name = "ExitGate"
@@ -173,8 +179,10 @@ function ExitGate.build(root: Instance): Gate
 	local width, height = config.width, config.height
 	local pillar = config.pillarWidth
 	local outer = width + pillar * 2
+	--[[ The two sides the stonework stands on; none in a kit's own door. ]]
+	local sides: { number } = if framed then {} else { -1, 1 }
 
-	for _, side in { -1, 1 } do
+	for _, side in sides do
 		local x = side * (width / 2 + pillar / 2)
 		piece(
 			"Pillar",
@@ -193,8 +201,8 @@ function ExitGate.build(root: Instance): Gate
 		)
 	end
 
-	local lintelY = height + 1.9
-	piece(
+	local lintelY = if framed then math.max(framed, height) + 1.1 else height + 1.9
+	local lintel = piece(
 		"Lintel",
 		Vector3.new(outer + 0.6, 1.6, depth + 0.4),
 		CFrame.new(0, lintelY, z),
@@ -202,9 +210,13 @@ function ExitGate.build(root: Instance): Gate
 		folder
 	)
 
+	if framed then
+		lintel:Destroy()
+	end
+
 	-- A pitched roof: two wedges meeting over the lintel, in moss.
 	local roofHeight = 2.2
-	for _, side in { -1, 1 } do
+	for _, side in sides do
 		local wedge = piece(
 			"Roof",
 			Vector3.new(depth + 1, roofHeight, outer / 2 + 0.6),
@@ -234,7 +246,7 @@ function ExitGate.build(root: Instance): Gate
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	label.TextColor3 = config.plaqueTextColor
 	label.Text = ""

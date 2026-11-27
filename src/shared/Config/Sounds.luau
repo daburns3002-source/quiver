@@ -51,11 +51,62 @@ local WARDEN_SPRITE = "rbxassetid://123411253404004"
 --[[ The owner's eleven card picks: ten sounds in one upload
      (`assets/audio/final/card_sprite_r22.mp3`, rounds 22 and 23 --
      Thornfall, Guard Break and Bull Rush were sent back once and are
-     round 23's). **Not uploaded yet**, so every region below is silent
-     until the owner uploads the file and the id lands here. ]]
+     round 23's). Uploaded 2026-11-04. ]]
 local CARD_SPRITE = "rbxassetid://76277598556834"
+--[[ The class upgrades' fourteen sounds (`Fx/Upgrades/*BuildFx`, `ClassCardFx`),
+     picked over audition rounds 28-32 and joined into one sprite
+     (`assets/audio/final/class_cards_sprite_r32.mp3`, regions in its .json).
+     Uploaded 2026-11-13. ]]
+local CLASS_CARDS_SPRITE = "rbxassetid://117855777207537"
+
+--[[ The Assassin's nine sounds (its three strikes, the Shadow Dash's cut and
+     its cards' five), the owner's picks of audition round 33 (2026-11-17)
+     joined into one sprite (`assets/audio/final/assassin_sprite_r33.mp3`,
+     regions in its .json). Uploaded 2026-11-17. ]]
+local ASSASSIN_SPRITE = "rbxassetid://113750353487297"
+--[[ The themed daggers' eight sounds and Thornwood's two, the owner's picks
+     of audition round 34 (2026-11-19) joined into one sprite
+     (`assets/audio/final/dagger_sprite_r34.mp3`, regions in its .json;
+     made by `assets/audio/daggers_synth.py`). Uploaded 2026-11-19. ]]
+local DAGGER_SPRITE = "rbxassetid://110974097332957"
+
+--[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
+     not uploaded yet, so "" and silent. ]]
+local WATER_SPRITE = ""
+
+--[[ Round 35's attack sounds for the pets and enemies that had none, the
+     owner's picks of 2026-11-26 joined into one sprite
+     (`assets/audio/final/attack_sprite_r35.mp3`, regions in its .json;
+     made by `assets/audio/attack_synth.py`). Uploaded 2026-11-26. ]]
+local ATTACK_SPRITE = "rbxassetid://132901474260509"
 
 local Sounds: { [string]: Sound } = {
+	--[[ Footsteps in the Drowned Village's shallow water (`Fx/WaterSteps`;
+	     owner, 2026-11-05: "the footsteps in the shallow water need to be
+	     emphasized"): three takes from `assets/audio/water_step_synth.py`,
+	     one sprite (`final/water_step_sprite.mp3`, one upload), played in
+	     turn at random. Silent until it is uploaded and `WATER_SPRITE` set. ]]
+	water_step_1 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 0, 0.48 },
+	},
+	water_step_2 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 0.92, 0.48 },
+	},
+	water_step_3 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 1.84, 0.48 },
+	},
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
 	arrow_fire = {
 		id = "rbxassetid://87054967937419",
@@ -83,6 +134,30 @@ local Sounds: { [string]: Sound } = {
 		id = "rbxassetid://79504183116158",
 		volume = 0.8,
 		pitchJitter = 0.02,
+		minGap = 0.05,
+	},
+	--[[ The Assassin's three strikes (`Config/Weapons.SplinterDaggers.comboSounds`):
+	     about two a second, so thin and quiet, a little steel on each; the
+	     stab is two thrusts and a small thud. ]]
+	dagger_slash = {
+		id = ASSASSIN_SPRITE,
+		region = { 0, 0.17 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.05,
+	},
+	dagger_slash_2 = {
+		id = ASSASSIN_SPRITE,
+		region = { 0.61, 0.17 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.05,
+	},
+	dagger_stab = {
+		id = ASSASSIN_SPRITE,
+		region = { 1.22, 0.21 },
+		volume = 0.65,
+		pitchJitter = 0.04,
 		minGap = 0.05,
 	},
 	--[[ The Arcanist's every bolt (`Config/Weapons.BranchStaff.fireSound`). ]]
@@ -190,7 +265,18 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.2,
 		region = { 14.215, 1.05 },
 	},
-	--[[ A Mythic pulled from a crate or egg, after the jingle, in place of
+	--[[ A purchase going through (`UI/PurchaseFx`; owner, 2026-11-14): no
+	     new upload, the shops' new_item chime played a little faster and
+	     higher so it reads as its own sound. ]]
+	purchase = {
+		id = SHOP_SPRITE,
+		volume = 0.75,
+		speed = 1.18,
+		pitchJitter = 0.02,
+		minGap = 0.25,
+		region = { 14.215, 1.05 },
+	},
+	--[[ A Mythic pulled from a crate or egg, as it appears, in place of
 	     reveal_rare (owner, 2026-10-26: "super over the top"; round 26).
 	     `assets/audio/final/mythic_reveal_r26.mp3`, uploaded 2026-10-26. ]]
 	--[[ The class select screen (owner, 2026-10-27: "there should be sounds
@@ -574,53 +660,60 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.12,
 	},
-	--[[ The class upgrades of 2026-10-27 (`Fx/Upgrades/*BuildFx`): hooked up
-	     silent, waiting on the owner's picks and one sprite upload. ]]
+	--[[ The class upgrades of 2026-10-27 (`Fx/Upgrades/*BuildFx`): picked by the
+	     owner and joined into one sprite (`CLASS_CARDS_SPRITE`). ]]
 	-- the phoenix's cry as it leaves the bow
 	fx_phoenix = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 9.114, 1.069 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the arrow going up, and the rain's patter
 	fx_arrow_rain = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.91, 1.078 },
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the hole opening and its hum
 	fx_black_hole = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 2.428, 1.313 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.6,
 	},
 	-- the implosion
 	fx_black_hole_implode = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 4.181, 0.859 },
 		volume = 0.8,
 		pitchJitter = 0.05,
 		minGap = 0.4,
 	},
 	-- the crystal appearing
 	fx_turret = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 14.144, 0.871 },
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the giant sword's slam
 	fx_titan_slam = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 12.844, 0.86 },
 		volume = 0.85,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- the charged blow
 	fx_counter_strike = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 6.898, 0.57 },
 		volume = 0.8,
 		pitchJitter = 0.05,
 		minGap = 0.3,
@@ -708,6 +801,540 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.04,
 		minGap = 0.3,
 		region = { 8.683, 0.754 },
+	},
+	--[[ The class cards of 2026-11-13 (`Fx/Upgrades/ClassCardFx`): picked by the
+	     owner and joined into one sprite (`CLASS_CARDS_SPRITE`). ]]
+	-- the sniper arrow leaving the bow
+	fx_sniper = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 11.513, 0.23 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- an arrow splitting at a kill
+	fx_split_shot = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 12.183, 0.221 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	-- an enemy shot blown away
+	fx_wind_gust = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 15.455, 0.22 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	-- a kill charging the staff
+	fx_mana_surge = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 7.908, 0.766 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the shield taking a hit and shattering
+	fx_arcane_shield = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.0, 0.47 },
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the shield thrown
+	fx_shield_throw = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 10.623, 0.45 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the sword thrown spinning
+	fx_blade_storm = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 5.48, 0.978 },
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	--[[ The Assassin's cards (`Fx/Upgrades/AssassinFx`): silent hooks until
+	     their sounds are picked and uploaded as one sprite with the daggers'
+	     own (`docs/PIPELINES.md` section 7). ]]
+	--[[ The Shadow Dash's cut through whatever it passed (`AssassinFx`). ]]
+	fx_shadow_dash = {
+		id = ASSASSIN_SPRITE,
+		region = { 1.87, 0.28 },
+		volume = 0.6,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	fx_backstab = {
+		id = ASSASSIN_SPRITE,
+		region = { 2.59, 0.164 },
+		volume = 0.6,
+		pitchJitter = 0.06,
+		minGap = 0.15,
+	},
+	fx_poison_trail = {
+		id = ASSASSIN_SPRITE,
+		region = { 3.193, 0.56 },
+		volume = 0.6,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+	},
+	fx_fan_of_knives = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.193, 0.22 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_death_mark = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.853, 0.86 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_thousand_cuts = {
+		id = ASSASSIN_SPRITE,
+		region = { 6.153, 0.78 },
+		volume = 0.8,
+		pitchJitter = 0.02,
+		minGap = 0.5,
+	},
+	--[[ Thornwood's cards (2026-11-18), the owner's picks of round 34: a
+	     woody crack with thorns flying out; a snort and a heavy shove. ]]
+	fx_thorn_burst = {
+		id = DAGGER_SPRITE,
+		region = { 10.2, 0.28 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_boar_rush = {
+		id = DAGGER_SPRITE,
+		region = { 10.92, 0.49 },
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	--[[ Wave 2's last class cards (2026-11-26, `Fx/Upgrades/WaveTwoFx`):
+	     silent hooks until their sounds are auditioned, picked and
+	     uploaded as one sprite (docs/CLASS-CARDS.md gives them none). The
+	     echo of a blow; a shot knocked back; an orb bursting into shards;
+	     a blast's pull. ]]
+	fx_echo_slash = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_riposte = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_split_orb = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	fx_gravity_well = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	--[[ The themed daggers' own effects (2026-11-18, `Fx/Upgrades/DaggerFx`),
+	     the owner's picks of round 34. Wishing Star: two soft pings, then a
+	     magic "pom" as the star lands (0.35 s in). Spur Rowel: three bright
+	     "ching"s. Splash Wave: a splash and droplets. Combo Counter: a tiny
+	     two-note blip on every strike, and four 8-bit notes falling when a
+	     hit empties it. Comet Crash: a hum swelling to a deep "thoom" as the
+	     comet lands (1.5 s in); one at a time at most every half second, as
+	     a room full of comets would drown everything else. Bell Chime: a
+	     bright hand bell, "ding-ding". Lava Burst: a rumble, five blorps
+	     along the line and a sizzle. ]]
+	fx_wishing_star = {
+		id = DAGGER_SPRITE,
+		region = { 0, 1.06 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_spur_rowel = {
+		id = DAGGER_SPRITE,
+		region = { 1.5, 0.551 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_splash_wave = {
+		id = DAGGER_SPRITE,
+		region = { 2.49, 0.5 },
+		volume = 0.6,
+		pitchJitter = 0.06,
+		minGap = 0.2,
+	},
+	fx_combo_counter = {
+		id = DAGGER_SPRITE,
+		region = { 3.431, 0.136 },
+		volume = 0.4,
+		pitchJitter = 0.03,
+		minGap = 0.08,
+	},
+	fx_combo_break = {
+		id = DAGGER_SPRITE,
+		region = { 4.006, 0.325 },
+		volume = 0.6,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_comet_crash = {
+		id = DAGGER_SPRITE,
+		region = { 4.771, 2.475 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.5,
+	},
+	fx_bell_chime = {
+		id = DAGGER_SPRITE,
+		region = { 7.687, 0.923 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_lava_burst = {
+		id = DAGGER_SPRITE,
+		region = { 9.05, 0.71 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	--[[ Round 35 (2026-11-26): an attack sound for every pet and enemy that
+	     had none, `assets/audio/attack_synth.py`. Pets cue from
+	     `Config/PetSounds`, enemies and the two new bosses from
+	     `Config/EnemySounds`. ]]
+	pet_bark_hoglet = {
+		id = ATTACK_SPRITE,
+		region = { 0.0, 0.224 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_burrball = {
+		id = ATTACK_SPRITE,
+		region = { 0.664, 0.241 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_budbulb = {
+		id = ATTACK_SPRITE,
+		region = { 1.345, 0.33 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_berry_mouse = {
+		id = ATTACK_SPRITE,
+		region = { 2.115, 0.59 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thistle_mole = {
+		id = ATTACK_SPRITE,
+		region = { 3.145, 0.242 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_briar_beetle = {
+		id = ATTACK_SPRITE,
+		region = { 3.827, 0.42 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_berry_bat = {
+		id = ATTACK_SPRITE,
+		region = { 4.687, 0.36 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_bear = {
+		id = ATTACK_SPRITE,
+		region = { 5.487, 0.275 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_briar_lynx = {
+		id = ATTACK_SPRITE,
+		region = { 6.201, 0.331 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_wilf_bolt = {
+		id = ATTACK_SPRITE,
+		region = { 6.972, 0.55 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_wilf_howl = {
+		id = ATTACK_SPRITE,
+		region = { 7.962, 0.59 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thorn_princess = {
+		id = ATTACK_SPRITE,
+		region = { 8.992, 0.69 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thornwake = {
+		id = ATTACK_SPRITE,
+		region = { 10.122, 0.69 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_slate_turtle = {
+		id = ATTACK_SPRITE,
+		region = { 11.252, 0.36 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_buoy_puffer = {
+		id = ATTACK_SPRITE,
+		region = { 12.052, 0.34 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_inkpot = {
+		id = ATTACK_SPRITE,
+		region = { 12.832, 0.268 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_tide_wilf = {
+		id = ATTACK_SPRITE,
+		region = { 13.54, 0.59 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_abyss_jelly = {
+		id = ATTACK_SPRITE,
+		region = { 14.57, 0.82 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_cave_cricket = {
+		id = ATTACK_SPRITE,
+		region = { 15.83, 0.22 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lichen_gecko = {
+		id = ATTACK_SPRITE,
+		region = { 16.49, 0.17 },
+		volume = 0.45,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bog_beaver = {
+		id = ATTACK_SPRITE,
+		region = { 17.099, 0.39 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lanternfin_mote = {
+		id = ATTACK_SPRITE,
+		region = { 17.929, 0.397 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lanternfin_burst = {
+		id = ATTACK_SPRITE,
+		region = { 18.766, 0.46 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_olm = {
+		id = ATTACK_SPRITE,
+		region = { 19.666, 0.27 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_glowcap_wilf = {
+		id = ATTACK_SPRITE,
+		region = { 20.376, 0.63 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_gulpling = {
+		id = ATTACK_SPRITE,
+		region = { 21.446, 0.575 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_prism_leviathan = {
+		id = ATTACK_SPRITE,
+		region = { 22.461, 0.632 },
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	enemy_charger_bite = {
+		id = ATTACK_SPRITE,
+		region = { 23.533, 0.24 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_spitter_spit = {
+		id = ATTACK_SPRITE,
+		region = { 24.213, 0.204 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_baby_slime_bite = {
+		id = ATTACK_SPRITE,
+		region = { 24.857, 0.136 },
+		volume = 0.4,
+		pitchJitter = 0.06,
+		minGap = 0.15,
+	},
+	enemy_brood_slime_bite = {
+		id = ATTACK_SPRITE,
+		region = { 25.433, 0.229 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_burrower_clods = {
+		id = ATTACK_SPRITE,
+		region = { 26.102, 0.269 },
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_lancer_lance = {
+		id = ATTACK_SPRITE,
+		region = { 26.811, 0.21 },
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_glowcap_spores = {
+		id = ATTACK_SPRITE,
+		region = { 27.461, 0.272 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_spore_puff_bite = {
+		id = ATTACK_SPRITE,
+		region = { 28.172, 0.22 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_shellback_bash = {
+		id = ATTACK_SPRITE,
+		region = { 28.832, 0.39 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	enemy_fisherman_cast = {
+		id = ATTACK_SPRITE,
+		region = { 29.662, 0.44 },
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	boss_toll_raise = {
+		id = ATTACK_SPRITE,
+		region = { 30.542, 0.86 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	boss_toll_ring = {
+		id = ATTACK_SPRITE,
+		region = { 31.842, 2.06 },
+		volume = 0.85,
+		pitchJitter = 0.03,
+		minGap = 0.4,
+	},
+	boss_toll_rap = {
+		id = ATTACK_SPRITE,
+		region = { 34.342, 0.46 },
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	boss_toll_echo = {
+		id = ATTACK_SPRITE,
+		region = { 35.242, 0.339 },
+		volume = 0.75,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	boss_toll_scuttle = {
+		id = ATTACK_SPRITE,
+		region = { 36.022, 0.387 },
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	boss_gulp_spit = {
+		id = ATTACK_SPRITE,
+		region = { 36.849, 0.976 },
+		volume = 0.8,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+	},
+	boss_gulp_slide = {
+		id = ATTACK_SPRITE,
+		region = { 38.265, 1.134 },
+		volume = 0.8,
+		pitchJitter = 0.03,
+		minGap = 0.5,
+	},
+	boss_gulp_inhale = {
+		id = ATTACK_SPRITE,
+		region = { 39.839, 2.06 },
+		volume = 0.8,
+		pitchJitter = 0.02,
+		minGap = 1.0,
 	},
 }
 

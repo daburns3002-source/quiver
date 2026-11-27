@@ -16,6 +16,833 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Four Bogheart enemies drawn bare, six Drowned weapons with no glow, Blaze's "Arrows" on melee cards (2026-11-26)
+
+**Seen:** the content sweep (Studio, every upgrade per class, every weapon, pet and enemy, a window each, its
+errors, sounds and effects recorded). Grandmother Gulp's window logged `ContentId: rbxassetid://124939475424728
+failed ... No asset content representation found`; Spore Puff, Glowcap and Shellback share the fault (the
+2026-11 run-through's item 4). The Drowned Village's three Legendaries and three Mythics showed no aura in hand.
+The Assassin was offered Blaze reading "Arrows set enemies on fire."
+**Cause:** the four textures are the colour maps Studio's 3D importer uploaded for SurfaceAppearances
+(`tripo_material_...`); Roblox has no picture of them it can draw as a mesh's `TextureID`. Ordinary uploads
+(Old Tollcrab's `base_color_texture`) work. The Drowned rows were the only textured set the weapon generator
+wrote without `aura`, and a Mythic's `rainbow` lights a Gems part a single textured mesh does not have.
+**Fix:** the imports' SurfaceAppearances are kept in the place under `ReplicatedStorage.EnemySurfaces`, named by
+colour-map id; `EnemyModel` puts a copy on the part instead of the `TextureID`, and `RoomPreload` stops fetching
+those ids. Studio: Spore Puff, Glowcap and Shellback wear theirs (captured). The Drowned rows pass `aura`, teal as
+the area's daggers (Legendary 70,220,200; Mythic 90,240,225). Blaze reads "Your hits set enemies on fire."
+Not bugs, though the sweep first flagged them: Soul Chain on arrows, the melee swing sounds, Wind Arrows' gust
+(it needs an enemy shot to blow away). Each was the harness, checked again the way a player plays.
+
+---
+
+## Room 1 showed the player's ring but no body, again: the body was under the floor (2026-11-26)
+
+**Seen:** Claude's live playtest of version 1155: 1-2 from the lobby, a card draft, and the room cleared with only
+the cyan ring where the player stood. The server console: the character was whole (21 parts, none hidden) at
+y -14, standing on `Lobby.Lawn` (y -17.9) straight under `ArenaSpawn` (0, 4, 23). Version 1154 had shown the body.
+**Cause:** a race, not the camera fade of #673. The run server puts the body on the start as room 1 is built, but
+a body is moved by its own player's client, and that client can drop it through a floor it has not been sent yet.
+The run server's lobby lawn caught it 18 studs down, under the arena, where the floor hid it; nothing put it back,
+and its arrows still cleared the room from below.
+**Fix:** `RoomController.step` puts any root below `FallRescue.BELOW` (y -6; a standing root is at about 3, the
+floor's top at 0) back on the start. Studio: a root moved to y -14 in a run was standing at y 3.9 within 0.25 s.
+`tests/FallRescue.spec`.
+
+---
+
+## Back from a run, the lobby sent the player away: "still saving from your last server" (2026-11-25)
+
+**Seen:** Claude's live playtest of version 1154: 1-2 lost, TRY AGAIN, MENU, BACK TO LOBBY. The lobby came up with
+0 coins, 0 gems and no pet, and about 25 s later Roblox said "You have been kicked ... Your progress is still saving
+from your last server. Please rejoin in a minute. (Error Code: 267)". The same trip had worked in version 1151.
+**Cause:** a race in the session lock (`Data/PlayerData`). The run server lets the lock go with its last save as the
+player leaves, but until that save returns the player's entry is still there, and the 6 s autosave could queue one
+more save behind it. Saves wrote whenever the lock was empty or their own, so that late autosave took the lock
+back, with nobody left to let it go. The lobby could not load the record for `STALE` (10 minutes), waited its six
+tries (about 24 s) and kicked the player.
+**Fix:** `Data/SaveLock` holds the rule: a save writes only over a record this server holds, never over an empty
+lock (it let it go) or another server's. A leaving player's entry is marked, so no autosave follows the release.
+The lobby now waits about 40 s for a last server still letting go. `tests/SaveLock.spec`.
+**Not measured:** Studio has no DataStores (profiles live in memory), so the race cannot be played there; it needs a
+live trip back after the next publish. A lock left by the old code clears itself within 10 minutes.
+
+## The player is a ring with no body in a run's first room (2026-11-25)
+
+**Seen:** the owner's live playtest after publishing: "where is the player model" (a screenshot of room 1:
+the cyan ring, the lit path to the exit, no character). Claude's live run the same day: invisible in room 1
+on the run's server, visible by room 2.
+**Cause:** Roblox's own camera fades the local character (`LocalTransparencyModifier` 1) when it comes
+close to the head: zoomed to first person in the lobby, or just spawned on a run's server, where the lobby
+camera is Roblox's until the stage begins. `Camera/TopDownCamera` then switches to Scriptable, and Roblox
+stops updating that fade, so it stayed on.
+**Fix:** each time the top-down camera takes over, it sets `LocalTransparencyModifier` back to 0 on every
+part and decal of the character, except a part that hides itself on purpose (`LiveString`, `Fx/BowString`).
+**Measured:** Studio Play: zoomed to first person in the lobby, the body parts read 1.00; started 1-1 from
+there: 1.00 before the fix, 0.00 after.
+**Then (live version 1151, the same day):** still a ring with no body in room 1, so the one-time unfade was
+not enough. Roblox's camera learns of the switch to Scriptable through a deferred signal, so it can run
+one more frame after the unfade and fade the body again, and nothing then took it off. The top-down camera
+now also unfades on any frame it finds the head faded (Roblox fades every part by the same amount).
+Not yet seen live: needs the owner's next publish.
+
+## Twenty seconds on a bare green plane after a level starts (2026-11-25)
+
+**Seen:** Claude's live playtest of version 1146 (the owner's account, CONTINUE 1-2): TRAVELLING..., the
+trip, then about 20 s of flat green ground under the run's HUD before the level drew. Part of the owner's
+"the game keeps restarting".
+**Cause:** on arrival at a run's own server the client skips the title (`IntroCutscene.skipped`) and
+lifted the loading screen at once, while the server was still loading the save, waiting for the party
+(`Coop.arrivalWait`) and building the first room. Only an area's first level had a cover of its own
+(`AreaLoading`). Studio plays runs in place, so it never showed.
+**Fix:** `Main.client`: sent to a run (teleport data with `portal` or `tutorial`), the loading screen holds
+until `Workspace.InLobby` turns false (the run is under way), 40 s at most, short of its own "TAKING A
+WHILE" line. A trip back to the lobby lifted at once and stood about 8 s on the same green plane, so it
+now holds until the server has put the player in the lobby (`RunSession.ARRIVED`), 40 s at most (#671).
+**Measured:** live only (Studio cannot teleport): the owner's next playtest after publishing.
+
+## A big web and random models in the middle of the live game's levels (2026-11-20)
+
+**Seen:** the owner's live playtest (published version 1132): "there is a big web in the middle",
+"there are also random models in the level".
+**Cause:** the place published from Studio carried about 105 instances other sessions had left in
+the Edit Workspace: `TripoImports`, render rigs (`Scene`, `AuxScene`), weapon previews, 27 pet-effect
+previews (`fx_pet_*`, among them a 28-stud `fx_pet_crown_shockwave` ring and a 27-stud
+`fx_pet_prism_beam`) and both Endless gates, 71 of them posed around the origin, which is where every
+arena is built. Nothing in the repo puts anything in Workspace, so no gate could see them.
+**Fix:** `Server/Util/WorldSweep` runs first in `Main.server`, before anything builds, and destroys every
+child of Workspace but the Terrain, the Camera and a player's character, on the server's copy only
+(the saved place is untouched), with a `[WorldSweep]` warning naming what went. Studio's Play does the
+same, so a Studio playtest is what a live player sees. `tests/WorldSweep.spec`.
+**Measured:** Studio Play on the dirty place: "[WorldSweep] removed 105 saved Workspace instances";
+the client's Workspace holds only the game's own folders, and the tutorial arena shows nothing in
+the middle. The live game changes only once main is published again.
+**Then (the same day):** the owner also saw the live game "keep restarting". Version 1132 cannot be opened
+to see whether a test autopilot (`RunBot`, `AutoPlay`) was in Studio when it was published, so a live
+server now also keeps only the repo's own scripts (`WorldSweep.only`: `ServerScriptService.Server`,
+`StarterPlayerScripts.Client`, `ReplicatedFirst.Loading`; StarterGui and StarterCharacterScripts empty),
+before any player joins. Studio keeps its test scripts.
+**Then (live version 1151):** that sweep also took Roblox's own `RbxCharacterSounds` (footsteps, jumps,
+landings) out of StarterPlayerScripts, as its server log showed. `WorldSweep.ROBLOX_OWN` now names the
+engine's own scripts (`RbxCharacterSounds`, `PlayerModule`, `PlayerScriptsLoader`, `Animate`, `Health`,
+the legacy chat's three) and `only` always keeps them. `tests/WorldSweep.spec`.
+
+## Endless kills in two hits in the teens (2026-11-19)
+
+**Seen:** the owner's playtest: "in endless i only died in the teens and i got 2 shot, the enemies do way too much damage".
+
+**Cause:** Endless's damage curve started at 0.7x and rose 3% a floor, so floor 15 hit at 1.06x. Floors 11 to 20 use Thornwood's roster, whose Bramble Lurker fires five 56s and Burr Thistle three 45s, and Endless opens straight after 1-10, so the player has only Mossy Glade gear: one close Lurker volley was up to about 300 damage against the Ranger's 225 health.
+
+**Fix:** `Balance.Endless.damageStart` 0.7 to 0.5, which cuts every floor's damage by 29% (floor 15 now 0.76x, floor 20 0.88x). Health and the rate are unchanged, so health still outgrows damage at every depth.
+
+**Measured:** `tests/Endless.spec` pins the new start and floor 15's value, and still holds health at or above damage on all 200 floors. Not yet replayed by the owner.
+
+## Tapping an item in the gear screen tints the whole screen, its card too (2026-11-19)
+
+**Seen:** the owner: clicking an item in the gear screen "makes the screen tinted".
+
+**Cause:** the dark behind the item card (`GearScreen.darken`, #611) was a child of the card's shade at the shade's ZIndex, 100. The gear screen is Sibling-ordered and the card's pieces are its siblings at ZIndex 3 to 14, so the dark was drawn over the card as well as behind it.
+
+**Fix:** the dark's ZIndex is 0, under every piece of the card, as the end screen's dim already is.
+
+**Measured:** gates and the in-Roblox suite pass. The card was not seen on screen: the gear station would not open by probe in Studio.
+
+## Late in a run, most arrows and orbs are invisible (2026-11-19)
+
+**Seen:** a playtest stacking arrow cards on the Glade Spirit Bow (Multishot x2, Diagonal x2, Front x2, Side, Rear, Ricochet, Piercing, Bouncy Wall, Double Shot) put 400 shots in flight at once, the strong device's `maxRenderedProjectiles`. The shots' beam pool sat at its cap of 700.
+
+**Cause:** since the projectile shots (#651 to #656) a carded weapon's flight part is built unseen and `Fx/Shots/Play` draws it with pooled beams, newest first. Once the 700 beams were spent, `Painter` drew nothing more, so the older shots, about 360 of the 400, were not drawn at all, and every one of them was still drawn in Lua first.
+
+**Fix:** once the pool is full, `Play.draw` stops drawing and shows the shot's own flight part instead, a small block lit in the weapon's main colour, hidden again when there are beams to spare or when the shot stops (its part goes back to the renderer's pool unseen). Nothing past the pool is drawn in Lua.
+
+**Measured:** the same stress in Studio: 400 shots in flight, 700 beams in use, up to 366 shots shown by their flight parts and none unseen; no errors logged. Every one of the 49 bows and staves and 55 blades was fired or swung in the sandbox the same day with its own drawing and no fallback.
+
+---
+
+## A tournament pick could take the Nebula, Petalfall or Wishcutter Blade (2026-11-19)
+
+**Symptom:** found in review of PR #658, not by a player. The weekly tournament's PICK A SET WEAPON
+panel offered every themed set weapon not owned, so a top-ten player could take the Nebula Blade,
+the Petalfall Blade or the Wishcutter Blade, which are Endless room 100's and the season pass's
+rewards (PR #650, #658) and are never sold.
+**What was wrong:** `TournamentRules.pickable` kept any catalog entry with a `set`; it never looked at
+`earned`, and the server's `catalogItems` did not pass it. The panel (`UI/TournamentPrize`) listed
+every set entry the same way.
+**What was done:** `pickable` skips an entry that is `earned`, and `Wallet`'s `catalogItems` copies
+`earned`, so both the pick and the "nothing left to pick, pay gems" count leave the three blades out.
+On the panel they keep their place in their set's row, captioned REWARD and not pressable; a tap
+names where they are earned (`howEarned`).
+**Measured:** `tests/TournamentRules.spec` "a pick never takes a reward weapon": none of the three is
+in the real catalog's picks, the Orbit Bow still is. See the PR for the Studio check.
+
+---
+
+## The Starter Pack sold eggs to players Roblox restricts, and showed no odds (2026-11-19)
+
+**Symptom:** found in the release check, not by a player. Roblox's paid random items policy
+(create.roblox.com/docs/production/monetization/paid-random-items, read 2026-11-19) counts an egg
+bought with Robux, or with a currency Robux can buy, as a paid random item: its outcomes and their
+odds must be shown before the purchase, adding up to 100% or rounded with a line that says so, and a
+player whose `ArePaidRandomItemsRestricted` is true must not be able to buy one.
+**What was wrong:** the Starter Pack (99 Robux: 500 gems, 3 Mossy Eggs, 2,000 coins) was not
+`paidRandom`, so a restricted player was offered it on the STORE and after their second win, and the
+server would prompt it. Neither the STORE tile nor the offer showed the Mossy Egg's odds. The
+hatchery's and blacksmith's odds were rounded to one place ("59.2%") with no rounding line, so the
+printed numbers did not always add to 100%.
+**What was done** (owner, 2026-11-19: "Yes to all three"): the Starter Pack is `paidRandom`, so
+`StoreRules.shelf` leaves it off a restricted (or not yet answered) player's shelf, `canPrompt`
+refuses it and `Purchases.offerStarter` never owes it to them, as the Server Luck already was. ODDS
+on its STORE tile and its after-win offer opens `UI/EggOdds`: every pet, its rarity and chance,
+the luck running now included. Every printed chance is four significant figures (`Util/OddsText`)
+with "ODDS ARE ROUNDED, SO THEY MAY NOT ADD UP TO EXACTLY 100%" under the hatchery's and the
+blacksmith's grid and the odds panel. 2X COINS and VIP stay on sale to everyone (they sell no coins).
+**Measured:** `tests/OddsText.spec` (every egg at luck 1 to 3 and every crate for every class:
+printed odds within rounding of 100%) and `tests/RobuxStore.spec` (the pack off the shelf and
+unpromptable for restricted and unknown, on it otherwise; every product with eggs or luck is
+`paidRandom`); 1,315 in-Roblox tests pass. Seen in Studio: the ODDS button on the STORE tile and the
+offer, and the Mossy Egg's panel (eight pets, 26.75% + 26.75% + 24.00% + 12.00% + 6.000% + 1.750% +
+1.750% + 1.000% = 100%). **Not seen:** the rounding line on the hatchery card (the station would not
+open by probe), phone size.
+
+---
+
+## The same pet looks different on the egg screen, the Gear screen and the Dex (2026-11-19)
+
+**Symptom:** owner: "MAKE SURE THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE SAME".
+A pet stood as its 3D model on the egg screen's odds, in the hatch reveal and on the Gear screen's
+item card, but was a flat picture in the Dex, the Gear grid, the pet slots and the Endless prizes.
+
+**Cause:** each screen chose its own picture. `Chunky.tile`, `Kit.rarityCard` and `UI/Reveal` drew
+`Kit.petModel` whenever a caller passed a pet's key, and only some callers did. Weapons had two
+sets as well: every screen asked `ShopAssets.weapons` first and fell back to the outlined
+`GearAssets.weapons`, which lacked the 29 Drowned Village and Bogheart weapons, so the same lookup
+was copied into eight modules waiting to drift.
+
+**Fix:** `Util/ItemIcons` is the one place a screen asks (`weapon`, `pet`, `of`); the 3D pet path,
+the outlined weapon set and the unused option C crate tiles are gone. `tests/ItemIcons.spec` wants
+one uploaded picture for each of the 104 weapons and 37 pets and the Dex to agree; the `item
+pictures` gate in `tools/check.sh` fails on a screen that reads the configs itself.
+
+**Measured:** in Studio by probe, Mosslet is `rbxassetid://90863911704588` on the egg odds, the hatch
+reveal, the Gear slot, grid and card, and the Dex; the egg screen, Gear PETS tab and Dex hold no pet
+viewport. 1,316 in-Roblox tests pass.
+
+---
+
+## Two in-Roblox tests fail on the Bogheart Egg: "holds 0 guards", "has no area to scale its pets by" (2026-11-16)
+
+**Symptom:** `PetGuard › exactly one pet in each egg guards: BogheartEgg holds 0 guards` and `PetPower ›
+every hatchable pet that fights is near its rarity's band: BogheartEgg has no area to scale its pets by`,
+on main since the egg opened (2026-11-06).
+
+**Cause:** the tests, not the egg. The egg's pet that keeps its owner from harm is the Bog Beaver, whose
+Mud Plaster is a coat that soaks damage and deliberately not a shell (`docs/PETS-BOGHEART.md`); the guard
+test counted shells only. And the power test's table of which area each egg's pets are scaled by stopped
+at Thornwood; the pets themselves were already on area 4's bands, held by name in the same file.
+
+**Fix:** `tests/PetGuard.spec` asks for exactly one pet in each egg that protects, by a shell, a shelter
+or a coat, and that it is the egg's Uncommon, and that no pet protects in two ways. `tests/PetPower.spec`
+knows `BogheartEgg = 4`. No game code changed.
+
+**Measured:** in Studio, 1179 passed and 0 failed (it was 1175 and 2).
+
+---
+
+## The every-class run-through's fifteen (2026-11-16)
+
+Found by `docs/RUN-THROUGH-2026-11.md` (three classes through Mossy Glade, the three later areas, Endless);
+the owner: "Fix all 15". Numbered as the report numbers them. Each was looked at in Studio on the branch
+unless it says otherwise.
+
+### 1. A new player's free crate is Bogheart's (a Ranger with an Epic bow at damage x1.99 after ten wins)
+
+**Symptom:** class level 3's free crate gave a Ranger who had beaten nothing a Peatwood Bow; level 5's
+free egg was a Bogheart egg; REWARDS' gift box drew Bogheart's picture.
+**Cause:** `PrizeRules.crateIndex` took the furthest area with weapons for the class and never asked what
+the player had reached; it was written when only Mossy Glade was stocked. `eggKey` asked `EggRules.open`,
+which reads the launch switch, so in playtest every egg was open too.
+**Fix:** both read the launch's gates as if the switch were on (`LaunchLocks.eggUnlock(egg, true)`,
+`ShopRules.crateOpen(index, bossesBeaten, true)`): a shop may sell everything in playtest, a gift follows
+progress. `crateIndex` takes the player's `bossesBeaten`; the server's one caller is
+`EndlessPrizes.bestCrate`.
+**Measured:** `tests/EndlessPrizes.spec`: a new player gets `MossyEgg` and crate 1 for every class, and no
+area's prize comes before the boss it waits on, stepping through the areas. In Studio the gift box of a
+profile with King Bloblin and the Broodmother beaten drew Thornwood's egg, not Bogheart's.
+
+### 2. A weapon from a free crate stays in the bag
+
+**Symptom:** after ten wins the Ranger still held the Twig Bow with an Epic, a Rare and an Uncommon bow owned.
+**Cause:** the rule that puts a stronger weapon in hand (`Data/Shop` `takeUp`, 2026-11-14) was called for a
+bought crate and the store only. Every free crate is rolled by `EndlessPrizes.crates`, which did not call it.
+**Fix:** `EndlessPrizes.crates` hands what came out to `EndlessPrizes.takeUp` (set by `Data/Shop`, which
+may require the room controller; this module may not). Outside the lobby `takeUp` now also sets the
+session's weapon, so it is in hand from the next card or the next run rather than from the next join.
+**Measured:** five Bogheart crates from the Soulstone shop during Thornwood 2-1: saved `equipped` went
+Twig Bow to Sporestring Bow at once, the hand still held the Twig Bow in that run, and held the Sporestring
+Bow on arriving in the lobby.
+
+### 3. NEXT LEVEL on 1-10 puts you in the lobby
+
+**Symptom:** VICTORY on an area's last level shows NEXT LEVEL; pressing it played the story beat and stood
+the player in the lobby.
+**Cause:** `RoomController.requestRestart` went to the lobby after a portal's last level, by a rule from
+when Thornwood was one level.
+**Fix:** `LevelUnlocks.nextArea`: the first level of the area after it, if everybody in the run may enter
+that area (`LaunchLocks.portalOpen`). Only the last level of the last area built is won into the lobby,
+and there the button says CONTINUE (`EndScreenRules.goesOn`).
+**Measured:** 1-10 won in Studio, NEXT LEVEL, story beat skipped: `[Run] on to stage 20, Thornwood 2-1`,
+4 s after the skip. Specs pin each built area leading to the next and Bogheart's 4-15 to the lobby.
+
+### 4. "No asset content representation found" for four Bogheart textures: nothing is missing
+
+**Symptom:** `ContentId: rbxassetid://86786943496634 failed ...` on entering Bogheart 4-1, and three more
+in later levels, in two Plays.
+**What it is:** the four ids are the colour textures of Spore Puff, Glowcap, Shellback and Grandmother
+Gulp (`Config/EnemyDesigns`), 2048 x 2048 images from the Tripo imports. Roblox lists all four as approved
+and active. In a third Play the lines did not come, `ContentProvider:PreloadAsync` answered Success for
+each, and all three enemies drew fully textured (capture, 2026-11-16). So a first fetch sometimes fails
+and a later one lands; **no code was changed.** If an enemy is ever seen white for more than a moment,
+the answer is to upload the four maps again at 1024 (they are in the `low/*.glb` files of
+`assets/concepts/blocky/enemies/tripo`).
+**Also:** `rbxassetid://203785492 ... Asset type does not match requested type` on every join is a sound
+by another creator that nothing in the place or the code refers to (every Sound, image, mesh, particle,
+attribute and script searched, server and client): Roblox's own, not ours.
+
+### 5. A first-time tip covers what it explains (class select, the STORE, the Hatchery)
+
+**Symptom:** class select's tip lay over the Arcanist's and the Warden's LEVEL chips with its words in two
+tiny lines; the STORE's lay over GEMS and PASSES; the Hatchery's stayed up over a hatch and the NEW DEX
+ENTRY toast after it.
+**Cause:** three things. A tip with no `Spot` stands under the top HUD, which on class select is the
+cards. `TipRules.over` puts a card's foot on its screen's header, and where the panel is too near the top
+of the screen the card is pushed down over the tabs instead. And a wide card's words stood under the TIP
+tag, in the 32 points left over the OK.
+**Fix:** class select asks with its CHOOSE YOUR CLASS plate as its `Spot`; `over` is given the panel's box
+and goes round the panel (beside it, else under it) when it cannot reach up off it; `TipPlate.card` stands
+a wide card's words beside the tag; a tip that holds nothing goes when a reveal starts (`Reveal.busy`).
+A tip also waits until its header has stood still from one look to the next (`settled`): the profile
+arriving redraws class select, and a card measured against the half-built title stood 645 points off.
+**Measured:** class select, 2091 x 1113: tip y -42..118, cards from 203, the tip's middle on the plate's
+(1045). STORE: the card at x 1607..1907 beside the panel (499..1591), tabs untouched. Words 22 points
+where they were 13.
+
+### 6. An egg's reveal plays with REWARDS still drawn under it
+
+**Symptom:** "YOU HATCHED SOMETHING SPECIAL.." ran across CLAIM ALL's words.
+**Fix:** `RewardsScreen` hides its canvas while its queue of reveals plays (`revealing or Reveal.busy()`),
+as the Hatchery's stand is hidden for its own.
+**Measured:** canvas `Visible` false through an egg reveal and a crate reveal one after the other, true
+6 s later.
+
+### 7. CHOOSE AN AREA: the NEXT UP card is bigger than the others and hangs out of the panel, with a white box round it
+
+**Cause:** one cause for both. The screen put the gamepad selection on the NEXT UP card whenever a gamepad
+was plugged in (`GamepadEnabled`), mouse or not; Roblox draws its white box round a selected button, and a
+selected button's `GuiState` is Hover, which the kit answers by drawing it 8% bigger: 56 points on a card.
+**Fix:** `Kit.gamepadInUse()` (the last input was a gamepad) decides, on this screen and the level
+screen's PLAY. A card lifts 2% under the pointer, not 8% (`Chunky.press`'s `swell`).
+**Measured:** gamepad enabled, last input the mouse: nothing selected, the card at scale 1, its ring's
+foot at 995 with the panel's at 1007.
+
+### 8. PICK A CHEST: the stars row is uneven, and Victory pokes out from behind
+
+**Fix:** each star and its words are one group as wide as the words, the three groups centred with equal
+gaps (they were three slots of one width); the dimmer under the panel is 0.14 see-through, not 0.4.
+**Measured:** groups at x 586..722, 788..1175, 1241..1504: gaps of 66 and 66.
+
+### 9. Gear: the pets run under PET 2's tile and the hero floats over the pedestal
+
+**Cause:** the camera framed the box round hero and pets 15% wider than the frame, on the box's middle.
+**Fix:** `portrait`'s `stand`: the camera aims down the hero's own middle line, keeps the group inside the
+gap between the slot columns, and puts the soles on the pedestal. The pets stand beside the legs, the
+third in front, at 0.36 of the hero's height.
+**Measured:** by eye, with three pets: soles on the stone, nothing under a tile. The hero is smaller than
+a hero with no pets, as before.
+
+### 10. OPEN 1 WEAPON CRATE does not count a free crate
+
+**Fix:** `EndlessPrizes.crates` tells `Rewards.note` ("crates"), as a bought crate does.
+**Measured:** five crates: `questProgress.crate1` 0 to 1, `stats.crates` 0 to 5, `cratesOpened` 5.
+
+### 11. The level card does not say what a missing star asks; Victory's trophy always has three stars
+
+**Fix:** a beaten level short of a star shows its three stars and what the first dark one asks, where it
+said CLEARED (`PortalScreen.starLine`). Victory's picture was cut into the trophy and its three stars
+(`assets/ui/end_screens/split_victory_stars.py`, four pictures uploaded); `EndScreen.buildHero` draws the
+stars, gold for as many as the level holds: the middle one, then left, then right.
+**Measured:** by eye: with all three the trophy is the old picture exactly; with one or two the rest are
+dark shapes.
+
+### 12. The STORE's panel jumps between its tabs; the passes' lines are in small letters
+
+**Fix:** the panel is as tall as its taller tab and a shorter tab stands in the middle; `PASS_LINES` in
+capitals.
+
+### 13. "[ModelAnimator] Boarlet's parts do not line up with BrambleSow (fit error 0.088)"
+
+**Cause:** a model reaches a client over several frames. A node of several primitives is several parts of
+one name, the fit reads only names that came in once, and with one of two here that name counts, at one
+primitive's place. Fitted whole the same Boarlet's error is 0.0000 (measured at 60 frames a second, and
+offline); the run-through's Studio ran at 15.
+**Fix:** the server says how many parts ride the clips (`ModelClipParts`, `EnemyManager.clipParts`) and
+`ModelAnimator.attach` leaves a model alone until that many are here, or 3 s have gone.
+**Measured:** King Bloblin 72 of 72 parts driven, a Bramble Sow 37 of 37.
+
+### 14. The Blacksmith's CRATES opens on BOWS for a Warden
+
+**Fix:** each time the screen is opened afresh its chest is the played class's. **Measured:** a Warden's
+opened on SWORDS.
+
+### 15. At the exit the player is under the run HUD
+
+**Fix:** `Balance.Camera.gateHud` (8 studs): following the player, the view goes that much further past
+the north wall than the gate's own margin. Not added where the view is longer than the room.
+**Measured:** at the gate (z -25) the player's head is at y 297 and the gatehouse's top at 202; the HUD's
+lowest piece over the middle ends at 175.
+
+---
+
+## A weapon is pale (or dark) for a few seconds when first held (2026-11-14)
+
+**Symptom:** a textured weapon (every Tripo one) shows as a bare mesh, pale in light and near black in
+shade, for a few seconds after it is put in a hand, then its colours arrive. Seen in Studio on the
+Golden Staff.
+
+**Cause:** its texture was not in video memory. `Fx/LobbyPreload` fetched every weapon's in the
+background and drew each for three frames, but dropped its warm set as a run began, which is when the
+weapon is first held; nothing kept the held weapon's texture drawn.
+
+**Fix:** `Fx/WeaponPreload` keeps warm the textures of every player's `Weapon` attribute and of this
+player's saved `equipped`, lobby and run alike, and fetches every owned weapon's from the profile
+(`Util/WeaponContent`). Checked in Studio by switching mid-run: a weapon kept warm was textured in the
+capture taken straight after the switch, one that was not was still bare.
+
+## "I did what it said and lost": two deaths in the tutorial, one half a second after ROOM CLEAR (2026-11-14)
+
+**Seen** in the kid playtest (`docs/PLAYTEST-KID.md`), on a brand-new profile. Tutorial room 2: the
+player walked straight in, stopped behind the log across the middle at (0, 7) and stood still, as the
+prompt says. 40 arrows in 22 s, the Spitter at (-10, -1) still on 112 of 112, 14 hits taken, DEFEAT.
+Tutorial room 5: CLEARED at 399.1 s, dead at 399.6 s from two seeds already in the air. TRY AGAIN there
+starts the tutorial over from room 1.
+
+**Wrong:** (1) room 2's one log, 11 studs wide on the centre line, stood between the spawn and the
+room; a ray from the player to the Spitter hit `Arena.Blockers.Obstacle1`, so every arrow stopped on it
+while its lobbed seeds did not. (2) `RoomController.step` went to Cleared with enemy shots still live
+in `ProjectileSystem`; nothing removed them until the next room was built. (3) The tutorial could be
+lost at all.
+
+**Done:** room 2's logs are two, at x = +-10.5, the lane from the spawn open (`tests/Tutorial.spec`
+keeps 4 studs clear either side of the centre line). As a fight is won, every enemy shot is dropped on
+the server and `Remotes.ShotsParried` clears them on every client, in every level. In the tutorial a
+hit never takes health under `Tutorial.healthFloor` (1).
+
+**Measured** in Studio Play: walked into room 2's enemies without shooting; health fell to 1 of 225
+and stayed there through 18 s of further hits, with no DEFEAT; then stood on the centre line and cleared
+the room. Each clear sent `ShotsParried` and the recorder logged no `PlayerDamaged` after it (room 2 of
+the tutorial, rooms 2 and 10 of 1-2, room 15 of 1-3).
+
+**Also here**, from the same playtest: 1-2's first room killed a standing player in 11 s (four enemies
+with a Spitter, against a bare bow) and DEFEAT then offered a 15 Robux revive 1.3 s later. 1-2's first
+two rooms are slimes only now (`tools/glade_levels.py`), and no revive is sold in a run's first three
+rooms (`RobuxStore.reviveFromRoom`; seen: none on a death in room 3, "buy" in room 4). A card taken
+under REROLL's tip left the tip up and the run held for it: a `hold` tip now goes with its screen.
+
+## The launch anti-exploit audit: a run held for ever by re-sending MENU, and thirteen remotes with no rate limit (2026-11-13)
+
+Phase 10's audit (`docs/ROADMAP.md`) read every remote a client can fire at the server: 40 handlers
+in `Main`, `Data/Hatchery`, `Shop`, `SoulstoneShop`, `Trails`, `Rewards`, `Settings` and `Run/Party`.
+
+**What holds.** The server decides every outcome. No remote carries a hit, a damage number, a coin
+total, a hatch or crate result, a merge, a trail, a reward or an unlock: shots, hits and deaths are
+server→client only; `AbilityChosen` is an index into the hand the server dealt (`Loadout.choose`);
+eggs, crates and their pity are rolled on the server and paid through `Wallet.pay`; merges, equips,
+trails and the Soulstone shop check what the profile holds; rewards are judged from the profile and
+the server's clock (`RewardRules`); a level, a boss and an area are only ever marked beaten by
+`RoomController`; `PortalStart` checks the level is open and the player stands at that portal, and a
+party's run server checks the leader's level again, since the teleport data passes through the
+client. Every handler checks its arguments' types, and the number ones refuse NaN and fractions.
+All 13 `Debug*` remotes (`DebugWallet`, `DebugGrant`, `DebugRoom`, `DebugSpawnEnemy`, `DebugDay`,
+`DebugSoulstones`, `DebugForceMythic`, `DebugNextClass`, `DebugDown`, `DebugPetPreview`,
+`DebugSandbox`, `DebugPet`, `DebugWeapon`) returned at once outside Studio.
+
+**What was open, and is fixed.**
+- *A run held for ever.* MENU's panel holds the world (`RunMenu`), capped at 60 s from the latest
+  "open". A client that sent "open" once a minute held every player's run for ever, in co-op too,
+  though the code said one player could not. Now a hold is a budget (`Util/MenuHold`): 60 s at most,
+  spent while held and earned back at a quarter of a second a second while not, and a repeated
+  "open" does not stretch it. Measured by `tests/MenuHold.spec`: a client sending "open" every second
+  for ten minutes holds the run about a fifth of the time; ten seconds in the menu every 70 s is
+  always held.
+- *No rate limit on thirteen remotes* (`AbilityChosen`, `AbilityReroll`, `RunRestart`, `RunLobby`,
+  `StorySeen`, `TipSeen`, `IntroBegin`, `PortalStart`, `EndlessPick`, `NewEnemySeen`, `RunMenu`,
+  `RewardClaim`, `AreaLoaded` and the Debug ones). None paid anything twice, but a script could fire
+  them as fast as the network allowed. Every client→server remote is now listened to in
+  `Net/Inbound` only: a token bucket per player per remote (10 at once, then 5 a second; the settings
+  20 and 10), drops logged once a minute per player and remote. `tools/check.sh` fails on an
+  `OnServerEvent` anywhere else.
+- *Debug remotes listened to on live servers.* Each one checked `RunService:IsStudio()` itself, so a
+  new one that forgot would have been open. `Inbound.debug` now connects nothing outside Studio, and
+  `Inbound.on` refuses a `Debug*` name (as does `check.sh`); the handlers' own checks stay.
+
+**Left as it is, on purpose.** Positions are the client's, as Roblox makes them: a teleporting
+client can dodge or reach a door sooner, but every door, portal and pickup is still checked on the
+server. A co-op partner who never picks a card or never closes NEW ENEMY! holds the run, the known
+co-op caveat in `RunSession.anyChoosing`; BACK TO LOBBY from any party member takes the party. Both
+are design questions, not holes. `ChooseClass` can be sent again later and keeps the pet slots
+(`SwitchClass` empties them); it pays nothing.
+
+Measured: `tools/check.sh` green; in-Roblox suite 1013 passed, 2 failed (the known Bogheart Egg ones),
+new `Throttle`, `MenuHold` and `Analytics` specs among the passes. In Play, 40 `RunMenu` asks at once
+were cut at the limit with one `[Inbound]` line; the tutorial, a death, a hatch, a crate and a 1-1
+left by BACK TO LOBBY each sent their analytics events, and Studio's `AnalyticsService` took every call.
+
+---
+
+## "ArcaneShield level 2 is no better than level 1" (2026-11-13, caught by the suite before shipping)
+
+The in-Roblox suite failed `AbilityEffects › every card's level count matches its stat lines` on the new
+Arcane Shield card, whose levels were the seconds before the shield comes back (10, then 7): a card's levels
+must rise, because `Loadout` and the card's level pips read a bigger number as a better level. **Write a
+cooldown card's level as a rate** (shields a second, 0.1 then 0.15) and turn it back into seconds where it is
+used (`RunSession.applyDamage`: `1 / rate`). The stat line still says "Back every 10s". Not shipped; recorded
+because the next cooldown card will meet the same test.
+
+---
+
+## DEFEAT said "LEVEL 18"; the lobby's buttons peeked out beside a portal's panel; the run's bars showed under DEFEAT (2026-11-13)
+
+Found by the polish playthrough (owner: "play through everything and make sure everything is
+polished, the ui looks good and is not blocking anything"), in Studio Play at 2091 x 1113.
+
+- **"LEVEL 18" on DEFEAT after the Drowned Village.** The end screen's tab fell back to the stage's
+  index (`Balance.Stages[18]`) for any stage without a `level` of its own, which is every area past
+  Mossy Glade. The portal's screen calls the same level "LEVEL 1" (its place on the portal). Now
+  both name it the same way: `EndScreenRules.levelTab` (the level's own number, else its place on
+  its portal, else the index for a stage on no portal), pinned by `tests/EndScreenRules.spec`.
+- **REWARDS and BADGES beside a portal's level panel.** PLAY hid itself under a portal's screen
+  (`PortalScreen.isOpen()` in `UI/LobbyHud`); the two buttons above it did not, and their edges
+  showed past the panel's left side. Both now hide on the same test.
+- **The health number, DASH and the skill bar under DEFEAT's panel.** The end screen draws over the
+  run without a backdrop, and the three bottom bars stayed on, poking out under BACK TO LOBBY. They
+  now go while an end screen is up (`UI/LobbyHud` `UNDER_END`, `UI/DashBar`) and come back when
+  TRY AGAIN or NEXT LEVEL goes on.
+- **REWARDS' count dot covered the word's S.** Moved to the button's corner.
+- **The Dex's weapon grid showed different pictures from every other screen** (owner: "make sure the
+  icons for everything in the gear ui, weapon and egg ui, and dexes all match"). Gear, the
+  Blacksmith, the reveal and the Endless prize take `ShopAssets.weapons` (the 2D art) first; the
+  Dex grid took `GearAssets.weapons` (the old mini pixel icons, 18 of the first two areas' weapons)
+  first. It takes the 2D art now (`tests/DexBook.spec`).
+- **Three pets' pictures were their models before the 2026-11-11 remakes** (#541): Thornwake, the
+  Bramble Wilf and the Ember Wilf, all three from 2026-10-31. Cut again from the art each remake
+  was built from, the Bogheart pets' way (`assets/ui/pets/remake_icons.py`) and uploaded. The Cave
+  Cricket's was already its remake's reference.
+- **A shut egg always said BEAT KING BLOBLIN**, so at launch the Bogheart Egg (waiting on the
+  Drowned Village) would have named the wrong boss. `EggRules.lockWords` names the boss of the area
+  it waits on, as a shut crate does (`tests/Eggs.spec`).
+- **A Dex page said its rarity twice** ("COMMON." under the COMMON pill). The line under the pill
+  no longer repeats it.
+- **The new door arrow, turning upright over the plaque, read as a gold blob or was hidden.** The
+  desktop camera stops with the gate's top half under the run HUD's bars, and from 68 degrees down
+  an upright arrow shows only its top. It hangs low in front of the doorway, held still and leaned
+  back 40 degrees so its stepped shape faces the camera (`Fx/DoorPointer`, `GoldPointer` `lean`).
+
+Also measured, not changed (the owner's call, in TRACKER): on a desktop screen the bottom bars cover
+the room's south 5 studs (ground z 23.9 to 29, the spawn at 23), and the top bars the gate's upper
+part.
+
+## A blue trail came out white on the lobby floor, and a flat one was a thin line (2026-11-13)
+
+Seen in Studio Play before the trails shipped: Starfall, a deep-blue ribbon, drew as a white streak
+on the lobby's cream stone, and every ribbon, laid flat on the ground, read as a thin line from the
+lobby's low camera. **`LightEmission` 1 adds a colour to what is behind it**: blue added to near
+white is white. The ribbon now lays its colour over the ground (`LightEmission` 0; a glowing one is
+`LightInfluence` 0, lit by nothing but itself, so it still glows in a dark room), and a glowing
+particle adds only 0.4 of its light. A brighter fin stands upright along the ribbon's middle
+(`Trails.core.height`, 1.1 studs), which the low camera sees side on, and the ribbons are 1.4x as
+wide. Measured in the next Play: the same ribbon read blue with its white cross stars on it. The
+same holds for any Trail, Beam or particle meant to keep its colour on a bright floor.
+
+The star texture also failed its first load ("No asset content representation found") for some
+minutes after `upload_image`: a fresh upload is still processing. It loaded later in the same Play.
+
+---
+
+## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
+
+Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge
+of the next card and the button under the row. **A `UIScale` grows a frame from its `AnchorPoint`**,
+and the card's tile had the default (0, 0). The tile is anchored at its middle now
+(`AnchorPoint` 0.5, 0.5 at `Position` 0.5, 0.5 in its holder), so it swells evenly on every side.
+Anything else scaled for a press or a pick wants the same.
+
+---
+
+## A lone pet walked six studs from its player, off to one side (2026-11-13)
+
+Owner: "MAKE THE PETS FOLLOW THE PLAYER CLOSER".
+
+**The rows were always four pets wide.** `Fx/PetPreview` placed pet `i` in a column of a four-wide
+row centred on the player, so one pet stood in the leftmost column, 4.2 studs to the side, and every
+row stood 4 studs back: about 5.8 studs from the player. Now each row is centred on the pets
+actually in it (a lone pet walks straight behind, two at 1.4 studs either side), and the first row is
+2.5 studs back. `Combat/PetShots.HEEL`, where the server measures a pet's shots from, moved with it
+to `(0, 0, 2.5)`. Each pet's own pace (`Config/PetGaits`) is unchanged, so a slow pet still trails
+while the player runs.
+
+## The story's ding rang two seconds after King Bloblin's eyes went small (2026-11-12)
+
+Owner: "make sure the cutscene for bloblin plays the ding effect when his eyes get small and his
+eyebrow raises", then "the ding in the cutscene is already good, it just doesnt match the visual".
+
+**The ding is in the music, and the music is one uploaded track.** `story_theme.py` scored it to
+the frames' holds as they were on 2026-10-25, with a bell 0.8 s into the Eyes shot, where the second
+picture (small pupils, the raised eyebrow, the yellow marks) comes in. On 2026-11-06 two pictures
+were cut and the two Steam pictures held longer (#495), and the music was not rendered again. Every
+shot from the Lounge on then came in early: 1.3 s by the yawn, 1.9 s from the Bushes to Steam, 0.3 s
+from Crumple to the end. Measured in the shipped file, the ding rings at 22.7 s; the small eyes came
+in at 20.8 s. (Not the animation of 2026-11-10: it draws each frame for its hold, as the still
+cutscene did.)
+
+**Fixed in the holds, not in the track** (the owner wanted no new upload). `Config/Story`: the two
+shots that lost a picture hold their one picture for the whole of their time (Chest f02d 1.3 to
+2.6 s, Yawn f04a 1.2 to 1.8 s), which puts everything up to Steam back on its cue and the small eyes
+at 22.7 s; Steam keeps the owner's 2.0 s a picture; and Crumple, Rise and Breath, where the music
+only holds its strings, run 3.5 s together instead of 5.1 s, so the roar is on its swell again. The
+chest bump moves with its picture (Rise, 0.8 to 0.5 s). The story is 0.3 s longer.
+
+**Kept by a spec.** `Music.story.cues` is when the uploaded track lands each shot and
+`Music.story.ding` its ding; `tests/StoryTimeline.spec` fails, naming the shot, if a shot comes in
+more than 0.05 s off its cue or the Eyes shot's second picture off the ding. All nineteen cued shots
+are now within 0.0 s. A new render of the music, uploaded, brings new numbers there.
+
+## A station's `[E]` prompt was a harsher colour than the kit's; the loading tip was 8 points tall on a phone (2026-11-12)
+
+Found while putting the UI in Lagoon (`Config/UiPalette`, `Util/UiContrast`). Two things that had been wrong before it:
+
+**The old kit drew every piece in its colour squared.** `Kit.panel` set the frame's
+`BackgroundColor3` to the colour *and* gave it a gradient of the same colour, and Roblox multiplies
+the two. The station prompt (`GEAR [E]`, a `Kit.button`) asked for the palette's coral, (235, 102,
+82), and drew (217, 41, 26): a hard red, under white words. The frame is white now and the gradient
+alone carries the colour; the next capture shows the coral.
+
+**The loading tip was written in a box sized for a wide screen.** On a phone held upright the
+spotlight picture is 390 points wide, the tip's box was 33 points tall, and the longest tip (88
+letters) came out at text size 8, two lines in 28 points. The box is 116 picture pixels tall there
+now (60 on a wide picture), on its white plate (`Util/TipPlate`): the same tip is three lines in 51
+points, about size 14, and the plate ends 5 pixels above the foot of the lowest-barred picture.
+Measured in a 390 x 844 frame in Studio, not on a phone.
+
+Also from the same look: DEFEAT's TRY AGAIN is dark words on the sunny button, and the dark outline
+every end-screen word carries smeared them, so that one line has none (`EndScreenTheme`
+`defeat.text.buttonStroke`).
+
+---
+
+## The daily REWARDS screen opened over the tutorial's first room after SKIP (2026-11-12)
+
+First-five-minutes playtest, BUG 1: pressing SKIP on the story put the login calendar on top of
+tutorial room 1 and its NEW ENEMY! card, and spent the day's one automatic opening there.
+`UI/RewardsScreen`'s loop called the player "in the lobby" when `InLobby` was true and no cutscene
+gui was up, and that is also true in the moment between the story's end and the tutorial starting:
+0.1 s in Studio (story gone at 35.9 s, stage 6 at 36.0 s), against a loop that looks every 0.5 s, so
+about one SKIP in five; on a live server it lasts as long as the teleport. `InLobby` cannot say
+"this player stands in the lobby", so the server now says it: the Player attribute `Arrived`
+(`RunSession.ARRIVED`), set at the title's end only once the tutorial is ruled out, on a join that
+skips the title, and by `RoomController.toLobby` after a run (never on a run server, whose lobby
+only stands in until the teleport). The automatic opening waits for it, and a station screen opened
+from a button closes if a run starts under it (`UI/StationScreen`). Measured in Studio: through
+title, SKIP, the tutorial and Victory `Arrived` stayed unset and REWARDS shut; it was set as the
+lobby came up at 218.4 s, and REWARDS opened by itself 0.4 s after class select closed; left open
+when a run started, it was gone 0.1 s later. Anything else that must wait for the lobby should read
+`Arrived`, not `InLobby` alone (the class screen still gets by on a 2 s delay).
+
+## The tutorial's LEVEL UP! prompt sat on the first draft's heading and card tops; a dead REROLL was drawn (2026-11-12)
+
+Same playtest (B6 and section 4). `UI/TutorialPrompts` hung its card prompt at 1.2% down the
+screen, whatever the draft did: at 2091 x 1113 it covered y 13 to 220, the draft's LEVEL UP! and
+subtitle whole (82 to 162) and the crowns of all three cards, and a picked card rose 28 pixels
+further under it. Under the hand a grey REROLL was drawn although the tutorial's hands are fixed
+and have no redeal. Now the prompt stands in for the heading: `DraftScreen.setHeading` puts the
+panel's own heading away (never the same words twice) and `RunHudRules.draftUnder` moves the panel
+down, shrinking it only if it must, until the cards' room (crowns, and a picked card's rise) starts
+under the prompt, which follows the panel (`DraftScreen.headingLine`). REROLL is drawn only when
+the hand has a redeal to give (`RunHudRules.draftReroll`: not the tutorial, not an Angel, not a run
+that has spent them; the gamepad strip's X goes with it) and CHOOSE! is centred without it.
+Measured at 2091 x 1113: panel at 0.93 with the prompt ending 7 pixels over the cards' room, card
+tops 121 pixels under it, REROLL hidden, CHOOSE! centred on 1044.5 of 2091; the next tutorial hand
+(no prompt) had its heading back and the panel exactly where it was before, 986 x 898 at scale 1.
+`tests/RunHud.spec` holds both rules, with phone sizes; no phone has been looked at. On a short
+computer screen (768 high) the first hand's cards come out at about three quarters of their usual
+size while the prompt is up.
+
+## VICTORY showed "CHEST x0", and NEXT LEVEL after the tutorial went to the lobby (2026-11-12)
+
+Same playtest, B8. The tutorial pays coins and no chest, egg or item, and Victory's chest slot drew
+the area's chest dimmed at x0, which reads as "you got nothing"; its button said NEXT LEVEL and
+went to the lobby and class select, as the tutorial is meant to (`RoomController.requestRestart`).
+`Util/EndScreenRules` decides both now: the chest row is built only when the run paid a chest, a
+first clear's egg or a boss's item (otherwise the coins and gems move to the middle of the box),
+and the tutorial's Victory says CONTINUE (`EndScreenTheme.victory.lobbyText`). Seen in Studio: no
+row, the two slots centred in the REWARDS box, CONTINUE into the lobby. `tests/EndScreenRules.spec`.
+BACK TO LOBBY is still under it there and does the same thing.
+
+## A duplicate weapon said "+1 COPY" and nothing was saved; the 40% refund was never paid
+
+The 2026-11-11 loop and UI review, item 1. A crate that rolled a weapon
+already owned showed "+1 COPY" and kept nothing: `Wallet.grantWeapon` set
+`weapons[name] = true` again, and the 40% back that CLAUDE.md promised was
+config and a function (`Shop.duplicateRefund`, `ShopRules.refund`) that
+nothing called. The owner's merge (2026-10-28) had been built on a branch
+that never reached main. It is in now, as save version 10: every copy is
+kept at tier C (`profile.tiers`), three of a tier make one of the next, C to
+B to A to S, and the best tier held scales the damage (`Util/MergeRules`,
+MERGE on the gear screen's item card). Measured in Studio, 2026-11-12:
+twelve Mossy Glade crates left the Acorn Bow at C 10 in the save (and the
+reveal's note reads "+1 C COPY TO MERGE"); MERGE on its card made it C 7,
+B 1 and its tile "B x8"; merged to A and equipped, the ATK plate went from
+100 to 151 and the server's hits on a training dummy from 100.00 (Twig Bow,
+C) to 151.20 (the bow's own 1.05 times A's 1.44). A Mosslet merged to B hit
+for 38.40 against its 32. Five bad requests to the remote (a tier with fewer
+than three, a weapon not owned, a wrong kind or type) changed nothing, and
+two sent at once merged once. Words on a reveal that promise something kept
+must be checked against what the save holds afterwards.
+
+## Run banner said "You died - restarting"; the leave panel said progress is lost
+
+The 2026-11-11 loop and UI review. Nothing restarts by itself after a death:
+the Defeat screen offers the retry. And leaving a run keeps the coins its
+kills paid, which are in the wallet the moment they are earned
+(`RunSession.payCoins`); what ends is the run. The banner now says DEFEATED
+(`Util/RunHudRules.status`, pinned by `tests/RunHud.spec`) and the panel
+"You keep your coins. The run ends here." (`UI/ControlMenu`). Words on a
+screen that describe what the server does must be checked against the server.
+
+## Phone: MENU under the moving thumb, draft buttons 27 points tall
+
+The 2026-11-11 review, on an upright 390 x 844 phone. The MENU button stood
+136 x 64 at the left edge at mid-height, where the left thumb moves, and its
+confirm panel, laid on the 1920 x 1080 sheet, came to about 142 points wide.
+The draft is fitted to the screen's width, about half size, which left
+Choose! and Reroll some 87 x 27 points over an empty lower half. Now the MENU
+is a 48-point pause icon at the top left with a panel sized in points, and
+the upright draft has a tray under it with 56-point buttons and the selected
+card read out (`Util/RunHudRules`, `Config/Hud`). Anything a thumb presses is
+sized in screen points and checked at 390 wide, not placed on a 16:9 sheet.
+
+## Howl Aura arrows invisible from above
+
+Owner, 2026-11-10, on the review sheet: the pet Howl Aura's arrow could not be
+seen in game. Its two chevrons (`FxPetHowlAura`) stood upright, drawn in the
+GLB's XY plane and 0.42 thick, so the top-down camera saw only their edge.
+Fixed by a 90 degree turn about X on the `Chevron1` and `Chevron2` nodes of
+`assets/models/effects/fx_pet_howl_aura.glb` (and its source), which lays the
+">" flat; their clips move only translation and scale along X, so the outward
+pulse is unchanged. Re-imported; `ModelClips` and `ImportedModels` regenerated.
+An effect meant to be read from above must lie in the ground plane.
+
+## Tutorial prompts hard to read
+
+Owner, 2026-11-07: "i need to make it easier for the player to see everything
+that the tutorial is saying, i want the text to be in the same text as the ui
+now". The prompts were dark Arcade-font boxes of fixed height with
+`TextScaled`, so the long level-up text shrank to fit (smallest on a phone);
+the move prompt went after 8 studs, about half a second of walking; and the
+panel tied the skill bar on DisplayOrder 101. Now `UI/TutorialPrompts` draws
+the chunky UI's blue panel (`UI/Chunky` colours, Fredoka One, gold title,
+white words with a navy stroke) that grows to fit words sized from the screen
+(body 20-36 px, title 26-50 px), on DisplayOrder 102, and the move and dash
+prompts stay at least `Tutorial.minShow` (3 s), the shooting one 7 s.
+Measured in Play at 2333 x 1153: level-up panel 1000 x 202 with body 36 px
+(`TextFits` true); at phone width (367 px wide) it is 170 px tall.
+
+---
+
+## Holes in the player bodies (Ranger Female)
+
+*Moot since 2026-11-07: the owner had the class bodies removed after the capped
+bodies showed streaks ("this looks terrible", "get rid of the class models
+entirely").*
+
+Owner, 2026-11-07: "there are holes in the female ranger when i selected her".
+`split_r15.py` cut each Tripo body into R15 parts but left every cut open, so
+a bent knee, turned head or swung arm showed the inside of the shell. Thin
+hoods and capes were one-sided. A first cap pass barely helped: glTF splits
+vertices along UV seams, so every seam read as a hole and `holes_fill` gave up
+on the real cuts tangled with them. Now `close_up` welds the seams first, fills
+with `holes_fill`, fans a cap over any loop it skips, and gives accessories
+back faces. Measured in Blender, Ranger Female's open edge on her body parts went
+from about 7 m (1,420 edges) to 0.6 m, most of it under the hood; the other 7
+bodies dropped the same way. Bodies are now about 9,700 to 11,200 tris.
+
+## The lobby camera could swing under the floor
+
+**Seen:** pitching Roblox's own lobby camera up swung it below the courtyard, showing the underside of
+the floor and scenery. **Cause:** the lobby's floor and scenery are built with CanQuery off, so the
+default camera's occlusion never sees them. **Fix:** `TopDownCamera`'s floor guard, bound straight
+after Roblox's camera in the lobby, slides the camera in along its line to the player until it is 1.5
+studs above the ground the player last stood on. **Measured:** in Play, a camera forced 8 studs under
+the floor every frame ended 1.5 above it on all 15 frames.
+
+## The lobby's sky was grey and its front buildings faced away
+
+**Seen:** the lobby from above under a grey sky, the Your Gear and Dexes buildings and both
+leaderboards showing their backs to the camera, the trees towards the sun glowing white.
+**Cause:** `Config/Lobby.light`'s warm haze (density 0.22, haze 0.9, glare 0.1) at clock 8 greyed
+the whole sky; every building faced the fountain, so the southern two faced north, away from the
+camera, and the boards had been turned to read north. **Fix:** a thin blue haze with no glare at
+clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
+the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
+
+## The Warden's swing on screen was not the blow that landed
+
+**Symptom**: 2026-11-11 playtest, measured at King Bloblin: 13 swings played on screen with no server swing (nothing hit), 12 server swings landed with no swing on screen, and from the first of them on the client's combo ran a blow ahead -- a side swipe drawn over the server's slam, and the reverse.
+
+**Cause**: a swing the server started in the frame or two after the player began moving (before the server saw it) was called off at its Hit marker, but kept its booked cooldown, while the client had never swung; the server's next swing came a cooldown after the phantom, the client's on time. And when the two decided a cancel differently (the client's blade past its marker just before the move), the client's combo place drifted for the rest of the run.
+
+**Fix**: a cancelled swing gives its cooldown back on both sides (`MeleeSystem`, `LocalFiring.cancelSwing` from `WeaponPose`), and the server publishes its settled combo place as `Combo`; `WeaponPose` takes each melee blow from it.
+
+**Measured**: Warden, 1-10 rooms 1-2 and King Bloblin: 1 client-only swing and 0 server-only landed swings of 96 (was 13 / 12 of 90); the blow drawn matched the blow landed on 81 of 82 (was about half).
+
+## The first player into a new server fell through the world at join
+
+**Symptom**: 2026-11-11 playtest: on every Play the character dropped from the arena's spawn pad to y -480 before the lobby caught it, 20 studs short of the height Roblox destroys a fallen body at.
+
+**Cause**: the server loads its meshes and builds the lobby before it handles players; a body that spawned meanwhile sat on the arena's non-colliding spawn pad over nothing and fell until `onCharacterAdded` ran.
+
+**Fix**: from the moment the spawn pad exists until players are handled, `Main.server` anchors every new body where it spawned, then puts it in the lobby and lets it go.
+
+**Measured**: Studio Play, autopilot watching the root: no position below y -3 at join (before: -24 to -480 on every Play).
+
+## After a room started, the damage landed before the arrow did
+
+**Symptom**: 2026-11-11 playtest, measured: at most room starts the Ranger's drawn arrows went 0.05-0.2 s after the server's volleys and stayed that far behind for the whole stand, so each enemy flashed and took its hit before the arrow reached it.
+
+**Cause**: the server sees a room's enemies become targetable a frame or two before the client does, so it fires first; the client's aim cache also reused a "nothing in line" answer for 80 ms. Both sides then kept their own cadence, so the first shot's lag lasted the stand. And the server's copy of the player's own volley was always thrown away, so a volley the client had not drawn was never drawn at all.
+
+**Fix**: `LocalFiring.serverVolley` matches each server copy to a volley the client drew in the last second; a copy with no match is drawn from the server's copy and re-bases the client's rhythm on it. The aim cache keeps only answers that found a target.
+
+**Measured**: Ranger, 1-4, 172 server volleys: 168 drawn within 0.05 s of them (before: 24 of 122), none drawn twice, none early.
+
+## Sword blows (and arrows) landed with no attack on screen while hasted
+
+**Symptom**: 2026-11-11 playtest, measured: a Warden with Battle Cry stacks and the Ember Wilf's howl took damage-dealing swings the client never played — the server swung 53 times, the client 42; damage landed with no swing, and the blade arrived after the damage on the hasted swings it did play.
+
+**Cause**: the server divides the cooldown by the pet's howl and Battle Cry's stacks (`Combat/FiringSystem`), but neither reached the client: `LocalFiring` predicted on the unhasted cooldown, and `WeaponPose` timed every clip to the base cooldown even under Momentum, while `MeleeSystem` lands the blow at the Hit marker of the clip played at the hasted speed.
+
+**Fix**: the server publishes its haste as the player's `AttackHaste` attribute; `LocalFiring` divides by it, and passes each attack's cooldown to `WeaponPose.release`, which plays that attack's clip at the speed the server times its blow by.
+
+**Measured**: Warden, 1-3, Battle Cry + Ember Wilf: server 78 swings, client 73 (was 53 / 42), every paired swing on the same cooldown across 18 distinct hasted cooldowns, blade within 0.1 s of its damage on 65 of 69.
+
+## Two quick shots right after stopping (double shot, fire rate above the weapon's)
+
+**Symptom**: 2026-11-11 playtest, measured: right after the player stops (or a target comes into line), the next volley goes far sooner than the cooldown — staff volleys 0.1-0.67 s apart on its 1.4 s cooldown, a bow volley 0.4 s after the last on 0.7 s. The two sides then sat out of step for the whole stand (the drawn orb 0.48 s ahead of its damage for 20 s).
+
+**Cause**: `FireRhythm.fired` booked a volley at its due time unless it was a whole cooldown late. Any volley that waited for something real — the settle after a move, a target in line — but less than a whole cooldown was booked as if it had gone on time, so the wait was banked and the next volley came that much sooner. Each side banks or restarts on its own lateness, so when one banked and the other restarted, they held an offset of up to a cooldown.
+
+**Fix**: only a frame's rounding is carried: a volley more than `FireRhythm.CARRY` (0.1 s, one frame at 10 fps) late starts the cadence again from now. `tests/FireRhythm.spec` pins that a late volley banks no more than that, and that stop-start never puts two volleys inside one cooldown.
+
+**Measured**: Ranger, 1-2, 115 standing gaps after the fix: 0 shorter than the cooldown (before: 1 in 81 bow, 7 in 47 staff).
+
 ## The enemy took the damage after the arrow had flown past it
 
 **Symptom**: 2026-11-03, the owner: "the enemy does take damage, but the arrow has already flown past, or the spark is in the wrong place."
@@ -1405,3 +2232,310 @@ imports stay dumpable, which matters because `imports_to_luau.py` prunes every
 module it does not regenerate. Ran it: 122 models, 11,314 instances, Workspace
 down to Camera and Terrain, 722 tests pass in Play and the server boots, builds
 its arenas and runs a session clean. Write the command, not the convention.
+
+## `tools/ship.sh` reported a merge and shipped nothing
+
+2026-11-04. `tools/ship.sh` printed `PR #414`, `! Pull request #414 was already
+merged`, and then `Merged #414: <main's existing commit>` — and exited 0. The
+commit it was given never reached main, and `gh pr merge --delete-branch` took
+the local branch with it. The work survived only in the reflog.
+
+The cause is `gh pr view "$branch"`, which resolves a branch name to **any** pr
+that ever used it, merged ones included. `phase-3/drowned-pet-attacks` had been
+used three days earlier for #414, so the script adopted that pr, "merged" the
+already-merged thing, and reported success.
+
+Two things made it dangerous rather than merely wrong: it read as a normal
+successful ship, and it deleted the branch. A script that deletes work must be
+certain it has saved it first.
+
+Now it asks for an **open** pr by that head (`gh pr list --state open`), so a
+reused branch name opens a new pr instead of adopting a dead one.
+
+Reuse a branch name and git is happy; GitHub remembers.
+
+## `glb_clips_to_luau.py` deleted seventeen modules nobody asked it to
+
+2026-11-04. Running `python -I tools/glb_clips_to_luau.py` to generate clips
+for seven new effect GLBs also removed seventeen modules from
+`Config/ModelClips`: every one not named in `assets/models/model_clips.json`.
+Five are the Drowned Village pets `tools/pet_motions.py` writes. The other
+twelve are Thornwood pets that the manifest has never listed (their modules
+arrived in #402). The script now prints `not listed, kept: <name>` and deletes
+only with `--prune`.
+
+The generator does not format its output. Straight after a run, `git diff`
+shows every module changed by hundreds of thousands of lines. Run StyLua on the
+folder first: with that done, the diff against the committed modules is empty.
+This entry first read that diff as the GLBs failing to reproduce the modules.
+That was wrong, and they reproduce them exactly.
+
+## Studio captures are one flat dark grey, in Edit and in Play (2026-11-05)
+
+Studio draws no 3D while its window is minimized, and `screen_capture` then returns a uniform
+(28, 30, 34) with the GUI over it. `execute_luau` carries on working, so it looks like a fault in the
+game. Restore the window. Do not use computer-use `open_application` for it: that launches a second
+Studio. Restore the running window by its handle instead.
+
+## WASD does nothing, with a controller plugged in (2026-11-05)
+
+`GuiService.SelectedObject` stayed set after the intro (on the SANDBOX tab in Studio), and while it is
+set Roblox marks every key press processed, so `MoveController` dropped them. The arrow keys too. The
+player stood still in the tutorial with only a blue ring round a menu button to show why. The movement
+keys now ignore `processed` unless a text box has focus.
+
+## The class screen opened over the title (2026-11-05)
+
+`UI/ClassScreen` opened as soon as the profile arrived and `InLobby` was true, and the lobby is the
+state the server boots in, so a new player chose a class before seeing DYL.DEVS, then got a loading
+screen, then the title. It now waits for `RunPaused.beforeArrival()` to clear and two seconds more,
+which is how long the story's end takes to become a tutorial.
+
+## A body falling into the void behind the title (2026-11-05)
+
+`onCharacterAdded` left a body where it spawned while `atTitle`, which is over the arena that is not
+built yet. It fell to the kill height and respawned, over and over until BEGIN ADVENTURE. Placed in the
+lobby now, title or not.
+
+## Loading screens: old name, a tip on the slime's face, a bar in the wrong place (2026-11-05)
+
+The four spotlights baked in ARCHER LEGENDS, a bar and a TIP line, and `Config/LoadingScreen`'s boxes
+were left from older art, so the live tip was drawn over the enemy and the live bar started mid-way
+along the baked one. Codex redrew them (`assets/concepts/blocky/ui/loading/spotlight/rebrand.sh`) with
+the new name, an empty bar and no tip, and the boxes are measured off that art.
+
+## "Asset type does not match requested type" for enemy meshes (2026-11-05)
+
+`RoomPreload.enemyContent` handed mesh ids to `PreloadAsync`, which takes a bare id as an image. Each one
+logged the warning and fetched nothing. Only images go that way now. Enemy meshes still load on first
+sight, which is the same as before this was noticed.
+
+## `SlimeResidue:216` "max must be greater than or equal to min" (2026-11-05)
+
+A low enemy's top can stand under the lowest height a residue cube may start at, and `math.clamp` errors
+on that, which lost the hit's spray. Seen in Endless.
+
+## The Gear screen refuses to switch to one class (2026-11-05)
+
+`Shop.classOf` read the saved weapon before the session, so a class saved but not yet held counted as
+"already that class" and the switch returned without a word. The session comes first now.
+
+## Players kept taking hits while reading LEAVE THE RUN? (2026-11-05)
+
+MENU's panel did not pause anything. It now holds both sides (`RunPaused.setMenu`, `Remotes.RunMenu`,
+`RunSession.anyInMenu`) for at most `CombatTuning.menuHold` seconds, a limit so one player cannot
+freeze a shared run by leaving it open; the panel shuts itself then.
+
+## A level's first room hit as hard as its last (2026-11-05)
+
+Enemy health ramped through a level and damage was one flat number. See "Damage ramp" in
+`docs/DIFFICULTY.md`.
+
+## Endless's Mossy Glade arena was not the Glade Heart (2026-11-05)
+
+`Balance.Endless.areas[1].arena` said `levelRoom(56)`, "the Glade Heart", but that index stopped being
+the Heart when 1-10 became rooms (#442). It is 1-10's last room again, `levelRoom(80)`.
+
+## Testing overnight: Studio stops drawing, and everything looks stuck (2026-11-05)
+
+Unfocused, or with the display asleep, Studio can draw **no frames at all** while server time runs on.
+Movement is driven from `RenderStepped`, so the character stands still, nothing shoots, and a room
+looks soft-locked. Measure frames before believing a stuck room: count `RenderStepped` for a second
+from `execute_luau`. `SetThreadExecutionState` with display-required and returning focus keeps it
+drawing. Also, a computer-use click teleports the cursor, and a Roblox button needs `MouseEnter` first:
+`mouse_move`, a short wait, then click, or the click is lost and looks like a dead button.
+
+## Glowcaps opened fire on players their spores could never reach (2026-11-07)
+
+`range = 70` against spores that died at 22 studs, so a Glowcap fired rings at the far end of the
+room. Range 30 and spores that last 30 studs now (`Balance.spec`, "can hold its distance"). The same
+suite run caught three more Bogheart numbers: the Glowcap (120) and Shellback (90) turned slower than
+smaller enemies, and Gulp's and the Spore Puff's meshes poked a few hundredths past their hitboxes.
+
+## Areas 3 and 4 paid nothing (2026-11-07)
+
+Neither had a `Config/Economy` entry, so `RunSession.areaPay` paid no coins for kills or clears and
+no boss item or gems. Both have one now.
+
+
+## Dex silhouettes had white parts (2026-11-08)
+
+The tint is pure black, so anything pale was a transparent hole in the art showing the card behind.
+82 of the 118 dex pictures were re-uploaded with their enclosed holes filled from the nearest opaque
+colour. Pets and enemies are filled solid (the Lanternfin's lure loop stays open); a weapon keeps a
+gap of 2% of its area or more, such as the space inside a bow. A picture cut or generated later can
+bring holes back: check it as a black shape before uploading.
+
+
+## Chest opens facing backwards (2026-11-08)
+
+Owner: "the chest faces backwards". All 12 egg and chest models have their front on -Z after import,
+and `UI/Reveal`'s camera sits on +Z, so at yaw 0 it saw the backs (6 chests with no lock showing;
+turned 180 degrees, all 6 show their lock). `MODEL_FACING` turns them, applied before the wobble so
+the wobble's direction on screen does not flip. A slow full spin (0.6 rad/s) also swung the front
+away as the chest opened, so it is now a 14 degree rock. A Tripo model imported later may face
+another way: look at it in a viewport first.
+
+
+## Boss health bar stuck on screen in the lobby (2026-11-08)
+
+After leaving a fight for the lobby, OLD TOLL CRAB's bar stayed up over the lobby. `RoomController.toLobby`
+never cleared the fight: 8 enemies stayed in `workspace.Enemies`, frozen, and `Fx/BossWatch` still saw a
+`Boss` until the next room was built. It has been there since the HUD's exit, and BACK TO LOBBY made it
+easy to reach. `toLobby` now runs `clearFight`, the same clear a new room does. Measured after the fix
+in the entry's PR: 0 enemies and no bar a moment after leaving.
+
+## Legendary and Mythic glow was faint in the lobby (2026-11-08)
+
+The lobby's brighter daylight washed out a rare pet's aura, so `PetAuras.lobby` strengthens it while
+`InLobby` is set. Players hold no weapon in the lobby, so a weapon's glow there is its tile:
+`Chunky.tile`'s halo rings are wider and more solid, and a Mythic's ring is thicker.
+
+## The Tripo pets' clips ran backwards
+
+2026-11-08. `assets/models/pet_motions.json` is written with +Z as forward, but a
+pet in the game faces -Z and `ModelClip.fit` picks no turn for a single part, so
+every lunge went backwards and every nose-up went nose-down. `tools/pet_motions.py`
+now gives each clip a half turn. Keep authoring the JSON the way it reads.
+
+## The chest opening copied a video's seven steps (2026-11-08)
+
+A 3D chest now shakes faster and faster, squashes, springs up tall, slams, lights up, sends a ring
+along the ground, shoots stars that pop, and leaves rising dust (`Config/Reveal.crate`, `UI/Reveal`).
+Padlock blocks, splinters, coins, cracks and burst confetti are gone from it; a chest whose model has
+not loaded still plays the old frames. The chests are one mesh, so no lid swings open.
+
+## Lobby screens stuttered or showed untextured models (2026-11-08)
+
+Shop, gear, hatchery and dex pictures and the pet models were only fetched when first drawn.
+`Fx/LobbyPreload` fetches them as soon as the player is in the lobby.
+
+## Areas popped in unloaded (2026-11-08)
+
+An area's first level now holds a loading screen until its first room, that room's enemy meshes and
+textures, and their NEW ENEMY! cards are fetched (`Run/Party`, `UI/AreaLoading`, `Fx/RoomPreload`),
+for at most 20 seconds. A client fetches a mesh only through an instance, so parked rooms now carry
+unseen copies of their enemy meshes, dropped by `Arena.build`.
+
+## Chests had no lid to open (2026-11-09)
+
+Each chest was one mesh. Tripo's "Generate in Parts" cannot be told how many parts, so each chest's
+lid and body were drawn apart and generated as two models (`assets/concepts/blocky/eggs_chests/two_part/`,
+fitted in Blender). `UI/Reveal` swings the lid on its hinge on the slam, and the body has gold in it.
+
+## Lobby screens opened half loaded, with the old chests and eggs (2026-11-09)
+
+`LobbyPreload` only downloaded: pictures were never kept drawn, so each still decoded on its screen's
+first open, and the weapons in `WeaponPreview` were never asked for at all (18 of 107 meshes in, 0 of 38
+textures, read off a live client). It now holds the pictures in video memory while in the lobby
+(`DeviceTiers.warmLobbyImages`) and fetches and draws every pet and weapon preview once. The portal mesh
+ids it was handed as pictures only errored. The eggs' and chests' screen pictures are rendered from the
+Design models (`assets/ui/reveal/design/`).
+
+## A loading tip told phone players to press SPACE to dash (2026-11-11)
+
+`Config/LoadingTips` named only the keyboard and the controller. The tip now names all three ways
+(SPACE, A, the DASH button), and `tests/FirstEgg.spec` fails any tip that names SPACE without a
+phone's way to do it.
+
+## CHOOSE YOUR CLASS came up inside the tutorial (2026-11-11, caught in the playtest, never shipped)
+
+The title now waits for the server's `JoinRoute` before it starts (`Main.client`), so for a moment at
+join nothing held `RunPaused.beforeArrival()`: the class screen saw a loaded profile and `InLobby`,
+opened under the loading screen, and was still up when the tutorial began. `Main.client` now calls
+`RunPaused.setTitle(true)` on its first frame, before the wait. Anything that opens "once the player
+has arrived" must be held from the first frame, not from when the title is drawn.
+
+## SKIP TUTORIAL fired on a Return or gamepad A meant for something else (2026-11-11)
+
+A `GuiButton` is `Selectable` by default, and when the selected one goes away (the draft's Choose!,
+the story's SKIP) Roblox moves the selection to the nearest one left: SKIP TUTORIAL. The next Return
+or gamepad A (the dash!) pressed it and the tutorial ended in the lobby. `UI/TutorialSkip` now makes
+its button unselectable. Any always-on HUD button that must not be hit by accident needs the same.
+
+## A slanted UIGradient's stripes bunched into the middle of a wide band (2026-11-11)
+
+The tutorial prompt's striped header was one `UIGradient` of hard-edged keypoints, turned 20 degrees.
+On a band 790 by 70 all nine stripes sat in the middle ~200 px and the rest was one flat colour: a
+turned gradient spans the element's short side, not its width. The stripes are now turned frames in
+a `CanvasGroup` (`UI/TutorialPrompts` `layStripes`), which clips turned children to its rounded
+corners; a plain frame's `ClipsDescendants` does not clip them. Keep text outside the CanvasGroup.
+The ScreenGui must be `ZIndexBehavior.Sibling`: one made with `Instance.new` is `Global`, and there
+the stripes were drawn behind the panel, unclipped, sticking out of its top.
+
+## The lobby's coins and gems vanished after the Blacksmith opened (2026-11-11)
+
+The lobby wallet was the Blacksmith screen's own, and `HatchStand.chrome` hid it each time the shop
+drew; only a wallet change drew it again. The lobby now has its own pills (`UI/LobbyHud`, from
+`StationScreen.onProfile`), shown whenever no station or portal screen is open, and the shop hides
+nothing outside itself.
+
+## The station button and the close X were too small for a finger on an upright phone (2026-11-11)
+
+"HATCH EGGS" sat on the 16:9 sheet (~97 x 21 points upright) and the chunky X was 110 sheet pixels
+(~39 points; since the re-skin it is drawn in the panel's header, ~24 points). On a touch layout the
+station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
+`Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
+(`Chunky.close`), on every chunky screen.
+
+## Victory showed a purple gem and a different coin from the wallet (2026-11-12)
+
+The game held two coin pictures and two gem pictures: the shop sheet's pair (`ShopAssets`: the wallet,
+the run HUD, every chunky screen) and the end screens' own flat coin and purple gem
+(`EndScreenAssets`: Victory and Defeat's reward slots, the crate reveal's coin burst, and the kill
+coins, which flew to a counter showing the other coin). The Blacksmith store also wrote a gem price
+in words ("58 GEMS") beside coin prices drawn with the coin. Owner: "make sure that the coin and
+diamond icons are universal across the game". `ShopAssets.coin` and `ShopAssets.gem` are now the
+only two (CLAUDE.md rule 15), a gem price is the diamond and the number, and `tools/check.sh` fails
+on a coin or gem picture defined anywhere else.
+
+## A NEW ENEMY! card could show over the lobby (2026-11-26)
+
+Seen once in Studio (2026-11-12): after SKIP on the story, a save that had beaten 1-1 reached the lobby
+with the Moss Slime's card up under the REWARDS calendar. Nothing stopped an enemy that landed as the
+lobby came up (a straggler of a run) from being "met", nor the screen from showing a card sent or still
+up then. Now `RunSession.meetEnemy` meets nothing while `InLobby` is set, and `UI/NewEnemyScreen` drops
+any card the lobby would show (sent, queued, a `Preview`, or up as `InLobby` turns on), answering the
+server's so no run is held.
+
+## A lunge stopped short still played its whole leap (2026-11-26)
+
+`Fx/EnemyRig` fitted the Dash's leap to the bolt's full `LungeTravel`, so a bolt that cover (or a root)
+stopped after a stud went on leaping on the spot. The server now sets `LungeStopped` when a bolt ends
+short, and `RigClip.dashTime` lands the leap then, running the rest of it over `RigClip.SETTLE`'s share
+before the skid (`tests/RigClip.spec`). No enemy has a rig today (the Ember Wilf went on 2026-11-01);
+the flag is set on every lunger, the Bramble Boar included.
+
+## The Meteor cast and the staff's casts hid each other (2026-11-26)
+
+The Meteor clip is 1.6 s and the Arcanist casts every 1.4 s, so each next cast cut the Meteor short,
+and the Meteor took the cast it came with. `WeaponTiming.specialSpeed` plays it fast enough to end
+inside one attack (`CYCLE_SHARE` of the cooldown, as fire clips are), haste included; Point still comes
+before the meteor lands (`tests/ClassCards.spec`). The Earthbreaker's slam is timed by the server, so
+only the Meteor is fitted (`WeaponTiming.FITTED`).
+
+## Slime residue sank into cover (2026-11-26)
+
+Every cube landed at y = 0, so one thrown over a log, a boulder or the pond sank into it. At the throw,
+`Fx/SlimeResidue` now works out where the cube comes to rest (`ResidueSpray.rest`, `tests/ResidueSpray.spec`):
+where it would land on the floor, and, if a ray from above finds a top there (the room's floor and cover
+boxes in `Workspace.Arena`; the drawn art is not queryable and is sized to its box), whether it is over that
+top when it comes down to it. If so it rests on the top; if not it met the cover's side, so it drops there,
+beside it. Three things the first Studio check caught: most cubes are thrown at cover taller than they fly
+(a 2.8 log, a 3.2 pillar), so the downward ray must start above all cover, not at the cube's peak; a slime
+pressed against cover and struck from across it throws from inside the cover, so the throw starts outside
+any cover taller than it; and the stepped fall dropped about 0.2 studs below the worked-out arc, landing
+short, so cubes now fly the exact arc and land where they reach the floor within the frame. After: 0 of
+114 cubes thrown at a 2.8 log sank, 1 of 123 at a 1.5 stump.
+
+## A hopping slime's body reached into cover (2026-11-26)
+
+Measured in Mossy Glade 1-10's rooms 5–10 (the rooms 1–4 sweep of 2026-10-23 had found none): every
+hitbox stayed clear of cover, 0.5 to 0.66 studs off, but a slime's drawn body reached up to 0.76 studs in
+(Brood Slime, Moss Slime, Baby Slime). `Fx/SlimeHop` draws the body up to a third of a hop ahead of its
+hitbox in the lurch, squashed up to 4.55 wide on landing, and a slime pressed against cover faces into it.
+The body is now pushed out of every cover box by its own footprint at its turn and squash
+(`Util/CoverPush`, `tests/CoverPush.spec`). Second sweep: 10 of about 330,000 body corners touched cover,
+by 0.03 studs at most. The art: logs, pillars and stumps are drawn inside their boxes by `KitLayout`;
+thicket ferns, packed on a 2.4-stud grid at up to 3.3 studs, reach up to 0.66 studs past theirs (bounding
+corners of soft leaves), left as drawn.

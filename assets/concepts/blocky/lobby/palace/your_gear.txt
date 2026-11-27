@@ -1,0 +1,9 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as building_your_gear.png
+
+A detailed art-direction reference sheet for one building in a mobile game's lobby, precise enough for a modeller to work from.
+
+The building is YOUR GEAR, landmark row YOUR GEAR, option A. Roof: light blue.
+Landmark: a giant steel knight's helmet with a barred visor, gold trim and a blue plume, and beside it a giant round blue-and-gold shield with a gold star at its centre, leaning against the helmet. Both are mounted on the roof, large enough to read from far away.
+Props at the door: two armour stands, one holding silver armour with gold trim and one holding red armour, and a low wooden chest with a gold lock.
+Character: no character stands at this building, so ignore image 4's figure and use the armour stands for scale. Draw no person in any panel.
+Title: YOUR GEAR, in glowing light blue.

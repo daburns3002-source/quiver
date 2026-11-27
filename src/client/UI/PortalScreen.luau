@@ -1,29 +1,43 @@
 --!strict
 --[[
-	A portal's screen (owner, 2026-10-26: "need screen for portal entry with
-	the level selector"). Walking into a lit portal's mouth no longer starts
-	the run: the server sees the player there and sends the portal's index
-	(`Remotes.PortalOpen`, 0 as they step out), and this shows the area — its
-	name in the portal's colour, its act — and its levels to pick from, each
-	with its boss, its rooms and whether it is cleared (the profile's
-	`bossesBeaten`), then locked COMING SOON slots up to
-	`Config/Lobby.levelSlots`. An area with more levels than that (Mossy
-	Glade's ten, owner 2026-10-26: "2 ROWS OF 5 LEVELS EACH") shows them as
-	a grid of numbered buttons, `Config/Lobby.levelColumns` to a row: a
-	locked one dimmed under a lock, a beaten one marked CLEARED in gold, the
-	picked one framed in gold, with its rooms or waves (and its boss) on the
-	line under the grid. Which are open is `Util/LevelUnlocks` over the
-	profile's `levelsBeaten`; the server checks it again on START. START asks
-	the server (`Remotes.PortalStart`), which checks the player still stands
-	at that portal and has that level open, and starts the run; X, Escape or
-	walking away closes it.
+	An area's level screen (owner, 2026-10-26: "need screen for portal entry
+	with the level selector"). Two ways lead to it. Walking into a lit
+	portal's mouth: the server sees the player there and sends the portal's
+	index (`Remotes.PortalOpen`, 0 as they step out). Or the lobby's PLAY
+	button, by way of the area list (`UI/AreaScreen`; owner, 2026-11-14:
+	"there should be a screen where they can choose the area and then the
+	level"), which opens it with a way back (`PortalScreen.open(index,
+	back)`): a `< AREAS` button, and Escape or B, go back to that list.
+	Either way this shows the area and its levels to pick from, and PLAY
+	asks the server (`Remotes.PortalStart`), which checks the player has
+	that area and that level open and starts the run; X, or walking out of
+	the portal, closes it.
 
-	Built like the Blacksmith's shop (`UI/ShopScreen`): blocky wood boxes
-	with an ink border, every word in the blocky font (rule 11), buttons
-	still until hovered or pressed. The boss pictures are the boss banners'
-	Codex icons (`Config/BossBanners`), their first frame. On a screen taller
-	than it is wide (a phone, held upright) the level cards stack as rows,
-	picture beside words, instead of standing side by side.
+	Drawn in the chunky style (owner, 2026-11-05, approving
+	`assets/concepts/ui_refs/mockups/portal.jpg`): the blue panel with the
+	area's name on the gold ribbon and its act on a pill under it, the
+	levels as round numbered buttons in rows of `Config/Lobby.levelColumns`
+	(Mossy Glade's ten, owner 2026-10-26: "2 ROWS OF 5 LEVELS EACH") joined
+	by dotted paths, and a white card beside them naming the picked level,
+	its rooms or waves, its boss, and PLAY. A beaten level is green, an open
+	one blue, the picked one ringed in gold, a locked one grey under a lock;
+	a level that ends in a boss carries the boss's banner icon. Which are
+	open is `Util/LevelUnlocks` over the profile's `levelsBeaten`; the server
+	checks it again on START.
+
+	The whole panel is redrawn by `fill` whenever anything on it changes (a
+	pick, the profile, the phone turning), on a 1920 x 1080 sheet, or
+	1080 x 1920 when the phone is held upright. The level buttons are all
+	drawn by `levelButtons`, one `node` each: anything a level carries on
+	its button (a star count, say) is added there.
+
+	**Hard mode** (owner, 2026-11-18; `Util/HardRules`): once the area's boss
+	is beaten a NORMAL / HARD pair of tabs sits above the levels. On HARD
+	the buttons are red and open in order over the hard wins
+	(`profile.hardBeaten`), no stars are drawn (hard has none of its own),
+	the card says HARD and what a first hard clear pays, and PLAY asks the
+	server for the level on hard (`Remotes.PortalStart(index, level, true)`),
+	which checks it again (`Run/Lobby.hardOpen`).
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -35,119 +49,117 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local SoulstoneShop = require(script.Parent.SoulstoneShop)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 
-local Device = require(script.Parent.Parent.Device)
+local Chunky = require(script.Parent.Chunky)
+local FirstTips = require(script.Parent.FirstTips)
+local Kit = require(script.Parent.Kit)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local PortalScreen = {}
 
-local FONT = Font.fromEnum(Enum.Font.Arcade)
-local INK = Color3.fromRGB(24, 16, 10)
-local WOOD = Color3.fromRGB(78, 52, 32)
-local PLANK = Color3.fromRGB(58, 38, 24)
-local GOLD = Color3.fromRGB(255, 206, 74)
-local WHITE = Color3.new(1, 1, 1)
-local GREEN = Color3.fromRGB(70, 176, 58)
-local RED = Color3.fromRGB(196, 64, 52)
-local GREY = Color3.fromRGB(96, 92, 88)
-local LOCKED = Color3.fromRGB(40, 34, 30)
-
-type Slot = { frame: Frame, face: Frame, button: TextButton, level: number? }
---[[ A numbered button of the grid: the `position`th of the portal's levels. ]]
-type Tile = { frame: Frame, position: number, open: boolean }
-
 local gui: ScreenGui? = nil
-local panel: Frame? = nil
+local canvas: Frame? = nil
 local startButton: TextButton? = nil
-local startFace: Frame? = nil
-local startWords: TextLabel? = nil
 local profile: SaveSchema.Profile? = nil
 --[[ The portal showing (its index in `Config/Lobby.portals`), the level
      picked, and whether START has been pressed. ]]
 local portalIndex: number? = nil
 local picked = 1
 local starting = false
-local slots: { Slot } = {}
-local levelRow: Frame? = nil
-local levelList: UIListLayout? = nil
---[[ Whether the cards are laid as rows, for an upright screen. ]]
-local rows = false
---[[ The grid of numbered levels, for an area with more than
-     `levelSlots` (`fillGrid`), and the line under it naming the pick. ]]
-local levelGrid: Frame? = nil
-local gridInfo: TextLabel? = nil
-local tiles: { Tile } = {}
-local grid = false
+--[[ The HARD tab is on (`Util/HardRules`): only once the area's boss is
+     beaten, and back to NORMAL for each new area. ]]
+local hardOn = false
+--[[ Set while the screen was opened from the lobby's PLAY button: the way
+     back to the area list (`UI/AreaScreen`). Nil for a portal walked into. ]]
+local backTo: (() -> ())? = nil
+--[[ Whether the area list is up, as `UI/AreaScreen` tells it: the lobby's
+     other screens ask this one whether a level is being chosen (`isOpen`). ]]
+local areaStep: (() -> boolean)? = nil
 
---[[ Where a piece of a card goes, as {x, y, w, h} shares of the card: `tall`
-     for a card standing in a row of them, `wide` for one of a stack. ]]
-local function put(item: GuiObject, tall: { number }, wide: { number })
-	local at = if rows then wide else tall
-	item.Position = UDim2.fromScale(at[1], at[2])
-	item.Size = UDim2.fromScale(at[3], at[4])
-end
+--[[ Where the panel's pieces sit, in sheet pixels. `nodes` is the box the
+     level buttons share; `card` the white card and the rows down it. ]]
+type Layout = {
+	panel: { number },
+	ribbon: { number },
+	act: { number },
+	close: { number },
+	nodes: { number },
+	card: { number },
+	title: { number },
+	size: { number },
+	boss: { number },
+	status: { number },
+	--[[ What the level pays, a row of pictures and numbers above PLAY
+	     (review item 10, as the mockup's coin and gem row). ]]
+	rewards: { number },
+	play: { number },
+	--[[ With a way back to the area list (`backTo`): the `< AREAS` button,
+	     and the boxes that make room for it. ]]
+	back: { number },
+	nodesBack: { number },
+	playBack: { number },
+	--[[ The NORMAL / HARD tabs, once the area's boss is beaten, and where
+	     the level buttons go to make room for them (nil: they need none). ]]
+	toggle: { number },
+	nodesHard: { number }?,
+}
 
-local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
-	local f = Instance.new("Frame")
-	f.Name = name
-	f.BorderSizePixel = 0
-	f.BackgroundColor3 = colour
-	f.ZIndex = z
-	f.Parent = parent
-	return f
-end
+local WIDE: Layout = {
+	panel = { 150, 104, 1620, 940 },
+	ribbon = { 520, 22, 880, 150 },
+	act = { 790, 168, 340, 72 },
+	close = { 1688, 66, 108 },
+	nodes = { 200, 270, 1060, 720 },
+	card = { 1290, 262, 440, 748 },
+	title = { 1314, 290, 392, 110 },
+	size = { 1322, 420, 376, 86 },
+	boss = { 1322, 524, 376, 130 },
+	status = { 1342, 672, 336, 64 },
+	rewards = { 1314, 748, 392, 86 },
+	play = { 1314, 846, 392, 136 },
+	-- under the level buttons, which close up a little
+	back = { 214, 912, 330, 110 },
+	nodesBack = { 200, 256, 1060, 644 },
+	playBack = { 1314, 846, 392, 136 },
+	-- under the header, left of the act's pill
+	toggle = { 214, 184, 440, 76 },
+	nodesHard = nil,
+}
 
-local function label(
-	parent: Instance,
-	text: string,
-	colour: Color3,
-	z: number,
-	maxSize: number?
-): TextLabel
-	local l = Instance.new("TextLabel")
-	l.BackgroundTransparency = 1
-	l.FontFace = FONT
-	l.Text = text
-	l.TextColor3 = colour
-	l.TextScaled = true
-	l.ZIndex = z
-	l.Parent = parent
-	local fit = Instance.new("UITextSizeConstraint")
-	fit.MaxTextSize = maxSize or 28
-	fit.Parent = l
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = INK
-	stroke.Thickness = 2
-	stroke.Parent = l
-	return l
-end
-
---[[ A blocky box: an ink border round a face, with a lighter top edge. ]]
-local function box(parent: Instance, name: string, face: Color3, z: number): (Frame, Frame)
-	local outer = rect(parent, name, INK, z)
-	local inner = rect(outer, "Face", face, z + 1)
-	inner.Position = UDim2.fromOffset(3, 3)
-	inner.Size = UDim2.new(1, -6, 1, -6)
-	local top = rect(inner, "Shine", face:Lerp(WHITE, 0.25), z + 1)
-	top.Size = UDim2.new(1, 0, 0, 3)
-	return outer, inner
-end
-
-local function hit(parent: Instance, z: number): TextButton
-	local b = Instance.new("TextButton")
-	b.BackgroundTransparency = 1
-	b.Text = ""
-	b.Size = UDim2.fromScale(1, 1)
-	b.ZIndex = z
-	b.AutoButtonColor = false
-	b.Parent = parent
-	return b
-end
+local TALL: Layout = {
+	panel = { 30, 196, 1020, 1694 },
+	ribbon = { 120, 116, 840, 150 },
+	act = { 370, 256, 340, 72 },
+	close = { 956, 150, 110 },
+	nodes = { 70, 350, 940, 800 },
+	card = { 70, 1180, 940, 670 },
+	title = { 110, 1200, 860, 100 },
+	size = { 110, 1308, 860, 72 },
+	boss = { 110, 1390, 860, 80 },
+	status = { 250, 1480, 580, 58 },
+	rewards = { 110, 1546, 860, 88 },
+	play = { 230, 1648, 620, 160 },
+	-- beside PLAY, which gives it room
+	back = { 110, 1648, 290, 160 },
+	nodesBack = { 70, 350, 940, 800 },
+	playBack = { 424, 1648, 546, 160 },
+	-- across the top of the levels, which move down under it
+	toggle = { 110, 344, 860, 84 },
+	nodesHard = { 70, 440, 940, 710 },
+}
 
 --[[ The boss banner (`Config/BossBanners`) of the area named `area`. ]]
 local function bannerFor(area: string?): BossBanners.Banner?
@@ -165,6 +177,17 @@ local function beaten(): LevelUnlocks.Beaten?
 	return if p then p.levelsBeaten else nil
 end
 
+local function bosses(): { [string]: boolean }?
+	local p = profile
+	return if p then p.bossesBeaten else nil
+end
+
+--[[ The levels this player has won on hard (`Util/HardRules`). ]]
+local function hardDone(): LevelUnlocks.Beaten?
+	local p = profile
+	return if p then p.hardBeaten else nil
+end
+
 local function close()
 	local screen = gui
 	if screen then
@@ -175,27 +198,17 @@ local function close()
 	end
 	portalIndex = nil
 	starting = false
+	backTo = nil
 end
 
-local function start()
-	local index = portalIndex
-	local portal = index and LobbyConfig.portals[index]
-	local levels = portal and portal.levels
-	if not index or not levels or not levels[picked] or starting then
+--[[ Back to the area list, for a screen opened from it. ]]
+local function goBack()
+	local back = backTo
+	if not back or starting then
 		return
 	end
-	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
-	     The server checks both again on START, and its answer is the one
-	     that decides (`Run/Lobby.startFor`). ]]
-	if not LevelUnlocks.portalOpen(portal and portal.requires, beaten()) then
-		return
-	end
-	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
-		return
-	end
-	starting = true
-	SoundFx.play("card_click")
-	Remotes.event(Remotes.PortalStart):FireServer(index, picked)
+	close()
+	back()
 end
 
 --[[ How big a stage is, in its own unit: rooms, waves, or — for Endless,
@@ -214,7 +227,7 @@ end
      `finale`, or a Rooms stage's last room (Mossy Glade 1-10 is King
      Bloblin alone in the Glade Heart, Thornwood the Broodmother in the
      Brood Heart). Read the same way `RoomController.endsInBoss` reads it,
-     so the line and the boss drop can never disagree. ]]
+     so the card and the boss drop can never disagree. ]]
 local function bossOf(stage: Balance.StageConfig): Balance.EnemyBoss?
 	local roster: { Balance.EnemyConfig }
 	local finale = stage.finale
@@ -234,384 +247,688 @@ local function bossOf(stage: Balance.StageConfig): Balance.EnemyBoss?
 	return nil
 end
 
---[[ What the line under the grid says of the picked level: its number,
-     its rooms or waves, and its boss if it ends in one. ]]
-local function describe(stage: Balance.StageConfig): string
+--[[ The boss's line on the card: by its banner's name (King Bloblin), as
+     the boss bar shows it. ]]
+local function bossLine(stage: Balance.StageConfig): string
 	if stage.mode == "Endless" then
-		return `{sizeOf(stage)}, EVERY 10TH A BOSS`
+		return "EVERY 10TH FLOOR A BOSS"
 	end
-	local size = sizeOf(stage)
 	local boss = bossOf(stage)
-	local words = `LEVEL {stage.level or ""}: {size}`
-	if boss then
-		-- the boss by its banner's name (King Bloblin), as the boss bar shows it
-		local banner = BossBanners.bosses[boss.title]
-		local name = if banner then banner.name else boss.title
-		words ..= `, THEN {string.upper(name)}`
+	if not boss then
+		return "NO BOSS"
 	end
-	return words
+	local banner = BossBanners.bosses[boss.title]
+	return `BOSS: {string.upper(if banner then banner.name else boss.title)}`
 end
 
---[[ The grid: one numbered button per level, `levelColumns` to a row, in
-     order (Mossy Glade 1-1..1-5 above 1-6..1-10). ]]
-local function fillGrid(levels: { number })
-	local frame = levelGrid
-	if not frame then
+--[[ Endless's own two lines on the card, where a level has CLEARED and
+     its pay: the player's best floor, and the next one-time prize with its
+     floor (`Balance.Endless.milestones`; it was one round "1" in an empty
+     panel, the run-through, 2026-11-14). Nil for a line with nothing to
+     say. ]]
+local function endlessLines(): (string?, string?)
+	local p = profile
+	local best = if p then p.endlessBest else 0
+	local prize: string? = nil
+	for _, milestone in Balance.Endless.milestones do
+		if not (p and p.endlessMilestones[tostring(milestone.floor)]) then
+			prize = `FLOOR {milestone.floor}: {milestone.name}`
+			break
+		end
+	end
+	return if best > 0 then `BEST FLOOR {best}` else nil, prize
+end
+
+--[[ What winning a level pays (review item 10, owner 2026-11-11), as the
+     server pays it (`Config/Economy`, `RoomController.complete`,
+     `Wallet.beatBoss`): the area's free egg on the level's first clear,
+     the clear's coins, and for a level that ends in its boss the gems
+     (more the first time) and the boss's item. Kill coins come on top.
+     Nothing for Endless, which pays Soulstones by the floor. ]]
+type Reward = { icon: string, words: string? }
+--[[ On hard (`hardGems` given): no free egg (that is the normal first
+     clear's), the clear's coins with hard's share added, and the first hard
+     clear's gems (`hardGems`, 0 once won on hard) with any boss gems. ]]
+local function rewardsOf(
+	stage: Balance.StageConfig,
+	done: LevelUnlocks.Beaten?,
+	hardGems: number?
+): { Reward }
+	local area = stage.area
+	local pay = area and Economy.areas[area]
+	local list: { Reward } = {}
+	if not area or not pay or stage.mode == "Endless" then
+		return list
+	end
+	local egg = pay.firstClearEgg
+	if egg and stage.level and hardGems == nil and not LevelUnlocks.isBeaten(stage, done) then
+		local art = GearAssets.eggs[egg]
+		local icon = if art then art.whole else GearAssets.areaPictures.eggs[area]
+		if icon then
+			table.insert(list, { icon = icon, words = "FREE" })
+		end
+	end
+	local coins = if hardGems ~= nil
+		then math.floor(pay.clearCoins * (1 + RunBonus.hard(true)) + 0.5)
+		else pay.clearCoins
+	table.insert(list, { icon = ShopAssets.coin, words = tostring(coins) })
+	if hardGems and hardGems > 0 and not bossOf(stage) then
+		table.insert(list, { icon = ShopAssets.gem, words = tostring(hardGems) })
+	end
+	if bossOf(stage) then
+		local p = profile
+		local first = not (p and p.bossesBeaten[area])
+		local gems = (if first then pay.firstBossGems else pay.bossGems) + (hardGems or 0)
+		table.insert(list, { icon = ShopAssets.gem, words = tostring(gems) })
+		local item = ShopAssets.items[pay.bossItem]
+		if item then
+			table.insert(list, { icon = item })
+		end
+	end
+	return list
+end
+
+--[[ The rewards in a row: each one's picture, then its number, sized to
+     share the row's width and never taller than it. ]]
+local function rewardRow(sheet: Chunky.Sheet, rewards: { Reward }, box: { number })
+	if #rewards == 0 then
 		return
 	end
-	for _, tile in tiles do
-		tile.frame:Destroy()
+	local row = Instance.new("Frame")
+	row.Name = "Rewards"
+	row.BackgroundTransparency = 1
+	row.ZIndex = 6
+	Chunky.put(sheet, row, box[1], box[2], box[3], box[4])
+	local list = Instance.new("UIListLayout")
+	list.FillDirection = Enum.FillDirection.Horizontal
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.VerticalAlignment = Enum.VerticalAlignment.Center
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0.015, 0)
+	list.Parent = row
+	-- widths in pictures: a picture is 1, its words about half that a letter
+	local total = 0
+	for _, reward in rewards do
+		total += 1 + (if reward.words then 0.2 + 0.5 * #reward.words else 0.15)
 	end
-	table.clear(tiles)
-	local done = beaten()
-	local columns = math.max(LobbyConfig.levelColumns, 1)
+	local unit = math.min(0.9 / total, box[4] / box[3])
+	for i, reward in rewards do
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Icon"
+		icon.BackgroundTransparency = 1
+		icon.Image = reward.icon
+		icon.ScaleType = Enum.ScaleType.Fit
+		icon.Size = UDim2.fromScale(unit, 0.96)
+		icon.LayoutOrder = i * 2
+		icon.ZIndex = 7
+		icon.Parent = row
+		local words = reward.words
+		local t = Chunky.text(row, words or "", Chunky.ink, 0)
+		t.Name = "Words"
+		t.Size = UDim2.fromScale(unit * (if words then 0.2 + 0.5 * #words else 0.15), 0.6)
+		t.TextXAlignment = Enum.TextXAlignment.Left
+		t.LayoutOrder = i * 2 + 1
+		t.ZIndex = 7
+	end
+end
+
+--[[ A pale pill with dark words, as the mockup's ROOMS and REWARD rows; in
+     a `colour` of the kit's it takes that colour's own words. ]]
+local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour: Color3?)
+	local p = Instance.new("Frame")
+	p.Name = "Pill"
+	p.BorderSizePixel = 0
+	local ground = colour or Chunky.pale
+	p.BackgroundColor3 = ground
+	p.ZIndex = 6
+	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
+	Chunky.round(p, math.min(box[4], 60))
+	local t = Chunky.textOn(p, words, ground, 4)
+	t.Position, t.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
+	t.ZIndex = 7
+end
+
+--[[ A beaten level's line on its card when a star is still to be won: the
+     three stars, gold for the ones held, and beside them what the first
+     dark one asks ("OVER HALF HEALTH", "UNDER 4:10"). The card said
+     CLEARED and nothing of what the missing star wanted (the every-class
+     run-through, 2026-11-16). ]]
+local function starLine(
+	sheet: Chunky.Sheet,
+	box: { number },
+	held: number?,
+	stage: Balance.StageConfig
+)
+	local p = Instance.new("Frame")
+	p.Name = "StarLine"
+	p.BorderSizePixel = 0
+	p.BackgroundColor3 = Chunky.pale
+	p.ZIndex = 6
+	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
+	Chunky.round(p, math.min(box[4], 60))
+	local asks = StarRules.words(StarRules.par(stage))
+	local missing: string? = nil
+	-- each star a square as tall as the line allows, from its left end
+	local side = box[4] * 0.74
+	local step = side * 1.04
+	local left = box[4] * 0.3
+	for at, bit in StarRules.ALL do
+		local star = Kit.image(p, EndScreenAssets.star)
+		star.Name = "Star" .. at
+		star.AnchorPoint = Vector2.new(0, 0.5)
+		star.Position = UDim2.fromScale((left + (at - 1) * step) / box[3], 0.5)
+		star.Size = UDim2.fromScale(side / box[3], side / box[4])
+		star.ZIndex = 7
+		if not StarRules.has(held, bit) then
+			star.ImageColor3 = Color3.new(0, 0, 0)
+			star.ImageTransparency = 0.72
+			missing = missing or asks[at]
+		end
+	end
+	local from = left + #StarRules.ALL * step + box[4] * 0.1
+	local t = Chunky.textOn(p, missing or "CLEARED", Chunky.pale, 4)
+	t.Name = "Ask"
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.Position = UDim2.fromScale(from / box[3], 0.18)
+	t.Size = UDim2.fromScale((box[3] - from - box[4] * 0.3) / box[3], 0.64)
+	t.ZIndex = 7
+end
+
+--[[ A round level button: its number, a lock if shut, the boss's icon if
+     it ends in one, a gold ring if picked. ]]
+local function node(
+	sheet: Chunky.Sheet,
+	words: string,
+	open: boolean,
+	cleared: boolean,
+	chosen: boolean,
+	bossIcon: string?,
+	x: number,
+	y: number,
+	size: number,
+	action: () -> (),
+	onHard: boolean?
+): Frame
+	local holder = Instance.new("Frame")
+	holder.Name = "Node"
+	holder.BackgroundTransparency = 1
+	holder.ZIndex = 6
+	Chunky.put(sheet, holder, x, y, size, size)
+	if chosen then
+		for ring, spread in { 18, 10 } do
+			local halo = Instance.new("Frame")
+			halo.BackgroundTransparency = 1
+			halo.AnchorPoint = Vector2.new(0.5, 0.5)
+			halo.Position = UDim2.fromScale(0.5, 0.5)
+			halo.Size = UDim2.fromScale(1 + spread / size * 2, 1 + spread / size * 2)
+			halo.ZIndex = 5
+			halo.Parent = holder
+			Chunky.round(halo, size)
+			local glow = Chunky.outline(halo, spread, Chunky.gold)
+			glow.Transparency = ({ 0.6, 0 })[ring]
+		end
+	end
+	-- a hard level is red where a normal one is blue
+	local tone = if not open
+		then Chunky.grey
+		elseif chosen then (if onHard then Chunky.red else Chunky.blue)
+		elseif cleared then Chunky.green
+		elseif onHard then Chunky.red
+		else Chunky.blue
+	local ball = Instance.new("Frame")
+	ball.BorderSizePixel = 0
+	ball.Size = UDim2.fromScale(1, 1)
+	ball.ZIndex = 6
+	ball.Parent = holder
+	Chunky.light(ball, tone)
+	Chunky.round(ball, size)
+	Chunky.outline(ball, 7)
+	-- a sliver of shine along the crown, clear of the number: a shine under
+	-- white words would lose them
+	local gloss = Instance.new("Frame")
+	gloss.BorderSizePixel = 0
+	gloss.BackgroundColor3 = Color3.new(1, 1, 1)
+	gloss.BackgroundTransparency = 0.6
+	gloss.Position, gloss.Size = UDim2.fromScale(0.26, 0.045), UDim2.fromScale(0.48, 0.06)
+	gloss.ZIndex = 7
+	gloss.Parent = ball
+	Chunky.round(gloss, size)
+
+	local lower = not open or (bossIcon ~= nil and bossIcon ~= "")
+	local number = Chunky.textOn(ball, words, tone, 6)
+	number.Position = UDim2.fromScale(0.12, if lower then 0.1 else 0.22)
+	number.Size = UDim2.fromScale(0.76, if lower then 0.36 else 0.5)
+	number.ZIndex = 9
+	if bossIcon and bossIcon ~= "" then
+		local cell = BossBanners.sheet.cell
+		local face = Instance.new("ImageLabel")
+		face.Name = "Boss"
+		face.BackgroundTransparency = 1
+		face.ScaleType = Enum.ScaleType.Fit
+		face.Image = bossIcon
+		face.ImageRectOffset = Vector2.zero
+		face.ImageRectSize = Vector2.new(cell, cell)
+		face.Position, face.Size = UDim2.fromScale(0.18, 0.42), UDim2.fromScale(0.64, 0.5)
+		face.ZIndex = 8
+		face.Parent = ball
+	end
+	if not open then
+		local lock = Kit.image(ball, ShopAssets.lock)
+		lock.Position = if bossIcon and bossIcon ~= ""
+			then UDim2.fromScale(0.56, 0.6)
+			else UDim2.fromScale(0.3, 0.48)
+		lock.Size = if bossIcon and bossIcon ~= ""
+			then UDim2.fromScale(0.34, 0.34)
+			else UDim2.fromScale(0.4, 0.4)
+		lock.ZIndex = 10
+	elseif cleared then
+		-- small words: on a white chip, as a tile's caption is
+		local chip = Instance.new("Frame")
+		chip.Name = "Cleared"
+		chip.BorderSizePixel = 0
+		chip.BackgroundColor3 = Chunky.white
+		chip.Position, chip.Size = UDim2.fromScale(0.08, 0.72), UDim2.fromScale(0.84, 0.19)
+		chip.ZIndex = 10
+		chip.Parent = ball
+		Chunky.round(chip, size)
+		Chunky.outline(chip, 3, Chunky.shade(tone))
+		local tick = Chunky.text(chip, "CLEARED", Chunky.ink, 0)
+		tick.Position, tick.Size = UDim2.fromScale(0.08, 0.1), UDim2.fromScale(0.84, 0.8)
+		tick.ZIndex = 11
+	end
+	Chunky.press(holder, action)
+	return holder
+end
+
+local fill: (index: number) -> ()
+
+local function start()
+	local index = portalIndex
+	local portal = index and LobbyConfig.portals[index]
+	local levels = portal and portal.levels
+	if not index or not levels or not levels[picked] or starting then
+		return
+	end
+	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
+	     The server checks both again, and its answer is the one that
+	     decides (`Run/Lobby.levelOpen`). ]]
+	if not portal or not LaunchLocks.portalOpen(portal, beaten(), bosses()) then
+		return
+	end
+	if hardOn then
+		if not HardRules.isOpen(levels, Balance.Stages, bosses(), hardDone(), picked) then
+			return
+		end
+	elseif not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
+		return
+	end
+	starting = true
+	SoundFx.play("card_click")
+	Remotes.event(Remotes.PortalStart):FireServer(index, picked, hardOn)
+	fill(index)
+end
+
+--[[ The NORMAL / HARD tabs: the levels are drawn again for the mode, the
+     pick moved to the first one not yet won in it. ]]
+local function setHard(index: number, on: boolean)
+	local portal = LobbyConfig.portals[index]
+	if starting or hardOn == on or not portal or not portal.levels then
+		return
+	end
+	hardOn = on
+	SoundFx.play("card_click")
+	picked = if on
+		then HardRules.suggested(portal.levels, Balance.Stages, hardDone())
+		else LevelUnlocks.suggested(portal.levels, Balance.Stages, beaten())
+	fill(index)
+end
+
+--[[
+	Every level button of portal `index`, `levelColumns` to a row, as big as
+	fits `box`, with a dotted path from each to the next along its row. This
+	is the one place a level's button is drawn: `node` returns the button's
+	frame (`size` sheet pixels square, its ball at ZIndex 6 to 11), so a
+	badge on a level, such as its stars, is made here from `stage` and
+	parented to that frame.
+]]
+local function levelButtons(
+	sheet: Chunky.Sheet,
+	box: { number },
+	index: number,
+	levels: { number },
+	done: LevelUnlocks.Beaten?,
+	openAt: (position: number) -> boolean,
+	banner: BossBanners.Banner?,
+	onHard: boolean
+)
+	local columns = math.min(math.max(LobbyConfig.levelColumns, 1), math.max(#levels, 1))
 	local lines = math.max(math.ceil(#levels / columns), 1)
-	local gapX, gapY = 0.025, 0.08
-	local w = (1 - gapX * (columns - 1)) / columns
-	local h = (1 - gapY * (lines - 1)) / lines
-	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, done, picked) then
-		picked = LevelUnlocks.suggested(levels, Balance.Stages, done)
-	end
-	for position, index in levels do
-		local stage = Balance.Stages[index]
-		local open = LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
-		local cleared = LevelUnlocks.isBeaten(stage, done)
+	local bx, by, bw, bh = box[1], box[2], box[3], box[4]
+	local cell = math.min(bw / columns, bh / lines, 300)
+	local size = cell * 0.76
+	local left = bx + (bw - cell * columns) / 2
+	local top = by + (bh - cell * lines) / 2
+	for position, stageIndex in levels do
+		local stage = Balance.Stages[stageIndex]
 		local column = (position - 1) % columns
 		local line = (position - 1) // columns
-		local card, face = box(frame, `Level{position}`, if open then PLANK else LOCKED, 10)
-		card.Position = UDim2.fromScale(column * (w + gapX), line * (h + gapY))
-		card.Size = UDim2.fromScale(w, h)
-		local name = if stage then stage.level or tostring(position) else ""
-		local number = label(face, name, if open then GOLD else GREY, 14, 34)
-		number.Name = "Number"
-		number.Position = UDim2.fromScale(0.06, if open then 0.14 else 0.08)
-		number.Size = UDim2.fromScale(0.88, 0.38)
-		if not open then
-			-- locked: dimmed, under a lock
-			face.BackgroundTransparency = 0.25
-			local lock = Instance.new("ImageLabel")
-			lock.Name = "Lock"
-			lock.BackgroundTransparency = 1
-			lock.ScaleType = Enum.ScaleType.Fit
-			lock.Image = ShopAssets.lock
-			lock.ImageTransparency = 0.15
-			lock.Position = UDim2.fromScale(0.25, 0.5)
-			lock.Size = UDim2.fromScale(0.5, 0.42)
-			lock.ZIndex = 14
-			lock.Parent = face
-		else
-			local chip, chipFace = box(face, "Status", if cleared then GOLD else GREEN, 14)
-			chip.Position = UDim2.fromScale(0.08, 0.6)
-			chip.Size = UDim2.fromScale(0.84, 0.28)
-			local words = label(chipFace, if cleared then "CLEARED" else "PLAY", WHITE, 16, 14)
-			words.Position = UDim2.fromScale(0.06, 0.15)
-			words.Size = UDim2.fromScale(0.88, 0.7)
-		end
-		local b = hit(card, 20)
-		local tile: Tile = { frame = card, position = position, open = open }
-		b.Activated:Connect(function()
-			if tile.open and not starting then
-				picked = tile.position
-				SoundFx.play("card_click")
+		local cx = left + column * cell + cell / 2
+		local cy = top + line * cell + cell / 2
+		if column < columns - 1 and position < #levels then
+			for dot = 1, 3 do
+				local d = Instance.new("Frame")
+				d.BorderSizePixel = 0
+				d.BackgroundColor3 = Chunky.inkSoft
+				d.ZIndex = 5
+				local step = (cell - size) / 4
+				Chunky.put(sheet, d, cx + size / 2 + step * dot - 5, cy - 5, 10, 10)
+				Chunky.round(d, 10)
+				Chunky.outline(d, 2)
 			end
-		end)
-		table.insert(tiles, tile)
+		end
+		local open = openAt(position)
+		local cleared = stage ~= nil and LevelUnlocks.isBeaten(stage, done)
+		local icon = if stage and bossOf(stage) and banner then banner.icon else nil
+		local button = node(
+			sheet,
+			if stage then stage.level or tostring(position) else tostring(position),
+			open,
+			cleared,
+			position == picked,
+			icon,
+			cx - size / 2,
+			cy - size / 2,
+			size,
+			function()
+				if open and not starting and picked ~= position then
+					picked = position
+					SoundFx.play("card_click")
+					fill(index)
+				end
+			end,
+			onHard
+		)
+		--[[ The level's three stars under its button (`Util/StarRules`):
+		     gold once earned, a dark shape until then. None on hard, which
+		     has no stars of its own (`HardRules.starLevel`). ]]
+		local name = if stage then stage.level else nil
+		if open and name and not onHard then
+			local p = profile
+			local held = if p and p.levelStars then p.levelStars[name] else nil
+			for at, bit in StarRules.ALL do
+				local star = Kit.image(button, EndScreenAssets.star)
+				star.Name = "Star"
+				star.Position = UDim2.fromScale(0.14 + (at - 1) * 0.25, 0.99)
+				star.Size = UDim2.fromScale(0.22, 0.22)
+				star.ZIndex = 12
+				if not StarRules.has(held, bit) then
+					star.ImageColor3 = Color3.new(0, 0, 0)
+					star.ImageTransparency = 0.72
+				end
+			end
+		end
 	end
 end
 
---[[ Fills the panel for portal `index`. ]]
-local function fill(index: number)
-	local p = panel
+--[[ Draws the whole panel for portal `index`. ]]
+fill = function(index: number)
+	local c = canvas
 	local portal = LobbyConfig.portals[index]
-	if not p or not portal then
+	if not c or not portal then
 		return
 	end
-	local tint = portal.tint or GOLD
+	for _, child in c:GetChildren() do
+		if child:IsA("GuiObject") then
+			child:Destroy()
+		end
+	end
+	local sheet = Chunky.sheet(c)
+	local L = if sheet.upright then TALL else WIDE
 	local banner = bannerFor(portal.name)
-	local header = p:FindFirstChild("Header") :: Frame
-	local headerFace = header:FindFirstChild("Face") :: Frame
-	headerFace.BackgroundColor3 = tint:Lerp(INK, 0.35)
-	local name = header:FindFirstChild("AreaName") :: TextLabel
-	name.Text = string.upper(portal.name or "")
-	local act = header:FindFirstChild("Act") :: TextLabel
-	act.Text = if banner then string.upper(banner.act) else ""
-
-	local levels = portal.levels or {}
+	local levels: { number } = portal.levels or {}
+	local done = beaten()
 	--[[ A portal with a `requires` this player has not beaten (Endless
-	     before 1-10) draws its slot locked and says what opens it, rather
-	     than looking playable and being refused on START. ]]
-	local portalOpen = LevelUnlocks.portalOpen(portal.requires, beaten())
-	grid = #levels > LobbyConfig.levelSlots
-	if levelRow then
-		levelRow.Visible = not grid
+	     before 1-10) draws every level locked and says what opens it,
+	     rather than looking playable and being refused on START. ]]
+	local portalOpen = LaunchLocks.portalOpen(portal, done, bosses())
+	--[[ Hard (`Util/HardRules`): offered once the area's boss is beaten;
+	     on it the levels open, and read as won, over the hard wins. ]]
+	local canHard = portalOpen and HardRules.offered(levels, Balance.Stages, bosses())
+	if not canHard then
+		hardOn = false
 	end
-	if levelGrid and gridInfo then
-		levelGrid.Visible = grid
-		gridInfo.Visible = grid
+	local onHard = hardOn
+	local function openAt(position: number): boolean
+		if onHard then
+			return HardRules.isOpen(levels, Balance.Stages, bosses(), hardDone(), position)
+		end
+		return portalOpen and LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
 	end
-	if grid then
-		fillGrid(levels)
-		return
+	if portalOpen and not openAt(picked) then
+		picked = if onHard
+			then HardRules.suggested(levels, Balance.Stages, hardDone())
+			else LevelUnlocks.suggested(levels, Balance.Stages, done)
 	end
 	picked = math.clamp(picked, 1, math.max(#levels, 1))
-	for i, slot in slots do
-		local stage = if portalOpen then Balance.Stages[levels[i]] else nil
-		slot.level = if stage then i else nil
-		local f = slot.face
-		for _, child in f:GetChildren() do
-			if child.Name ~= "Shine" then
-				child:Destroy()
-			end
-		end
-		local title = label(f, `LEVEL {i}`, if stage then GOLD else GREY, 14, 24)
-		put(title, { 0.05, 0.04, 0.9, 0.12 }, { 0.36, 0.08, 0.6, 0.22 })
-		if rows then
-			title.TextXAlignment = Enum.TextXAlignment.Left
-		end
-		if stage then
-			f.BackgroundColor3 = PLANK
-			local pic = Instance.new("ImageLabel")
-			pic.Name = "Boss"
-			pic.BackgroundTransparency = 1
-			pic.ScaleType = Enum.ScaleType.Fit
-			put(pic, { 0.1, 0.18, 0.8, 0.42 }, { 0.03, 0.08, 0.3, 0.84 })
-			pic.ZIndex = 14
-			pic.Parent = f
-			if banner and banner.icon ~= "" then
-				-- the banner's sheet, its first frame (ready)
-				local cell = BossBanners.sheet.cell
-				pic.Image = banner.icon
-				pic.ImageRectOffset = Vector2.zero
-				pic.ImageRectSize = Vector2.new(cell, cell)
-			end
-			local boss = label(f, if banner then string.upper(banner.name) else "", WHITE, 14, 16)
-			put(boss, { 0.05, 0.61, 0.9, 0.09 }, { 0.36, 0.34, 0.6, 0.16 })
-			local rooms = label(f, sizeOf(stage), WHITE, 14, 16)
-			put(rooms, { 0.05, 0.72, 0.9, 0.08 }, { 0.36, 0.52, 0.6, 0.13 })
-			if rows then
-				boss.TextXAlignment = Enum.TextXAlignment.Left
-				rooms.TextXAlignment = Enum.TextXAlignment.Left
-			end
-			local p2 = profile
-			local cleared = p2 ~= nil and stage.area ~= nil and p2.bossesBeaten[stage.area] == true
-			local chip, chipFace = box(f, "Status", if cleared then GOLD else GREEN, 14)
-			put(chip, { 0.12, 0.83, 0.76, 0.12 }, { 0.36, 0.7, 0.5, 0.22 })
-			local words = label(chipFace, if cleared then "CLEARED" else "UNLOCKED", WHITE, 16, 16)
-			words.Position = UDim2.fromScale(0.05, 0.15)
-			words.Size = UDim2.fromScale(0.9, 0.7)
-		else
-			f.BackgroundColor3 = LOCKED
-			local lock = Instance.new("ImageLabel")
-			lock.Name = "Lock"
-			lock.BackgroundTransparency = 1
-			lock.ScaleType = Enum.ScaleType.Fit
-			lock.Image = ShopAssets.lock
-			put(lock, { 0.25, 0.25, 0.5, 0.4 }, { 0.08, 0.15, 0.2, 0.7 })
-			lock.ZIndex = 14
-			lock.Parent = f
-			--[[ A locked portal says what opens it; an area not built yet
-			     says COMING SOON, as before. ]]
-			local words = if portalOpen or not portal.requires
-				then "COMING SOON"
-				else `BEAT {portal.requires}`
-			local soon = label(f, words, GREY, 14, 16)
-			put(soon, { 0.05, 0.75, 0.9, 0.1 }, { 0.36, 0.45, 0.6, 0.2 })
-			if rows then
-				soon.TextXAlignment = Enum.TextXAlignment.Left
-			end
-		end
+
+	Chunky.panel(sheet, table.unpack(L.panel))
+	Chunky.ribbon(sheet, string.upper(portal.name or ""), table.unpack(L.ribbon))
+	if banner then
+		pill(sheet, string.upper(banner.act), L.act, Chunky.blue)
 	end
+	Chunky.close(sheet, L.close[1], L.close[2], L.close[3], close)
+	--[[ Endless pays Soulstones, and this is where they are spent
+	     (`UI/SoulstoneShop`): a purple button in the header, left of the X. ]]
+	local on, deep = sheet.panel, sheet.header
+	if portal.name == "Endless" and on and deep then
+		local bw, bh = 300, deep * 0.72
+		Chunky.button(
+			sheet,
+			"SOUL SHOP",
+			Chunky.purple,
+			on.x + on.w - deep * 1.16 - bw,
+			on.y + (deep - bh) / 2,
+			bw,
+			bh,
+			SoulstoneShop.open
+		).ZIndex =
+			30
+	end
+
+	local nodesBox = if backTo then L.nodesBack else L.nodes
+	if canHard then
+		local box = L.toggle
+		local gap = 16
+		local half = (box[3] - gap) / 2
+		Chunky.tab(sheet, "NORMAL", not onHard, box[1], box[2], half, box[4], function()
+			setHard(index, false)
+		end).Name =
+			"NormalTab"
+		Chunky.tab(sheet, "HARD", onHard, box[1] + half + gap, box[2], half, box[4], function()
+			setHard(index, true)
+		end).Name =
+			"HardTab"
+		nodesBox = L.nodesHard or nodesBox
+	end
+	levelButtons(
+		sheet,
+		nodesBox,
+		index,
+		levels,
+		if onHard then hardDone() else done,
+		openAt,
+		banner,
+		onHard
+	)
+	if backTo then
+		local back = Chunky.button(
+			sheet,
+			"< AREAS",
+			Chunky.blue,
+			L.back[1],
+			L.back[2],
+			L.back[3],
+			L.back[4],
+			goBack
+		)
+		back.Name = "Back"
+	end
+
+	-- the picked level's card
+	Chunky.card(sheet, table.unpack(L.card))
+	local stage = Balance.Stages[levels[picked]]
+	local pickedOpen = openAt(picked)
+	local title = Chunky.text(
+		c,
+		if not portalOpen
+			then "LOCKED"
+			elseif stage and stage.mode == "Endless" then "ENDLESS"
+			elseif stage and onHard then `HARD {stage.level or picked}`
+			elseif stage then `LEVEL {stage.level or picked}`
+			else "COMING SOON",
+		Chunky.ink,
+		0
+	)
+	Chunky.put(sheet, title, table.unpack(L.title))
+	title.ZIndex = 8
+	if not portalOpen then
+		pill(sheet, LaunchLocks.portalWords(portal), L.size)
+	elseif stage then
+		pill(sheet, sizeOf(stage), L.size)
+		pill(sheet, bossLine(stage), L.boss)
+		if stage.mode == "Endless" then
+			local best, prize = endlessLines()
+			if best then
+				pill(sheet, best, L.status, Chunky.gold)
+			end
+			if prize then
+				pill(sheet, prize, L.rewards)
+			end
+		elseif onHard then
+			if LevelUnlocks.isBeaten(stage, hardDone()) then
+				pill(sheet, "HARD CLEARED", L.status, Chunky.gold)
+			elseif not pickedOpen then
+				pill(sheet, "LOCKED", L.status, Chunky.grey)
+			end
+		elseif LevelUnlocks.isBeaten(stage, done) then
+			-- every star held: CLEARED in gold; else the stars and what is still asked
+			local p = profile
+			local held = if p
+					and p.levelStars
+					and stage.level
+				then p.levelStars[stage.level]
+				else nil
+			if StarRules.count(held) >= #StarRules.ALL then
+				pill(sheet, "CLEARED", L.status, Chunky.gold)
+			else
+				starLine(sheet, L.status, held, stage)
+			end
+		elseif not pickedOpen then
+			pill(sheet, "LOCKED", L.status, Chunky.grey)
+		end
+		local hardGems = if not onHard
+			then nil
+			elseif LevelUnlocks.isBeaten(stage, hardDone()) then 0
+			else HardRules.gems(levels, picked)
+		rewardRow(sheet, rewardsOf(stage, done, hardGems), L.rewards)
+	end
+	local idle = starting or not pickedOpen or stage == nil
+	local playBox = if backTo then L.playBack else L.play
+	local play = Chunky.button(
+		sheet,
+		if starting then "STARTING..." elseif idle then "LOCKED" else "PLAY",
+		if idle then Chunky.grey else Chunky.gold,
+		playBox[1],
+		playBox[2],
+		playBox[3],
+		playBox[4],
+		start
+	)
+	play.Name = "Play"
+	startButton = play:FindFirstChildWhichIsA("TextButton", true)
 end
 
---[[ Repaints what changes from frame to frame: the picked level's gold
-     border, and the buttons' hover and press. ]]
-local function pose()
-	for _, slot in slots do
-		local chosen = slot.level ~= nil and slot.level == picked
-		slot.frame.BackgroundColor3 = if chosen then GOLD else INK
-	end
-	local pickedOpen = true
-	if grid then
-		pickedOpen = false
-		for _, tile in tiles do
-			local chosen = tile.position == picked
-			tile.frame.BackgroundColor3 = if chosen then GOLD else INK
-			if chosen then
-				pickedOpen = tile.open
-			end
-		end
-		local index = portalIndex
-		local portal = index and LobbyConfig.portals[index]
-		local levels = portal and portal.levels
-		local stage = levels and Balance.Stages[levels[picked]]
-		if gridInfo then
-			gridInfo.Text = if stage then describe(stage) else ""
-		end
-	end
-	local face, button, words = startFace, startButton, startWords
-	if face and button and words then
-		local idle = starting or not pickedOpen
-		local colour = if idle then GREY else GREEN
-		local state = button.GuiState
-		if not idle and state == Enum.GuiState.Press then
-			colour = colour:Lerp(Color3.new(0, 0, 0), 0.3)
-		elseif
-			not idle and (state == Enum.GuiState.Hover or GuiService.SelectedObject == button)
-		then
-			colour = colour:Lerp(WHITE, 0.2)
-		end
-		face.BackgroundColor3 = colour
-		words.Text = if starting
-			then "STARTING..."
-			elseif not pickedOpen then "LOCKED"
-			elseif UserInputService.KeyboardEnabled and not Device.isPhone() then "START [ENTER]"
-			else "START"
-	end
+--[[ Whether this screen itself is up. ]]
+local function shown(): boolean
+	local screen = gui
+	return screen ~= nil and screen.Enabled
+end
+PortalScreen.levelsOpen = shown
+
+--[[ Whether the player is choosing where to play: this screen, or the area
+     list before it. The lobby's HUD and its other pop-ups wait on this. ]]
+function PortalScreen.isOpen(): boolean
+	local areas = areaStep
+	return shown() or (areas ~= nil and areas())
+end
+
+--[[ `UI/AreaScreen` says how to ask whether its list is up. ]]
+function PortalScreen.setAreaStep(isUp: () -> boolean)
+	areaStep = isUp
 end
 
 local function build(playerGui: PlayerGui)
-	local phone = Device.isPhone()
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "PortalScreen"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true
 	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-	screen.DisplayOrder = 114
+	-- above the station screens (115), whose lobby wallet would cover the X
+	screen.DisplayOrder = 116
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.Enabled = false
 	screen.Parent = playerGui
 	gui = screen
 
-	local dim = rect(screen, "Dim", Color3.new(0, 0, 0), 1)
-	dim.BackgroundTransparency = 0.5
+	-- the lobby dimmed behind, as the other chunky screens stand over it
+	local dim = Instance.new("Frame")
+	dim.Name = "Dim"
+	dim.BorderSizePixel = 0
+	dim.BackgroundColor3 = Color3.fromRGB(10, 14, 40)
+	dim.BackgroundTransparency = 0.45
 	dim.Size = UDim2.new(1, 0, 1, 200)
 	dim.Position = UDim2.fromOffset(0, -100)
+	dim.ZIndex = 1
+	dim.Parent = screen
 
-	local p = box(screen, "Panel", WOOD, 2)
-	p.AnchorPoint = Vector2.new(0.5, 0.5)
-	p.Position = UDim2.fromScale(0.5, 0.5)
-	p.Size = UDim2.fromScale(if phone then 0.96 else 0.62, if phone then 0.94 else 0.74)
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(920, 620)
-	limit.Parent = p
-	panel = p
+	local holder = Instance.new("Frame")
+	holder.Name = "Holder"
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.ZIndex = 2
+	holder.Parent = screen
 
-	-- the area's name on a band in its portal's colour
-	local header = box(p, "Header", GOLD, 4)
-	header.Position = UDim2.fromScale(0.03, 0.03)
-	header.Size = UDim2.fromScale(0.94, 0.2)
-	local areaName = label(header, "", WHITE, 7, 48)
-	areaName.Name = "AreaName"
-	areaName.Position = UDim2.fromScale(0.04, 0.1)
-	areaName.Size = UDim2.fromScale(0.8, 0.5)
-	areaName.TextXAlignment = Enum.TextXAlignment.Left
-	local act = label(header, "", GOLD, 7, 20)
-	act.Name = "Act"
-	act.Position = UDim2.fromScale(0.04, 0.62)
-	act.Size = UDim2.fromScale(0.6, 0.26)
-	act.TextXAlignment = Enum.TextXAlignment.Left
+	local c = Instance.new("Frame")
+	c.Name = "Canvas"
+	c.BackgroundTransparency = 1
+	c.AnchorPoint = Vector2.new(0.5, 0.5)
+	c.Position = UDim2.fromScale(0.5, 0.5)
+	c.Size = UDim2.fromScale(0.98, 0.98)
+	c.ZIndex = 2
+	c.Parent = holder
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = 16 / 9
+	aspect.Parent = c
+	canvas = c
 
-	local x, xFace = box(p, "Close", RED, 8)
-	x.AnchorPoint = Vector2.new(1, 0)
-	x.Position = UDim2.new(1, -12, 0, 12)
-	x.Size = UDim2.fromScale(0.08, 0.1)
-	local square = Instance.new("UIAspectRatioConstraint")
-	square.Parent = x
-	local xWords = label(xFace, "X", WHITE, 10, 26)
-	xWords.Size = UDim2.fromScale(1, 1)
-	local xHit = hit(x, 11)
-	xHit.Activated:Connect(close)
-
-	local pick = label(p, "CHOOSE A LEVEL", WHITE, 4, 22)
-	pick.Position = UDim2.fromScale(0.05, 0.255)
-	pick.Size = UDim2.fromScale(0.9, 0.06)
-
-	-- the level cards
-	local row = Instance.new("Frame")
-	row.Name = "Levels"
-	row.BackgroundTransparency = 1
-	row.Position = UDim2.fromScale(0.04, 0.33)
-	row.Size = UDim2.fromScale(0.92, 0.48)
-	row.ZIndex = 4
-	row.Parent = p
-	local list = Instance.new("UIListLayout")
-	list.FillDirection = Enum.FillDirection.Horizontal
-	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Padding = UDim.new(0.03, 0)
-	list.Parent = row
-	levelRow, levelList = row, list
-	table.clear(slots)
-	for i = 1, LobbyConfig.levelSlots do
-		local card, face = box(row, `Level{i}`, PLANK, 10)
-		card.LayoutOrder = i
-		local b = hit(card, 20)
-		local slot: Slot = { frame = card, face = face, button = b, level = nil }
-		b.Activated:Connect(function()
-			if slot.level and not starting then
-				picked = slot.level
-				SoundFx.play("card_click")
+	-- lay out again when a phone turns between upright and landscape
+	local upright = holder.AbsoluteSize.Y > holder.AbsoluteSize.X
+	holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		local now = holder.AbsoluteSize.Y > holder.AbsoluteSize.X
+		local index = portalIndex
+		if now ~= upright then
+			upright = now
+			if index and shown() then
+				fill(index)
 			end
-		end)
-		table.insert(slots, slot)
-	end
-
-	-- the grid, for an area of many levels (`fillGrid`), in the cards' place
-	local gridFrame = Instance.new("Frame")
-	gridFrame.Name = "LevelGrid"
-	gridFrame.BackgroundTransparency = 1
-	gridFrame.Position = UDim2.fromScale(0.05, 0.34)
-	gridFrame.Size = UDim2.fromScale(0.9, 0.4)
-	gridFrame.ZIndex = 4
-	gridFrame.Visible = false
-	gridFrame.Parent = p
-	levelGrid = gridFrame
-	local info = label(p, "", WHITE, 4, 20)
-	info.Name = "LevelInfo"
-	info.Position = UDim2.fromScale(0.05, 0.755)
-	info.Size = UDim2.fromScale(0.9, 0.06)
-	info.Visible = false
-	gridInfo = info
-
-	local go, goFace = box(p, "Start", GREEN, 8)
-	go.AnchorPoint = Vector2.new(0.5, 0)
-	go.Position = UDim2.fromScale(0.5, 0.84)
-	go.Size = UDim2.fromScale(if phone then 0.5 else 0.36, 0.12)
-	local goWords = label(goFace, "START", WHITE, 10, 28)
-	goWords.Position = UDim2.fromScale(0.06, 0.18)
-	goWords.Size = UDim2.fromScale(0.88, 0.64)
-	local goHit = hit(go, 11)
-	goHit.Activated:Connect(start)
-	startButton, startFace, startWords = goHit, goFace, goWords
+		end
+	end)
 end
 
-function PortalScreen.isOpen(): boolean
-	local screen = gui
-	return screen ~= nil and screen.Enabled
-end
-
---[[ Lays the level cards out for the screen's shape: side by side, or
-     stacked as rows on an upright screen. ]]
-local function layCards(screen: ScreenGui)
-	local row, list = levelRow, levelList
-	if not row or not list then
-		return
-	end
-	local view = screen.AbsoluteSize
-	rows = view.Y > view.X
-	local share = (1 - 0.03 * (LobbyConfig.levelSlots - 1)) / LobbyConfig.levelSlots
-	list.FillDirection = if rows then Enum.FillDirection.Vertical else Enum.FillDirection.Horizontal
-	list.VerticalAlignment = Enum.VerticalAlignment.Center
-	for _, slot in slots do
-		slot.frame.Size = if rows then UDim2.fromScale(1, share) else UDim2.fromScale(share, 1)
-	end
-	-- stacked, the cards take the panel's height down to START
-	row.Size = UDim2.fromScale(0.92, if rows then 0.5 else 0.48)
-end
-
---[[ Opens portal `index`'s screen, as if the server had sent it: for the
-     server's message, and for a Studio capture. ]]
-function PortalScreen.open(index: number)
+--[[ Opens portal `index`'s screen: for the server's message as a portal is
+     walked into (no `back`), for the area list (`back` returns to it), and
+     for a Studio capture. ]]
+function PortalScreen.open(index: number, back: (() -> ())?)
 	if Players.LocalPlayer:GetAttribute("ClassSelecting") == true then
 		return
 	end
@@ -620,16 +937,29 @@ function PortalScreen.open(index: number)
 	if not screen or not portal or not portal.levels then
 		return
 	end
-	layCards(screen)
+	local fresh = not screen.Enabled or portalIndex ~= index
 	if portalIndex ~= index then
 		-- the first open level not beaten yet (1 for a single-level area)
 		picked = LevelUnlocks.suggested(portal.levels, Balance.Stages, beaten())
+		hardOn = false
 	end
 	portalIndex = index
 	starting = false
-	fill(index)
+	backTo = back
 	screen.Enabled = true
-	if UserInputService.GamepadEnabled then
+	fill(index)
+	if fresh and canvas then
+		Chunky.pop(canvas)
+	end
+	FirstTips.show(
+		"Portal",
+		FirstTips.header(function()
+			return canvas
+		end, function()
+			return screen.Enabled
+		end)
+	)
+	if Kit.gamepadInUse() then
 		GuiService.SelectedObject = startButton
 	end
 end
@@ -643,7 +973,8 @@ function PortalScreen.start()
 	Remotes.event(Remotes.PortalOpen).OnClientEvent:Connect(function(index)
 		if type(index) == "number" and index > 0 then
 			PortalScreen.open(index)
-		else
+		elseif not backTo then
+			-- stepped out of the portal (a screen from PLAY's list is not at one)
 			close()
 		end
 	end)
@@ -653,33 +984,34 @@ function PortalScreen.start()
 		end
 		profile = next
 		local index = portalIndex
-		if index and PortalScreen.isOpen() then
+		if index and shown() then
 			fill(index)
 		end
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
-		if not PortalScreen.isOpen() then
+		if not shown() then
 			return
 		end
 		if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
-			close()
+			-- a step back: to the area list it came from, or shut
+			if backTo then
+				goBack()
+			else
+				close()
+			end
 		elseif
 			not processed
+			and not FirstTips.takesKeys()
 			and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter)
 		then
 			start()
 		end
 	end)
 	RunService.RenderStepped:Connect(function()
-		if not PortalScreen.isOpen() then
-			return
-		end
 		-- the run has begun (or the lobby is gone): nothing to choose
-		if Workspace:GetAttribute("InLobby") ~= true then
+		if shown() and Workspace:GetAttribute("InLobby") ~= true then
 			close()
-			return
 		end
-		pose()
 	end)
 end
 

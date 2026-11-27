@@ -26,6 +26,8 @@ local log = Log.forTag("Arena")
 type Box = {
 	centre: Vector2,
 	halfExtents: Vector2,
+	--[[ Studs tall: low cover (a ledge) can be slid over (`resolveOverLow`). ]]
+	height: number,
 }
 
 local Arena = {}
@@ -316,6 +318,14 @@ local function placeKit(
 		part.Position = patch.centre
 		part.Color = patch.colour
 		part.Material = Enum.Material.Fabric
+		if patch.kind == "Tile" and kit.wetFloor then
+			--[[ Flood water: smooth, with a little shine. ]]
+			part.Material = Enum.Material.SmoothPlastic
+			part.Reflectance = 0.06
+		elseif patch.kind == "Reed" then
+			part.Material = Enum.Material.SmoothPlastic
+			part.CastShadow = true
+		end
 		if patch.kind == "Water" or patch.kind == "Bank" then
 			--[[ Water and its bank are round: a sphere mesh flattened to
 			     the patch, as the round glade's pond was. ]]
@@ -339,10 +349,10 @@ local function placeKit(
 		at: CFrame,
 		glow: boolean,
 		tint: Color3?
-	)
+	): MeshPart?
 		local template = meshTemplates[meshId]
 		if not template then
-			return
+			return nil
 		end
 		local part = template:Clone()
 		part.Name = name
@@ -356,6 +366,7 @@ local function placeKit(
 		part.Material = if glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		part.CastShadow = not glow
 		part.Parent = folder
+		return part
 	end
 	for _, placed in layout.pieces do
 		local piece = KitLayout.piece(kit, placed.piece)
@@ -369,18 +380,27 @@ local function placeKit(
 			placed.piece,
 			placed.size,
 			CFrame.new(placed.base + Vector3.new(0, placed.size.Y / 2, 0)) * facing,
-			false,
+			piece.neon == true,
 			piece.tint
 		)
 		local glow = piece.glow
 		if glow then
-			mesh(
+			local lit = mesh(
 				glow.meshId,
 				placed.piece .. "Glow",
 				glow.size * grown,
 				CFrame.new(placed.base + facing:VectorToWorldSpace(glow.centre * grown)) * facing,
-				true
+				true,
+				glow.tint
 			)
+			if lit and glow.light then
+				local light = Instance.new("PointLight")
+				light.Color = glow.light
+				light.Range = glow.lightRange or 12
+				light.Brightness = 2
+				light.Shadows = false
+				light.Parent = lit
+			end
 		end
 	end
 end
@@ -642,13 +662,18 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		table.insert(roomBoxes, {
 			centre = obstacle.offset,
 			halfExtents = Vector2.new(obstacle.size.X / 2, obstacle.size.Z / 2),
+			height = obstacle.size.Y,
 		})
 	end
 
 	--[[ The exit gate in the north wall: dark until the room is cleared. ]]
-	local gate = ExitGate.build(root)
-
 	local model = if arena then (ArenaModels :: any)[arena] :: ArenaModels.ArenaModel? else nil
+	--[[ A kit with its own door in the gap (the Drowned Village's dock
+	     gate, the caverns' cave mouth) frames the exit itself: the gate
+	     keeps only its doors, light and plaque. ]]
+	local kit = if model and model.kit then ArenaKits[model.kit] else nil
+	local door = if kit then KitLayout.piece(kit, "Door") else nil
+	local gate = ExitGate.build(root, if kit and door then door.size.Y * kit.scale else nil)
 	if model then
 		--[[ The model draws the room, so the grey box's floor, walls and
 		     cover boxes go invisible. They still collide and stop arrows. ]]
@@ -662,6 +687,9 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		--[[ The client draws the scenery's life from this
 		     (`Fx/ForestAmbience`). ]]
 		root:SetAttribute("Ambience", model.ambience)
+		--[[ Its floor is shallow water: the client splashes every step
+		     (`Fx/WaterSteps`). ]]
+		root:SetAttribute("ShallowWater", model.shallowWater == true)
 	else
 		dress(root, obstacles)
 	end
@@ -698,7 +726,8 @@ function Arena.prepare(
 	obstacles: { Balance.Obstacle },
 	arena: string?,
 	roster: { string }?,
-	park: Instance?
+	park: Instance?,
+	preloads: { Instance }?
 )
 	local current = prepared
 	if current and current.obstacles == obstacles and current.arena == arena then
@@ -708,6 +737,18 @@ function Arena.prepare(
 
 	local made = construct(obstacles, arena)
 	made.root:SetAttribute("Roster", table.concat(roster or {}, ","))
+	--[[ Unseen copies of the room's enemy meshes, so a client fetches them with
+	     the room; `Arena.build` drops them before the room is shown. ]]
+	if preloads and #preloads > 0 then
+		local folder = Instance.new("Folder")
+		folder.Name = "Preloads"
+		for _, item in preloads do
+			item.Parent = folder
+		end
+		folder.Parent = made.root
+	end
+	-- how much a client must have received before the room counts as arrived
+	made.root:SetAttribute("Parts", #made.root:GetDescendants())
 	local holder = park or ReplicatedStorage:FindFirstChild("NextArena")
 	if not holder then
 		local folder = Instance.new("Folder")
@@ -745,6 +786,10 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	if ready and ready.obstacles == obstacles and ready.arena == arena then
 		prepared = nil
 		made = ready
+		local preloads = made.root:FindFirstChild("Preloads")
+		if preloads then
+			preloads:Destroy()
+		end
 	else
 		dropPrepared()
 		made = construct(obstacles, arena)
@@ -837,6 +882,40 @@ function Arena.resolveBox(position: Vector3, half: Vector2): Vector3
 	point = Vector2.new(math.clamp(point.X, -limitX, limitX), math.clamp(point.Y, -limitZ, limitZ))
 
 	return Vector3.new(point.X, position.Y, point.Y)
+end
+
+--[[ Studs of cover a body on its belly slides over (`resolveOverLow`). ]]
+local LOW_COVER = 1
+
+--[[ `resolve` that slides over low cover (under `LOW_COVER` tall, such as
+     the Bogheart Heart's ledges) and stops only at taller cover and the
+     walls: Grandmother Gulp's Belly Slide. ]]
+function Arena.resolveOverLow(position: Vector3, radius: number): Vector3
+	local point = Vector2.new(position.X, position.Z)
+	for _, box in boxes do
+		if box.height < LOW_COVER then
+			continue
+		end
+		local delta = point - box.centre
+		local overlapX = (box.halfExtents.X + radius) - math.abs(delta.X)
+		local overlapZ = (box.halfExtents.Y + radius) - math.abs(delta.Y)
+		if overlapX > 0 and overlapZ > 0 then
+			if overlapX < overlapZ then
+				local sign = if delta.X >= 0 then 1 else -1
+				point = Vector2.new(box.centre.X + sign * (box.halfExtents.X + radius), point.Y)
+			else
+				local sign = if delta.Y >= 0 then 1 else -1
+				point = Vector2.new(point.X, box.centre.Y + sign * (box.halfExtents.Y + radius))
+			end
+		end
+	end
+	local limitX = math.max(halfSize.X - radius, 0)
+	local limitZ = math.max(halfSize.Y - radius, 0)
+	return Vector3.new(
+		math.clamp(point.X, -limitX, limitX),
+		position.Y,
+		math.clamp(point.Y, -limitZ, limitZ)
+	)
 end
 
 --[[ `resolveBox` for something the same width on both axes — a body that

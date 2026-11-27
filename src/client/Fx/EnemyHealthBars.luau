@@ -7,10 +7,18 @@
 
 	Reads the `Health` and `MaxHealth` attributes the server keeps on each
 	enemy. Presentation only — the server's own number is the truth.
+
+	A hard fight's elite (`Util/HardRules`, the `HardElite` attribute) wears
+	a gold ELITE plate over its bar from the moment it arrives, so the one
+	tough target in the room is plain before it is hit.
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
 local EnemyHealthBars = {}
 
@@ -29,7 +37,46 @@ type Bar = {
 }
 
 local bars: { [Model]: Bar } = {}
+--[[ Each elite's plate (`HardRules.ELITE`). ]]
+local plates: { [Model]: BillboardGui } = {}
 local connection: RBXScriptConnection? = nil
+
+--[[ The gold ELITE plate over an elite, above where its bar goes. ]]
+local function plate(root: BasePart): BillboardGui
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "ElitePlate"
+	gui.Adornee = root
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.Size = UDim2.fromOffset(84, 26)
+	gui.StudsOffset = Vector3.new(0, root.Size.Y / 2 + 2.4, 0)
+
+	local back = Instance.new("TextLabel")
+	back.Name = "Plate"
+	back.Size = UDim2.fromScale(1, 1)
+	back.BackgroundColor3 = UiPalette.primary.top
+	back.BorderSizePixel = 0
+	back.Font = Enum.Font.FredokaOne
+	back.Text = "ELITE"
+	back.TextColor3 = UiPalette.ink
+	back.TextScaled = true
+	back.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = back
+	local line = Instance.new("UIStroke")
+	line.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	line.Thickness = 2.5
+	line.Color = UiPalette.edge
+	line.Parent = back
+	local inset = Instance.new("UIPadding")
+	inset.PaddingTop = UDim.new(0, 3)
+	inset.PaddingBottom = UDim.new(0, 3)
+	inset.Parent = back
+
+	gui.Parent = root
+	return gui
+end
 
 local function build(root: BasePart): Bar
 	local gui = Instance.new("BillboardGui")
@@ -82,6 +129,11 @@ local function step()
 			bars[model] = nil
 		end
 	end
+	for model, gui in plates do
+		if not model.Parent or not gui.Parent then
+			plates[model] = nil
+		end
+	end
 
 	if not folder then
 		return
@@ -90,6 +142,17 @@ local function step()
 	for _, child in folder:GetChildren() do
 		if not child:IsA("Model") then
 			continue
+		end
+		if child:GetAttribute(HardRules.ELITE) == true then
+			local gui = plates[child]
+			local root = child.PrimaryPart
+			if not gui and root then
+				gui = plate(root)
+				plates[child] = gui
+			end
+			if gui then
+				gui.Enabled = child:GetAttribute("Targetable") ~= false
+			end
 		end
 		local health = child:GetAttribute("Health")
 		local maxHealth = child:GetAttribute("MaxHealth")
@@ -139,6 +202,7 @@ function EnemyHealthBars.start()
 		connection:Disconnect()
 	end
 	table.clear(bars)
+	table.clear(plates)
 	connection = RunService.RenderStepped:Connect(step)
 end
 

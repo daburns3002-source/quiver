@@ -159,4 +159,51 @@ return function(t: TestRunner.Helper)
 		FireRhythm.fired(state, 160, cooldown)
 		t.near(state.lastFiredAt, 160, 1e-9)
 	end)
+	t.test("a volley that waited for a target does not bank the wait", function()
+		--[[ Standing with nothing in line, then a target: the shot goes when
+		     it can, and the next one a whole cooldown after it, not sooner.
+		     Banking the wait made a double shot after every stop. ]]
+		for _, late in { 0.2, cooldown * 0.5, cooldown * 0.95 } do
+			local state = fresh()
+			FireRhythm.fired(state, 100, cooldown)
+			local shotAt = 100 + cooldown + late
+			FireRhythm.fired(state, shotAt, cooldown)
+			t.isTrue(
+				state.lastFiredAt >= shotAt - FireRhythm.CARRY - 1e-9,
+				`{math.floor(1000 * late)} ms late banked {math.floor(
+					1000 * (shotAt - state.lastFiredAt)
+				)} ms`
+			)
+		end
+	end)
+
+	t.test("stopping after a move never gives two volleys inside one cooldown", function()
+		local state = fresh()
+		local fired: { number } = {}
+		local now = 100
+		-- stand and shoot, walk for a while, stop and shoot again, repeat
+		for _, walk in { 0.35, 0.6, 0.9, 1.3, 0.2 } do
+			for _ = 1, 120 do
+				local settled = FireRhythm.settle(state, false, now)
+				if settled and now - state.lastFiredAt >= cooldown then
+					FireRhythm.fired(state, now, cooldown)
+					table.insert(fired, now)
+				end
+				now += FRAME
+			end
+			local stop = now + walk
+			while now < stop do
+				FireRhythm.settle(state, true, now)
+				now += FRAME
+			end
+		end
+		for index = 2, #fired do
+			t.isTrue(
+				fired[index] - fired[index - 1] >= cooldown - FRAME - 1e-9,
+				`volleys {index - 1} and {index} {math.floor(
+					1000 * (fired[index] - fired[index - 1])
+				)} ms apart`
+			)
+		end
+	end)
 end

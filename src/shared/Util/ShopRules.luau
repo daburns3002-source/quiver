@@ -8,21 +8,77 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassList = require(script.Parent.ClassList)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local LaunchLocks = require(script.Parent.LaunchLocks)
+local MergeRules = require(script.Parent.MergeRules)
 local Purse = require(script.Parent.Purse)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SetRotation = require(script.Parent.SetRotation)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local ShopRules = {}
 
-export type Entry = { weapon: string, class: string, label: string, rarity: string, area: number }
+export type Entry = {
+	weapon: string,
+	class: string,
+	label: string,
+	rarity: string,
+	area: number,
+	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon,
+	     or a reward (Endless, the season pass) that says so in `howEarned`. ]]
+	earned: boolean?,
+	howEarned: string?,
+	--[[ The themed set it is of (`WeaponStats.set`, `Shop.sets`): a weapon
+	     of no area. `area` is then only its scale's. ]]
+	set: string?,
+}
 
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
---[[ Every weapon a player can own: one with stats and a class to hold it,
-     not a pair the Dual Bows card swaps in, and from an area that is
-     stocked (`Config/Shop`'s `stocked`). In rarity order.
+--[[ A themed set by its key (`Shop.sets`), and where it stands on the
+     shelf: 0 for a weapon of an area (no key), so the areas sort first. A
+     key that names no set sorts last. ]]
+function ShopRules.set(key: string?): Shop.Set?
+	for _, set in Shop.sets do
+		if set.key == key then
+			return set
+		end
+	end
+	return nil
+end
+
+function ShopRules.setIndex(key: string?): number
+	if key == nil then
+		return 0
+	end
+	for index, set in Shop.sets do
+		if set.key == key then
+			return index
+		end
+	end
+	return #Shop.sets + 1
+end
+
+--[[ Whether a weapon with these stats is for sale at all: its set is
+     stocked, or, for a weapon of an area, its area's crate is. A set's
+     weapon never asks its `area`, which is only its scale's. ]]
+function ShopRules.stocked(stats: WeaponStats.Stats): boolean
+	if stats.set then
+		local set = ShopRules.set(stats.set)
+		return set ~= nil and set.stocked == true
+	end
+	local crate = Shop.crates[stats.area]
+	return crate ~= nil and crate.stocked == true
+end
+
+--[[ Every weapon a player can own: one with stats and an open class to
+     hold it (`Util/ClassList`: a class still locked on its card has no
+     weapons for sale, in a crate or at Gear), not a pair the Dual Bows card
+     swaps in, and from an area that is stocked (`Config/Shop`'s `stocked`)
+     or of a themed set that is (`stocked` above). In rarity order, the
+     areas' first and then the sets'.
 
      An unstocked area's weapons exist -- they are modelled, held and
      fought with in the sandbox -- but they are not for sale, so they are
@@ -32,18 +88,25 @@ function ShopRules.catalog(): { Entry }
 	local out = {}
 	for _, entry in Sandbox.weapons do
 		local stats = WeaponStats.weapons[entry.weapon]
-		local crate = stats and Shop.crates[stats.area]
-		if stats and crate and crate.stocked then
+		if stats and ShopRules.stocked(stats) and ClassList.isOpen(entry.class) then
 			table.insert(out, {
 				weapon = entry.weapon,
 				class = entry.class,
 				label = entry.label,
 				rarity = stats.rarity :: string,
 				area = stats.area,
+				earned = stats.earned,
+				howEarned = stats.howEarned,
+				set = stats.set,
 			})
 		end
 	end
 	table.sort(out, function(a, b)
+		-- the areas' weapons first, then the sets' in the shelf's order
+		local setA, setB = ShopRules.setIndex(a.set), ShopRules.setIndex(b.set)
+		if setA ~= setB then
+			return setA < setB
+		end
 		if a.area ~= b.area then
 			return a.area < b.area
 		end
@@ -53,6 +116,18 @@ function ShopRules.catalog(): { Entry }
 		return ORDER[a.rarity] < ORDER[b.rarity]
 	end)
 	return out
+end
+
+--[[ Whether `weapon` is one a player may be shown, in the Dex or as a
+     loading tip: the class that holds it can be chosen. A class still
+     locked on its card keeps its weapons to itself until it opens. ]]
+function ShopRules.shown(weapon: string): boolean
+	for _, entry in Sandbox.weapons do
+		if entry.weapon == weapon then
+			return ClassList.isOpen(entry.class)
+		end
+	end
+	return true
 end
 
 function ShopRules.find(weapon: string): Entry?
@@ -67,12 +142,15 @@ end
 --[[ What area `index`'s chest can give: its weapons of a rarity the chest
      rolls, and of `class` when one is named — an area's crate is three
      chests, one a class (`Shop.chests`). Empty for an area with no weapons
-     yet (a silhouette). ]]
+     yet (a silhouette). An earned weapon (a golden one) is in no chest,
+     and nor is a themed set's: it has no area, so no crate, Endless prize
+     or free crate ever gives one (they all ask here). ]]
 function ShopRules.cratePool(index: number, class: string?): { Entry }
 	local out = {}
 	for _, entry in ShopRules.catalog() do
 		local wanted = class == nil or entry.class == class
-		if entry.area == index and wanted and Shop.crateOdds[entry.rarity] then
+		local inCrate = entry.area == index and not entry.earned and not entry.set
+		if inCrate and wanted and Shop.crateOdds[entry.rarity] then
 			table.insert(out, entry)
 		end
 	end
@@ -90,32 +168,74 @@ function ShopRules.chest(class: unknown): Shop.Chest?
 	return nil
 end
 
---[[ Picks from a crate's pool: a rarity by `Shop.crateOdds` (only those
-     the pool has), then a weapon of it. `r1` and `r2` are uniform in
-     [0, 1), from the server's `Random`. ]]
+--[[ Each rarity's share (0..1) of an open from `pool`, by `Shop.crateOdds`.
+     A Mythic keeps its own share of the full odds whatever else the chest
+     holds (owner, 2026-10-28: "make the odds of pulling a mythic 1%"); a
+     rarity the chest lacks (the Drowned Village has no Uncommon bow) gives
+     its share to the other rarities, in proportion. For a chest with every
+     rarity that is exactly `crateOdds` over its total. ]]
+local FIXED = { Mythic = true }
+local function shares(pool: { Entry }): { [string]: number }
+	local full, present, fixed = 0, 0, 0
+	local has: { [string]: boolean } = {}
+	for _, odds in Shop.crateOdds do
+		full += odds
+	end
+	for _, entry in pool do
+		if not has[entry.rarity] then
+			has[entry.rarity] = true
+			local odds = Shop.crateOdds[entry.rarity] or 0
+			if FIXED[entry.rarity] then
+				fixed += odds
+			else
+				present += odds
+			end
+		end
+	end
+	local out: { [string]: number } = {}
+	if full <= 0 then
+		return out
+	end
+	-- a chest of only fixed rarities has nothing to give the rest to
+	local rest = if present > 0 then 1 - fixed / full else 0
+	for rarity in has do
+		local odds = Shop.crateOdds[rarity] or 0
+		if FIXED[rarity] then
+			out[rarity] = if present > 0 then odds / full else odds / math.max(fixed, 1e-9)
+		elseif present > 0 then
+			out[rarity] = odds / present * rest
+		end
+	end
+	return out
+end
+
+--[[ Picks from a crate's pool: a rarity by its share (`shares`), then a
+     weapon of it. `r1` and `r2` are uniform in [0, 1), from the server's
+     `Random`. ]]
 function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 	local byRarity: { [string]: { Entry } } = {}
-	local total = 0
 	for _, entry in pool do
-		if not byRarity[entry.rarity] then
-			byRarity[entry.rarity] = {}
-			total += Shop.crateOdds[entry.rarity] or 0
-		end
+		byRarity[entry.rarity] = byRarity[entry.rarity] or {}
 		table.insert(byRarity[entry.rarity], entry)
+	end
+	local share = shares(pool)
+	local rarities = {}
+	local total = 0
+	for rarity in byRarity do
+		if (share[rarity] or 0) > 0 then
+			table.insert(rarities, rarity)
+			total += share[rarity]
+		end
 	end
 	if total <= 0 then
 		return nil
-	end
-	local rarities = {}
-	for rarity in byRarity do
-		table.insert(rarities, rarity)
 	end
 	table.sort(rarities, function(a, b)
 		return ORDER[a] < ORDER[b]
 	end)
 	local pick = r1 * total
 	for _, rarity in rarities do
-		pick -= Shop.crateOdds[rarity]
+		pick -= share[rarity]
 		if pick < 0 then
 			local list = byRarity[rarity]
 			return list[math.clamp(math.floor(r2 * #list) + 1, 1, #list)]
@@ -126,31 +246,96 @@ function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 end
 
 --[[ A weapon's chance (0..1) from crate `index`, as `roll` picks it: its
-     rarity's share of the rarities the crate has, split evenly by the
-     weapons of that rarity. ]]
+     rarity's share, split evenly by the weapons of that rarity. ]]
 function ShopRules.chance(index: number, entry: Entry, class: string?): number
-	local total, same = 0, 0
-	local seen: { [string]: boolean } = {}
-	for _, other in ShopRules.cratePool(index, class) do
-		if not seen[other.rarity] then
-			seen[other.rarity] = true
-			total += Shop.crateOdds[other.rarity] or 0
-		end
+	local pool = ShopRules.cratePool(index, class)
+	local same = 0
+	for _, other in pool do
 		if other.rarity == entry.rarity then
 			same += 1
 		end
 	end
-	if total <= 0 or same == 0 then
+	if same == 0 then
 		return 0
 	end
-	return (Shop.crateOdds[entry.rarity] or 0) / total / same
+	return (shares(pool)[entry.rarity] or 0) / same
+end
+
+--[[ Whether a player who has beaten `bossesBeaten` may open crate `index`
+     and buy from its area's store: what it waits on at launch
+     (`Util/LaunchLocks.crateUnlock`) is beaten, or it waits on nothing. ]]
+function ShopRules.crateOpen(
+	index: number,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): boolean
+	local crate = Shop.crates[index]
+	local unlock = if crate then LaunchLocks.crateUnlock(crate, locks) else nil
+	return unlock == nil or (bossesBeaten ~= nil and bossesBeaten[unlock] == true)
+end
+
+--[[ The weapons of themed set `key` that are for sale, of `class` when
+     one is named: the SETS shelf (`UI/ShopScreen`). Empty for a set that
+     is not stocked. ]]
+function ShopRules.setPool(key: string, class: string?): { Entry }
+	local out = {}
+	for _, entry in ShopRules.catalog() do
+		if entry.set == key and (class == nil or entry.class == class) then
+			table.insert(out, entry)
+		end
+	end
+	return out
+end
+
+--[[ Whether a player who has beaten `bossesBeaten` may buy `entry` at the
+     store: its area's crate is open to them (`crateOpen`). A themed set's
+     weapon waits on no boss, whatever the launch switch says, but only
+     sells in its set's week (`Util/SetRotation`, at the server's `now`;
+     never without one). ]]
+function ShopRules.buyable(
+	entry: Entry,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?,
+	now: number?
+): boolean
+	if entry.set then
+		return now ~= nil and SetRotation.onSale(entry.set, now)
+	end
+	return ShopRules.crateOpen(entry.area, bossesBeaten, locks)
+end
+
+--[[ What a shut crate says opens it: "BEAT THE BROODMOTHER", nil for an
+     open one. ]]
+function ShopRules.crateWords(
+	index: number,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): string?
+	if ShopRules.crateOpen(index, bossesBeaten, locks) then
+		return nil
+	end
+	local crate = Shop.crates[index]
+	local unlock = crate and LaunchLocks.crateUnlock(crate, locks)
+	local area = unlock and Economy.areas[unlock]
+	local item = area and Economy.items[area.bossItem]
+	return "BEAT " .. string.upper(if item then item.boss else tostring(unlock))
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell
-     it (the class weapons, Mythics). ]]
+     it (the class weapons, Mythics, the earned golden weapons). A themed
+     set's weapon costs its set's coins and gems (`Shop.sets`): no area, so
+     no boss item and no area number to multiply by; a Mythic set would be
+     earned, as every Mythic is never sold. ]]
 function ShopRules.price(entry: Entry): Purse.Cost?
+	if entry.set then
+		local set = ShopRules.set(entry.set)
+		if not set or entry.earned or entry.rarity == "Mythic" then
+			return nil
+		end
+		return { coins = set.coins, gems = set.gems }
+	end
 	local crate = Shop.crates[entry.area]
-	if not crate then
+	if not crate or entry.earned then
 		return nil
 	end
 	if entry.rarity == "Legendary" then
@@ -171,10 +356,54 @@ function ShopRules.price(entry: Entry): Purse.Cost?
 	return { gems = gems * entry.area }
 end
 
---[[ Coins paid back when a crate gives a weapon already owned. ]]
-function ShopRules.refund(index: number): number
-	local crate = Shop.crates[index]
-	return if crate then math.floor(crate.price * Shop.duplicateRefund) else 0
+--[[ Whether a weapon has merge tiers (`Util/MergeRules`): every weapon but
+     one that can never be had twice (`WeaponStats.earned`; owner,
+     2026-11-14: "for weapons with no duplicates ... there should not be a
+     merge tier"). The server, the damage and the screens all ask this. ]]
+function ShopRules.merges(weapon: string?): boolean
+	local stats = if weapon then WeaponStats.weapons[weapon] else nil
+	return not (stats ~= nil and stats.earned == true)
+end
+
+--[[ A weapon's damage scale at merge tier `tier`: its rarity's bonus, its
+     area's scale and the tier's (`Config/WeaponStats`, `Util/MergeRules`),
+     as `Run/RunSession` multiplies them; no tier's for a weapon that has
+     none (`merges`). 0 for one with no stats. ]]
+function ShopRules.strength(weapon: string?, tier: string?): number
+	local stats = if weapon then WeaponStats.weapons[weapon] else nil
+	if not stats then
+		return 0
+	end
+	local held = if ShopRules.merges(weapon) then tier or "C" else "C"
+	return (1 + WeaponStats.bonus[stats.rarity])
+		* (WeaponStats.areaScale[stats.area] or 1)
+		* (MergeRules.weaponScale[held] or 1)
+end
+
+--[[ Of the weapons just `gained`, the one that goes in hand by itself
+     (owner, 2026-11-14, after the kid playtest: the crate's bow stayed in
+     the bag; "Build top 5"): one `class` holds that is strictly stronger
+     than `equipped` (`strength`, each at the tier `tierOf` says is held),
+     the strongest of them. Nil for none, so a weapon the player chose is
+     never swapped for a weaker or an equal one. ]]
+function ShopRules.upgrade(
+	gained: { string },
+	class: string?,
+	equipped: string?,
+	tierOf: (string) -> string?
+): string?
+	local best: string? = nil
+	local bestStrength = ShopRules.strength(equipped, if equipped then tierOf(equipped) else nil)
+	for _, weapon in gained do
+		local entry = ShopRules.find(weapon)
+		if entry and entry.class == class then
+			local strength = ShopRules.strength(weapon, tierOf(weapon))
+			if strength > bestStrength then
+				best, bestStrength = weapon, strength
+			end
+		end
+	end
+	return best
 end
 
 return ShopRules

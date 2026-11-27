@@ -1,4 +1,4 @@
-# Arrow Legends
+# Arrowborne
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, built to play the same on phone, tablet, desktop and gamepad.

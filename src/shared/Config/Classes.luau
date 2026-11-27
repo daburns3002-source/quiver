@@ -29,6 +29,25 @@ export type Swing = {
 	     ends (owner, 2026-10-23: "if the warden is mid swing of his sword
 	     he should be invulnerable", then "keep it to the whole swing"). ]]
 	guard: boolean?,
+	--[[ The share of an enemy's own knockback each blow of the combo gives,
+	     when not all of it. Every hit still shoves (owner, 2026-10-25), but
+	     a class that strikes twice a second at arm's length would shove
+	     everything out of its own reach. ]]
+	knock: { number }?,
+}
+
+--[[ A dash of the class's own (`Shared/Combat/DashCut`, `Combat/MeleeSystem`;
+     the Assassin's Shadow Dash): it comes back in `cooldown` seconds in
+     place of `Balance.Player.dash.cooldown`, strikes every enemy within a
+     cut `width` studs across along the ground it covered for `damage`
+     times a strike, and nothing can hurt the dasher from its start until
+     `guard` seconds after it ends: it goes through enemies, so it must get
+     out the other side. ]]
+export type Dash = {
+	cooldown: number,
+	damage: number,
+	width: number,
+	guard: number,
 }
 
 export type Class = {
@@ -51,6 +70,8 @@ export type Class = {
 	reach: number?,
 	--[[ Present for a melee class: it swings instead of shooting. ]]
 	swing: Swing?,
+	--[[ Present for a class whose dash cuts. ]]
+	dash: Dash?,
 }
 
 local Classes: { [string]: Class } = {
@@ -107,6 +128,59 @@ local Classes: { [string]: Class } = {
 			slamAhead = 5.5,
 			damage = { 1, 1, 1.5 },
 			guard = true,
+		},
+	},
+	--[[ Twin daggers (owner, 2026-11-15: "we need to create the assassin
+	     class now", and yes to option A, "twin daggers up close"): about two
+	     strikes a second, each lighter than an arrow, on what is right in
+	     front of it: a slash from each hand, a narrow arc, then both daggers
+	     driven in together, 1.5x in a small circle.
+
+	     What keeps it alive (Studio, 2026-11-16, a bot through Mossy Glade
+	     1-1's ten rooms): with the Ranger's 225 health and no guard it died
+	     in room 4, 5 and 5; with half as much health again (338; owner,
+	     2026-11-16, "Yes, 1.5x health") it still died in room 5, and in
+	     room 7 dashing every time the dash was back, about a hit for every
+	     two kills: a class that stands 8 studs from what it hits is in
+	     reach of all of it. So its strikes guard it as the Warden's do
+	     (`swing.guard`: nothing lands mid-strike; owner, 2026-11-16, "Keep
+	     the guard"), and it keeps the 1.5x:
+	     the same bot then won twice, on 34% and 93% health, the second
+	     time never dashing. Still well under the Warden's 495, with a
+	     shorter, narrower swing. ]]
+	Assassin = {
+		weapon = "SplinterDaggers",
+		damageScale = 0.75,
+		cooldownScale = 0.7,
+		healthScale = 1.5,
+		speedScale = 1,
+		innate = {},
+		look = "Arrow",
+		--[[ Closer than the Warden's 10: a dagger is short. ]]
+		reach = 8,
+		--[[ An arc 8.5 out and 70 degrees wide for the slashes; the stab a
+		     circle 7 across, from just in front of the feet out to `reach`. ]]
+		swing = {
+			reach = 8.5,
+			arc = 70,
+			slamRadius = 3.5,
+			slamAhead = 4.5,
+			damage = { 1, 1, 1.5 },
+			--[[ A slash shoves a third as far as a hit usually does, the
+			     stab all the way: seen in Studio (2026-11-16), full shoves
+			     put a 3 stud gap between every strike and the next, and
+			     four strikes cleared the dummies out of reach. ]]
+			knock = { 0.35, 0.35, 1 },
+			guard = true,
+		},
+		--[[ Shadow Dash, the class's skill (owner, 2026-11-15): the dash
+		     cuts what it passes through, 1.5x a strike, and is back in 2.5 s
+		     where every other class waits 4. ]]
+		dash = {
+			cooldown = 2.5,
+			damage = 1.5,
+			width = 5,
+			guard = 0.2,
 		},
 	},
 }

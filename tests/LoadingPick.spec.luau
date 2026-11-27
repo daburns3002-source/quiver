@@ -17,6 +17,7 @@ local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local function has(pool: { LoadingPick.Entry }, name: string): boolean
 	for _, entry in pool do
@@ -51,6 +52,45 @@ return function(t: TestRunner.Helper)
 				names[key] == true,
 				`the "{key}" spotlight matches no entry, so it never shows`
 			)
+		end
+	end)
+
+	--[[ Each is drawn from tiles narrow enough that Roblox keeps every pixel
+	     (owner, 2026-11-05: "i need the loading thumbnails higher
+	     resolution"), and tall enough too. ]]
+	t.test("every spotlight is tiled within the upload limit", function()
+		for key, tiles in LoadingScreen.spotlights do
+			t.isTrue(#tiles > 0, `the "{key}" spotlight has no tiles`)
+			t.isTrue(
+				LoadingScreen.size.X / #tiles + 2 * LoadingScreen.tileOverlap
+						<= LoadingScreen.uploadLimit
+					and LoadingScreen.size.Y <= LoadingScreen.uploadLimit,
+				`the "{key}" spotlight's tiles are wider than Roblox keeps, so it shows blurred`
+			)
+		end
+	end)
+
+	--[[ The upright pictures (owner, 2026-11-05: "make new loading screens
+	     for mobile"): one for every landscape spotlight, each with its bar
+	     measured, and tiled within the limit too. ]]
+	t.test("every spotlight has an upright picture with its own bar", function()
+		local upright = LoadingScreen.portrait
+		for key in LoadingScreen.spotlights do
+			local tiles = upright.spotlights[key]
+			t.isTrue(tiles ~= nil, `the "{key}" spotlight has no upright picture`)
+			t.isTrue(upright.bars[key] ~= nil, `the "{key}" upright picture has no bar`)
+			if tiles then
+				local rows = math.ceil(#tiles / upright.columns)
+				t.isTrue(
+					upright.size.X / upright.columns <= LoadingScreen.uploadLimit
+						and upright.size.Y / rows + 2 * LoadingScreen.tileOverlap
+							<= LoadingScreen.uploadLimit,
+					`the "{key}" upright tiles are larger than Roblox keeps`
+				)
+			end
+			local layout = LoadingScreen.pick(Vector2.new(390, 844), key)
+			t.equal(layout.size, upright.size)
+			t.equal(LoadingScreen.pick(Vector2.new(1920, 1080), key).size, LoadingScreen.size)
 		end
 	end)
 
@@ -98,6 +138,8 @@ return function(t: TestRunner.Helper)
 
 	t.test("a Legendary's description carries its effect", function()
 		local line = LoadingPick.describeWeapon("EmberFangBow")
-		t.isTrue(line:find("LEGENDARY") ~= nil and line:find("40%%") ~= nil, line)
+		-- the bonus is read off `WeaponStats`, so it follows the ladder (+75% since 2026-11-13)
+		local bonus = math.floor((WeaponStats.bonus :: any).Legendary * 100 + 0.5)
+		t.isTrue(line:find("LEGENDARY") ~= nil and line:find(`+{bonus}%`, 1, true) ~= nil, line)
 	end)
 end

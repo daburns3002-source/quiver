@@ -101,7 +101,9 @@ the 42 are a flat percentage on a stat.
 
 ## The Assassin — twin daggers, fast and fragile
 
-**The class does not exist yet.** These assume a `Config/Classes.Assassin`
+**Built 2026-11-15** (the class and ten cards: [CLASS-CARDS.md](CLASS-CARDS.md), "The Assassin's
+cards"; Shadowstep became Poison Trail and Vanish became Quickstep). What follows is the menu as
+it was written, when **the class did not exist yet.** These assume a `Config/Classes.Assassin`
 with a fast, short, two-hit strike off a variant of `Combat/MeleeSystem`, and
 the dagger models from `phase-3/splinter-daggers-redo`. Picking any of these
 means building the class first — that is its own piece of work, bigger than
@@ -160,8 +162,10 @@ The owner: *"i like thornfall, headhunter, ghost quiver, windrunner, twin
 elements, time dilation, prismatic burst, guard break, bull rush, blood pact,
 vengeful spirit. hold off on the assassin class for now."*
 
-Eleven of the forty, and **the Assassin's ten are on hold** — the class still
-has no combat system, which is what that would have needed first.
+Eleven of the forty. The Assassin's ten were on hold then; the class and its
+ten were built on 2026-11-15 (see its section above). The eleven reached main
+on 2026-11-27 (PR #462), Guard Break, Blood Pact and Vengeful Spirit shared
+with the Assassin ([CLASS-CARDS.md](CLASS-CARDS.md)).
 
 | Card | Class | Where its rule lives |
 |---|---|---|
@@ -185,7 +189,7 @@ its own stagger, on the knockback a blow already uses). The remaining four
 shared pieces — an orbiting hitter, a stillness channel, an untargetable window
 and a delayed repeat — are still unbuilt, and still make their cards cheap.
 
-**Twenty-nine ideas are still on the table**, the Assassin's ten among them.
+**Nineteen ideas are still on the table** (the Assassin's ten are built).
 
 ## What to say back
 

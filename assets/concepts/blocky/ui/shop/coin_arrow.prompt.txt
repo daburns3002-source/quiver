@@ -1,0 +1,6 @@
+Use case: 2D game UI icon. Generate ONE square 1024x1024 image: a 2-column by 2-row grid of four coins on a FLAT, PURE MAGENTA background (#FF00FF) everywhere, no borders, no panels, no text, no labels, wide magenta gaps between them. Each is the SAME thick gold coin as the first attached reference (the same chunky blocky voxel style of small cubes with soft bevels, the same slight three-quarter tilt, the same bright shine and sparkle, the same dark outline), but the leaf on its face is replaced by a single bold ARROW stamped on the coin: an archer's arrow with a triangular head, a straight shaft and a two-vane fletching, pointing up and to the right, lying flat on the coin's face on the slant the leaf had, big and chunky enough to read when the whole icon is drawn only 28 pixels wide, with a dark outline. The second attached image shows where the arrow lies and how big it is; draw it properly in the coin's own style. The four coins differ ONLY in the arrow's colour, left to right, top row first:
+1 a bright leaf-GREEN arrow.
+2 an arrow EMBOSSED in darker orange-gold, as if minted into the coin.
+3 a WHITE arrow.
+4 a RED arrow.
+Each coin whole and centred in its cell, filling about 80% of it.

@@ -13,6 +13,16 @@
 ]]
 
 export type Box = { x: number, y: number, w: number, h: number }
+--[[ One shape of the screen: its picture's `size` in pixels, every
+     spotlight's tiles (`columns` across, read row by row), and the tip and
+     the bar's trough in that picture's pixels. ]]
+export type Layout = {
+	size: Vector2,
+	spotlights: { [string]: { string } },
+	columns: number,
+	tip: Box,
+	bar: Box,
+}
 
 local LoadingScreen = {
 	--[[ Codex's per-enemy spotlight screens (2026-10-31), keyed by the entry
@@ -22,24 +32,95 @@ local LoadingScreen = {
 	     keeps only the live furniture over it: the bar, LOADING and the tip.
 	     These four are every loading screen the game has: an enemy without
 	     one is simply not drawn, on either screen.
-	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`. ]]
+	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`.
+
+	     Each is its left and right halves, 836x941 apiece plus
+	     `tileOverlap` pixels of the other half past the cut, drawn side by
+	     side by `Util/SpotlightArt` (owner, 2026-11-05: "i need the loading
+	     thumbnails higher resolution"): Roblox shrinks an upload to 1024 on
+	     its longest side, so the whole picture had been shown at 1024x576.
+	     The halves are in `assets/ui/loading_tiles/`. ]]
 	spotlights = {
-		["BABY SLIME"] = "rbxassetid://109875530590023",
-		["BROOD SLIME"] = "rbxassetid://85643151176705",
-		["MOSS SLIME"] = "rbxassetid://140658661048079",
-		["SPLITTER SPITTER"] = "rbxassetid://108350133336178",
-	} :: { [string]: string },
+		["BABY SLIME"] = { "rbxassetid://113200378901201", "rbxassetid://79381368210341" },
+		["BROOD SLIME"] = { "rbxassetid://98125274935404", "rbxassetid://91177741126351" },
+		["MOSS SLIME"] = { "rbxassetid://122909053983457", "rbxassetid://118985955689898" },
+		["SPLITTER SPITTER"] = {
+			"rbxassetid://117967764117644",
+			"rbxassetid://75718199343735",
+		},
+	} :: { [string]: { string } },
+	--[[ The most pixels Roblox keeps on an image's longest side. ]]
+	uploadLimit = 1024,
+	--[[ Pixels each tile carries past its cut, so the seam blends into
+	     real picture rather than showing a light line. ]]
+	tileOverlap = 8,
 	--[[ A spotlight's size in pixels, which every box below is measured
 	     against. ]]
 	size = Vector2.new(1672, 941),
-	tip = { x = 1126, y = 270, w = 332, h = 390 } :: Box,
+	columns = 2,
+	--[[ The tip's words; a plate stands out round them (`Util/TipPlate`),
+	     clear of the bar above. Two lines tall, so a long tip is still a
+	     readable size on a phone held sideways. ]]
+	tip = { x = 98, y = 842, w = 1474, h = 60 } :: Box,
 	--[[ The bar's trough, to the pixel, so the fill sits flush in it. ]]
-	bar = { x = 470, y = 810, w = 728, h = 43 } :: Box,
-	tipText = Color3.fromRGB(236, 232, 214),
+	bar = { x = 81, y = 808, w = 1508, h = 13 } :: Box,
 	barFill = Color3.fromRGB(110, 200, 60),
 	--[[ How long the screen waits for the player's save before choosing
 	     the picture from what every player has met. ]]
 	profileWait = 2,
+
+	--[[ The upright screen, for a phone held portrait (owner, 2026-11-05:
+	     "make new loading screens for mobile"): each spotlight redrawn by
+	     Codex for a tall screen, 941x1672, from the landscape one
+	     (`assets/concepts/blocky/ui/portrait/run.sh`), uploaded as a top and
+	     a bottom tile. An enemy with no upright picture falls back to the
+	     landscape one.
+
+	     Codex put each picture's bar trough at its own height, so `bars`
+	     holds each one's, measured off the picture; the tip sits under it,
+	     two lines tall on a narrow screen.
+	     `tip` and `bar` are only the fallback for a picture with none. ]]
+	portrait = {
+		size = Vector2.new(941, 1672),
+		spotlights = {
+			["BABY SLIME"] = { "rbxassetid://86795605964549", "rbxassetid://108238939032235" },
+			["BROOD SLIME"] = { "rbxassetid://84896083025338", "rbxassetid://127076138473017" },
+			["MOSS SLIME"] = { "rbxassetid://80266546310623", "rbxassetid://99361108835877" },
+			["SPLITTER SPITTER"] = {
+				"rbxassetid://71743153100019",
+				"rbxassetid://107931716246337",
+			},
+		} :: { [string]: { string } },
+		columns = 1,
+		bars = {
+			["BABY SLIME"] = { x = 60, y = 1458, w = 820, h = 14 },
+			["BROOD SLIME"] = { x = 47, y = 1466, w = 848, h = 13 },
+			["MOSS SLIME"] = { x = 47, y = 1442, w = 846, h = 19 },
+			["SPLITTER SPITTER"] = { x = 69, y = 1487, w = 803, h = 16 },
+		} :: { [string]: Box },
+		tip = { x = 78, y = 1521, w = 785, h = 116 } :: Box,
+		bar = { x = 60, y = 1480, w = 821, h = 13 } :: Box,
+	},
 }
+
+--[[ The layout for a screen `viewport` in size, and the tiles of the
+     spotlight `name` in it: upright when the screen is taller than wide and
+     that spotlight has an upright picture, landscape otherwise. ]]
+function LoadingScreen.pick(viewport: Vector2, name: string): (Layout, { string }?)
+	local upright = LoadingScreen.portrait
+	if viewport.Y > viewport.X and upright.spotlights[name] then
+		local bar = upright.bars[name] or upright.bar
+		return {
+			size = upright.size,
+			spotlights = upright.spotlights,
+			columns = upright.columns,
+			bar = bar,
+			-- three lines tall: the picture is narrow on a phone
+			tip = { x = bar.x + 18, y = bar.y + bar.h + 28, w = bar.w - 36, h = 116 },
+		},
+			upright.spotlights[name]
+	end
+	return LoadingScreen :: any, LoadingScreen.spotlights[name]
+end
 
 return table.freeze(LoadingScreen)

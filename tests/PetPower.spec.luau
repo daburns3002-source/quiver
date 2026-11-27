@@ -24,6 +24,7 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPower = require(ReplicatedStorage.Shared.Util.PetPower)
+local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -33,6 +34,8 @@ local TestRunner = require(script.Parent.TestRunner)
 local AREA: { [string]: number } = {
 	MossyEgg = 1,
 	ThornwoodEgg = 2,
+	-- Bogheart Caverns is area 4 (the egg opened 2026-11-06; this line was missing until 2026-11-16)
+	BogheartEgg = 4,
 }
 
 --[[ How far off its band a pet may sit. A fifth either way: enough room for
@@ -95,11 +98,56 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Written while Bogheart Caverns had no egg, so the two tests above
+	     could not see its pets. It has one now and they do; this stays as
+	     the check by name, so taking a pet out of the egg cannot take it
+	     off the ladder unseen. ]]
+	t.test("the Bogheart Caverns pets sit on area 4's bands and climb", function()
+		local bogheart = {
+			"CaveCricket",
+			"LichenGecko",
+			"BogBeaver",
+			"Lanternfin",
+			"Olm",
+			"GlowcapWilf",
+			"Gulpling",
+			"PrismLeviathan",
+		}
+		local best: { [number]: number } = {}
+		local worst: { [number]: number } = {}
+		for _, key in bogheart do
+			local spec = PetCombat.pets[key]
+			local pet = Pets[key]
+			t.notNil(spec, `{key} has a combat spec`)
+			t.notNil(pet, `{key} is in Config/Pets`)
+			if not spec or not pet then
+				continue
+			end
+			local dps = PetPower.dps(spec)
+			local band = PetPower.band(pet.rarity, 4)
+			if band then
+				t.near(dps, band, band * SLACK, `{key} ({pet.rarity})`)
+			end
+			if dps > 0 then
+				local tier = Rarities.byName[pet.rarity].tier
+				best[tier] = math.max(best[tier] or 0, dps)
+				worst[tier] = math.min(worst[tier] or math.huge, dps)
+			end
+		end
+		for tier, low in worst do
+			for under, high in best do
+				if under < tier then
+					t.isTrue(low > high, `tier {tier} does {low}, under tier {under}'s {high}`)
+				end
+			end
+		end
+	end)
+
 	--[[ The bands themselves, so a hand-edit to one cannot quietly flatten
 	     the ladder it is there to describe. ]]
 	t.test("the bands climb, and climb again by area", function()
 		local order = { "Common", "Rare", "Epic", "Legendary", "Mythic" }
-		for area = 1, 3 do
+		for area = 1, 4 do
 			local last = 0
 			for _, rarity in order do
 				local band = PetPower.band(rarity, area)

@@ -23,6 +23,9 @@ KITS = {
     "TwigBow": HERE / "twig_bow_r15" / "twig_bow_animations.json",
     "BranchStaff": HERE / "branch_staff_r15" / "branch_staff_animations.json",
     "TimberBlade": HERE / "timber_blade_r15" / "timber_blade_animations.json",
+    # The Assassin's twin daggers: a kit written as numbers by
+    # splinter_daggers_r15/make_kit.py (2026-11-15), not a Claude Design kit.
+    "SplinterDaggers": HERE / "splinter_daggers_r15" / "splinter_daggers_animations.json",
 }
 
 

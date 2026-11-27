@@ -1,17 +1,30 @@
 --!strict
 --[[
-	The end screens' colours, words and type sizes, sampled off their
-	blocky reference sheets (`assets/concepts/blocky/ui/end_victory.jpg`,
-	`end_defeat.jpg`; owner's yes 2026-10-25). Flat colour only: every
-	block is a fill with a lighter strip along its top and a darker band
-	along its bottom, inside an ink outline. No gradients, no rounding.
+	The end screens' colours, words and type sizes. The blocks, their sizes
+	and the words are the blocky sheets' (`assets/concepts/blocky/ui/
+	end_victory.jpg`, `end_defeat.jpg`; owner's yes 2026-10-25); the font is
+	the owner's UI reference of 2026-11-11 and **the colours are Lagoon**
+	(owner, 2026-11-12; `Config/UiPalette`, which every colour here is read
+	from): a sea-blue Victory panel and a slate-sea Defeat panel inked in
+	deep sea, teal rows under white words, a green or sunny main button (the
+	sunny one with dark words, `buttonWords`) and a red way out. **Neither
+	panel is white** (owner, 2026-11-14: "the victory and defeat screens also
+	shouldnt have a white background"): the sheets' panels are a bright blue
+	and a rainy slate, and Lagoon's mint-white, right for a station's panel,
+	washed both out. No word sits on a panel's own fill: each is on a plate,
+	a tab, a row or a button, and `tests/UiPalette.spec` holds those. Flat
+	colour only: every block is a fill with a lighter strip along its top and a
+	darker band along its bottom, inside an ink outline.
 
 	A block's look: `ink` outline `inkW` thick, then an optional `rim`
 	`rimW` thick inside it, then `fill`, with `top` (`topH` tall) and
 	`bottom` (`bottomH` tall) bands. Sizes are sheet pixels.
 ]]
 
+local P = require(script.Parent.UiPalette)
+
 local rgb = Color3.fromRGB
+local BLACK, WHITE = Color3.new(0, 0, 0), Color3.new(1, 1, 1)
 
 export type Block = {
 	ink: Color3,
@@ -25,19 +38,52 @@ export type Block = {
 	bottomH: number?,
 }
 
-local INK = rgb(27, 27, 43)
+local INK = P.edge
+--[[ The palette's colours a step lighter (a block's top strip, its studs)
+     and a step deeper (its bottom band). Words sit on the fill between. ]]
+--[[ Victory's panel: the header's sea blue a step deeper, so the blue tab
+     and the gold picture stand off it; its stats box deeper again. ]]
+local SEA = P.header.bottom:Lerp(P.edge, 0.3)
+local SEA_LOW = SEA:Lerp(BLACK, 0.3)
+local SEA_DEEP = P.edge:Lerp(P.header.bottom, 0.25)
+local SEA_DEEP_LOW = P.edge:Lerp(BLACK, 0.25)
+--[[ Defeat's: the deep sea greyed with the palette's "cannot press" slate,
+     darker round the edge (the gloom) and in the stats box. ]]
+local SLATE = P.edge:Lerp(P.off.bottom, 0.3)
+local SLATE_LOW = SLATE:Lerp(BLACK, 0.4)
+local SLATE_GLOOM = SLATE:Lerp(BLACK, 0.28)
+local SLATE_DEEP = P.edge:Lerp(BLACK, 0.3)
+local SLATE_DEEP_LOW = P.edge:Lerp(BLACK, 0.5)
+local HEADER_HIGH = P.header.top:Lerp(WHITE, 0.45)
+local HEADER_LOW = P.header.bottom:Lerp(BLACK, 0.25)
+local TEAL_HIGH = P.secondary.top:Lerp(WHITE, 0.3)
+local TEAL_LOW = P.secondary.bottom:Lerp(BLACK, 0.3)
+local GO_HIGH = P.go.top:Lerp(WHITE, 0.35)
+local GO_LOW = P.go.bottom:Lerp(BLACK, 0.25)
+local GOLD_HIGH = P.primary.top:Lerp(WHITE, 0.4)
+local GOLD_LOW = P.primary.bottom:Lerp(BLACK, 0.25)
+local RED_HIGH = P.danger.top:Lerp(WHITE, 0.3)
+local RED_LOW = P.danger.bottom:Lerp(BLACK, 0.3)
 
 local EndScreenTheme = {
 	ink = INK,
 	white = rgb(255, 255, 255),
 
-	--[[ Every word: Press Start 2P (CLAUDE.md rule 11). ]]
-	font = Enum.Font.Arcade,
+	--[[ Every word: the chunky kit's rounded font (CLAUDE.md rule 11's
+	     exception), since the owner's UI reference of 2026-11-11. ]]
+	font = Enum.Font.FredokaOne,
 
 	victory = {
 		titleText = "VICTORY!",
 		subText = "LEVEL COMPLETE",
+		--[[ In its place when the player's coins buy an open egg (review
+		     item 9, owner 2026-11-11). ]]
+		hatchText = "YOU CAN HATCH AN EGG!",
 		buttonText = "NEXT LEVEL",
+		buttonWords = P.go.text,
+		--[[ On the tutorial's Victory, whose button goes to the lobby and
+		     the class screen, not to a level (`Util/EndScreenRules`). ]]
+		lobbyText = "CONTINUE",
 		labels = { "ENEMIES DEFEATED", "TIME", "HEALTH LEFT" },
 		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
 		     the words, each matched to its sheet's lettering. ]]
@@ -56,88 +102,103 @@ local EndScreenTheme = {
 			rewardStroke = 5,
 			button = 78,
 			buttonStroke = 6,
+			lobbyButton = 50,
+			lobbyButtonStroke = 5,
 		},
 		--[[ The title's letters: white over a gold lower half. ]]
 		title = rgb(255, 255, 255),
-		titleLow = rgb(253, 190, 30),
+		titleLow = P.primary.bottom,
 		subTextColour = rgb(255, 255, 255),
 		panel = {
 			ink = INK,
 			inkW = 7,
-			rim = rgb(48, 157, 255),
+			rim = P.header.top,
 			rimW = 8,
-			fill = rgb(4, 96, 246),
-			bottom = rgb(2, 47, 148),
+			fill = SEA,
+			bottom = SEA_LOW,
 			bottomH = 16,
 		} :: Block,
+		--[[ LEVEL COMPLETE: green, as on the sheet, since a blue plate is
+		     lost on the blue panel. ]]
 		sub = {
 			ink = INK,
 			inkW = 8,
-			fill = rgb(54, 214, 73),
-			top = rgb(143, 246, 100),
+			fill = P.go.top,
+			top = GO_HIGH,
 			topH = 10,
-			bottom = rgb(18, 136, 39),
+			bottom = GO_LOW,
 			bottomH = 12,
 		} :: Block,
-		studs = rgb(160, 236, 140),
+		studs = GO_HIGH,
 		tab = {
 			ink = INK,
 			inkW = 7,
-			fill = rgb(19, 127, 254),
-			top = rgb(97, 182, 253),
+			fill = P.header.bottom,
+			top = P.header.top,
 			topH = 10,
-			bottom = rgb(4, 80, 196),
+			bottom = HEADER_LOW,
 			bottomH = 8,
 		} :: Block,
-		tabStuds = rgb(121, 195, 254),
+		tabStuds = HEADER_HIGH,
 		stats = {
 			ink = INK,
 			inkW = 8,
-			rim = rgb(35, 134, 247),
+			rim = P.header.bottom,
 			rimW = 8,
-			fill = rgb(1, 62, 190),
-			bottom = rgb(2, 35, 112),
+			fill = SEA_DEEP,
+			bottom = SEA_DEEP_LOW,
 			bottomH = 11,
 		} :: Block,
 		row = {
-			ink = rgb(3, 10, 40),
+			ink = P.secondary.edge,
 			inkW = 6,
-			fill = rgb(1, 30, 100),
-			top = rgb(0, 55, 164),
+			fill = P.secondary.top,
+			top = TEAL_HIGH,
 			topH = 9,
-			bottom = rgb(1, 58, 173),
+			bottom = P.secondary.bottom,
 			bottomH = 9,
 		} :: Block,
 		rewards = {
-			ink = rgb(3, 10, 40),
+			ink = P.secondary.edge,
 			inkW = 6,
-			fill = rgb(0, 51, 158),
-			top = rgb(0, 66, 200),
+			fill = P.secondary.top,
+			top = TEAL_HIGH,
 			topH = 10,
-			bottom = rgb(1, 69, 194),
+			bottom = P.secondary.bottom,
 			bottomH = 9,
 		} :: Block,
 		slot = {
-			ink = rgb(3, 10, 40),
+			ink = P.secondary.edge,
 			inkW = 6,
-			rim = rgb(1, 64, 182),
+			rim = P.secondary.bottom,
 			rimW = 8,
-			fill = rgb(1, 27, 89),
+			fill = TEAL_LOW,
 		} :: Block,
 		button = {
 			ink = INK,
 			inkW = 9,
-			fill = rgb(49, 200, 68),
-			top = rgb(154, 250, 118),
+			fill = P.go.top,
+			top = GO_HIGH,
 			topH = 13,
-			bottom = rgb(19, 130, 45),
+			bottom = GO_LOW,
 			bottomH = 46,
 		} :: Block,
+		--[[ BACK TO LOBBY, under the main button: the same block, red so it
+		     reads as leaving and never as the way on. ]]
+		lobbyButton = {
+			ink = INK,
+			inkW = 8,
+			fill = P.danger.top,
+			top = RED_HIGH,
+			topH = 11,
+			bottom = RED_LOW,
+			bottomH = 22,
+		} :: Block,
 		--[[ The button's segmented foot: its band and the lines across it. ]]
-		buttonFoot = rgb(10, 114, 35),
-		buttonFootLine = rgb(4, 56, 22),
-		buttonShine = rgb(170, 244, 163),
-		buttonStuds = rgb(160, 236, 140),
+		buttonFoot = P.go.bottom:Lerp(BLACK, 0.35),
+		buttonFootLine = P.go.edge,
+		buttonShine = P.go.top:Lerp(WHITE, 0.6),
+		buttonStuds = GO_HIGH,
 		--[[ How faded the chest is while the run gave none. ]]
 		chestDim = 0.55,
 		cubes = rgb(255, 208, 40),
@@ -149,8 +210,15 @@ local EndScreenTheme = {
 
 	defeat = {
 		titleText = "DEFEAT",
-		subText = "SO CLOSE! TRY AGAIN",
+		--[[ One line on getting stronger (review item 9; was "SO CLOSE!
+		     TRY AGAIN"). ]]
+		subText = "HATCH PETS TO GET STRONGER",
+		--[[ In its place when every pet slot is full (the run-through,
+		     2026-11-14). ]]
+		fullText = "MERGE PETS TO GET STRONGER",
 		buttonText = "TRY AGAIN",
+		--[[ Dark on the sunny button, where white words are lost. ]]
+		buttonWords = P.primary.text,
 		labels = { "ENEMIES DEFEATED", "TIME SURVIVED", "PROGRESS" },
 		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
 		     the words, each matched to its sheet's lettering. ]]
@@ -168,100 +236,114 @@ local EndScreenTheme = {
 			reward = 78,
 			rewardStroke = 5,
 			button = 78,
-			buttonStroke = 6,
+			-- none: the words are dark here, and an outline only smears them
+			buttonStroke = 0,
+			lobbyButton = 50,
+			lobbyButtonStroke = 5,
 		},
-		title = rgb(232, 236, 246),
-		titleLow = rgb(188, 198, 220),
-		subTextColour = rgb(219, 228, 244),
+		title = rgb(255, 255, 255),
+		titleLow = RED_HIGH,
+		subTextColour = rgb(255, 255, 255),
 		panel = {
 			ink = INK,
 			inkW = 7,
-			rim = rgb(95, 122, 179),
+			rim = P.off.top,
 			rimW = 9,
-			fill = rgb(46, 61, 95),
-			bottom = rgb(26, 36, 60),
+			fill = SLATE,
+			bottom = SLATE_LOW,
 			bottomH = 18,
 		} :: Block,
 		--[[ The darker band just inside the panel's edge: the gloom. ]]
-		vignette = rgb(35, 48, 79),
+		vignette = SLATE_GLOOM,
 		vignetteW = 34,
 		sub = {
 			ink = INK,
 			inkW = 7,
-			fill = rgb(41, 54, 88),
-			top = rgb(58, 74, 112),
+			fill = P.danger.top,
+			top = RED_HIGH,
 			topH = 9,
-			bottom = rgb(30, 40, 66),
+			bottom = RED_LOW,
 			bottomH = 9,
 		} :: Block,
 		tab = {
 			ink = INK,
 			inkW = 7,
-			fill = rgb(70, 96, 157),
-			top = rgb(128, 157, 211),
+			fill = P.danger.top,
+			top = RED_HIGH,
 			topH = 8,
-			bottom = rgb(48, 68, 118),
+			bottom = RED_LOW,
 			bottomH = 7,
 		} :: Block,
 		stats = {
 			ink = INK,
 			inkW = 7,
-			rim = rgb(68, 96, 155),
+			rim = P.off.bottom,
 			rimW = 7,
-			fill = rgb(36, 58, 103),
-			bottom = rgb(25, 43, 82),
+			fill = SLATE_DEEP,
+			bottom = SLATE_DEEP_LOW,
 			bottomH = 10,
 		} :: Block,
 		row = {
-			ink = rgb(10, 14, 28),
+			ink = P.secondary.edge,
 			inkW = 5,
-			fill = rgb(19, 33, 62),
-			top = rgb(35, 56, 101),
+			fill = P.secondary.top,
+			top = TEAL_HIGH,
 			topH = 9,
-			bottom = rgb(32, 51, 91),
+			bottom = P.secondary.bottom,
 			bottomH = 9,
 		} :: Block,
 		rewards = {
-			ink = rgb(10, 14, 28),
+			ink = P.secondary.edge,
 			inkW = 6,
-			fill = rgb(25, 40, 74),
-			top = rgb(40, 62, 108),
+			fill = P.secondary.top,
+			top = TEAL_HIGH,
 			topH = 9,
-			bottom = rgb(36, 53, 92),
+			bottom = P.secondary.bottom,
 			bottomH = 8,
 		} :: Block,
 		rewardsTabBlock = {
 			ink = INK,
 			inkW = 6,
-			fill = rgb(52, 80, 141),
-			top = rgb(99, 126, 186),
+			fill = P.danger.top,
+			top = RED_HIGH,
 			topH = 6,
 		} :: Block,
 		slot = {
-			ink = rgb(10, 14, 28),
+			ink = P.secondary.edge,
 			inkW = 6,
-			rim = rgb(51, 71, 113),
+			rim = P.secondary.bottom,
 			rimW = 6,
-			fill = rgb(21, 32, 57),
+			fill = TEAL_LOW,
 		} :: Block,
 		button = {
 			ink = INK,
 			inkW = 8,
-			fill = rgb(249, 196, 67),
-			top = rgb(255, 226, 104),
+			fill = P.primary.top,
+			top = GOLD_HIGH,
 			topH = 12,
-			bottom = rgb(194, 97, 6),
+			bottom = GOLD_LOW,
 			bottomH = 24,
 		} :: Block,
+		--[[ BACK TO LOBBY, under the main button: the same block, red so it
+		     reads as leaving and never as the way on. ]]
+		lobbyButton = {
+			ink = INK,
+			inkW = 8,
+			fill = P.danger.top,
+			top = RED_HIGH,
+			topH = 11,
+			bottom = RED_LOW,
+			bottomH = 22,
+		} :: Block,
 		--[[ The lower half of the button's face, a shade deeper. ]]
-		buttonLow = rgb(246, 172, 34),
-		buttonShine = rgb(255, 236, 160),
-		buttonStuds = rgb(254, 226, 87),
+		buttonLow = P.primary.bottom,
+		buttonShine = P.primary.top:Lerp(WHITE, 0.6),
+		buttonStuds = GOLD_HIGH,
 		cubes = rgb(150, 160, 186),
 		--[[ The segmented progress bar. ]]
-		barOn = rgb(81, 231, 120),
-		barOnTop = rgb(144, 248, 162),
-		barOff = rgb(37, 52, 88),
+		barOn = P.barFill,
+		barOnTop = P.barFill:Lerp(WHITE, 0.35),
+		barOff = TEAL_LOW,
 		rain = rgb(150, 178, 222),
 		rainTransparency = 0.45,
 		flash = rgb(190, 205, 235),

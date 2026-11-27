@@ -24,6 +24,11 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 
 local FireRhythm = {}
 
+--[[ The most lateness `fired` carries into the next interval: one frame's
+     rounding at the slowest frame rate a client plays at (10 fps). A volley
+     later than this was late for a reason, not a frame boundary. ]]
+FireRhythm.CARRY = 0.1
+
 export type State = {
 	stationarySince: number?,
 	movingSince: number?,
@@ -73,11 +78,14 @@ end
 function FireRhythm.fired(state: State, now: number, cooldown: number)
 	local due = state.lastFiredAt + cooldown
 
-	--[[ More than a whole interval late -- nothing asked for a volley for a
-	     while (no target in range, a melee class moving through its combo) --
-	     so there is no rounding left to carry and a backlog must not be
-	     bankable into a burst. Start the cadence again from here. ]]
-	if now - due >= cooldown then
+	--[[ Later than a frame's rounding -- nothing asked for a volley for a
+	     while (no target in range or in line, the player just stopped
+	     moving) -- so there is no rounding left to carry, and lateness must
+	     not be banked: booking a volley 0.9 s late at its due time let the
+	     next one go 0.1 s later, a double shot on a 1 s weapon (2026-11-11
+	     playtest: staff volleys 0.1-0.67 s apart on a 1.4 s cooldown, right
+	     after each stop). Start the cadence again from here. ]]
+	if now - due > math.min(FireRhythm.CARRY, cooldown) then
 		state.lastFiredAt = now
 		return
 	end

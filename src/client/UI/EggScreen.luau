@@ -5,18 +5,40 @@
 	AUTO, the egg picker. The server rolls the eggs; this screen only
 	previews the pool and shows its answer (`UI/Reveal`).
 ]]
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
+local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
+local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local StationScreen = require(script.Parent.StationScreen)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local EggScreen = {}
 local screen: StationScreen.Screen? = nil
 local selected = 1
+--[[ The luck the odds were last drawn at: a boost starting or ending
+     redraws them (docs/LIVE-EVENTS.md). ]]
+local drawnLuck = 1
+--[[ The Server Luck, offered on the odds card unless PolicyService
+     restricts paid random items for this player (or has not answered). ]]
+local function luckOffer(): (() -> ())?
+	local product = StoreRules.product("ServerLuck")
+	local restricted = Players.LocalPlayer:GetAttribute(RobuxStore.paidRandomAttribute)
+	if not product or not StoreRules.live(product) or restricted ~= false then
+		return nil
+	end
+	return function()
+		Remotes.event(Remotes.StoreBuy):FireServer(product.key, "Eggs")
+	end
+end
 function EggScreen.open()
 	if screen then
 		screen.open()
@@ -53,8 +75,12 @@ function EggScreen.start()
 	     scene belongs inside the odds panel and nowhere else (owner,
 	     2026-10-31, on the full-screen art). The layer stays, because it is
 	     what covers Roblox's own top bar; what it carries goes dark. ]]
+	--[[ The approved mockups (2026-11-05) stand the panel over the lobby
+	     itself, dimmed, rather than over a black screen. ]]
+	backdrop.Visible = false
 	local veil = Instance.new("Frame")
-	veil.BackgroundColor3 = Color3.fromRGB(14, 16, 20)
+	veil.BackgroundColor3 = Color3.fromRGB(10, 14, 40)
+	veil.BackgroundTransparency = 0.45
 	veil.BorderSizePixel = 0
 	veil.Size = UDim2.fromScale(1, 1)
 	veil.ZIndex = 50
@@ -88,17 +114,19 @@ function EggScreen.start()
 	s.draw = function()
 		local p = s.profile
 		local egg = Eggs.list[selected]
-		local pool = EggRules.pool(egg.key)
+		drawnLuck = LiveState.luck()
+		local pool = EggRules.pool(egg.key, drawnLuck)
 		local unlocked = EggRules.open(egg, if p then p.bossesBeaten else {})
 		local tiles = {}
 		for _, entry in pool do
 			local owned = p ~= nil and (p.pets[entry.pet] or 0) > 0
 			table.insert(tiles, {
 				rarity = entry.rarity,
-				icon = GearAssets.pets[entry.pet] or "",
+				icon = ItemIcons.pet(entry.pet),
 				key = entry.pet,
 				chance = entry.chance,
 				owned = owned,
+				tier = if p and owned then MergeRules.best(p.tiers.pets[entry.pet]) or "C" else nil,
 				-- the Mythic stays a shape until somebody pulls it
 				silhouette = entry.rarity == "Mythic" and not owned,
 			})
@@ -114,17 +142,40 @@ function EggScreen.start()
 			tabs = {},
 			tiles = tiles,
 			locked = if not unlocked
-				then "BEAT KING BLOBLIN"
+				then EggRules.lockWords(egg, if p then p.bossesBeaten else {}) or "LOCKED"
 				elseif #pool == 0 then "COMING SOON"
 				else nil,
 			pity = if p then p.pity.eggs else 0,
-			picture = GearAssets.eggs[egg.key].whole,
+			-- its cut frames' whole egg, else its area's one picture
+			picture = if GearAssets.eggs[egg.key]
+				then GearAssets.eggs[egg.key].whole
+				else (GearAssets.areaPictures.eggs[egg.area] or ""),
 			backdrop = GearAssets.backgrounds.hatchery,
 			counts = Eggs.counts,
 			verb = "HATCH",
 			noun = "PETS",
+			heading = "HATCHERY",
+			luck = if drawnLuck > 1 then LiveBoosts.times(drawnLuck) .. " LUCK!" else nil,
+			boost = luckOffer(),
 		}, control, press, affordable)
 	end
+	-- a boost that starts or ends while the odds are up redraws them
+	task.spawn(function()
+		while s.gui.Parent do
+			task.wait(1)
+			if s.isOpen() and not Reveal.busy() and LiveState.luck() ~= drawnLuck then
+				s.open()
+			end
+		end
+	end)
+	s.connect(
+		Players.LocalPlayer:GetAttributeChangedSignal(RobuxStore.paidRandomAttribute),
+		function()
+			if s.isOpen() and not Reveal.busy() then
+				s.open()
+			end
+		end
+	)
 	s.connect(Remotes.event(Remotes.EggHatched).OnClientEvent, function(key, results)
 		if type(key) == "string" and type(results) == "table" then
 			Reveal.eggs(key, results, if s.profile then s.profile.pets else nil)

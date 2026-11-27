@@ -1,0 +1,70 @@
+Generate ONE image and save it to this exact path:
+
+  assets/concepts/blocky/arenas/area03_drowned_village_ambience.jpg
+
+Reference images attached, in order:
+1. The Drowned Village arena concept sheet: the room itself, its second view,
+   its kit pieces and its swatches. EVERY colour and EVERY material below is
+   taken from this image.
+2. The Mossy Glade ambience sheet, the game's first area: copy ONLY its camera,
+   its composition and the way the room sits in the middle of the frame.
+3. The Thornwood ambience sheet, the game's second area: copy ONLY the
+   principle it settled -- the outside is the ROOM CONTINUING OUTWARD, built
+   from the room's own pieces in the room's own colours and light. Not its
+   shapes, not its colours.
+
+Match image 1's visual language EXACTLY -- chunky voxel blocks, flat shading,
+hard edges, no textures, saturated colours, soft ambient light with a gentle
+drop shadow, plain light-grey studio backdrop.
+
+Image 1 shows only the INSIDE of the arena. This new sheet is about everything
+OUTSIDE its walls, which does not exist yet.
+
+Subject: the same walled Drowned Village arena, small and centred, seen from a
+steep near-top-down three-quarter angle -- the angle a mobile game's camera uses
+looking down at a room. The arena interior stays exactly as image 1 draws it:
+turquoise shallow water floor, a grey cobble causeway down the middle, the stone
+well, the half-ruined blue-roofed timber houses round the edge, lantern posts,
+barrels, planks, rope fences, bright green reeds.
+
+Around it, filling most of the frame, the rest of the drowned village under open
+floodwater, in the same language:
+
+- OPEN FLOODWATER as the ground: flat turquoise water cubes in two or three
+  tones, darker where it is deeper, paler in the shallows against the walls.
+  Read from above it is a chunky checkered turquoise surface, not a smooth sheet.
+- SUNKEN HOUSES, the room's own houses drowned deeper: the same timber frames
+  and slate-blue block roofs, tilted at different angles, most of them under to
+  the eaves so only a roof ridge and a gable show above the water. INDIVIDUAL
+  buildings with open water between them, never one merged mass, scattered
+  unevenly as a village street would be.
+- A DROWNED BELL TOWER, the tallest thing in the frame: a square pale-grey stone
+  tower leaning out of the water, a slate-blue cap, an open arch near the top
+  with a bronze bell hanging in it.
+- A TOLL GATE on a broken causeway: a grey stone arch with a timber bar across
+  it and a lit lantern on the post, the cobble causeway running out of the water
+  and stopping short.
+- DEAD DROWNED TREES: bare grey-brown forked cube trunks standing in the water
+  with no leaves, a fishing net and rope snagged in the branches of one or two.
+- Blocky water dressing between the buildings: reed beds of bright green reed
+  cubes in the shallows, swamped rowboats half full of water with an oar, nets
+  strung on poles with cream cork floats, slatted crab pots, mossy grey rock
+  clusters with a darker algae band at the waterline, rafts of drifting planks
+  and barrels, leaning lantern posts still lit.
+
+The living ambience, all of it blocky and faceted, nothing soft or round:
+
+- Flat pale-cyan slab glints scattered on the water, the sun catching the
+  surface.
+- Flat turquoise ring slabs as ripples spreading where things break the water.
+- Tiny pale-cyan bubble cubes rising in little strings, with a soft glow.
+- A few white blocky gulls with flat grey wing slabs crossing above the roofs.
+- Small dragonflies: a thin dark body cube with four tiny flat wing slabs.
+- Thin low-lying mist as flat translucent white slabs lying over the water
+  between the roofs.
+- Two or three slanting shafts of pale warm light as angled translucent prisms
+  coming down between the buildings, with a warm pool where each meets the water.
+
+Composition: the arena occupies about a third of the frame, the flooded village
+and its ambience the rest. Everything readable from directly above, because that
+is how the player sees it. No text, no labels, no UI, no characters.

@@ -1,0 +1,1082 @@
+[
+ {
+  "name": "Ground_NW",
+  "group": "Ground",
+  "meshId": "rbxassetid://94466722290852",
+  "size": [
+   75.0,
+   1.0,
+   60.0
+  ],
+  "offset": [
+   39.0,
+   -0.7,
+   31.0
+  ]
+ },
+ {
+  "name": "Ground_SW",
+  "group": "Ground",
+  "meshId": "rbxassetid://82066365836340",
+  "size": [
+   75.0,
+   1.0,
+   60.0
+  ],
+  "offset": [
+   39.0,
+   -0.7,
+   -29.0
+  ]
+ },
+ {
+  "name": "Ground_NE",
+  "group": "Ground",
+  "meshId": "rbxassetid://83939327988111",
+  "size": [
+   78.0,
+   1.0,
+   60.0
+  ],
+  "offset": [
+   -37.5,
+   -0.7,
+   31.0
+  ]
+ },
+ {
+  "name": "Ground_SE",
+  "group": "Ground",
+  "meshId": "rbxassetid://131289243657938",
+  "size": [
+   78.0,
+   1.0,
+   60.0
+  ],
+  "offset": [
+   -37.5,
+   -0.7,
+   -29.0
+  ]
+ },
+ {
+  "name": "House_001",
+  "group": "Houses",
+  "meshId": "rbxassetid://85287215255802",
+  "size": [
+   11.8,
+   8.6,
+   11.8
+  ],
+  "offset": [
+   44.0,
+   4.1,
+   32.0
+  ]
+ },
+ {
+  "name": "House_002",
+  "group": "Houses",
+  "meshId": "rbxassetid://110682141479195",
+  "size": [
+   10.15,
+   7.34,
+   10.15
+  ],
+  "offset": [
+   10.0,
+   3.47,
+   43.0
+  ]
+ },
+ {
+  "name": "House_003",
+  "group": "Houses",
+  "meshId": "rbxassetid://120640314535575",
+  "size": [
+   9.05,
+   6.5,
+   9.05
+  ],
+  "offset": [
+   -27.0,
+   3.05,
+   25.0
+  ]
+ },
+ {
+  "name": "House_004",
+  "group": "Houses",
+  "meshId": "rbxassetid://78144449055285",
+  "size": [
+   11.8,
+   8.6,
+   11.8
+  ],
+  "offset": [
+   -60.0,
+   4.1,
+   6.0
+  ]
+ },
+ {
+  "name": "House_005",
+  "group": "Houses",
+  "meshId": "rbxassetid://101385913528319",
+  "size": [
+   11.8,
+   8.6,
+   11.8
+  ],
+  "offset": [
+   -38.0,
+   4.1,
+   -4.0
+  ]
+ },
+ {
+  "name": "House_006",
+  "group": "Houses",
+  "meshId": "rbxassetid://77560226764853",
+  "size": [
+   11.8,
+   8.6,
+   11.8
+  ],
+  "offset": [
+   26.0,
+   4.1,
+   -42.0
+  ]
+ },
+ {
+  "name": "House_007",
+  "group": "Houses",
+  "meshId": "rbxassetid://79040193906559",
+  "size": [
+   10.7,
+   7.76,
+   10.7
+  ],
+  "offset": [
+   66.0,
+   3.68,
+   -44.0
+  ]
+ },
+ {
+  "name": "House_008",
+  "group": "Houses",
+  "meshId": "rbxassetid://104108231654816",
+  "size": [
+   10.7,
+   7.76,
+   10.7
+  ],
+  "offset": [
+   -68.0,
+   3.68,
+   -46.0
+  ]
+ },
+ {
+  "name": "House_009",
+  "group": "Houses",
+  "meshId": "rbxassetid://112655865323469",
+  "size": [
+   9.6,
+   6.92,
+   9.6
+  ],
+  "offset": [
+   -34.0,
+   3.26,
+   52.0
+  ]
+ },
+ {
+  "name": "Tree_001",
+  "group": "Trees",
+  "meshId": "rbxassetid://80978947695069",
+  "size": [
+   7.925,
+   14.0,
+   5.984
+  ],
+  "offset": [
+   55.738,
+   6.8,
+   42.608
+  ]
+ },
+ {
+  "name": "Tree_002",
+  "group": "Trees",
+  "meshId": "rbxassetid://125237342742695",
+  "size": [
+   7.925,
+   13.0,
+   5.382
+  ],
+  "offset": [
+   57.738,
+   6.3,
+   18.937
+  ]
+ },
+ {
+  "name": "Tree_003",
+  "group": "Trees",
+  "meshId": "rbxassetid://76865025680066",
+  "size": [
+   7.4,
+   10.0,
+   5.742
+  ],
+  "offset": [
+   32.0,
+   4.8,
+   -1.729
+  ]
+ },
+ {
+  "name": "Tree_004",
+  "group": "Trees",
+  "meshId": "rbxassetid://77455090330355",
+  "size": [
+   7.4,
+   9.0,
+   6.419
+  ],
+  "offset": [
+   -12.0,
+   4.3,
+   49.633
+  ]
+ },
+ {
+  "name": "Tree_005",
+  "group": "Trees",
+  "meshId": "rbxassetid://81268302711605",
+  "size": [
+   7.925,
+   13.0,
+   6.235
+  ],
+  "offset": [
+   -46.262,
+   6.3,
+   -33.27
+  ]
+ },
+ {
+  "name": "Tree_006",
+  "group": "Trees",
+  "meshId": "rbxassetid://107411105219843",
+  "size": [
+   7.4,
+   11.0,
+   6.89
+  ],
+  "offset": [
+   -70.0,
+   5.3,
+   -19.767
+  ]
+ },
+ {
+  "name": "Tree_007",
+  "group": "Trees",
+  "meshId": "rbxassetid://111904235560956",
+  "size": [
+   7.4,
+   10.0,
+   6.173
+  ],
+  "offset": [
+   70.0,
+   4.8,
+   -30.486
+  ]
+ },
+ {
+  "name": "Post_001",
+  "group": "Props",
+  "meshId": "rbxassetid://132424205747557",
+  "size": [
+   4.05,
+   7.6,
+   2.8
+  ],
+  "offset": [
+   39.375,
+   3.6,
+   9.0
+  ]
+ },
+ {
+  "name": "Lamp_001",
+  "group": "Props",
+  "meshId": "rbxassetid://125969462708265",
+  "size": [
+   1.0,
+   1.25,
+   1.0
+  ],
+  "offset": [
+   38.0,
+   5.925,
+   9.0
+  ]
+ },
+ {
+  "name": "Post_002",
+  "group": "Props",
+  "meshId": "rbxassetid://140705325983176",
+  "size": [
+   4.05,
+   7.6,
+   2.8
+  ],
+  "offset": [
+   -24.625,
+   3.6,
+   36.0
+  ]
+ },
+ {
+  "name": "Lamp_002",
+  "group": "Props",
+  "meshId": "rbxassetid://105877822478240",
+  "size": [
+   1.0,
+   1.25,
+   1.0
+  ],
+  "offset": [
+   -26.0,
+   5.925,
+   36.0
+  ]
+ },
+ {
+  "name": "Post_003",
+  "group": "Props",
+  "meshId": "rbxassetid://92756384044191",
+  "size": [
+   4.05,
+   7.6,
+   2.8
+  ],
+  "offset": [
+   -32.375,
+   3.6,
+   -33.0
+  ]
+ },
+ {
+  "name": "Lamp_003",
+  "group": "Props",
+  "meshId": "rbxassetid://120165435546072",
+  "size": [
+   1.0,
+   1.25,
+   1.0
+  ],
+  "offset": [
+   -31.0,
+   5.925,
+   -33.0
+  ]
+ },
+ {
+  "name": "Post_004",
+  "group": "Props",
+  "meshId": "rbxassetid://77754109939217",
+  "size": [
+   4.05,
+   7.6,
+   2.8
+  ],
+  "offset": [
+   35.375,
+   3.6,
+   -22.0
+  ]
+ },
+ {
+  "name": "Lamp_004",
+  "group": "Props",
+  "meshId": "rbxassetid://128889152172272",
+  "size": [
+   1.0,
+   1.25,
+   1.0
+  ],
+  "offset": [
+   34.0,
+   5.925,
+   -22.0
+  ]
+ },
+ {
+  "name": "Boat_001",
+  "group": "Props",
+  "meshId": "rbxassetid://111457946069254",
+  "size": [
+   9.6,
+   1.15,
+   9.6
+  ],
+  "offset": [
+   29.0,
+   0.375,
+   20.0
+  ]
+ },
+ {
+  "name": "Boat_002",
+  "group": "Props",
+  "meshId": "rbxassetid://114056191224457",
+  "size": [
+   9.6,
+   1.15,
+   9.6
+  ],
+  "offset": [
+   -31.0,
+   0.375,
+   -16.0
+  ]
+ },
+ {
+  "name": "Boat_003",
+  "group": "Props",
+  "meshId": "rbxassetid://112039683409917",
+  "size": [
+   9.6,
+   1.15,
+   9.6
+  ],
+  "offset": [
+   -22.0,
+   0.375,
+   -42.0
+  ]
+ },
+ {
+  "name": "Boat_004",
+  "group": "Props",
+  "meshId": "rbxassetid://110703368383169",
+  "size": [
+   9.6,
+   1.15,
+   9.6
+  ],
+  "offset": [
+   62.0,
+   0.375,
+   -54.0
+  ]
+ },
+ {
+  "name": "Pot_001",
+  "group": "Props",
+  "meshId": "rbxassetid://106545651627159",
+  "size": [
+   3.4,
+   1.6,
+   3.4
+  ],
+  "offset": [
+   -31.0,
+   0.6,
+   8.0
+  ]
+ },
+ {
+  "name": "Pot_002",
+  "group": "Props",
+  "meshId": "rbxassetid://90003890940156",
+  "size": [
+   3.4,
+   1.6,
+   3.4
+  ],
+  "offset": [
+   30.0,
+   0.6,
+   -17.0
+  ]
+ },
+ {
+  "name": "Pot_003",
+  "group": "Props",
+  "meshId": "rbxassetid://135194790518594",
+  "size": [
+   3.4,
+   1.6,
+   3.4
+  ],
+  "offset": [
+   -8.0,
+   0.6,
+   -50.0
+  ]
+ },
+ {
+  "name": "Barrel_001",
+  "group": "Props",
+  "meshId": "rbxassetid://100936784116597",
+  "size": [
+   3.0,
+   2.3,
+   3.0
+  ],
+  "offset": [
+   -29.0,
+   0.95,
+   -2.0
+  ]
+ },
+ {
+  "name": "Barrel_002",
+  "group": "Props",
+  "meshId": "rbxassetid://78236403286290",
+  "size": [
+   3.0,
+   2.3,
+   3.0
+  ],
+  "offset": [
+   43.0,
+   0.95,
+   -38.0
+  ]
+ },
+ {
+  "name": "Barrel_003",
+  "group": "Props",
+  "meshId": "rbxassetid://76701691826241",
+  "size": [
+   3.0,
+   2.3,
+   3.0
+  ],
+  "offset": [
+   20.0,
+   0.95,
+   -52.0
+  ]
+ },
+ {
+  "name": "Barrel_004",
+  "group": "Props",
+  "meshId": "rbxassetid://81647820617632",
+  "size": [
+   3.0,
+   2.3,
+   3.0
+  ],
+  "offset": [
+   -45.0,
+   0.95,
+   40.0
+  ]
+ },
+ {
+  "name": "Rock_001",
+  "group": "Rocks",
+  "meshId": "rbxassetid://132658027251293",
+  "size": [
+   7.496,
+   4.088,
+   7.28
+  ],
+  "offset": [
+   57.892,
+   1.844,
+   -31.0
+  ]
+ },
+ {
+  "name": "Rock_002",
+  "group": "Rocks",
+  "meshId": "rbxassetid://97499123176537",
+  "size": [
+   5.093,
+   2.608,
+   4.68
+  ],
+  "offset": [
+   24.793,
+   1.104,
+   12.0
+  ]
+ },
+ {
+  "name": "Rock_003",
+  "group": "Rocks",
+  "meshId": "rbxassetid://116805691269564",
+  "size": [
+   5.621,
+   2.571,
+   5.2
+  ],
+  "offset": [
+   -35.211,
+   1.085,
+   40.0
+  ]
+ },
+ {
+  "name": "Rock_004",
+  "group": "Rocks",
+  "meshId": "rbxassetid://79468901438686",
+  "size": [
+   5.647,
+   2.687,
+   5.2
+  ],
+  "offset": [
+   -62.224,
+   1.143,
+   36.0
+  ]
+ },
+ {
+  "name": "Rock_005",
+  "group": "Rocks",
+  "meshId": "rbxassetid://116850489453992",
+  "size": [
+   5.268,
+   2.507,
+   4.68
+  ],
+  "offset": [
+   -6.294,
+   1.053,
+   -42.0
+  ]
+ },
+ {
+  "name": "Rock_006",
+  "group": "Rocks",
+  "meshId": "rbxassetid://75100320450982",
+  "size": [
+   4.16,
+   2.603,
+   4.26
+  ],
+  "offset": [
+   12.0,
+   1.102,
+   35.95
+  ]
+ },
+ {
+  "name": "Rock_007",
+  "group": "Rocks",
+  "meshId": "rbxassetid://138116368611787",
+  "size": [
+   4.826,
+   2.837,
+   4.727
+  ],
+  "offset": [
+   62.073,
+   1.219,
+   -4.023
+  ]
+ },
+ {
+  "name": "Rock_008",
+  "group": "Rocks",
+  "meshId": "rbxassetid://90956289331814",
+  "size": [
+   4.606,
+   2.914,
+   4.16
+  ],
+  "offset": [
+   -60.223,
+   1.257,
+   19.0
+  ]
+ },
+ {
+  "name": "Rock_009",
+  "group": "Rocks",
+  "meshId": "rbxassetid://77069292073382",
+  "size": [
+   4.671,
+   3.174,
+   4.16
+  ],
+  "offset": [
+   62.754,
+   1.387,
+   -19.0
+  ]
+ },
+ {
+  "name": "Rock_010",
+  "group": "Rocks",
+  "meshId": "rbxassetid://103193300230526",
+  "size": [
+   5.336,
+   3.032,
+   5.2
+  ],
+  "offset": [
+   -72.068,
+   1.316,
+   -0.0
+  ]
+ },
+ {
+  "name": "Rock_011",
+  "group": "Rocks",
+  "meshId": "rbxassetid://135196122706699",
+  "size": [
+   6.456,
+   3.522,
+   6.24
+  ],
+  "offset": [
+   71.892,
+   1.561,
+   54.0
+  ]
+ },
+ {
+  "name": "Rock_012",
+  "group": "Rocks",
+  "meshId": "rbxassetid://106710120121505",
+  "size": [
+   5.359,
+   3.011,
+   5.2
+  ],
+  "offset": [
+   -52.08,
+   1.305,
+   -55.0
+  ]
+ },
+ {
+  "name": "Fence_001",
+  "group": "Props",
+  "meshId": "rbxassetid://121279751547622",
+  "size": [
+   8.0,
+   6.0,
+   2.4
+  ],
+  "offset": [
+   50.0,
+   2.8,
+   6.0
+  ]
+ },
+ {
+  "name": "Fence_002",
+  "group": "Props",
+  "meshId": "rbxassetid://90233399012659",
+  "size": [
+   2.4,
+   6.0,
+   8.0
+  ],
+  "offset": [
+   -55.0,
+   2.8,
+   -9.0
+  ]
+ },
+ {
+  "name": "Tower_001",
+  "group": "Landmarks",
+  "meshId": "rbxassetid://81765570849794",
+  "size": [
+   14.558,
+   22.1,
+   14.169
+  ],
+  "offset": [
+   -42.108,
+   10.85,
+   30.085
+  ]
+ },
+ {
+  "name": "Arch_001",
+  "group": "Landmarks",
+  "meshId": "rbxassetid://108464317173997",
+  "size": [
+   17.725,
+   11.2,
+   22.075
+  ],
+  "offset": [
+   44.138,
+   5.4,
+   -14.037
+  ]
+ },
+ {
+  "name": "Lamp_005",
+  "group": "Landmarks",
+  "meshId": "rbxassetid://94722466369927",
+  "size": [
+   1.0,
+   1.2,
+   1.0
+  ],
+  "offset": [
+   47.0,
+   5.3,
+   -8.8
+  ]
+ },
+ {
+  "name": "Raft_001",
+  "group": "Props",
+  "meshId": "rbxassetid://105718677523322",
+  "size": [
+   7.2,
+   0.9,
+   7.2
+  ],
+  "offset": [
+   -58.0,
+   0.25,
+   -23.0
+  ]
+ },
+ {
+  "name": "Plank_001",
+  "group": "Props",
+  "meshId": "rbxassetid://81773691236386",
+  "size": [
+   4.1,
+   0.4,
+   2.0
+  ],
+  "offset": [
+   -55.25,
+   0.0,
+   -39.55
+  ]
+ },
+ {
+  "name": "Plank_002",
+  "group": "Props",
+  "meshId": "rbxassetid://107692323147388",
+  "size": [
+   4.1,
+   0.4,
+   2.0
+  ],
+  "offset": [
+   -56.25,
+   0.0,
+   19.45
+  ]
+ },
+ {
+  "name": "Plank_003",
+  "group": "Props",
+  "meshId": "rbxassetid://99310179024718",
+  "size": [
+   4.1,
+   0.4,
+   2.0
+  ],
+  "offset": [
+   13.75,
+   0.0,
+   -56.55
+  ]
+ },
+ {
+  "name": "Reeds_001",
+  "group": "Reeds",
+  "meshId": "rbxassetid://92715712747388",
+  "size": [
+   130.654,
+   3.182,
+   110.07
+  ],
+  "offset": [
+   0.222,
+   1.391,
+   2.956
+  ]
+ },
+ {
+  "name": "Reeds_002",
+  "group": "Reeds",
+  "meshId": "rbxassetid://78659802300626",
+  "size": [
+   128.338,
+   3.152,
+   105.236
+  ],
+  "offset": [
+   -3.626,
+   1.376,
+   6.619
+  ]
+ },
+ {
+  "name": "Reeds_003",
+  "group": "Reeds",
+  "meshId": "rbxassetid://112491859331770",
+  "size": [
+   142.72,
+   3.184,
+   112.356
+  ],
+  "offset": [
+   -2.096,
+   1.392,
+   -1.166
+  ]
+ },
+ {
+  "name": "Reeds_004",
+  "group": "Reeds",
+  "meshId": "rbxassetid://96405171334005",
+  "size": [
+   128.205,
+   3.192,
+   117.396
+  ],
+  "offset": [
+   -10.155,
+   1.396,
+   0.318
+  ]
+ },
+ {
+  "name": "Reeds_005",
+  "group": "Reeds",
+  "meshId": "rbxassetid://132265353602593",
+  "size": [
+   139.71,
+   3.182,
+   106.897
+  ],
+  "offset": [
+   -1.944,
+   1.391,
+   1.622
+  ]
+ },
+ {
+  "name": "Reeds_006",
+  "group": "Reeds",
+  "meshId": "rbxassetid://139028753829762",
+  "size": [
+   141.549,
+   3.121,
+   78.756
+  ],
+  "offset": [
+   -2.083,
+   1.361,
+   15.172
+  ]
+ },
+ {
+  "name": "Reeds_007",
+  "group": "Reeds",
+  "meshId": "rbxassetid://103336989751008",
+  "size": [
+   137.36,
+   3.167,
+   113.032
+  ],
+  "offset": [
+   1.761,
+   1.383,
+   0.402
+  ]
+ },
+ {
+  "name": "Reeds_008",
+  "group": "Reeds",
+  "meshId": "rbxassetid://91404559292058",
+  "size": [
+   130.869,
+   3.19,
+   107.715
+  ],
+  "offset": [
+   -0.249,
+   1.395,
+   6.141
+  ]
+ },
+ {
+  "name": "Reeds_009",
+  "group": "Reeds",
+  "meshId": "rbxassetid://137130013534144",
+  "size": [
+   117.885,
+   3.186,
+   86.067
+  ],
+  "offset": [
+   14.235,
+   1.393,
+   -6.67
+  ]
+ },
+ {
+  "name": "Reeds_010",
+  "group": "Reeds",
+  "meshId": "rbxassetid://115438752792209",
+  "size": [
+   139.333,
+   3.164,
+   107.142
+  ],
+  "offset": [
+   -3.263,
+   1.382,
+   0.472
+  ]
+ },
+ {
+  "name": "Reeds_011",
+  "group": "Reeds",
+  "meshId": "rbxassetid://134992284267678",
+  "size": [
+   128.465,
+   3.179,
+   109.498
+  ],
+  "offset": [
+   -10.593,
+   1.39,
+   5.15
+  ]
+ },
+ {
+  "name": "Reeds_012",
+  "group": "Reeds",
+  "meshId": "rbxassetid://104176379144654",
+  "size": [
+   43.917,
+   3.199,
+   66.772
+  ],
+  "offset": [
+   0.028,
+   1.4,
+   -0.127
+  ]
+ }
+]

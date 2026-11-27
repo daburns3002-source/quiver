@@ -75,6 +75,25 @@ export type Book = {
 	grid: Grid,
 }
 
+--[[ An area's page (owner, 2026-11-12: "the page should also be themed to
+     match the area"). Its colours are sampled off the area's own approved
+     NEW ENEMY! sheet (`assets/concepts/blocky/ui/new_enemy/blank_<area>_raw.png`,
+     the look `Config/NewEnemies.sheets` already draws): `groundTop` and
+     `groundBottom` the page the tiles lie on, `trim` its frame (the
+     sheet's wood, bramble or stone), `plate` the area's name bar, `accent`
+     the motes that drift on it (sunlight, bramble sparks, lantern light,
+     glowcap spores). `scene` is the sheet's landscape window, cut out of
+     its top half (1024 x 768), which stands behind the chosen entry. ]]
+export type AreaTheme = {
+	name: string,
+	groundTop: Color3,
+	groundBottom: Color3,
+	trim: Color3,
+	plate: Color3,
+	accent: Color3,
+	scene: Box,
+}
+
 local Dex = {
 	--[[ The spread's size in pixels, which every box below is measured
 	     against. All three books are drawn at this size. ]]
@@ -98,6 +117,141 @@ local Dex = {
 	     enough to read as paper. ]]
 	turnFrame = 0.04,
 
+	--[[ The most entries one area's page is laid out for: the twenty-four
+	     weapons of an area (four classes, six rarities; eighteen until the
+	     Assassin opened, 2026-11-15). The grid fits itself to the count
+	     (`HatchStand.grid`), so a fuller page draws its tiles a little
+	     smaller: the owner asked for bigger icons, so this is theirs to
+	     look at (docs/TRACKER.md). ]]
+	pageMost = 24,
+	--[[ The NEW ENEMY! sheet's top half, which `scene` is measured on. ]]
+	sceneCanvas = Vector2.new(1024, 768),
+	areas = {
+		MossyGlade = {
+			name = "MOSSY GLADE",
+			groundTop = Color3.fromRGB(47, 107, 51),
+			groundBottom = Color3.fromRGB(22, 58, 34),
+			trim = Color3.fromRGB(152, 86, 44),
+			plate = Color3.fromRGB(92, 150, 43),
+			accent = Color3.fromRGB(232, 238, 142),
+			scene = { x = 150, y = 338, w = 730, h = 422 },
+		},
+		Thornwood = {
+			name = "THORNWOOD",
+			groundTop = Color3.fromRGB(86, 40, 106),
+			groundBottom = Color3.fromRGB(34, 17, 47),
+			trim = Color3.fromRGB(102, 39, 80),
+			plate = Color3.fromRGB(126, 58, 150),
+			accent = Color3.fromRGB(255, 92, 240),
+			scene = { x = 165, y = 338, w = 695, h = 422 },
+		},
+		DrownedVillage = {
+			name = "DROWNED VILLAGE",
+			groundTop = Color3.fromRGB(33, 110, 150),
+			groundBottom = Color3.fromRGB(22, 46, 68),
+			trim = Color3.fromRGB(188, 115, 65),
+			plate = Color3.fromRGB(0, 154, 151),
+			accent = Color3.fromRGB(255, 197, 107),
+			scene = { x = 140, y = 388, w = 745, h = 372 },
+		},
+		BogheartCaverns = {
+			name = "BOGHEART CAVERNS",
+			groundTop = Color3.fromRGB(24, 104, 116),
+			groundBottom = Color3.fromRGB(27, 47, 74),
+			trim = Color3.fromRGB(130, 95, 157),
+			plate = Color3.fromRGB(108, 81, 138),
+			accent = Color3.fromRGB(124, 243, 255),
+			scene = { x = 150, y = 372, w = 730, h = 388 },
+		},
+		--[[ A themed weapon set's page in the weapon book (`Config/Shop.sets`,
+		     docs/WEAPONS-THEMED.md), keyed by its set: its own colours, and
+		     no scenery, since a set belongs to no area and has no NEW
+		     ENEMY! sheet to cut one from. Graphite, cyan and magenta. ]]
+		NeonCircuit = {
+			name = "NEON CIRCUIT",
+			groundTop = Color3.fromRGB(40, 44, 78),
+			groundBottom = Color3.fromRGB(14, 16, 34),
+			trim = Color3.fromRGB(255, 62, 196),
+			plate = Color3.fromRGB(16, 150, 214),
+			accent = Color3.fromRGB(120, 245, 255),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		-- THEMED SETS BEGIN (assets/models/weapons/blocky/themed_sets/sets.py; regenerate, never hand-edit)
+		Starwish = {
+			name = "STARWISH",
+			groundTop = Color3.fromRGB(70, 52, 96),
+			groundBottom = Color3.fromRGB(30, 20, 48),
+			trim = Color3.fromRGB(255, 214, 92),
+			plate = Color3.fromRGB(214, 74, 150),
+			accent = Color3.fromRGB(255, 236, 160),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		Tumbleweed = {
+			name = "TUMBLEWEED",
+			groundTop = Color3.fromRGB(112, 74, 44),
+			groundBottom = Color3.fromRGB(52, 32, 18),
+			trim = Color3.fromRGB(240, 190, 80),
+			plate = Color3.fromRGB(26, 128, 120),
+			accent = Color3.fromRGB(120, 236, 220),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		SplashDay = {
+			name = "SPLASH DAY",
+			groundTop = Color3.fromRGB(30, 96, 140),
+			groundBottom = Color3.fromRGB(10, 40, 70),
+			trim = Color3.fromRGB(255, 214, 64),
+			plate = Color3.fromRGB(222, 84, 76),
+			accent = Color3.fromRGB(150, 236, 255),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		CoinOp = {
+			name = "COIN-OP",
+			groundTop = Color3.fromRGB(30, 30, 52),
+			groundBottom = Color3.fromRGB(10, 10, 22),
+			trim = Color3.fromRGB(255, 220, 60),
+			plate = Color3.fromRGB(36, 78, 210),
+			accent = Color3.fromRGB(255, 96, 96),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		Voidglass = {
+			name = "VOIDGLASS",
+			groundTop = Color3.fromRGB(40, 22, 72),
+			groundBottom = Color3.fromRGB(12, 6, 28),
+			trim = Color3.fromRGB(200, 170, 255),
+			plate = Color3.fromRGB(104, 48, 190),
+			accent = Color3.fromRGB(255, 160, 236),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		LanternBloom = {
+			name = "LANTERN BLOOM",
+			groundTop = Color3.fromRGB(70, 40, 52),
+			groundBottom = Color3.fromRGB(30, 14, 22),
+			trim = Color3.fromRGB(255, 200, 110),
+			plate = Color3.fromRGB(176, 36, 48),
+			accent = Color3.fromRGB(255, 182, 206),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		Cinderforge = {
+			name = "CINDERFORGE",
+			groundTop = Color3.fromRGB(44, 36, 34),
+			groundBottom = Color3.fromRGB(14, 10, 10),
+			trim = Color3.fromRGB(255, 140, 40),
+			plate = Color3.fromRGB(150, 52, 20),
+			accent = Color3.fromRGB(255, 210, 90),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
+		-- THEMED SETS END
+	} :: { [string]: AreaTheme },
+	--[[ An area with no look of its own yet: the kit's own deep sea. ]]
+	plainArea = {
+		name = "",
+		groundTop = Color3.fromRGB(42, 147, 201),
+		groundBottom = Color3.fromRGB(23, 64, 92),
+		trim = Color3.fromRGB(23, 64, 92),
+		plate = Color3.fromRGB(31, 127, 184),
+		accent = Color3.fromRGB(255, 255, 255),
+		scene = { x = 0, y = 0, w = 0, h = 0 },
+	} :: AreaTheme,
 	--[[ The tabs, in the order they sit over the book. ]]
 	order = { "Enemies", "Weapons", "Pets" },
 

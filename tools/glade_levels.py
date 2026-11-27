@@ -14,20 +14,17 @@ layouts (Archero 2's habits in the glade's kit, `KitLayout`) and
 width from the next, clear of the start and the gate, a walk from the
 start to the exit):
 
-**Only 1-5 is waves** (owner, 2026-11-02: "i only want 1-5 to be waves
-and the rest should be rooms"), which supersedes the "1-6 should have 20
-waves ... 1-10 should have 25" of the plan above. The counts the owner set
-are kept and read as rooms: 20, 20, 20, 20 and 25.
+**1-5..1-9 are waves, 1-10 rooms.** The owner had asked for only 1-5 to be
+waves (2026-11-02) and then, asked about 1-6..1-9, answered "waves"
+(2026-11-05). 1-10 was not part of that question and stays twenty-five rooms.
 
 - 1-1..1-4: fifty rooms, 10 + 10 + 15 + 15, each level's last a fight in
   the Glade Heart (the boss room, without a boss). Counts rise through a
   level and from level to level; 1-1 brings the Brood Slime in at room 4
   and the Splitter Spitter at room 7, the later levels mix all three.
-- 1-5: one clearing, its wave arena (light cover only, since waves arrive
-  anywhere). Its waves' rosters are the stage's own (`Balance.Stages`,
+- 1-5..1-9: one clearing each, its wave arena (light cover only, since waves
+  arrive anywhere). Their waves' rosters are the stage's own (`Balance.Stages`,
   `fights`), so this room's roster is only its first fight's.
-- 1-6..1-9: twenty rooms each, the same shape as 1-1..1-4, ending in a
-  Glade Heart fight with no boss.
 - 1-10: twenty-five, the last of them King Bloblin alone in the Glade
   Heart, as the Broodmother closes Thornwood.
 
@@ -74,26 +71,36 @@ ANCHOR = "local rooms: { RoomConfig } = {"
 #: room, in the room before the last, and in the last.
 #:
 #: "rooms" ends in a Glade Heart fight with no boss; "waves" is the single
-#: arena 1-5's waves are fought in, so its count is only its first fight's;
+#: arena a wave level is fought in, so its count is only its first fight's;
 #: "boss" ends in King Bloblin alone.
 #:
-#: 1-6..1-10's counts are aimed at the health each asked as a wave level, so
-#: that turning them into rooms does not quietly undo the flattening of
-#: #441: a Waves level only fights about sixteen of its twenty waves (two
-#: Valkyries and two Angels are encounters), where every room of a Rooms
-#: level is a fight.
+#: 1-10's counts are aimed at the health it asked as a wave level, so that
+#: turning it into rooms does not quietly undo the flattening of #441: a Waves
+#: level only fights about sixteen of its twenty waves (two Valkyries and two
+#: Angels are encounters), where every room of a Rooms level is a fight.
 LEVELS = [
     ("1-1", "rooms", 10, 3, 5, 5),
     ("1-2", "rooms", 10, 4, 6, 6),
     ("1-3", "rooms", 15, 4, 6, 6),
     ("1-4", "rooms", 15, 5, 7, 7),
     ("1-5", "waves", 1, 5, 5, 5),
-    ("1-6", "rooms", 20, 4, 5, 7),
-    ("1-7", "rooms", 20, 4, 6, 7),
-    ("1-8", "rooms", 20, 5, 6, 7),
-    ("1-9", "rooms", 20, 5, 7, 7),
-    ("1-10", "boss", 25, 5, 7, 7),
+    ("1-6", "waves", 1, 4, 4, 4),
+    ("1-7", "waves", 1, 5, 5, 5),
+    ("1-8", "waves", 1, 5, 5, 5),
+    ("1-9", "waves", 1, 5, 5, 5),
+    ("1-10", "boss", 25, 3, 8, 8),
 ]
+
+#: Rooms whose counts are written out rather than drawn as a straight line
+#: from first to last, one per room before the last (an Angel room's is
+#: ignored). 1-10 starts gently and climbs further (owner, 2026-11-13,
+#: approving balance review item 6): with five in each of its first rooms
+#: and no cards drafted yet, two thirds of the damage a level took came in
+#: rooms 1 to 3 and none in the six before the King. The same 131 enemies
+#: before the King as the straight line's 5 to 7.
+COUNTS = {
+    "1-10": [3, 3, 4, 4, 5, 5, 5, 6, 0, 6, 6, 6, 6, 6, 7, 7, 7, 7, 0, 7, 7, 8, 8, 8],
+}
 
 #: Where an Angel room falls, mirroring `Balance.Waves.blockSize` and
 #: `Balance.Waves.angelAt`. Pinned against them by `tests/MossyLevels.spec`.
@@ -113,10 +120,21 @@ HEART = "broodSlime, broodSlime, meleeCharger, spreadShooter"
 def roster(level, n, rooms, first, last):
     """Who fights in room n (1 to rooms - 1) of a Rooms level."""
     count = first + round((last - first) * (n - 1) / max(1, rooms - 2))
+    if level in COUNTS:
+        count = COUNTS[level][n - 1]
     if level == "1-1":
         if n <= 3:
             return count, "meleeCharger"
         if n <= 6:
+            return count, "meleeCharger, meleeCharger, broodSlime"
+    # 1-2 opens gently (owner, 2026-11-14, the kid playtest: its first room,
+    # four with a Spitter against a bare bow, killed a standing player in 11
+    # seconds straight after their first win). Slimes only for two rooms (and
+    # room 3's mix has none); the Spitter is back in room 4, cards drafted.
+    if level == "1-2":
+        if n == 1:
+            return 3, "meleeCharger"
+        if n == 2:
             return count, "meleeCharger, meleeCharger, broodSlime"
     return count, MIXES[n % len(MIXES)]
 
@@ -162,13 +180,12 @@ def angel_room(rng, level):
 def main():
     rng = random.Random(SEED)
     out = [
-        BEGIN + " (2026-10-26, 1-6..1-10 made rooms 2026-11-02):\n"
+        BEGIN + " (2026-10-26, 1-6..1-9 made waves 2026-11-05):\n"
         "\tMossy Glade 1-1..1-10's rooms, generated by `tools/glade_levels.py`\n"
         "\t(the owner's level plan: \"10 levels of mossy glade, king bloblin\n"
-        "\twill not appear until the end of level 10\", then \"i only want 1-5 to\n"
-        "\tbe waves and the rest should be rooms\"). In order: 1-1's ten rooms,\n"
-        "\t1-2's ten, 1-3's fifteen, 1-4's fifteen, 1-5's single wave arena,\n"
-        "\t1-6..1-9's twenty each and 1-10's twenty-five. Every Rooms level\n"
+        "\twill not appear until the end of level 10\"). In order: 1-1's ten\n"
+        "\trooms, 1-2's ten, 1-3's fifteen, 1-4's fifteen, one wave arena each\n"
+        "\tfor 1-5..1-9, and 1-10's twenty-five. Every Rooms level\n"
         "\tends in a Glade Heart fight, and 1-10's last room is King Bloblin\n"
         "\talone; the 9th room of each block of ten is an Angel room with\n"
         "\tnothing in it. `Balance.Rooms` 86 on, after the tutorial's. Edit\n"

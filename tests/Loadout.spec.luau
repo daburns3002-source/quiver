@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Loadout = require(ServerScriptService.Server.Run.Loadout)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local TestRunner = require(script.Parent.TestRunner)
@@ -283,6 +284,41 @@ return function(t: TestRunner.Helper)
 		end
 		t.isTrue(heal, "an Angel offered no heal")
 		t.isTrue(stat, "an Angel offered no stat")
+	end)
+
+	t.test("an Angel's stat is drawn by rarity, so a Mythic is a rare one", function()
+		local random = Random.new(7)
+		local mythic, draws = 0, 2000
+		for _ = 1, draws do
+			local state = Loadout.new()
+			state.class = "Ranger"
+			local offer = Loadout.openAngel(state, random) :: { string }
+			if Abilities.byId[offer[1]].rarity == "Mythic" then
+				mythic += 1
+			end
+		end
+		-- drawn evenly it was one in eight; by weight it is a few in a hundred at most
+		t.isTrue(mythic < draws * 0.06, `{mythic} Mythics in {draws} Angels`)
+	end)
+
+	t.test("an Angel's stat is one the player's class can use, and never a benched card", function()
+		for _, class in ClassList.all() do
+			-- every roll of the dice, so every stat it could offer is met
+			for _ = 1, 200 do
+				local state = Loadout.new()
+				state.class = class
+				local offer = Loadout.openAngel(state, Random.new()) :: { string }
+				for _, id in offer do
+					local ability = Abilities.byId[id]
+					t.isTrue(not ability.benched, `{id} is benched`)
+					local classes = ability.classes
+					t.isTrue(
+						classes == nil or table.find(classes, class) ~= nil,
+						`a {class} was offered {id}`
+					)
+				end
+			end
+		end
 	end)
 
 	t.test("an encounter cannot open over an open card screen", function()

@@ -29,6 +29,7 @@ local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 
@@ -58,7 +59,7 @@ local function text(parent: Instance, name: string, words: string, colour: Color
 	local label = Instance.new("TextLabel")
 	label.Name = name
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = words
 	label.TextColor3 = colour
 	label.TextScaled = true
@@ -67,7 +68,7 @@ local function text(parent: Instance, name: string, words: string, colour: Color
 end
 
 -- the cover, at once
-local title = text(back, "Title", "ARCHER LEGENDS", GOLD)
+local title = text(back, "Title", "ARROWBORNE", GOLD)
 title.AnchorPoint = Vector2.new(0.5, 0.5)
 title.Position = UDim2.fromScale(0.5, 0.44)
 title.Size = UDim2.fromScale(0.8, 0.09)
@@ -80,6 +81,20 @@ note.AnchorPoint = Vector2.new(0.5, 1)
 note.Position = UDim2.fromScale(0.5, 0.97)
 note.Size = UDim2.fromScale(0.8, 0.03)
 note.ZIndex = 5
+
+--[[ Every trip between servers (a run starting, a run back to the lobby)
+     shows this cover rather than Roblox's own teleport screen, which looked
+     like the game starting over (owner, 2026-11-20: "the game keeps
+     restarting"). The far side's loading screen is the same cover, so the
+     trip reads as one loading screen. A copy, kept for as long as this
+     client is here: the loading screen itself is destroyed once it lifts.
+     The trip to the tutorial carries the whole loading screen instead
+     (`carryAlong`, below). ]]
+local travel = gui:Clone()
+travel.Name = "TravelScreen"
+pcall(function()
+	TeleportService:SetTeleportGui(travel)
+end)
 
 gui.Parent = player:WaitForChild("PlayerGui")
 ReplicatedFirst:RemoveDefaultLoadingScreen()
@@ -116,10 +131,15 @@ local function build()
 	-- arrived before they are required, so the plain paths below are safe
 	shared:WaitForChild("Config"):WaitForChild("LoadingScreen")
 	shared:WaitForChild("Config"):WaitForChild("LoadingTips")
+	shared:WaitForChild("Config"):WaitForChild("UiPalette")
+	shared:WaitForChild("Util"):WaitForChild("TipPlate")
 	shared:WaitForChild("Util"):WaitForChild("LoadingPick")
+	shared:WaitForChild("Util"):WaitForChild("SpotlightArt")
 	local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 	local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 	local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
+	local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
+	local TipPlate = require(ReplicatedStorage.Shared.Util.TipPlate)
 
 	-- what the player has met, from their save if it comes in time
 	local profile = awaitProfile(LoadingScreen.profileWait)
@@ -129,24 +149,6 @@ local function build()
 	end
 	if not gui.Parent then
 		return
-	end
-
-	local size: Vector2 = LoadingScreen.size
-	local screen = Instance.new("Frame")
-	screen.Name = "Screen"
-	screen.BackgroundTransparency = 1
-	screen.AnchorPoint = Vector2.new(0.5, 0.5)
-	screen.Position = UDim2.fromScale(0.5, 0.5)
-	screen.Size = UDim2.fromScale(1, 1)
-	screen.ZIndex = 2
-	local aspect = Instance.new("UIAspectRatioConstraint")
-	aspect.AspectRatio = size.X / size.Y
-	aspect.Parent = screen
-	screen.Parent = back
-
-	local function place(item: GuiObject, box: Box)
-		item.Position = UDim2.fromScale(box.x / size.X, box.y / size.Y)
-		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
 	end
 
 	--[[ Only Codex's spotlights are shown (owner, 2026-10-31: "the old
@@ -167,34 +169,39 @@ local function build()
 		end
 	end
 	local entry = if #spotlit > 0 then spotlit[math.random(1, #spotlit)] else nil
-	local art: string? = if entry then LoadingScreen.spotlights[entry.name] else nil
+
+	--[[ Upright on a phone held portrait, where that spotlight has an
+	     upright picture (owner, 2026-11-05: "make new loading screens for
+	     mobile"). ]]
+	local camera = workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(16, 9)
+	local layout, art = LoadingScreen.pick(viewport, if entry then entry.name else "")
+	local size: Vector2 = layout.size
+	local screen = Instance.new("Frame")
+	screen.Name = "Screen"
+	screen.BackgroundTransparency = 1
+	screen.AnchorPoint = Vector2.new(0.5, 0.5)
+	screen.Position = UDim2.fromScale(0.5, 0.5)
+	screen.Size = UDim2.fromScale(1, 1)
+	screen.ZIndex = 2
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = size.X / size.Y
+	aspect.Parent = screen
+	screen.Parent = back
+
+	local function place(item: GuiObject, box: Box)
+		item.Position = UDim2.fromScale(box.x / size.X, box.y / size.Y)
+		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
+	end
+
 	if art then
-		local image = Instance.new("ImageLabel")
-		image.Name = "Art"
-		image.BackgroundTransparency = 1
-		image.Image = art
-		image.Size = UDim2.fromScale(1, 1)
-		image.ZIndex = 2
-		image.Parent = screen
+		SpotlightArt.draw(screen, art, 2, size, LoadingScreen.tileOverlap, layout.columns)
 	end
 	title.Visible = false
 	loading.Visible = false
 
-	-- one of the tips
-	local tip =
-		text(screen, "Tip", LoadingTips[math.random(1, #LoadingTips)], LoadingScreen.tipText)
-	place(tip, LoadingScreen.tip)
-	tip.TextWrapped = true
-	tip.ZIndex = 3
-	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = 40
-	limit.Parent = tip
-	local tipPad = Instance.new("UIPadding")
-	tipPad.PaddingLeft = UDim.new(0.07, 0)
-	tipPad.PaddingRight = UDim.new(0.07, 0)
-	tipPad.PaddingTop = UDim.new(0.1, 0)
-	tipPad.PaddingBottom = UDim.new(0.1, 0)
-	tipPad.Parent = tip
+	-- one of the tips, on its plate rather than on the picture
+	TipPlate.draw(screen, size, layout.tip, LoadingTips[math.random(1, #LoadingTips)], 3)
 
 	-- the bar
 	local trough = Instance.new("Frame")
@@ -202,7 +209,7 @@ local function build()
 	trough.BackgroundTransparency = if art then 1 else 0
 	trough.BackgroundColor3 = Color3.fromRGB(24, 32, 26)
 	trough.BorderSizePixel = 0
-	place(trough, LoadingScreen.bar)
+	place(trough, layout.bar)
 	trough.ZIndex = 3
 	trough.Parent = screen
 	local bar = Instance.new("Frame")
@@ -216,6 +223,18 @@ local function build()
 end
 
 task.spawn(build)
+
+--[[ Sent to the tutorial's server on join (`Run/Party.ROUTE`): this screen
+     goes along, so the trip reads as the same loading screen. ]]
+local function carryAlong()
+	if player:GetAttribute("JoinRoute") == "Tutorial" then
+		pcall(function()
+			TeleportService:SetTeleportGui(gui)
+		end)
+	end
+end
+player:GetAttributeChangedSignal("JoinRoute"):Connect(carryAlong)
+carryAlong()
 
 local started = os.clock()
 local connection: RBXScriptConnection

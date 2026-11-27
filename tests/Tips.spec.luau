@@ -1,0 +1,251 @@
+--!strict
+--[[
+	First-time tips (`Config/Tips`, `Util/TipRules`; owner, 2026-11-13: "if
+	they have already seen that certain tutorial tip then dont play it
+	anymore"): a tip shows once ever, the save keeps which, every tip the
+	game asks for exists, each is short and well marked, its words can be
+	read on its plate, and it stands on screen at every shape.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local PromptText = require(ReplicatedStorage.Shared.Util.PromptText)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local TestRunner = require(script.Parent.TestRunner)
+local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
+local Tips = require(ReplicatedStorage.Shared.Config.Tips)
+local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
+
+--[[ Every key the game asks `UI/FirstTips` for. ]]
+local ASKED = {
+	"ClassSelect",
+	"Blacksmith",
+	"EggHatchery",
+	"GearStation",
+	"DexHall",
+	"Rewards",
+	"Badges",
+	"Portal",
+	"SoulstoneShop",
+	"FirstPet",
+	"NewWeapon",
+	"Merge",
+	"Gems",
+	"BossItem",
+	"Boss",
+	"Reroll",
+	"NewArea",
+	"Defeat",
+	"EndlessCheckpoint",
+}
+
+return function(t: TestRunner.Helper)
+	t.test("a tip shows once: due until it is seen, never after", function()
+		local seen: { [string]: boolean } = {}
+		t.isTrue(TipRules.due("Blacksmith", seen, {}))
+		t.isTrue(TipRules.mark(seen, "Blacksmith"), "the first time is news")
+		t.isFalse(TipRules.due("Blacksmith", seen, {}), "seen, so never again")
+		t.isFalse(TipRules.mark(seen, "Blacksmith"), "a second mark changes nothing")
+		t.isTrue(TipRules.due("EggHatchery", seen, {}), "one tip seen leaves the others")
+	end)
+
+	t.test("a tip shown this visit waits for nothing from the server", function()
+		t.isFalse(TipRules.due("Boss", {}, { Boss = true }))
+		t.isFalse(TipRules.due("Boss", nil, { Boss = true }), "before the profile has come")
+		t.isTrue(TipRules.due("Boss", nil, nil))
+	end)
+
+	t.test("only a tip may be kept: nothing else a client sends", function()
+		local seen: { [string]: boolean } = {}
+		local bads: { any } = { "NotATip", 3, true, { "Boss" } }
+		for _, bad in bads do
+			t.isFalse(TipRules.isTip(bad))
+			t.isFalse(TipRules.due(bad, seen, {}))
+			t.isFalse(TipRules.mark(seen, bad))
+		end
+		t.isFalse(TipRules.mark(seen, nil), "nothing at all")
+		t.isNil((next(seen)), "nothing was written")
+	end)
+
+	t.test("the save keeps what was seen, so it holds across joins", function()
+		local profile = SaveSchema.migrate(nil)
+		t.isNil((next(profile.tipsSeen)), "a new player has seen none")
+		TipRules.mark(profile.tipsSeen, "Merge")
+		local again = SaveSchema.migrate(profile)
+		t.isTrue(again.tipsSeen.Merge)
+		t.isFalse(TipRules.due("Merge", again.tipsSeen, {}), "not after a rejoin either")
+	end)
+
+	t.test("a tip goes by itself; only one marked to hold waits for OK", function()
+		t.isTrue(Tips.showFor > 0)
+		-- a tip that goes by itself must be gone before a held one would be let go
+		t.isTrue(Tips.showFor < Tips.holdMax)
+		local holding = 0
+		for key, tip in Tips.tips do
+			t.equal(TipRules.holds(key), tip.hold == true)
+			if tip.hold then
+				holding += 1
+			end
+		end
+		-- most tips must not stop the game (the kid playtest, 2026-11-14)
+		local all = 0
+		for _ in Tips.tips do
+			all += 1
+		end
+		t.isTrue(holding * 4 <= all)
+		t.isTrue(not TipRules.holds("NotATip"))
+		t.isTrue(not TipRules.holds(nil))
+	end)
+
+	--[[ Owner, 2026-11-14: "there needs to be spacing between them, so
+	     everything isnt just popping up one after another". ]]
+	t.test("tips are spaced: quiet after one before the next, but not for a held one", function()
+		t.isTrue(Tips.gap >= Tips.showFor, "the screen is clear at least as long as a tip is up")
+		t.isTrue(
+			Tips.showFor + Tips.gap < Tips.patience,
+			"a tip asked for as another comes up still gets its turn"
+		)
+		t.isTrue(Tips.holdGap < 1)
+		t.isTrue(TipRules.spaced("Gems", math.huge), "the first tip of a visit waits for nothing")
+		t.isFalse(TipRules.spaced("Gems", 0), "not straight after another")
+		t.isFalse(TipRules.spaced("Gems", Tips.gap - 0.1))
+		t.isTrue(TipRules.spaced("Gems", Tips.gap))
+		t.isFalse(TipRules.spaced("Gems", 0 / 0))
+		for key, tip in Tips.tips do
+			if tip.hold then
+				t.isTrue(
+					TipRules.spaced(key, Tips.holdGap),
+					key .. " explains a screen that is waiting"
+				)
+				t.isFalse(TipRules.spaced(key, 0))
+			else
+				t.isFalse(TipRules.spaced(key, Tips.holdGap), key .. " waits out the quiet")
+			end
+		end
+	end)
+
+	t.test("every tip the game asks for exists", function()
+		for _, key in ASKED do
+			t.isTrue(TipRules.isTip(key), `no tip {key}`)
+		end
+	end)
+
+	t.test("every tip is short and its marks are whole", function()
+		for key, tip in Tips.tips do
+			t.isTrue(PromptText.valid(tip.text), `{key}: a mark is not closed`)
+			local plain = TipRules.plain(key)
+			t.isTrue(#plain > 0, `{key}: no words`)
+			t.isTrue(#plain <= Tips.maxLength, `{key}: {#plain} letters, over {Tips.maxLength}`)
+		end
+	end)
+
+	t.test("a tip's words can be read on its plate", function()
+		local palette = PromptText.palette(UiPalette.card)
+		local colours: { { name: string, colour: Color3 } } = {
+			{ name = "words", colour = palette.words },
+			{ name = "control", colour = palette.control },
+			{ name = "action", colour = palette.action },
+		}
+		for _, pair in colours do
+			local ratio = PromptText.contrast(pair.colour, UiPalette.card)
+			t.isTrue(ratio >= 4.5, `{pair.name} stands {ratio}:1 on the plate`)
+		end
+	end)
+
+	local function inside(box: TipRules.Box, w: number, h: number, where: string)
+		local g = TipRules.layout.gutter
+		t.isTrue(box.x >= g - 1e-6, `{where}: off the left`)
+		t.isTrue(box.x + box.w <= w - g + 1e-6, `{where}: off the right`)
+		t.isTrue(box.y >= 0 and box.y + box.h <= h + 1e-6, `{where}: off the top or bottom`)
+	end
+
+	local function apart(a: TipRules.Box, b: TipRules.Box): boolean
+		return a.x + a.w <= b.x + 1e-6
+			or b.x + b.w <= a.x + 1e-6
+			or a.y + a.h <= b.y + 1e-6
+			or b.y + b.h <= a.y + 1e-6
+	end
+
+	t.test("with no arena (the lobby) a tip stands centred under the top HUD", function()
+		for _, shape in { { 390, 844, 47 }, { 844, 390, 0 }, { 1920, 1080, 58 }, { 320, 568, 20 } } do
+			local w, h, inset = shape[1], shape[2], shape[3]
+			local placed = TipRules.place(w, h, inset)
+			inside(placed.box, w, h, `{w} x {h}`)
+			t.isFalse(placed.side)
+			t.isTrue(placed.box.y >= inset, `{w} x {h}: under the top bar`)
+		end
+	end)
+
+	t.test("over a lobby screen a tip stands on its header, never under it", function()
+		-- the station panel's title bar, desktop and a phone each way
+		local shapes = {
+			{ w = 2091, h = 1113, spot = { x = 211, y = 89, w = 1669, h = 82 } },
+			{ w = 844, h = 390, spot = { x = 130, y = 31, w = 584, h = 29 } },
+			{ w = 390, h = 844, spot = { x = 11, y = 136, w = 368, h = 40 } },
+		}
+		for _, shape in shapes do
+			local placed = TipRules.over(shape.w, shape.h, shape.spot)
+			local where = `{shape.w} x {shape.h}`
+			inside(placed.box, shape.w, shape.h, where)
+			t.isFalse(placed.side)
+			t.isTrue(
+				placed.box.y + placed.box.h <= shape.spot.y + shape.spot.h + 1e-6
+					or placed.box.y <= TipRules.layout.gutter,
+				where .. ": it reaches under the header"
+			)
+			local middle = placed.box.x + placed.box.w / 2
+			t.isTrue(
+				math.abs(middle - (shape.spot.x + shape.spot.w / 2)) <= 1,
+				where .. ": off the header's middle"
+			)
+		end
+	end)
+
+	--[[ The every-class run-through, 2026-11-16: the STORE's panel stands
+	     too near the top for the card to reach up off it, and the card came
+	     down over GEMS and PASSES. ]]
+	t.test("a tip with no room over the header goes round the panel", function()
+		local shapes = {
+			-- the STORE on a computer: room either side
+			{
+				w = 2091,
+				h = 1113,
+				spot = { x = 640, y = 60, w = 810, h = 52 },
+				panel = { x = 640, y = 60, w = 810, h = 990 },
+				side = true,
+			},
+			-- an upright phone, a short panel: room under it
+			{
+				w = 390,
+				h = 844,
+				spot = { x = 11, y = 40, w = 368, h = 40 },
+				panel = { x = 11, y = 40, w = 368, h = 520 },
+				side = false,
+			},
+		}
+		for _, shape in shapes do
+			local where = `{shape.w} x {shape.h}`
+			local placed = TipRules.over(shape.w, shape.h, shape.spot, shape.panel)
+			inside(placed.box, shape.w, shape.h, where)
+			t.equal(placed.side, shape.side, `{where}: which card`)
+			t.isTrue(apart(placed.box, shape.panel), `{where}: on the panel`)
+		end
+		-- with room over the header the panel changes nothing
+		local spot = { x = 211, y = 189, w = 1669, h = 82 }
+		local panel = { x = 211, y = 189, w = 1669, h = 800 }
+		local with, without =
+			TipRules.over(2091, 1113, spot, panel), TipRules.over(2091, 1113, spot)
+		t.equal(with.box.y, without.box.y)
+		t.equal(with.box.x, without.box.x)
+		t.isFalse(with.side)
+		-- and with no room anywhere it is whole on the screen, at the top
+		local phone = TipRules.over(
+			844,
+			390,
+			{ x = 130, y = 11, w = 584, h = 29 },
+			{ x = 130, y = 11, w = 584, h = 368 }
+		)
+		inside(phone.box, 844, 390, "a phone on its side")
+		t.isTrue(phone.box.y <= TipRules.layout.gutter)
+	end)
+end

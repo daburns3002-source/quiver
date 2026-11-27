@@ -1,0 +1,18 @@
+
+Reference images attached, in order:
+1. THE DEX HALL, DETAILED. This is the exact level of detail and finish to match, and this building is its sibling. Copy its construction: carved stone foundation blocks, plank walls with timber framing, carved stone columns with gold capitals and bases, layered timber gable with pegs and a gold emblem in the white panel, individual overlapping roof shingles, carved gold corners and ridge, arched stone window frames with leaded glowing panes and small sills, a hanging iron lantern on a bracket beside each column, banners on the front wall, three carved stone steps with the red gold-edged carpet held by gold rods, and a detailed interior visible through the open doorway.
+2. This building's earlier plain sheet. Keep its design exactly: the same landmark, its shape and position on the roof, the same roof colour and the same props. It only needs to become as rich as image 1.
+3. The character who stands at this building, for scale and for colours.
+
+All new detail is real modelled shape, not painted on. Style: clean, chunky and stylised with saturated colours and soft bevels, like a polished mobile game building. No pixel textures, no noisy surfaces and no realism.
+
+Sheet layout: exactly as image 1. A plain light-grey backdrop with no scenery and no ground except a small soft shadow. One large panel on the left, about half the sheet, with the smaller panels on the right. Each panel has a small black label.
+
+HERO, the large panel: the whole building from the game's high three-quarter camera, with the big glowing blocky pixel-font title floating above the landmark with no board behind it.
+FRONT, SIDE, BACK: straight-on elevations with no perspective. Include the porch in the side view. The back is finished too, because players can walk around it.
+TOP: straight down.
+LANDMARK: the roof landmark alone, large.
+DETAILS: close-ups of a column, a window, the gable and one prop, spaced apart.
+COLOURS: a strip of six flat swatches.
+
+The same building in every panel. Only the title and the panel labels HERO, FRONT, SIDE, BACK, TOP, LANDMARK, DETAILS and COLOURS may appear as words. Spell every word exactly.

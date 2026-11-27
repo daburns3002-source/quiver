@@ -21,6 +21,10 @@ return function(t: TestRunner.Helper)
 		for _, config in Balance.Enemies :: any do
 			names[config.displayName] = true
 		end
+		--[[ A benched enemy is a real one, waiting for its rooms. ]]
+		for _, config in Balance.Benched do
+			names[config.displayName] = true
+		end
 		for name in settings.kinds do
 			t.isTrue(names[name] == true, name .. " is not an enemy")
 		end
@@ -144,5 +148,66 @@ return function(t: TestRunner.Helper)
 		local life = settings.rest + settings.shrink
 		t.isTrue(life >= 1 and life <= 2.5, "splats last " .. life .. " s")
 		t.isTrue(settings.splatFlat < 1 and settings.splatWide > 1, "a splat is not flat")
+	end)
+
+	--[[ A cube comes down on what it falls onto, not through it to y = 0
+	     (`rg-slime`): the landing on a raised top is nearer, and higher,
+	     than the floor's, and lies on the cube's own path. ]]
+	t.test("a cube lands on a raised top before the floor", function()
+		local g = settings.gravity
+		local at = Vector3.new(0, 1.1, 0)
+		local velocity = Vector3.new(8, 10, 0)
+		local half = 0.2
+		local floor = ResidueSpray.landing(at, velocity, g, 0, half)
+		local log = ResidueSpray.landing(at, velocity, g, 1.5, half)
+		t.notNil(floor, "a cube thrown up never comes down")
+		t.notNil(log, "a cube rising over a 1.5-stud log never lands on it")
+		if not floor or not log then
+			return
+		end
+		t.near(floor.Y, 0, 1e-9)
+		t.near(log.Y, 1.5, 1e-9)
+		t.isTrue(
+			log.X < floor.X and log.X > 0,
+			"the log's landing is not on the way to the floor's"
+		)
+		-- where it lands, its underside touches the top
+		local tFall = log.X / velocity.X
+		local y = at.Y + velocity.Y * tFall - g * tFall * tFall / 2
+		t.near(y - half, 1.5, 1e-4)
+		-- a top above the cube's peak is never landed on
+		local peak = ResidueSpray.peak(at, velocity, g)
+		t.isTrue(peak > at.Y, "the peak is not above the throw")
+		t.isTrue(
+			ResidueSpray.landing(at, velocity, g, peak, half) == nil,
+			"landed above its own peak"
+		)
+	end)
+
+	--[[ One log across x 2..4, 1.5 tall: a cube that clears its side rests
+	     on top; one that meets its side drops beside it, never inside. ]]
+	t.test("a cube rests on cover it clears, and drops beside cover it meets", function()
+		local g = settings.gravity
+		local half = 0.2
+		local function topAt(p: Vector3): number
+			return if p.X >= 2 and p.X <= 4 then 1.5 else 0
+		end
+		local function sideAt(from: Vector3, along: Vector3): number?
+			if along.X <= 0 or from.X >= 2 then
+				return nil
+			end
+			return (2 - from.X) / along.Unit.X
+		end
+		local at = Vector3.new(0, 1.1, 0)
+		local top, wall = ResidueSpray.rest(at, Vector3.new(8, 13, 0), g, half, topAt, sideAt)
+		t.near(top, 1.5, 1e-9)
+		t.isTrue(wall == nil, "a cube that clears the log meets its side")
+		local low, stop = ResidueSpray.rest(at, Vector3.new(8, 6, 0), g, half, topAt, sideAt)
+		t.near(low, 0, 1e-9)
+		t.notNil(stop, "a cube thrown into the log's side flies through it")
+		t.near(stop :: number, 2 - half, 1e-9)
+		local short, none = ResidueSpray.rest(at, Vector3.new(3, 8, 0), g, half, topAt, sideAt)
+		t.near(short, 0, 1e-9)
+		t.isTrue(none == nil, "a cube that falls short meets a side")
 	end)
 end

@@ -83,6 +83,43 @@ function LevelUnlocks.nextAfter(levels: { number }, current: number): (number?, 
 	return nil, false
 end
 
+--[[ NEXT LEVEL after an area's last level `current` is won: the first
+     level of the area after it, and that area's place in `portals`
+     (`Config/Lobby.portals`, in the areas' order). Nil when `current` is not
+     the last level of an area, when the arch after it has no levels yet,
+     and when what stands there is not an area's level (Endless has no
+     `level`): then it is the lobby.
+
+     Before 2026-11-16 it was always the lobby, under a button that said
+     NEXT LEVEL (the every-class run-through: 1-10 won, the button pressed,
+     the story watched, and the player stood in the lobby, not in 2-1).
+     Whether the players may enter that area is the caller's to ask
+     (`Util/LaunchLocks.portalOpen`). Each of `portals` is read for its
+     `levels` only. ]]
+function LevelUnlocks.nextArea(
+	portals: { any },
+	stages: { [number]: Stage },
+	current: number
+): (number?, number?)
+	local function levelsOf(portal: any): { number }?
+		local levels = if type(portal) == "table" then portal.levels else nil
+		return if type(levels) == "table" then levels else nil
+	end
+	for at, portal in portals do
+		local levels = levelsOf(portal)
+		if levels and #levels > 0 and levels[#levels] == current then
+			local after = levelsOf(portals[at + 1])
+			local first = if after then after[1] else nil
+			local stage = if first then stages[first] else nil
+			if first and stage and stage.level and stages[current] and stages[current].level then
+				return first, at + 1
+			end
+			return nil, nil
+		end
+	end
+	return nil, nil
+end
+
 --[[ Whether a portal is open at all, beyond its own levels' unlocking: a
      portal with a `requires` (`Config/Lobby.Portal`) waits on that level
      being beaten. Endless waits on 1-10, because Endless with no cards and

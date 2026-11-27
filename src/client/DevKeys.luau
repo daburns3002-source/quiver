@@ -27,6 +27,7 @@ local EndScreen = require(script.Parent.UI.EndScreen)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SandboxMenu = require(script.Parent.UI.SandboxMenu)
+local ShotDrift = require(script.Parent.Fx.ShotDrift)
 
 local DevKeys = {}
 
@@ -43,7 +44,7 @@ local function toast(text: string)
 	label.Size = UDim2.fromOffset(360, 36)
 	label.BackgroundColor3 = Color3.fromRGB(27, 27, 43)
 	label.BackgroundTransparency = 0.15
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextSize = 18
 	label.TextColor3 = Color3.fromRGB(255, 106, 85)
 	label.Text = text
@@ -88,6 +89,14 @@ function DevKeys.start()
 				local on = PetPreview.toggle()
 				toast(if on then "Studio: pets follow you" else "Studio: pets put away")
 			end)
+		elseif input.KeyCode == Enum.KeyCode.J then
+			--[[ How far the arrow you see is from the shot that did the
+			     damage (`Fx/ShotDrift`). Reads about zero in Studio Play,
+			     where one DataModel holds both sides; the numbers that mean
+			     anything come from the Test tab's local server. ]]
+			local line = ShotDrift.report()
+			print(line)
+			toast(line)
 		elseif input.KeyCode == Enum.KeyCode.O then
 			SandboxMenu.toggle()
 		elseif input.KeyCode == Enum.KeyCode.L then

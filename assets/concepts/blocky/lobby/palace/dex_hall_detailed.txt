@@ -1,0 +1,30 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as building_dex_hall_detailed.png
+
+A detailed art-direction reference sheet for one building in a mobile game's lobby, precise enough for a modeller to work from.
+
+The building is THE DEX HALL, a library of every creature and weapon in the game. Image 1 is the hall as it stands in the game. Keep its design: the same footprint and proportions, purple hipped roof with gold corners, brown walls, two white square porch columns with gold bands, the brown timber gable over the open porch, red carpet with gold edges, two book lecterns out front on stone pads, a wall lantern beside each column, and the huge open book on the roof with a red ribbon and loose pages flying.
+
+What is wrong with it: it is too low-poly and it looks boring. Its surfaces are big flat empty slabs. Make it far richer while keeping the same design, with all the new detail as real modelled shapes, not painted on:
+- Roof: rows of individual overlapping purple shingles, a raised gold ridge cap, carved gold corner pieces and a trimmed eave.
+- Walls: individual planks with timber framing and a stone foundation course.
+- Columns: stepped stone bases, carved capitals and gold bands with a simple engraved pattern.
+- Gable: layered timber beams with carved ends and pegs, and a gold book emblem in the white panel.
+- Windows: leaded panes with arched stone frames and small sills holding stacks of books.
+- Inside the porch: tall bookshelves full of coloured book spines, visible through the doorway, and warm light.
+- Steps: three broad carved stone steps with the carpet running up them, held by gold rods.
+- Rooftop book: thick layered page edges, a leather cover with gold corners and the red ribbon with a tasselled end, on a carved stand.
+- Lecterns: carved wood with gold trim, each holding an open book with a ribbon.
+- A few purple banners with a gold book on the front wall, a hanging iron lantern on a bracket, and small stacks of books and a scroll basket by the door.
+
+Image 2 shows the world's colours and finish. Style: still clean, chunky and stylised with saturated colours and soft bevels, like a polished mobile game building. No pixel textures, no noisy surfaces and no realism.
+
+Sheet layout: a plain light-grey backdrop with no scenery and no ground except a small soft shadow. One large panel on the left, about half the sheet, with the smaller panels on the right. Each panel has a small black label.
+
+HERO, the large panel: the whole building from the game's high three-quarter camera, with the big glowing blocky pixel-font title THE DEXES floating above the book in purple with no board behind it.
+FRONT, SIDE, BACK: straight-on elevations with no perspective. The back is finished too, because players can walk around it.
+TOP: straight down.
+LANDMARK: the rooftop book alone, large.
+DETAILS: close-ups of a column, a window, the gable and a lectern, spaced apart.
+COLOURS: a strip of six flat swatches.
+
+The same building in every panel. Only THE DEXES and the panel labels HERO, FRONT, SIDE, BACK, TOP, LANDMARK, DETAILS and COLOURS may appear as words. Spell every word exactly.

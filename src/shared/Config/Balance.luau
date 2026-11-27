@@ -55,6 +55,7 @@ export type TelegraphTell =
 	| "GroundSlam"
 	| "Cracks"
 	| "Erupt"
+	| "SporeCloud"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -81,6 +82,8 @@ export type EnemySplit = {
 	`attackRange` instead.
 ]]
 export type EnemyShot = {
+	--[[ How it is drawn (`Config/EnemyShots`): every enemy's its own. ]]
+	look: string,
 	count: number,
 	spread: number,
 	speed: number,
@@ -127,6 +130,35 @@ export type EnemyShot = {
 		Nil pulls nobody, which is every other shot in the game.
 	]]
 	reel: number?,
+	--[[
+		Radians the volley's aim turns by each time it fires, in place of
+		aiming at anyone: the Glowcap's spiral (docs/ENEMIES-AND-ARENAS.md,
+		"a mushroom turret that sprays spores in a spiral"). With `count`
+		spread evenly round the circle, each volley is a ring of spores
+		turned a little further than the last, so the gaps sweep round and
+		the answer is to walk with them rather than to stand off.
+
+		Nil aims at the target, which is every other shot in the game.
+	]]
+	spin: number?,
+}
+
+--[[
+	A cloud of spores where an enemy died (the Spore Puff: "bursts into a
+	poison cloud when killed close", docs/ENEMIES-AND-ARENAS.md). It puffs
+	out `radius` studs round the body the moment it falls and hangs there
+	for `linger` seconds; anyone inside takes `damageScale` of the enemy's
+	`attackDamage` every `every` seconds, the first tick `delay` after the
+	puff, so a player who sees it bloom can step out before it bites. The
+	counterplay is killing it from range: a death across the room hurts
+	nobody.
+]]
+export type EnemyBurst = {
+	radius: number,
+	delay: number,
+	linger: number,
+	every: number,
+	damageScale: number,
 }
 
 --[[
@@ -261,6 +293,66 @@ export type BossSpin = {
 	height: number,
 }
 
+--[[ The Old Tollcrab's Toll Wave (owner, 2026-11-07): he plants his bell
+     and rings it; a ring `band` studs thick rolls out from him at `speed`
+     to `reach`, through cover, with one gap `gap` degrees wide lit on the
+     floor through the `windup`. Stand in the gap or beyond `reach`. The
+     gap is set `gapFrom` to `gapTo` degrees round from the player, so
+     they must move but can. Enraged, a second ring follows `pairDelay`
+     later, its gap `pairTurn` degrees round from the first. Then the
+     bell is `stuck` in the floor (at least until the rings are done). ]]
+export type BossToll = {
+	windup: number,
+	speed: number,
+	reach: number,
+	band: number,
+	gap: number,
+	gapFrom: number,
+	gapTo: number,
+	pairDelay: number,
+	pairTurn: number,
+	damage: number,
+	shove: number,
+	stuck: number,
+	recover: number,
+}
+
+--[[ Echo Mark: he raps his bell at the player `marks` times, `every`
+     seconds apart; each rap drops a glowing ring of `radius` under
+     their feet that strikes `delay` later. Enraged, each rap drops a
+     second mark where they will be in `lead` seconds. ]]
+export type BossEcho = {
+	windup: number,
+	marks: number,
+	every: number,
+	delay: number,
+	radius: number,
+	lead: number,
+	damage: number,
+	shove: number,
+	recover: number,
+}
+
+--[[ Crab Scuttle: he pulls into his bell and turns side-on for `windup`,
+     then zigzags: `dashes` short sideways darts at `speed`, `between`
+     seconds apart. Each has its own lane `width` wide, marked at where the
+     player is then and `overshoot` past them, at most `range` and stopped
+     by a wall or house; each hits once. The last ends in a crash,
+     `stunned` there with his shell open: the punish window. ]]
+export type BossScuttle = {
+	windup: number,
+	dashes: number,
+	between: number,
+	speed: number,
+	range: number,
+	overshoot: number,
+	width: number,
+	damage: number,
+	shove: number,
+	stunned: number,
+	recover: number,
+}
+
 export type BossChase = {
 	speed: number,
 	stopDistance: number,
@@ -298,6 +390,105 @@ export type EnemyBoss = {
 	     as its health falls through fractions of its max (`atFractions`,
 	     King Bloblin's thirds). ]]
 	summon: BossSummon?,
+	--[[ Grandmother Gulp's own moves (`Enemies/BossMoves`): Spore Spit,
+	     Belly Slide and Big Gulp, for a boss whose `loop` names them, and
+	     The Bog Rises at a fraction of her health. ]]
+	spit: BossSpit?,
+	slide: BossSlide?,
+	gulp: BossGulp?,
+	flood: BossFlood?,
+	--[[ Seconds it rests after a move of each kind, for the kinds above;
+	     the `restAfter*` fields cover the King's. ]]
+	restAfter: { [string]: number }?,
+	--[[ Fractions of max health where its fight changes, for a boss with
+	     no health-driven summon: each one crossed is a notch on the boss
+	     bar and a roar (`roar` seconds) before its next move. ]]
+	notches: { number }?,
+	roar: number?,
+	--[[ The Old Tollcrab's own moves ("Toll", "Echo", "Scuttle" in his
+	     `loop`), and the share of his health at which he enrages (paired
+	     rings, double marks). ]]
+	toll: BossToll?,
+	echo: BossEcho?,
+	scuttle: BossScuttle?,
+	enrageAt: number?,
+}
+
+--[[ Spore Spit: her throat swells for `swell` seconds while `globs`
+     circles are marked (one where the target stood, the rest `spread`
+     studs either side of it), then she spits, and each glob takes
+     `flight` seconds to land: `damage` to anyone in its `radius`, then a
+     spore cloud (`cloud*`) that hangs there. She pants open-mouthed for
+     `pant` seconds after: the punish window. ]]
+export type BossSpit = {
+	globs: number,
+	spread: number,
+	swell: number,
+	flight: number,
+	pant: number,
+	radius: number,
+	damage: number,
+	cloudRadius: number,
+	cloudLinger: number,
+	cloudEvery: number,
+	cloudDamage: number,
+}
+
+--[[ Belly Slide: she braces for `brace` seconds behind a lane marked
+     from her to the wall past the target (`maxLength` at most, as wide as
+     she is), then flops on her belly and slides down it at `speed`:
+     `damage` and a `shove` out of the way to anyone she touches, and a
+     slime trail `trailWidth` across behind her that hurts
+     (`trailDamage` every `trailEvery`) for `trailLinger` seconds. Stuck
+     flat for `stuck` seconds at the end (the punish window), then
+     `rise` to get up. ]]
+export type BossSlide = {
+	brace: number,
+	--[[ Studs across the lane she slides down: her own width. ]]
+	width: number,
+	speed: number,
+	maxLength: number,
+	damage: number,
+	shove: number,
+	trailWidth: number,
+	trailLinger: number,
+	trailEvery: number,
+	trailDamage: number,
+	stuck: number,
+	rise: number,
+}
+
+--[[ Big Gulp: her mouth opens for `open` seconds behind a cone marked in
+     front of her (`reach` long, `halfAngle` radians either side), then
+     she inhales for `inhale`: anyone in the cone is dragged toward her
+     mouth at `pull` studs a second (slower than walking, so stepping out
+     sideways works). Reaching her mouth (`mouth` studs from it) is being
+     swallowed: `damage`, spat `spit` studs away, and the inhale ends.
+     She burps and gasps for `burp` seconds after: the punish window.
+     Only once her health is below `fromFraction`. ]]
+export type BossGulp = {
+	open: number,
+	inhale: number,
+	burp: number,
+	reach: number,
+	halfAngle: number,
+	pull: number,
+	mouth: number,
+	damage: number,
+	spit: number,
+	fromFraction: number,
+}
+
+--[[ The Bog Rises: when her health falls through `atFraction`, poison
+     floods in from the room's edges over `rise` seconds, to `inset`
+     studs in from the side walls (X) and the end walls (Y), and stays
+     until she dies: `damage` every `every` seconds to anyone in it. ]]
+export type BossFlood = {
+	atFraction: number,
+	rise: number,
+	inset: Vector2,
+	every: number,
+	damage: number,
 }
 
 export type BossSummon = {
@@ -374,6 +565,8 @@ export type EnemyConfig = {
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
+	--[[ A cloud of spores where it dies (`EnemyBurst`). ]]
+	burst: EnemyBurst?,
 	boss: EnemyBoss?,
 	--[[ Lunging attacks, in place of the plain melee hit. ]]
 	lunges: { EnemyLunge }?,
@@ -487,6 +680,7 @@ local spreadShooter: EnemyConfig = {
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
+		look = "Seed",
 		--[[ Two, either side of the aim (owner, 2026-10-22: "only fire two
 		     projectiles"). Was three, one down the centre; standing still
 		     in its line is now safe for a moment, moving through the gap is
@@ -551,6 +745,7 @@ local _lineSniper: EnemyConfig = {
 	color = Color3.fromRGB(140, 82, 210),
 	xpReward = 16,
 	shot = {
+		look = "Needle",
 		count = 1,
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
@@ -619,6 +814,7 @@ local burrower: EnemyConfig = {
 	color = Color3.fromRGB(124, 62, 178),
 	xpReward = 20,
 	shot = {
+		look = "Clod",
 		--[[ Wider and denser than the Spitter's: it surfaces at close range,
 		     so the fan has to threaten the space around the player rather than
 		     a lane across the room. ]]
@@ -859,6 +1055,7 @@ local burrThistle: EnemyConfig = {
 	color = Color3.fromRGB(150, 70, 170),
 	xpReward = 14,
 	shot = {
+		look = "Burr",
 		count = 3,
 		spread = math.rad(20),
 		--[[ One burr per "ptoo" of its spit (`enemy_thistle_spit`, round
@@ -939,6 +1136,7 @@ local brambleLurker: EnemyConfig = {
 	color = Color3.fromRGB(110, 140, 60),
 	xpReward = 20,
 	shot = {
+		look = "Thorn",
 		count = 5,
 		spread = math.rad(24),
 		speed = 18,
@@ -1016,6 +1214,7 @@ local hollowFisherman: EnemyConfig = {
 	color = Color3.fromRGB(120, 196, 206),
 	xpReward = 22,
 	shot = {
+		look = "Bobber",
 		--[[ One hook, never a fan: a line with a gap in it is not a line. ]]
 		count = 1,
 		spread = 0,
@@ -1033,6 +1232,408 @@ local hollowFisherman: EnemyConfig = {
 		--[[ The reel. Less than half the distance it fires from, so being
 		     caught costs ground and never puts you inside its swing. ]]
 		reel = 6,
+	},
+}
+
+--[[
+	The Old Tollcrab, the Drowned Village's boss (docs/BOSSES.md §3): a
+	giant hermit crab in a sunken bronze bell. Alone in the village's last
+	room, the Toll Gate. One textured Tripo mesh (`crab_arena_3`, in the
+	owner's place at `ServerStorage.Imports`), posed whole by
+	`Enemies/BossBody` as Grandmother Gulp is, with one claw thrown as the arm.
+
+	His own fight (owner, 2026-11-07: Gulp's and his first moves were King
+	Bloblin's, "give me unique moves"), `Enemies/BossMoves`:
+	- **Toll Wave** (`toll`): he plants the bell and rings it; one bronze
+	  ring rolls out through the houses with one lit gap to stand in.
+	- **Echo Mark** (`echo`): three raps, each dropping a glowing ring
+	  under the player that strikes a beat later.
+	- **Crab Scuttle** (`scuttle`): into the bell, then a zigzag of three
+	  short sideways dashes, each down its own marked lane, then stunned
+	  with his shell open.
+	- **The Drowned Rise** at half health (`enrageAt`, `summon`): Hollow
+	  Fishermen until the Drowned Zombie is modelled; from then on the
+	  rings come in pairs and each rap drops two marks.
+	`bounce` and `lash` are not in his loop (every boss carries them).
+
+	PLACEHOLDER NUMBERS until the owner plays him: a step below Gulp, as
+	his stage is a step below hers.
+]]
+local oldTollcrab: EnemyConfig = {
+	displayName = "OldTollcrab",
+	turnRate = 90,
+	health = 6700,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ His model x10: 9.70 across, 10.0 tall, 8.82 deep. ]]
+	hitboxSize = Vector3.new(9.8, 10, 9),
+	color = Color3.fromRGB(196, 140, 70),
+	xpReward = 115,
+	boss = {
+		title = "Old Tollcrab",
+		--[[ Not in his loop: every boss's config carries a bounce and a
+		     lash (`EnemyBoss`). ]]
+		bounce = {
+			bounces = 1,
+			windup = 1,
+			launch = 0.2,
+			air = 1,
+			recover = 0.5,
+			winded = 1,
+			height = 8,
+			maxRange = 15,
+			radius = 6,
+			damage = 50,
+			shove = 8,
+			shockRadius = 10,
+		},
+		lash = {
+			arms = { "Arm_Claw" },
+			wind = 0.8,
+			track = 0.4,
+			strike = 0.16,
+			hold = 0.35,
+			retract = 0.4,
+			reach = 16,
+			minReach = 5,
+			width = 3.6,
+			damage = 46,
+			shove = 4,
+			pull = 0.35,
+			bump = 0.2,
+			bumpDamage = 34,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+		},
+		restAfterBounce = 1.5,
+		restAfterLash = 1.1,
+		toll = {
+			windup = 1.3,
+			speed = 20,
+			--[[ The room is 35 x 58: from mid-room the far ends are past
+			     this, so running away is the other way out. ]]
+			reach = 24,
+			band = 2.4,
+			gap = 70,
+			gapFrom = 50,
+			gapTo = 100,
+			pairDelay = 1.0,
+			pairTurn = 90,
+			damage = 52,
+			shove = 7,
+			stuck = 1.6,
+			recover = 0.5,
+		},
+		echo = {
+			windup = 0.4,
+			marks = 3,
+			every = 0.75,
+			delay = 1.0,
+			radius = 4.5,
+			lead = 0.8,
+			damage = 44,
+			shove = 5,
+			recover = 0.8,
+		},
+		scuttle = {
+			windup = 0.9,
+			dashes = 3,
+			between = 0.55,
+			speed = 34,
+			range = 18,
+			overshoot = 6,
+			--[[ His body side-on: as deep as he is. ]]
+			width = 7,
+			damage = 46,
+			shove = 8,
+			stunned = 2.5,
+			recover = 0.5,
+		},
+		restAfter = { Toll = 1.0, Echo = 1.0, Scuttle = 0.8 },
+		loop = { "Toll", "Echo", "Scuttle", "Echo" },
+		enrageAt = 0.5,
+		opening = 1.5,
+		summon = {
+			into = hollowFisherman,
+			count = 3,
+			atFractions = { 1 / 2 },
+			clip = "",
+			windup = 1.4,
+		} :: BossSummon,
+	},
+}
+
+--[[
+	Act 2, area 4: Bogheart Caverns (docs/ENEMIES-AND-ARENAS.md, "4. Bogheart
+	Caverns"; the low-poly Tripo models, 2026-11-06). Each is one textured
+	mesh, so its whole body moves as one (`SlimeHop`) rather than playing
+	clips. PLACEHOLDER NUMBERS until the owner plays them: health a step past
+	Thornwood's, set against the stage's own multipliers.
+
+	The Spore Puff: the cavern's charger. A pink puffball that hops straight
+	at you, and when it dies it bursts into a cloud of spores that hurts
+	whoever is standing next to it -- so the lesson is the one its card
+	says: kill it from range.
+]]
+local sporePuff: EnemyConfig = {
+	displayName = "SporePuff",
+	--[[ Small and quick: the Boarlet's turn, which is bigger (`Balance.spec`:
+	     nothing bigger turns faster). ]]
+	turnRate = 600,
+	--[[ Frail, like every charger: its threat is the cloud, not the bite. ]]
+	health = 260,
+	moveSpeed = 6.6,
+	attackRange = 3.8,
+	--[[ Was 50: Bogheart hurt least of the three later areas, 61 a room
+	     against Thornwood's 153 (owner, 2026-11-13, balance review item 7). ]]
+	attackDamage = 62,
+	attackCooldown = 1.1,
+	knockback = 3,
+	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep, stood 0.04 low,
+	     so 2.71 tall to hold it (`EnemyDesigns.spec`). ]]
+	hitboxSize = Vector3.new(2.7, 2.71, 2.4),
+	color = Color3.fromRGB(236, 104, 150),
+	xpReward = 12,
+	shot = nil,
+	--[[ About a room-tile round it (the player is 2 across), so dying at
+	     arm's length catches you and dying three steps away does not. Three
+	     ticks over 1.8 s at most, the first after 0.35 s: long enough to
+	     see it bloom and step out. ]]
+	burst = {
+		radius = 4,
+		delay = 0.35,
+		linger = 1.8,
+		every = 0.6,
+		damageScale = 0.4,
+	},
+}
+
+--[[ The Glowcap: a mushroom turret that never moves. It sprays a ring of
+     four spores from its gills, and every ring is turned a little further
+     round than the last (`EnemyShot.spin`), so its gaps sweep the room like
+     a lighthouse beam. It holds a zone rather than chasing anyone. ]]
+local glowcap: EnemyConfig = {
+	displayName = "Glowcap",
+	--[[ It only turns to face whoever it is near; its rings never aim. 240,
+	     its size's turn (`Balance.spec`: nothing bigger turns faster). ]]
+	turnRate = 240,
+	health = 380,
+	--[[ Stationary (docs/ENEMIES-AND-ARENAS.md: "New: stationary"). ]]
+	moveSpeed = 0,
+	attackRange = 13.3,
+	-- was 40 (owner, 2026-11-13, balance review item 7, with the Spore Puff's)
+	attackDamage = 52,
+	--[[ A ring every 1.1 s: the sweep has to be steady to be walkable. ]]
+	attackCooldown = 1.1,
+	--[[ Rooted, but a hit still shows: a short shove that it never walks
+	     back from, so it is kept small (memory: every enemy is knocked
+	     back). ]]
+	knockback = 0.8,
+	--[[ Its model x3.6: 3.10 across, 3.53 tall, 3.00 deep. ]]
+	hitboxSize = Vector3.new(3.2, 3.6, 3.1),
+	color = Color3.fromRGB(70, 170, 160),
+	xpReward = 16,
+	shot = {
+		look = "Spore",
+		--[[ A ring of four, 90 degrees apart. ]]
+		count = 4,
+		spread = math.rad(90),
+		--[[ Slow spores: a ring is a pattern to walk through, not a shot to
+		     outrun. ]]
+		speed = 9,
+		--[[ Its reach is its range (`Balance.spec`): a ring never opens on a
+		     player it cannot touch. Was 22 studs against a 70 range. ]]
+		lifetime = 30 / 9,
+		telegraph = 0.35,
+		tell = "Flash",
+		locksAim = false,
+		--[[ Fires at anyone within most of the room's length. ]]
+		range = 30,
+		--[[ 25 degrees further round each ring: a gap passes any one spot
+		     about every 4 rings. ]]
+		spin = math.rad(25),
+	},
+}
+
+--[[ The Shellback: the Bulwark as a mossy beetle-turtle. Slow, heavy and
+     hard to kill: the wall that walks between you and the turrets. ]]
+local shellback: EnemyConfig = {
+	displayName = "Shellback",
+	--[[ The Bramble Sow's turn: it is smaller, so no slower (`Balance.spec`). ]]
+	turnRate = 220,
+	health = 900,
+	--[[ Was 3.3, the Tank's: slow enough that a player who stood still
+	     never met it (owner, 2026-11-13, balance review item 7). ]]
+	moveSpeed = 4.2,
+	attackRange = 4.6,
+	attackDamage = 80,
+	attackCooldown = 1.6,
+	--[[ Heavier than anything else here, but a hit still moves it a little
+	     (the Bulwark's 0.6 did not read as a hit at all). ]]
+	knockback = 1.2,
+	--[[ Its model x5: 4.90 across, 4.71 tall, 4.85 deep. ]]
+	hitboxSize = Vector3.new(5, 4.8, 5),
+	color = Color3.fromRGB(40, 110, 110),
+	xpReward = 26,
+	shot = nil,
+}
+
+--[[
+	Grandmother Gulp, Bogheart Caverns' boss (docs/BOSSES.md §4; her sheets
+	`assets/concepts/blocky/boss06_grandmother_gulp.jpg` and the Tripo
+	`ref_gulp_views.png`). Alone in the caverns' last room. One textured
+	Tripo mesh, so the server poses her whole body (`Enemies/BossBody`) the
+	way the Slime King was posed before his rig: she squashes, leans and
+	rises, and tips; her pink tongue ball swells as she spits and gulps.
+
+	Her fight is her own (owner, 2026-11-07: "no these are copies of king
+	bloblin fight, give me unique moves"; the four below are the list the
+	owner OK'd):
+	- **Spore Spit** (`spit`): her throat swells while three circles are
+	  marked, one where you stand and one either side; she lobs a glob of
+	  spores onto each, and each lands in a spore cloud that hangs there
+	  (the Spore Puff's cloud, bigger). She pants after: punish window.
+	- **Belly Slide** (`slide`): she braces behind a lane as wide as she is,
+	  marked from her to the wall past you, then flops on her belly and
+	  slides down it, leaving a poison slime trail. Stuck flat at the end:
+	  punish window.
+	- **Big Gulp** (`gulp`, from 2/3 health): mouth wide behind a marked
+	  cone, then she inhales and drags anyone in it toward her (slower
+	  than walking: step out sideways, or dash). Reaching her mouth is
+	  being swallowed and spat across the room. She burps after: punish
+	  window.
+	- **The Bog Rises** (`flood`, at 1/3): a roar, and poison floods in
+	  from the room's edges and stays until she dies, so the end of the
+	  fight is on a smaller dry floor (the doc's phase 3).
+	Each notch (2/3, 1/3) is a roar and a pause before her next move.
+
+	`bounce` and `lash` are only there because every boss carries them
+	(`EnemyBoss`); her loop never plays them.
+
+	PLACEHOLDER NUMBERS until the owner plays her. Health a step past the
+	Broodmother's 6,600; her stage's multiplier and the room ramp sit on
+	top, and the ramp is kept for last-room bosses (owner, 2026-11-05).
+]]
+local grandmotherGulp: EnemyConfig = {
+	displayName = "GrandmotherGulp",
+	turnRate = 90,
+	health = 6800,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ Her model x10: 9.67 across, 9.66 tall, 9.81 deep. ]]
+	--[[ 9.82 wide and 9.9 tall, so her 9.804 x 9.754 mesh, stood 0.07
+	     low, sits inside it (`EnemyDesigns.spec`). ]]
+	hitboxSize = Vector3.new(9.82, 9.9, 10),
+	color = Color3.fromRGB(150, 90, 190),
+	xpReward = 120,
+	boss = {
+		title = "Grandmother Gulp",
+		bounce = {
+			--[[ Two flops, not three: she is heavier than the king, so each
+			     hangs a little longer and lands a little wider. ]]
+			bounces = 2,
+			windup = 1,
+			launch = 0.2,
+			air = 1.5,
+			recover = 0.6,
+			winded = 1.6,
+			height = 13,
+			maxRange = 22,
+			radius = 7.5,
+			damage = 60,
+			shove = 8,
+			shockRadius = 13,
+		},
+		lash = {
+			arms = { "Arm_Tongue" },
+			wind = 0.9,
+			track = 0.45,
+			strike = 0.18,
+			hold = 0.4,
+			retract = 0.45,
+			--[[ Longer than the king's 18: a toad's tongue is her reach. ]]
+			reach = 21,
+			minReach = 6,
+			width = 3,
+			damage = 48,
+			shove = 4,
+			pull = 0.4,
+			bump = 0.22,
+			bumpDamage = 36,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+			--[[ Only a body that draws a chain from its clips reads these. ]]
+			chainRoot = 3,
+			chainReach = 20,
+		},
+		restAfterBounce = 1.6,
+		restAfterLash = 1.2,
+		--[[ Big Gulp is skipped until her health is below 2/3
+		     (`gulp.fromFraction`), so the first third is Spit, Slide. ]]
+		loop = { "Spit", "Slide", "Gulp", "Spit", "Slide" },
+		opening = 1.5,
+		restAfter = { Spit = 0.9, Slide = 1, Gulp = 1 },
+		notches = { 2 / 3, 1 / 3 },
+		roar = 1.6,
+		spit = {
+			globs = 3,
+			--[[ A circle and a half apart: the gap between two is too
+			     narrow to stand in, so the dodge is forward or back. ]]
+			spread = 6,
+			swell = 1.1,
+			flight = 0.75,
+			pant = 1.6,
+			radius = 3.6,
+			damage = 44,
+			--[[ The Spore Puff's cloud is 4 across 1.8 s; hers hang longer. ]]
+			cloudRadius = 4.2,
+			cloudLinger = 4,
+			cloudEvery = 0.5,
+			cloudDamage = 14,
+		},
+		slide = {
+			brace = 1.2,
+			width = 9.8,
+			speed = 26,
+			maxLength = 44,
+			damage = 58,
+			shove = 9,
+			trailWidth = 6,
+			trailLinger = 4,
+			trailEvery = 0.5,
+			trailDamage = 16,
+			stuck = 1.8,
+			rise = 0.5,
+		},
+		gulp = {
+			open = 1.1,
+			inhale = 2.2,
+			burp = 1.8,
+			reach = 24,
+			halfAngle = math.rad(32),
+			--[[ About half a player's 13.5 walk. ]]
+			pull = 7,
+			mouth = 3,
+			damage = 70,
+			spit = 16,
+			fromFraction = 2 / 3,
+		},
+		flood = {
+			atFraction = 1 / 3,
+			rise = 3,
+			--[[ The 35 x 58 floor down to 25 x 42. ]]
+			inset = Vector2.new(5, 8),
+			every = 0.5,
+			damage = 18,
+		},
 	},
 }
 
@@ -1124,7 +1725,7 @@ local broodmother: EnemyConfig = {
 			spokes = 8,
 			radius = 13.5,
 			reach = 34,
-			width = 2.4,
+			width = 1.4, -- thinner arms (owner, 2026-11-07: "the broodmother's clockwise web attack to be thinner"); was 2.4
 			period = 12,
 			damage = 45,
 			hitEvery = 0.8,
@@ -1291,14 +1892,22 @@ export type EndlessPick = {
      the save (`SaveSchema.endlessMilestones`). ]]
 export type EndlessMilestone = {
 	floor: number,
-	--[[ What it is: "Egg", "Gear", "Cosmetic", "Title". ]]
+	--[[ What it is: "Egg", "Gear" or "Both". ]]
 	kind: string,
-	--[[ What the end screen calls it. ]]
+	--[[ What the screens call it. ]]
 	name: string,
-	--[[ The rarity floor the grant must meet, nil for none. ]]
+	--[[ Eggs hatched and crates opened for the player on the spot, free
+	     (`Server/Data/EndlessPrizes`): the best egg open to them and the
+	     best stocked crate for the class they are playing. ]]
+	eggs: number?,
+	crates: number?,
+	--[[ A rarity one of each batch is sure to be at least, nil for none. ]]
 	rarity: string?,
-	--[[ Soulstones paid with it. Until the egg, gear, cosmetic and title
-	     grants exist, this is the whole payout — see `Endless`. ]]
+	--[[ A themed set (`Config/Shop.sets`) the player picks any one weapon
+	     of, one for each class (`Util/RewardPickRules`): room 100's
+	     Voidglass, whose Nebula Blade is a Mythic (owner, 2026-11-19). ]]
+	pick: string?,
+	--[[ Soulstones paid with it. ]]
 	soulstones: number,
 }
 
@@ -1329,6 +1938,11 @@ export type StageConfig = {
 	     Nil is 1. ]]
 	enemyDamage: number?,
 	enemyHealth: number?,
+	--[[ Seconds after a hit lands in which no other can: the first levels'
+	     breath, so a new player who walks into a crowd is not dead before
+	     they have turned round (the run-through, 2026-11-14: full health
+	     to dead in 5.8 s in 1-1's second room). Nil: none. ]]
+	hitGrace: number?,
 	--[[ Which area of the world the stage is in (`docs/WORLD.md`), as
 	     `EndScreenAssets.chests` keys it: the chest Victory shows. Nil is
 	     the Mossy Glade. ]]
@@ -1403,11 +2017,16 @@ local tutorialRooms: { RoomConfig } = {
 		roster = { meleeCharger },
 	},
 	{
-		-- the Sprout Spitter's debut, beside two slimes
+		--[[ the Sprout Spitter's debut, beside two slimes. Its logs sit to
+		     the sides (2026-11-14): one log across the middle stopped a
+		     player who walked straight in, and every arrow they fired, while
+		     the Spitter's seeds still reached them (40 arrows, none landed;
+		     `tests/Tutorial.spec` keeps the centre lane open). ]]
 		name = "Tutorial 2",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(0, 3.84), size = Vector3.new(11, 2.8, 3.5) },
+			{ offset = Vector2.new(10.5, 3.84), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(-10.5, 3.84), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
@@ -1450,13 +2069,12 @@ local tutorialRooms: { RoomConfig } = {
 	},
 }
 
---[[ BEGIN gladeLevelRooms (2026-10-26, 1-6..1-10 made rooms 2026-11-02):
+--[[ BEGIN gladeLevelRooms (2026-10-26, 1-6..1-9 made waves 2026-11-05):
 	Mossy Glade 1-1..1-10's rooms, generated by `tools/glade_levels.py`
 	(the owner's level plan: "10 levels of mossy glade, king bloblin
-	will not appear until the end of level 10", then "i only want 1-5 to
-	be waves and the rest should be rooms"). In order: 1-1's ten rooms,
-	1-2's ten, 1-3's fifteen, 1-4's fifteen, 1-5's single wave arena,
-	1-6..1-9's twenty each and 1-10's twenty-five. Every Rooms level
+	will not appear until the end of level 10"). In order: 1-1's ten
+	rooms, 1-2's ten, 1-3's fifteen, 1-4's fifteen, one wave arena each
+	for 1-5..1-9, and 1-10's twenty-five. Every Rooms level
 	ends in a Glade Heart fight, and 1-10's last room is King Bloblin
 	alone; the 9th room of each block of ten is an Angel room with
 	nothing in it. `Balance.Rooms` 86 on, after the tutorial's. Edit
@@ -1575,8 +2193,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.24, -4.45), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-10.24, -4.45), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 3,
+		roster = { meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-2",
@@ -1586,7 +2204,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -2.88), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 4,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-2",
@@ -2021,7 +2639,7 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Clearing 1-6",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.51, -13.18), size = Vector3.new(3.5, 2.8, 7) },
@@ -2029,62 +2647,62 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -4.18), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Clearing 1-7",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, -6.76), size = Vector3.new(3.4, 0.4, 3.4) },
 			{ offset = Vector2.new(7, -6.76), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 4,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 5,
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Clearing 1-8",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.3, 0.23), size = Vector3.new(11, 2.8, 3.5) },
 			{ offset = Vector2.new(-8.3, 0.23), size = Vector3.new(11, 2.8, 3.5) },
 		},
-		enemyCount = 4,
+		enemyCount = 5,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Clearing 1-9",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.75, 0.42), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(-9.75, 0.42), size = Vector3.new(7, 2.8, 3.5) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 5,
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-10, -8.24), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(0, -8.24), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(10, -8.24), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.29, -2.29), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(-8.29, -2.29), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(0, 6.71), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 11) },
@@ -2096,7 +2714,7 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-10, 7.58), size = Vector3.new(3.4, 0.4, 5.1) },
@@ -2107,7 +2725,7 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Glade Angel 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.22, 11.11), size = Vector3.new(3, 1.5, 3) },
@@ -2115,12 +2733,11 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(6.65, -9.48), size = Vector3.new(3.4, 0.4, 5.1) },
 			{ offset = Vector2.new(-6.65, -9.48), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
+		enemyCount = 5,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.69, -7.11), size = Vector3.new(3.4, 0.4, 3.4) },
@@ -2128,11 +2745,11 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.4, -16.36), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(-9.4, -16.36), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
-		enemyCount = 4,
+		enemyCount = 5,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.76, 2.02), size = Vector3.new(7, 2.8, 3.5) },
@@ -2142,27 +2759,28 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.56, 2.14), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(-8.56, 2.14), size = Vector3.new(3.5, 2.8, 9) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Angel 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.05, 2.55), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(-9.05, 2.55), size = Vector3.new(3.5, 2.8, 7) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(7.09, 3.32), size = Vector3.new(3.4, 0.4, 3.4) },
@@ -2170,87 +2788,74 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.14, -8.4), size = Vector3.new(5.1, 0.4, 3.4) },
 			{ offset = Vector2.new(-10.14, -8.4), size = Vector3.new(5.1, 0.4, 3.4) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.68, -6.93), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(-9.68, -6.93), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(0, 2.07), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.56, 0.77), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(-8.56, 0.77), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(0, 9.77), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, 1.83), size = Vector3.new(3.4, 0.4, 6.8) },
 			{ offset = Vector2.new(7, 1.83), size = Vector3.new(6.8, 0.4, 3.4) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-2.79, -12.12), size = Vector3.new(11, 2.8, 3.5) },
 			{ offset = Vector2.new(-4.15, 6.63), size = Vector3.new(3, 1.5, 3) },
 		},
-		enemyCount = 5,
+		enemyCount = 6,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Glade Angel 1-6",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, -15.55), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(7, -15.55), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Glade Heart 1-6",
-		arena = "GladeBoss",
-		obstacles = {
-			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-		},
 		enemyCount = 7,
-		roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, 1.4), size = Vector3.new(11, 2.8, 3.5) },
 			{ offset = Vector2.new(8.94, -16.42), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(-8.94, -16.42), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 7,
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.73, -14.49), size = Vector3.new(2.8, 3.2, 2.8) },
@@ -2258,42 +2863,43 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.73, 2.95), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(-8.73, 2.95), size = Vector3.new(9, 2.8, 3.5) },
 		},
-		enemyCount = 4,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 7,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.33, -1.8), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(-9.33, -1.8), size = Vector3.new(3.5, 2.8, 11) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 7,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Glade Angel 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, -3.36), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(7.73, -17.27), size = Vector3.new(3.3, 1.5, 3.3) },
 			{ offset = Vector2.new(-7.73, -17.27), size = Vector3.new(3.3, 1.5, 3.3) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, -11), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(7, -11), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 7,
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(7.41, -17.91), size = Vector3.new(9, 2.8, 3.5) },
@@ -2301,852 +2907,41 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.16, -3.17), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(1.13, 13.21), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 7,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, 1.13), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(9.27, -15.27), size = Vector3.new(3, 1.5, 3) },
 			{ offset = Vector2.new(-9.27, -15.27), size = Vector3.new(3, 1.5, 3) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 8,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-7",
+		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, 3), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(9.17, -17.87), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(-9.17, -17.87), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Glade Angel 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(10.27, 7.53), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-10.27, 7.53), size = Vector3.new(3.5, 2.8, 9) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 6.77), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(7, 6.77), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 1.17), size = Vector3.new(5.1, 0.4, 3.4) },
-			{ offset = Vector2.new(7, 1.17), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.63, -5.42), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(-9.63, -5.42), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -0.39), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(7, -0.39), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -6.48), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(10.98, -15.66), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-10.98, -15.66), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(5.1, -13.02), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-5.1, -13.02), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.77, -3.44), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.77, -3.44), size = Vector3.new(9, 2.8, 3.5) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 5.08), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(7, 5.08), size = Vector3.new(5.1, 0.4, 3.4) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.98, -9.64), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-8.98, -9.64), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Glade Angel 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(0, 9.71), size = Vector3.new(3.4, 0.4, 6.8) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Glade Heart 1-7",
-		arena = "GladeBoss",
-		obstacles = {
-			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-		},
-		enemyCount = 7,
-		roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.75, -4.06), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-9.75, -4.06), size = Vector3.new(7, 2.8, 3.5) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(5.7, -3.94), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-5.7, -3.94), size = Vector3.new(7, 2.8, 3.5) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(7.73, -16.19), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-9.71, -7.65), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(11.18, 4.76), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(0.65, -0.13), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, 0.46), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(7.84, -15.07), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-7.84, -15.07), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, 2.01), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(8, -16.96), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-8, -16.96), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(2.47, -12.44), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(4.45, 13.21), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(-8.37, 8.59), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -3.49), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(7.9, -14.29), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(-7.9, -14.29), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Glade Angel 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -6.56), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(7.24, -17.24), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(-7.24, -17.24), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-10, 2.56), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(0, 2.56), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(10, 2.56), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.47, -3.13), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-8.47, -3.13), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.38, -4.48), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-8.38, -4.48), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(0, -13.48), size = Vector3.new(5.1, 0.4, 3.4) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -0.87), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(9.73, -17.06), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(-9.73, -17.06), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, 1.1), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(8.7, -13.88), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(-8.7, -13.88), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -9.07), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(7, -9.07), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -8.37), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(7, -8.37), size = Vector3.new(6.8, 0.4, 3.4) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Glade Angel 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 4.63), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(7, 4.63), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Glade Heart 1-8",
-		arena = "GladeBoss",
-		obstacles = {
-			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-		},
-		enemyCount = 7,
-		roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(7.44, 2.37), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(-7.44, 2.37), size = Vector3.new(9, 2.8, 3.5) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -7.37), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(7, -7.37), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.35, -1.91), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-9.35, -1.91), size = Vector3.new(7, 2.8, 3.5) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -0.53), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(8.71, -17.1), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-8.71, -17.1), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(5.28, 8.14), size = Vector3.new(3.4, 0.4, 5.1) },
-			{ offset = Vector2.new(-5.28, 8.14), size = Vector3.new(3.4, 0.4, 5.1) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.54, 8.68), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-8.54, 8.68), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -1.69), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(8.89, -15.98), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(-8.89, -15.98), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-10, 3.65), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(0, 3.65), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(10, 3.65), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Glade Angel 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, 2.36), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(10.69, -17.34), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-10.69, -17.34), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.11, 6.74), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-9.11, 6.74), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-10, -4.6), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(0, -4.6), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(10, -4.6), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-10, -14.5), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(0, -14.5), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(10, -14.5), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.72, -4.86), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.72, -4.86), size = Vector3.new(7, 2.8, 3.5) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -6.88), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(9.02, -17.49), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(-9.02, -17.49), size = Vector3.new(3.3, 1.5, 3.3) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.83, -10.78), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-9.83, -10.78), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(0, -1.78), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.88, -5.51), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-9.88, -5.51), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(0, 3.49), size = Vector3.new(3.4, 0.4, 6.8) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -2.55), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(9.81, -14.93), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(-9.81, -14.93), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(0, 7.78), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 7,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Glade Angel 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(-6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Glade Heart 1-9",
-		arena = "GladeBoss",
-		obstacles = {
-			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
-		},
-		enemyCount = 7,
-		roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.44, 2.95), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-9.44, 2.95), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(0, -6.05), size = Vector3.new(6.8, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.48, -5.24), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.48, -5.24), size = Vector3.new(9, 2.8, 3.5) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-		},
-		enemyCount = 5,
+		enemyCount = 8,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(-7, -9.52), size = Vector3.new(5.1, 0.4, 3.4) },
-			{ offset = Vector2.new(7, -9.52), size = Vector3.new(3.4, 0.4, 6.8) },
+			{ offset = Vector2.new(-5.08, -4.55), size = Vector3.new(3.4, 0.4, 5.1) },
+			{ offset = Vector2.new(-6.51, 11.22), size = Vector3.new(3.4, 0.4, 5.1) },
+			{ offset = Vector2.new(8.57, -12.5), size = Vector3.new(5.1, 0.4, 3.4) },
+			{ offset = Vector2.new(7.83, 11.39), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -3.06), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(8.31, -14.66), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-8.31, -14.66), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0.4, -10.15), size = Vector3.new(6.8, 0.4, 3.4) },
-			{ offset = Vector2.new(-11.36, 10.18), size = Vector3.new(3.3, 1.5, 3.3) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(6.45, -6.79), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(-6.45, -6.79), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(7.19, 5.09), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(-7.19, 5.09), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(0, -1.44), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(10.66, -17.38), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(-10.66, -17.38), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Glade Angel 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(10.54, 4.02), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-10.54, 4.02), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(7.78, -8.74), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-7.78, -8.74), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.04, -5.98), size = Vector3.new(11, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.04, -5.98), size = Vector3.new(11, 2.8, 3.5) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -0.94), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(7, -0.94), size = Vector3.new(2.8, 3.2, 2.8) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.15, -6.14), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-9.15, -6.14), size = Vector3.new(7, 2.8, 3.5) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.11, -14.17), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(-9.02, 4.4), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(1.97, -3.34), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(-10.41, -2.41), size = Vector3.new(3.3, 1.5, 3.3) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -1.21), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(7, -1.21), size = Vector3.new(3.3, 1.5, 3.3) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -0.46), size = Vector3.new(5.1, 0.4, 3.4) },
-			{ offset = Vector2.new(7, -0.46), size = Vector3.new(6.8, 0.4, 3.4) },
-		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Glade Angel 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, -9), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(7, -9), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 0,
-		roster = {},
-		encounter = "Angel",
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(8.73, -7.68), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.73, -7.68), size = Vector3.new(9, 2.8, 3.5) },
-			{ offset = Vector2.new(0, -16.68), size = Vector3.new(3.4, 0.4, 5.1) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-10, -5.6), size = Vector3.new(3.4, 0.4, 5.1) },
-			{ offset = Vector2.new(0, -5.6), size = Vector3.new(3.4, 0.4, 5.1) },
-			{ offset = Vector2.new(10, -5.6), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 7,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 6.36), size = Vector3.new(2.8, 3.2, 2.8) },
-			{ offset = Vector2.new(7, 6.36), size = Vector3.new(3.2, 3.2, 3.2) },
-		},
-		enemyCount = 7,
+		enemyCount = 8,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -3163,6 +2958,8430 @@ local gladeLevelRooms: { RoomConfig } = {
 	},
 }
 -- END gladeLevelRooms
+
+--[[ BEGIN area34Rooms (2026-11-05): the Drowned Village's and Bogheart
+     Caverns' rooms, generated by `tools/area34_rooms.py` from each area's
+     reference sheet. Edit the script, not these rows. ]]
+local drownedRooms: { RoomConfig } = {
+	{
+		name = "Drowned Village 1",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 5",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Toll Gate",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 1,
+		roster = { oldTollcrab },
+	},
+}
+
+local bogheartRooms: { RoomConfig } = {
+	{
+		name = "Bogheart Caverns 1",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 7",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { sporePuff, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 16",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, sporePuff, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 17",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 18",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { sporePuff, glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 19",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, glowcap, sporePuff, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Heart",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 1,
+		roster = { grandmotherGulp },
+	},
+}
+-- END area34Rooms
+
+--[[ BEGIN areaLevelRooms (2026-11-13): Thornwood 2-1..2-10's, the Drowned
+     Village 3-1..3-15's and Bogheart Caverns 4-1..4-15's rooms, generated
+     by `tools/area_levels.py` (owner: "10 for area 2, 15 for 3, 15 for 4",
+     "bosses should be in the last room of the last level"). Each area's
+     levels in order; every level ends in its boss's arena, and only its
+     last level's last room holds the boss, alone. Edit the script, not
+     these rows. ]]
+local thornLevelRooms: { RoomConfig } = {
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -15.53), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, -15.53), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 2,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-9.72, -5.47), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(2.4, -17.01), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 2,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 4.91), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7, 4.91), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 1.44), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(9.1, -15.86), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-9.1, -15.86), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.7), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(8.54, -14.58), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.54, -14.58), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.68, -1.08), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-9.68, -1.08), size = Vector3.new(3, 2.6, 7.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.27, 5.44), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-8.27, 5.44), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(0, -3.56), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood Angel 2-1",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -7.98), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.99, -16.85), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-9.99, -16.85), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Brood Clearing 2-1",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.54), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(7.42, -18.14), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-7.42, -18.14), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 2,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -2.38), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, -2.38), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(6.27, 9.56), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.27, 9.56), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(8.1, -15.56), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-8.1, -15.56), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.38, 12.2), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-8.38, 12.2), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(9.04, -6.38), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-9.04, -6.38), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.21, -0.06), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-9.21, -0.06), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(0, -9.06), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(5.23, -3.54), size = Vector3.new(3.4, 0.4, 6.8) },
+			{ offset = Vector2.new(-5.23, -3.54), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.6, 6.67), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.6, 6.67), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(6.12, -4.86), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(-6.12, -4.86), size = Vector3.new(7.5, 2.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -4.37), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.06, -18.17), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.06, -18.17), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood Angel 2-2",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -7.73), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(0, -7.73), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10, -7.73), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Brood Clearing 2-2",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.77, -2.63), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-8.77, -2.63), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(0, -11.63), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(5.41, 12.62), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-5.41, 12.62), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 4.83), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(7, 4.83), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -2.01), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(7.65, -12.31), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-7.65, -12.31), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 2.46), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(10.24, -13.42), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-10.24, -13.42), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(10.54, 2.46), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-10.54, 2.46), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.94, 7.32), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.94, 7.32), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood Angel 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.12, -16.91), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-7.12, -16.91), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.13, 2.25), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-9.13, 2.25), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(8.03, -7.11), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.03, -7.11), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -3.13), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(7, -3.13), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -4.72), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.67, -17.35), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.67, -17.35), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 2.25), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(7, 2.25), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-3",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.13, 1.98), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-9.13, 1.98), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Brood Clearing 2-3",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -5.59), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(7, -5.59), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.19, -8.31), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-8.19, -8.31), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, -17.31), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 2.12), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(10.65, -14.14), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-10.65, -14.14), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.41, -6.35), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-8.41, -6.35), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(0, 2.65), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 9) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-8.69, 9.46), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-5.92, -3.98), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-4.22, 1.78), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-11.57, -7.74), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-0.63, -15.87), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood Angel 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.99, -6.01), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-8.99, -6.01), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(0, -15.01), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -7.2), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(10.81, -13.45), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-10.81, -13.45), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 1.29), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(10.67, -12.03), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-10.67, -12.03), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 2.77), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(0, 2.77), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, 2.77), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.1, 3.98), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-8.1, 3.98), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(0, -5.02), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-4",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -14.02), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(0, -14.02), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(10, -14.02), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Brood Clearing 2-4",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(10.57, -3.1), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-10.57, -3.1), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(9.15, 10.35), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-9.15, 10.35), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.16, -8.17), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-8.16, -8.17), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, -17.17), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8, -1.17), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-8, -1.17), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-0.22, -17.12), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-11.99, -5.61), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 3.32), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(7, 3.32), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -2.38), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(7, -2.38), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0.88, -3.71), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-1.16, -17.65), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 1.28), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(9.79, -12.1), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-9.79, -12.1), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood Angel 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -3.62), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(0, -3.62), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10, -3.62), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(4.03, 13.02), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(3.47, -9.65), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(9.57, -17.7), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.26, -1.98), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-9.26, -1.98), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -1.58), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(7, -1.58), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -11.04), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7, -11.04), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-5",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -2.85), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, -2.85), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Brood Clearing 2-5",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 2.82), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(8.04, -18.13), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.04, -18.13), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.15, 4.67), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(-9.15, 4.67), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(0, 13.67), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.29, -7.08), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-9.29, -7.08), size = Vector3.new(3, 2.6, 7.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.13, 0.49), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-8.13, 0.49), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(0, 9.49), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.36, -8.9), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(-8.36, -8.9), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(0, -17.9), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.73, -7.34), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-9.73, -7.34), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(6.69, 11.76), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.69, 11.76), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(9.75, -1.09), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(-9.75, -1.09), size = Vector3.new(7.5, 2.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(10.13, -17.6), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-10.13, -17.6), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(6.51, -3.12), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.51, -3.12), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood Angel 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.5, 0.56), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-8.5, 0.56), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7.81, -15.65), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-7.81, -15.65), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.89, 9.98), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-7.89, 9.98), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -3.03), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(7.08, -12.32), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-7.08, -12.32), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 2.49), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(10.19, -15.46), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.19, -15.46), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -10.72), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(7, -10.72), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-6",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -0.11), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(7.2, -14.11), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-7.2, -14.11), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Brood Clearing 2-6",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 8,
+		roster = { brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.33, 6.78), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-7.33, 6.78), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -8.22), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, -8.22), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -1.96), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.47, -12.79), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-8.47, -12.79), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.31, -6.77), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-8.31, -6.77), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(0, 2.23), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.8), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.46, -18.64), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.46, -18.64), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10.68, -13.73), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(3.29, -16.94), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-10.53, 11.42), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(5.89, -9.66), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(-5.89, -9.66), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.8, -10.65), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-8.8, -10.65), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(0, -1.65), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood Angel 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.09, -5.53), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-8.09, -5.53), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(11.5, -6), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, -6), size = Vector3.new(3, 2.6, 6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -0.09), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.71, -15.16), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-9.71, -15.16), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -15.43), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(0, -15.43), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, -15.43), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.14, 2.09), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-9.14, 2.09), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, -6.91), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -6.31), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(9.25, -15.95), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.25, -15.95), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.08, -8.38), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-9.08, -8.38), size = Vector3.new(3, 2.6, 7.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -0.87), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(9.48, -15.88), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.48, -15.88), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -2.96), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(7.97, -16.62), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-7.97, -16.62), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -9.94), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(0, -9.94), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, -9.94), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood Angel 2-7",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -15.76), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(0, -15.76), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, -15.76), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Brood Clearing 2-7",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 8,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.59, -8.02), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-9.59, -8.02), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, 0.98), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(10.37, -1.09), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-10.37, -1.09), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.77, -6.52), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-7.77, -6.52), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(8.72, 6.87), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-8.72, 6.87), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -2.5), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(9.71, -18.99), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.71, -18.99), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -4.18), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(8.92, -18.38), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.92, -18.38), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-3.67, -0.47), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-6.34, -17.83), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.33, 6.25), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10.87, -0.64), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.09, -3.2), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-9.09, -3.2), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(0, 5.8), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -1.38), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7, -1.38), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood Angel 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -7.27), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(10.07, -16.81), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-10.07, -16.81), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.22, -4.79), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-8.22, -4.79), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, -13.79), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.09, -17.07), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.09, -17.07), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(7.98, -5.12), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-7.98, -5.12), size = Vector3.new(9, 2.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -7.62), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(10.23, -15.05), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.23, -15.05), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 7.36), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(0, 7.36), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10, 7.36), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 2.66), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.85, -17.63), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-8.85, -17.63), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 1.02), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, 1.02), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -2.48), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(8.57, -12.04), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.57, -12.04), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -6.23), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.42, -17.4), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.42, -17.4), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.12, -1.33), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(-9.12, -1.33), size = Vector3.new(6.8, 0.4, 3.4) },
+			{ offset = Vector2.new(8.5, 8.23), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-8.5, 8.23), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood Angel 2-8",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.01, 4.4), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-9.01, 4.4), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(0, -4.6), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Brood Clearing 2-8",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 8,
+		roster = { brambleBoar, brambleSow, burrThistle },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 9) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 10.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 2.45), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(0, 2.45), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(10, 2.45), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.86, -0.11), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-8.86, -0.11), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, -9.11), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 1.75), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(0, 1.75), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, 1.75), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 9) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -1.1), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(7.71, -13.26), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-7.71, -13.26), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.09, 3.25), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-9.09, 3.25), size = Vector3.new(3, 2.6, 9) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood Angel 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 1.25), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(0, 1.25), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, 1.25), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.61, -10.21), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-8.61, -10.21), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(0, -1.21), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.24, -5.83), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-8.24, -5.83), size = Vector3.new(3, 2.6, 9) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 9) },
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 6) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -5.3), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.87, -12.9), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-8.87, -12.9), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -5.18), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.03, -12.29), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-9.03, -12.29), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -6.79), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(0, -6.79), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10, -6.79), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.64, 2.45), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-8.64, 2.45), size = Vector3.new(9, 2.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.6, 6.99), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-7.6, 6.99), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(6.59, -15.61), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-6.59, -15.61), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -5.09), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(9.3, -15.4), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(-9.3, -15.4), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood Angel 2-9",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -1.79), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(0, -1.79), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10, -1.79), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Brood Clearing 2-9",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 8,
+		roster = { brambleSow, brambleLurker, brambleBoar },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.97, -3.11), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(-9.97, -3.11), size = Vector3.new(3, 2.6, 10.5) },
+			{ offset = Vector2.new(0, -12.11), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.26, -2.02), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-8.26, -2.02), size = Vector3.new(3, 2.6, 7.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.08), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(10.63, -16.24), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-10.63, -16.24), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -9.83), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7, -9.83), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 9.31), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(0, 9.31), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, 9.31), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(10.5, 13.9), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-10.5, 13.9), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3, 2.6, 7.5) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3, 2.6, 7.5) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.55), size = Vector3.new(10.5, 2.6, 3) },
+			{ offset = Vector2.new(8.36, -17.92), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-8.36, -17.92), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood Angel 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 1.07), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(10.7, -16.38), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-10.7, -16.38), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, 0.32), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(7, 0.32), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, 5.68), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(0, 5.68), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(10, 5.68), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -6.57), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(9.88, -14.71), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-9.88, -14.71), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.08, 0.02), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-8.08, 0.02), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(0, 9.02), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.43, -13.22), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-7.43, -13.22), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -6.41), size = Vector3.new(2.6, 1.6, 2.6) },
+			{ offset = Vector2.new(7, -6.41), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(7.79, -13.74), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-7.79, -13.74), size = Vector3.new(3, 2.6, 6) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.05, -1.98), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-9.05, -1.98), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.1), size = Vector3.new(7.5, 2.6, 3) },
+			{ offset = Vector2.new(9.59, -16.17), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-9.59, -16.17), size = Vector3.new(3, 1.6, 3) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood Angel 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(8.86, 12.29), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(-8.86, 12.29), size = Vector3.new(9, 2.6, 3) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-7, -4.5), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(7, -4.5), size = Vector3.new(2.6, 1.6, 2.6) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(0, -0.72), size = Vector3.new(9, 2.6, 3) },
+			{ offset = Vector2.new(9.31, -13.67), size = Vector3.new(3.4, 1.6, 3.4) },
+			{ offset = Vector2.new(-9.31, -13.67), size = Vector3.new(3.4, 1.6, 3.4) },
+		},
+		enemyCount = 8,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.81, -5.96), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(-9.81, -5.96), size = Vector3.new(3, 2.6, 6) },
+			{ offset = Vector2.new(0, 3.04), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 8,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-10, -3.71), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(0, -3.71), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10, -3.71), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 8,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thornwood 2-10",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(9.65, 2.86), size = Vector3.new(6, 2.6, 3) },
+			{ offset = Vector2.new(-9.65, 2.86), size = Vector3.new(6, 2.6, 3) },
+		},
+		enemyCount = 8,
+		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+	},
+	{
+		name = "Brood Heart",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		enemyCount = 1,
+		roster = { broodmother },
+	},
+}
+local drownedLevelRooms: { RoomConfig } = {
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-1",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village Angel 3-1",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-1",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 3,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-2",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village Angel 3-2",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-2",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 3,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-3",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village Angel 3-3",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-3",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 3,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village Angel 3-4",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-4",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Toll Clearing 3-4",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { burrThistle, hollowFisherman, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-5",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-5",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Toll Clearing 3-5",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-6",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-6",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Toll Clearing 3-6",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village Angel 3-7",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-7",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Toll Clearing 3-7",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village Angel 3-8",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-8",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Toll Clearing 3-8",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleBoar, hollowFisherman, brambleSow },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-9",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-9",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-9",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 4,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-10",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-10",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-10",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-10",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 4,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village Angel 3-11",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-11",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village Angel 3-11",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-11",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village Angel 3-12",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-12",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village Angel 3-12",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-12",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { brambleSow, hollowFisherman, brambleLurker },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-13",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-13",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-13",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-13",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-14",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-14",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village Angel 3-14",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Toll Clearing 3-14",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 9,
+		roster = { hollowFisherman, brambleBoar, brambleLurker, burrThistle },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 5,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village Angel 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 6,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village Angel 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedOpen",
+		obstacles = {},
+		enemyCount = 7,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Drowned Village 3-15",
+		arena = "DrownedVillage",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 8,
+		roster = { hollowFisherman, brambleSow, burrThistle, brambleBoar },
+	},
+	{
+		name = "Toll Gate",
+		arena = "DrownedBoss",
+		obstacles = {
+			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
+			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
+			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
+		},
+		enemyCount = 1,
+		roster = { oldTollcrab },
+	},
+}
+local bogheartLevelRooms: { RoomConfig } = {
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-1",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-1",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-1",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-2",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-2",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-2",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-3",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-3",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-3",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 3,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-4",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-4",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Clearing 4-4",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-5",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-5",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Clearing 4-5",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { sporePuff, glowcap },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-6",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-6",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Clearing 4-6",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-7",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-7",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Clearing 4-7",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-8",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Clearing 4-8",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-9",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-9",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-10",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-10",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 4,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-11",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-11",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-12",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-12",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-12",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-13",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-13",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-14",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-14",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Clearing 4-14",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 9,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns Angel 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 4-15",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Heart",
+		arena = "BogheartBoss",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 1,
+		roster = { grandmotherGulp },
+	},
+}
+-- END areaLevelRooms
+
+--[[ Studs either side of an encounter room's door line that stay clear of
+     cover (`Balance.Rooms`), and where its Angel stands beside that line
+     (`Run/RoomController`). ]]
+local ENCOUNTER_LANE = 4
 
 local rooms: { RoomConfig } = {
 	{
@@ -4145,6 +12364,27 @@ local function levelRooms(first: number, count: number): { number }
 	return list
 end
 
+--[[ The Drowned Village's rooms (`drownedRooms`) follow Mossy Glade
+     1-1..1-10's in `Balance.Rooms`, and Bogheart Caverns' (`bogheartRooms`)
+     follow those. `roomsAfter(base, count)` is the run of `count` rooms
+     after `base`. ]]
+local DROWNED_BASE = LEVEL_BASE + #gladeLevelRooms
+local BOGHEART_BASE = DROWNED_BASE + #drownedRooms
+--[[ Thornwood 2-1..2-10's, the Drowned Village 3-1..3-15's and Bogheart
+     Caverns 4-1..4-15's rooms (`tools/area_levels.py`) follow, in that
+     order. ]]
+local THORN_LEVEL_BASE = BOGHEART_BASE + #bogheartRooms
+local DROWNED_LEVEL_BASE = THORN_LEVEL_BASE + #thornLevelRooms
+local BOGHEART_LEVEL_BASE = DROWNED_LEVEL_BASE + #drownedLevelRooms
+
+local function roomsAfter(base: number, count: number): { number }
+	local list = {}
+	for n = 1, count do
+		table.insert(list, base + n)
+	end
+	return list
+end
+
 local Balance = {
 	Player = {
 		maxHealth = 225,
@@ -4299,7 +12539,7 @@ local Balance = {
 		--[[ Elemental Orbs: casts cycle fire, ice, lightning. Fire burns for
 		     `burn` of the hit a second over `burnDuration`; ice slows to
 		     `slow` of an enemy's speed for `slowDuration`; lightning arcs on
-		     `chain` more times. ]]
+		     `chain` more times, as bolts at `Projectile.arcSpeed`. ]]
 		elemental = {
 			burn = 0.18,
 			burnDuration = 3,
@@ -4318,6 +12558,206 @@ local Balance = {
 			offset = Vector3.new(3, 1.2, 1),
 		},
 
+		--[[ The class cards of 2026-11-13 (owner's pick C). Damage is times
+		     the player's own, as above. ]]
+		--[[ Sniper Shot: `charge` seconds standing still (and as long again
+		     after each one) readies a sniper arrow, fired with the next
+		     volley: `speedScale` times an arrow's speed, through every enemy
+		     to the wall, `damage` and always a crit (`critMultiplier`). ]]
+		sniper = {
+			charge = 3,
+			damage = 0.75,
+			speedScale = 1.4,
+		},
+		--[[ Split Shot: an arrow that kills sends `count` splinters on from
+		     the kill, `spread` radians apart about its heading, `damage`
+		     each, flying `range` studs. Splinters never split. ]]
+		splitShot = {
+			count = 3,
+			spread = math.rad(25),
+			damage = 0.4,
+			range = 14,
+		},
+		--[[ Wind Arrows: a hit's shove again on top (the card's level), and
+		     enemy shots within `clearRadius` of the arrow blown away. ]]
+		wind = {
+			clearRadius = 1.6,
+		},
+		--[[ Mana Surge: a kill makes the next cast `damage` times as strong,
+		     its blast `size` times as wide. ]]
+		manaSurge = {
+			damage = 1.5,
+			size = 1.5,
+		},
+		--[[ Frost Orb: how long a chill lasts; how slow is the card's. ]]
+		frost = {
+			duration = 2,
+		},
+		--[[ Thornwood's six cards (`Config/Abilities`, 2026-11-18). How
+		     strong each is, is its card's level.
+		     - Web Snare: a webbed enemy is slowed for `web.duration`.
+		     - Thorn Burst: every `thorn.every`th volley's arrows burst
+		       `thorn.radius` studs round what they hit.
+		     - Root Hold: every `root.every`th cast's orbs hold what they
+		       hit; a boss is slowed to `root.boss` of its speed instead.
+		     - Burr Blight: a stack runs `blight.duration` seconds, at most
+		       `blight.stacks` deep.
+		     - Ruin Cracks: the slam's mark lasts `ruin.duration`. ]]
+		thornwood = {
+			web = { duration = 2 },
+			thorn = { every = 3, radius = 6 },
+			root = { every = 4, boss = 0.6 },
+			blight = { stacks = 5, duration = 3 },
+			ruin = { duration = 4 },
+		},
+		--[[ Shield Throw: the dash throws a shield at the nearest enemy
+		     within `range`, then on to the nearest not yet struck, `hits` in
+		     all, flying `speed` studs a second, `damage` each, and home. ]]
+		shieldThrow = {
+			hits = 3,
+			range = 22,
+			hopRange = 14,
+			speed = 55,
+			damage = 0.5,
+		},
+		--[[ Blade Storm: every `every`th blow that lands throws the sword
+		     `length` studs along the swing and back, `duration` seconds
+		     there and back, hitting everything within `radius` of it once
+		     going out and once coming back, `damage` a pass. ]]
+		bladeStorm = {
+			every = 5,
+			length = 12,
+			duration = 0.9,
+			radius = 2.4,
+			damage = 0.7,
+		},
+		--[[ Sunder: how long a struck enemy takes more; how much is the
+		     card's. ]]
+		sunder = {
+			duration = 3,
+		},
+		--[[ Wave 2's last five (docs/CLASS-CARDS.md, 2026-11-26). How
+		     strong each is, is its card's level; damage is times the
+		     player's own.
+		     - Echo Slash: each blow strikes what it struck again `echo.delay`
+		       seconds later.
+		     - Riposte: a shot the swing's guard catches flies back at the
+		       enemy nearest where it was fired, within `riposte.seek` studs
+		       of that spot (straight back when none is), at `riposte.speed`
+		       times an arrow's speed.
+		     - Split Orb: an orb's first hit bursts it into shards fanned
+		       `shard.spread` apart about its heading, `shard.damage` each,
+		       flying `shard.range` studs. Shards never split.
+		     - Gravity Well: each blast pulls every enemy within
+		       `well.radius` in over `well.duration` seconds, stopping
+		       `well.stopAt` from the middle (bosses stand).
+		     - Orbiting Orb: orbs circle `orbit.radius` out, `orbit.turn`
+		       radians a second, striking what comes within `orbit.reach` of
+		       one for `orbit.damage`, the same enemy no sooner than every
+		       `orbit.again` seconds, shoving `orbit.knock` of its knockback. ]]
+		waveTwo = {
+			echo = { delay = 0.15 },
+			riposte = { seek = 8, speed = 1.2 },
+			shard = { spread = math.rad(30), damage = 0.24, range = 12 },
+			well = { radius = 9, duration = 0.35, stopAt = 1.5 },
+			orbit = {
+				radius = 5,
+				turn = 2.2,
+				reach = 1.6,
+				again = 0.7,
+				damage = 0.3,
+				knock = 0.35,
+			},
+		},
+		--[[ The Assassin's cards (owner, 2026-11-15; docs/CLASS-CARDS.md).
+		     What each level is worth is the card's (`Config/Abilities`);
+		     these are the rest.
+		     - Backstab counts a strike from within `backstabArc` degrees
+		       round the enemy's back.
+		     - Serrated Edge's opening lasts `serratedDuration` seconds.
+		     - Bleed holds up to `stacks` cuts and lapses `duration` after
+		       the last one.
+		     - Poison Trail's cloud is `radius` wide round the middle of the
+		       dash, hurting every `every` seconds for `damage` times a
+		       strike.
+		     - Fan of Knives: every `every`th strike that lands throws the
+		       fan, `spread` degrees wide, each knife `damage` times a
+		       strike, flying `range` studs at `speed` times an arrow's.
+		     - Death Mark looks for its next enemy within `reach` studs of
+		       where the last one fell.
+		     - Phantom Blades circle `radius` out, `turn` radians a second,
+		       cutting what comes within `reach` of one for `damage` times a
+		       strike, the same enemy no sooner than every `again` seconds.
+		     - Thousand Cuts: every `every` seconds of fighting, up to `most`
+		       enemies within `range` are struck `gap` seconds apart, each
+		       for `damage` times a strike.
+		     A phantom blade's cut and a shadow's strike shove `knock` of an
+		     enemy's knockback, as a dagger's slash does: seen in Studio
+		     (2026-11-16), full shoves kept everything out of the daggers'
+		     own reach. ]]
+		assassin = {
+			backstabArc = 150,
+			serratedDuration = 3,
+			bleed = { stacks = 5, duration = 4 },
+			poison = { radius = 4.5, every = 0.5, damage = 0.15 },
+			knives = { every = 4, spread = 70, damage = 0.35, range = 18, speed = 1.2 },
+			deathMark = { reach = 60 },
+			phantom = {
+				radius = 5.5,
+				turn = 2.6,
+				reach = 1.4,
+				again = 0.7,
+				damage = 0.3,
+				knock = 0.35,
+			},
+			thousandCuts = {
+				every = 10,
+				most = 8,
+				range = 45,
+				gap = 0.09,
+				damage = 1.2,
+				knock = 0.35,
+			},
+		},
+		--[[ The themed sets' seven daggers' own effects (owner, 2026-11-18;
+		     docs/CLASS-CARDS.md "The themed daggers' seven"), each a card
+		     only its dagger carries (`weaponOnly`). What each level is worth
+		     is the card's (`Config/Abilities`); these are the rest. A
+		     "strike that lands" is a swing that struck something.
+		     - Wishing Star (Twinkle): every `every`th strike that lands
+		       drops a star on the first enemy struck, landing `delay` later
+		       and bursting `radius` round it.
+		     - Spur Rowel (Spur): the double stab flings a rowel at the
+		       nearest enemy within `range`, then on to the nearest not yet
+		       struck within `hopRange`, flying `speed` studs a second,
+		       `damage` times a strike a hop (Shield Throw's flight).
+		     - Splash Wave (Squirt): every `every`th strike that lands
+		       splashes `radius` round the first enemy struck, and what it
+		       soaks moves `slow` slower for `duration` seconds.
+		     - Combo Counter (Token): each strike that lands adds `step`,
+		       up to the card's; a hit on the Assassin empties it.
+		     - Comet Crash (Comet): a strike's comet crashes `delay` after
+		       it, `radius` round the enemy, one comet an enemy at a time.
+		     - Bell Chime (Bellchime): every `every`th strike that lands
+		       holds everything within `radius` of the Assassin (a boss is
+		       slowed to `boss` of its speed instead), `damage` times a
+		       strike.
+		     - Lava Burst (Embershard): the double stab's lava runs
+		       `length` studs on from the stab, `width` wide, at `speed`
+		       studs a second, and sets what it meets burning for `burn`
+		       seconds (Blaze's rate).
+		     The splash and the lava shove `knock` of an enemy's knockback,
+		     as a dagger's slash does; the bell holds, so shoves nothing. ]]
+		daggers = {
+			knock = 0.35,
+			star = { every = 5, delay = 0.35, radius = 6 },
+			spur = { range = 12, hopRange = 14, speed = 45, damage = 0.5 },
+			splash = { every = 3, radius = 5, slow = 0.3, duration = 2 },
+			combo = { step = 0.03 },
+			comet = { delay = 1.5, radius = 5 },
+			bell = { every = 6, radius = 8, damage = 0.4, boss = 0.6 },
+			lava = { length = 10, width = 4, speed = 28, burn = 3 },
+		},
 		--[[ The owner's picks of 2026-11-03, from `docs/CARD-IDEAS.md`.
 		     Damage is always times the player's own, and every one of these
 		     was aimed at the band the live cards already sit in: cards are
@@ -4348,10 +12788,12 @@ local Balance = {
 		},
 		--[[ Ghost Quiver: a spectral archer holds `behind` studs behind the
 		     player and copies every volley at `damage`, `delay` seconds
-		     late so the two volleys read as two. ]]
+		     late so the two volleys read as two. 0.3 (2026-11-27, from 0.4):
+		     it copies the whole volley, Multishot and all, so it sits at the
+		     share Orbiting Orb's and Phantom Blades' minions strike for. ]]
 		ghostQuiver = {
 			behind = 4,
-			damage = 0.4,
+			damage = 0.3,
 			delay = 0.12,
 		},
 		--[[ Twin Elements: every cast is two orbs `spacing` apart, one fire
@@ -4382,7 +12824,7 @@ local Balance = {
 			homing = 9,
 		},
 		--[[ Vengeful Spirit: an enemy killed by a blow rises as a sword
-		     that hovers by the Warden for `duration`, striking the nearest
+		     that hovers by its killer for `duration`, striking the nearest
 		     enemy within `reach` every `strikeEvery` for `damage`. Only
 		     `most` stand at once, and a new kill refreshes the oldest
 		     rather than adding another. ]]
@@ -4412,8 +12854,9 @@ local Balance = {
 			     server only hears of the dash a moment after it begins. ]]
 			immune = 0.4,
 		},
-		--[[ Blood Pact: under `below` of health the Warden's blows carry the
-		     card's level as extra damage. ]]
+		--[[ Blood Pact: under `below` of health a melee class's blows carry
+		     the card's level as extra damage (an Epic, so 0.3 / 0.5, under
+		     Execute's Legendary 0.4 / 0.8). ]]
 		bloodPact = {
 			below = 0.5,
 		},
@@ -4525,6 +12968,23 @@ local Balance = {
 		     far from the one hit a link reaches. ]]
 		linkShare = 0.4,
 		linkRange = 10,
+		--[[ The link is a fireball that leaps from the enemy hit to each one
+		     linked, landing its share as it lands (owner, 2026-11-11: "soul
+		     link should be like brand ult"; `Shared/Combat/SoulBounce`): its
+		     speed over the ground, and the least and most seconds one leap
+		     takes. Who is linked and for how much is unchanged. ]]
+		linkHop = { speed = 40, min = 0.14, max = 0.26 },
+		--[[ Chain Lightning's arc is a bolt, not an orb in flight (owner,
+		     2026-11-11: "like the stattik shiv effect"): a ricochet off a
+		     shot that carries the card leaves at this speed, so each hop
+		     lands a few hundredths of a second after the last. It lives
+		     `arcLife` seconds, not an arrow's: a projectile only moves on a
+		     server step, so its life is counted in steps, and this is enough
+		     of them to cross the reach on a server running at half speed
+		     while one that finds nothing still dies in a blink. Damage, reach
+		     and the number of arcs are Ricochet's, as before. ]]
+		arcSpeed = 320,
+		arcLife = 0.1,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the
@@ -4658,6 +13118,14 @@ local Balance = {
 		BrambleLurker = brambleLurker,
 		Broodmother = broodmother,
 		Thornling = thornling,
+		-- Bogheart Caverns
+		SporePuff = sporePuff,
+		Glowcap = glowcap,
+		Shellback = shellback,
+		GrandmotherGulp = grandmotherGulp,
+		-- Drowned Village (2026-11-07: its portal opened)
+		HollowFisherman = hollowFisherman,
+		OldTollcrab = oldTollcrab,
 	},
 
 	--[[
@@ -4667,8 +13135,8 @@ local Balance = {
 		it to that: everything in it is introduced somewhere in the game.
 		That is the right rule and it leaves nowhere to put a finished
 		enemy whose area is not built -- the Lancer has been homeless since
-		the Ember Wilf stopped standing in for it, and the Hollow Fisherman
-		arrives with no Drowned Village to stand in.
+		the Ember Wilf stopped standing in for it. (The Hollow Fisherman was
+		here until the Drowned Village opened, 2026-11-07.)
 
 		So they live here instead: real configs, out of every roster, and
 		`Remotes.DebugSpawnEnemy` reaches them in Studio so one can be
@@ -4677,7 +13145,6 @@ local Balance = {
 	]]
 	Benched = {
 		Lancer = _lineSniper,
-		HollowFisherman = hollowFisherman,
 	} :: { [string]: EnemyConfig },
 
 	--[[
@@ -4827,6 +13294,10 @@ local Balance = {
 		     Wider than the enemy so stepping to its edge is not enough. ]]
 		groundRadius = 3,
 		groundColor = Color3.fromRGB(255, 150, 60),
+		--[[ A Spore Puff's cloud (`EnemyBurst`): the ring it hurts inside,
+		     and the puff that blooms in it, the puff's own pink gone sickly. ]]
+		sporeColor = Color3.fromRGB(170, 230, 90),
+		sporeCloudColor = Color3.fromRGB(214, 150, 190),
 		--[[
 			The footprint, drawn instantly at full size and left there.
 
@@ -4902,6 +13373,8 @@ local Balance = {
 
 	--[[ The rooms, then the tutorial's five (81-85), then Mossy Glade
 	     1-1..1-10's (86 on, `levelRoom`). ]]
+	encounterLane = ENCOUNTER_LANE,
+
 	Rooms = (function(): { RoomConfig }
 		local all = table.clone(rooms)
 		for _, room in tutorialRooms do
@@ -4909,6 +13382,32 @@ local Balance = {
 		end
 		for _, room in gladeLevelRooms do
 			table.insert(all, room)
+		end
+		for _, list in
+			{ drownedRooms, bogheartRooms, thornLevelRooms, drownedLevelRooms, bogheartLevelRooms }
+		do
+			for _, room in list do
+				table.insert(all, room)
+			end
+		end
+		--[[ An encounter room (an Angel's) keeps the straight line from the
+		     spawn to the door clear: nothing fights there, so cover on that
+		     line is only something to walk into (the run-through,
+		     2026-11-14: "walking straight up stops dead on the Angel"; it
+		     was a log behind her). Cover within `ENCOUNTER_LANE` studs of
+		     the line is left out, with its scenery. ]]
+		for index, room in all do
+			if room.encounter then
+				local kept: { Obstacle } = {}
+				for _, obstacle in room.obstacles do
+					if math.abs(obstacle.offset.X) - obstacle.size.X / 2 >= ENCOUNTER_LANE then
+						table.insert(kept, obstacle)
+					end
+				end
+				local clear = table.clone(room)
+				clear.obstacles = kept
+				all[index] = clear
+			end
 		end
 		return all
 	end)(),
@@ -4986,20 +13485,47 @@ local Balance = {
 			     alone in the Brood Heart. The other twenty stay in `Rooms`. ]]
 			name = "Level 2",
 			mode = "Rooms",
-			rooms = (function(): { number }
-				local list = {}
-				for index = 21, 39 do
-					table.insert(list, index)
-				end
-				table.insert(list, 60)
-				return list
-			end)(),
+			--[[ In order of how much health each room's enemies bring (owner,
+			     2026-11-05: "the levels should scale difficulty per room"), so
+			     nothing spikes and then falls away: boars and lurkers used to
+			     come straight after the elite fight, at room 10. That elite
+			     fight now leads up to the Broodmother. ]]
+			rooms = {
+				21,
+				24,
+				25,
+				26,
+				22,
+				23,
+				36,
+				31,
+				32,
+				33,
+				35,
+				39,
+				27,
+				28,
+				29,
+				37,
+				34,
+				38,
+				30,
+				60,
+			},
 			--[[ One step past Mossy Glade 1-10 on the levels' curve (below),
 			     so the area after the glade is harder than all of it. Was 0.8
 			     and 0.9 before the owner's "the game is too easy currently"
-			     (2026-10-26). ]]
+			     (2026-10-26).
+
+			     **Health is 1-10's times 1.125** (1.46 x 1.125, rounded), the
+			     step an area's weapons and pets take (`WeaponStats.areaScale`,
+			     `Util/PetPower`); the Drowned Village and Bogheart are a step
+			     each past it. It was 2.1, 2.3 and 2.5: a 44% jump from 1-10
+			     with nothing new to buy, so every enemy took half again as
+			     many arrows (owner, 2026-11-13, approving balance review item
+			     1). Damage is untouched. ]]
 			enemyDamage = 1.05,
-			enemyHealth = 2.1,
+			enemyHealth = 1.65,
 			area = "Thornwood",
 		},
 		{
@@ -5028,6 +13554,7 @@ local Balance = {
 			rooms = { 81, 82, 83, 84, 85 },
 			enemyDamage = 0.5,
 			enemyHealth = 0.6,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 			tutorial = true,
 		},
@@ -5084,6 +13611,7 @@ local Balance = {
 			rooms = levelRooms(1, 10),
 			enemyDamage = 0.75,
 			enemyHealth = 1.1,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -5093,6 +13621,7 @@ local Balance = {
 			rooms = levelRooms(11, 10),
 			enemyDamage = 0.78,
 			enemyHealth = 1.14,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -5102,6 +13631,7 @@ local Balance = {
 			rooms = levelRooms(21, 15),
 			enemyDamage = 0.81,
 			enemyHealth = 1.18,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -5136,11 +13666,39 @@ local Balance = {
 			enemyHealth = 1.26,
 			area = "MossyGlade",
 		},
+		--[[ 1-6..1-9's first fight is one smaller and their last two one bigger
+		     than they were, the same enemies in all (owner, 2026-11-13,
+		     approving balance review item 6, which shaped 1-10's rooms the
+		     same way): the waves before any card start gentler and the climb
+		     goes further. A wave fights entry ⌈w / 20 · 4⌉. ]]
 		{
 			name = "Mossy Glade 1-6",
 			level = "1-6",
-			mode = "Rooms",
-			rooms = levelRooms(52, 20),
+			mode = "Waves",
+			arena = levelRoom(52),
+			waves = 20,
+			fights = {
+				{
+					enemyCount = 3,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 4,
+					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 7,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 7,
+					roster = { broodSlime, spreadShooter, meleeCharger },
+				},
+			},
+			elite = {
+				enemyCount = 7,
+				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
+			},
 			enemyDamage = 0.9,
 			enemyHealth = 1.3,
 			area = "MossyGlade",
@@ -5148,8 +13706,31 @@ local Balance = {
 		{
 			name = "Mossy Glade 1-7",
 			level = "1-7",
-			mode = "Rooms",
-			rooms = levelRooms(72, 20),
+			mode = "Waves",
+			arena = levelRoom(53),
+			waves = 20,
+			fights = {
+				{
+					enemyCount = 4,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 4,
+					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 7,
+					roster = { broodSlime, spreadShooter, meleeCharger },
+				},
+				{
+					enemyCount = 8,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+			},
+			elite = {
+				enemyCount = 7,
+				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
+			},
 			enemyDamage = 0.93,
 			enemyHealth = 1.34,
 			area = "MossyGlade",
@@ -5157,8 +13738,31 @@ local Balance = {
 		{
 			name = "Mossy Glade 1-8",
 			level = "1-8",
-			mode = "Rooms",
-			rooms = levelRooms(92, 20),
+			mode = "Waves",
+			arena = levelRoom(54),
+			waves = 20,
+			fights = {
+				{
+					enemyCount = 4,
+					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 5,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 7,
+					roster = { broodSlime, spreadShooter, meleeCharger },
+				},
+				{
+					enemyCount = 8,
+					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+				},
+			},
+			elite = {
+				enemyCount = 7,
+				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
+			},
 			enemyDamage = 0.96,
 			enemyHealth = 1.38,
 			area = "MossyGlade",
@@ -5166,8 +13770,31 @@ local Balance = {
 		{
 			name = "Mossy Glade 1-9",
 			level = "1-9",
-			mode = "Rooms",
-			rooms = levelRooms(112, 20),
+			mode = "Waves",
+			arena = levelRoom(55),
+			waves = 20,
+			fights = {
+				{
+					enemyCount = 4,
+					roster = { broodSlime, spreadShooter, meleeCharger },
+				},
+				{
+					enemyCount = 5,
+					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 8,
+					roster = { meleeCharger, broodSlime, spreadShooter },
+				},
+				{
+					enemyCount = 8,
+					roster = { broodSlime, spreadShooter, meleeCharger },
+				},
+			},
+			elite = {
+				enemyCount = 7,
+				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
+			},
 			enemyDamage = 0.99,
 			enemyHealth = 1.42,
 			area = "MossyGlade",
@@ -5179,7 +13806,7 @@ local Balance = {
 			name = "Mossy Glade 1-10",
 			level = "1-10",
 			mode = "Rooms",
-			rooms = levelRooms(132, 25),
+			rooms = levelRooms(56, 25),
 			enemyDamage = 1.02,
 			enemyHealth = 1.46,
 			area = "MossyGlade",
@@ -5202,6 +13829,403 @@ local Balance = {
 			name = "Endless",
 			mode = "Endless",
 		},
+		--[[
+			The Drowned Village and Bogheart Caverns (2026-11-05): ten rooms
+			each from `tools/area34_rooms.py`, built from the owner's kits.
+			After Endless so no stage's index moves. The Drowned Village's
+			portal opened 2026-11-07: its own enemies but the Hollow
+			Fisherman are not modelled, so its rosters are Thornwood's with
+			the Fisherman, ending in the Old Tollcrab. Bogheart Caverns has
+			its own since 2026-11-06 (below) (`docs/DROWNED-VILLAGE.md`). A step harder than Thornwood each,
+			placeholder numbers until they are played.
+		]]
+		{
+			name = "Drowned Village",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_BASE, #drownedRooms),
+			enemyDamage = 1.1,
+			-- Thornwood's times 1.125 (was 2.3; review item 1, with Thornwood's note)
+			enemyHealth = 1.85,
+			area = "DrownedVillage",
+		},
+		--[[ Bogheart Caverns (2026-11-06): its own enemies, twenty rooms
+		     like Thornwood's, Grandmother Gulp alone in the last. Behind the
+		     lobby's Bogheart portal (`Config/Lobby`). ]]
+		{
+			name = "Bogheart Caverns",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_BASE, #bogheartRooms),
+			enemyDamage = 1.15,
+			-- the Drowned Village's times 1.125 (was 2.5; review item 1, with Thornwood's note)
+			enemyHealth = 2.1,
+			area = "BogheartCaverns",
+		},
+		--[[ BEGIN areaLevelStages (2026-11-13): Thornwood 2-1..2-10, the Drowned
+		     Village 3-1..3-15 and Bogheart Caverns 4-1..4-15, from
+		     `tools/area_levels.py`. Each behind its area's portal
+		     (`Config/Lobby`), opened by beating the one before; the boss only
+		     in the last room of the last. Edit the script, not these. ]]
+		{
+			name = "Thornwood 2-1",
+			level = "2-1",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 0, 10),
+			enemyDamage = 1.03,
+			enemyHealth = 1.48,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-2",
+			level = "2-2",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 10, 10),
+			enemyDamage = 1.03,
+			enemyHealth = 1.5,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-3",
+			level = "2-3",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 20, 15),
+			enemyDamage = 1.03,
+			enemyHealth = 1.52,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-4",
+			level = "2-4",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 35, 15),
+			enemyDamage = 1.04,
+			enemyHealth = 1.54,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-5",
+			level = "2-5",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 50, 15),
+			enemyDamage = 1.04,
+			enemyHealth = 1.56,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-6",
+			level = "2-6",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 65, 15),
+			enemyDamage = 1.04,
+			enemyHealth = 1.57,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-7",
+			level = "2-7",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 80, 20),
+			enemyDamage = 1.04,
+			enemyHealth = 1.59,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-8",
+			level = "2-8",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 100, 20),
+			enemyDamage = 1.05,
+			enemyHealth = 1.61,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-9",
+			level = "2-9",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 120, 20),
+			enemyDamage = 1.05,
+			enemyHealth = 1.63,
+			area = "Thornwood",
+		},
+		{
+			name = "Thornwood 2-10",
+			level = "2-10",
+			mode = "Rooms",
+			rooms = roomsAfter(THORN_LEVEL_BASE + 140, 25),
+			enemyDamage = 1.05,
+			enemyHealth = 1.65,
+			area = "Thornwood",
+		},
+		{
+			name = "Drowned Village 3-1",
+			level = "3-1",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 0, 10),
+			enemyDamage = 1.06,
+			enemyHealth = 1.67,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-2",
+			level = "3-2",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 10, 10),
+			enemyDamage = 1.06,
+			enemyHealth = 1.68,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-3",
+			level = "3-3",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 20, 10),
+			enemyDamage = 1.07,
+			enemyHealth = 1.7,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-4",
+			level = "3-4",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 30, 15),
+			enemyDamage = 1.07,
+			enemyHealth = 1.71,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-5",
+			level = "3-5",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 45, 15),
+			enemyDamage = 1.07,
+			enemyHealth = 1.72,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-6",
+			level = "3-6",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 60, 15),
+			enemyDamage = 1.07,
+			enemyHealth = 1.73,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-7",
+			level = "3-7",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 75, 15),
+			enemyDamage = 1.08,
+			enemyHealth = 1.75,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-8",
+			level = "3-8",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 90, 15),
+			enemyDamage = 1.08,
+			enemyHealth = 1.76,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-9",
+			level = "3-9",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 105, 20),
+			enemyDamage = 1.08,
+			enemyHealth = 1.77,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-10",
+			level = "3-10",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 125, 20),
+			enemyDamage = 1.09,
+			enemyHealth = 1.79,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-11",
+			level = "3-11",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 145, 20),
+			enemyDamage = 1.09,
+			enemyHealth = 1.8,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-12",
+			level = "3-12",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 165, 20),
+			enemyDamage = 1.09,
+			enemyHealth = 1.81,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-13",
+			level = "3-13",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 185, 20),
+			enemyDamage = 1.09,
+			enemyHealth = 1.82,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-14",
+			level = "3-14",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 205, 20),
+			enemyDamage = 1.1,
+			enemyHealth = 1.84,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Drowned Village 3-15",
+			level = "3-15",
+			mode = "Rooms",
+			rooms = roomsAfter(DROWNED_LEVEL_BASE + 225, 25),
+			enemyDamage = 1.1,
+			enemyHealth = 1.85,
+			area = "DrownedVillage",
+		},
+		{
+			name = "Bogheart Caverns 4-1",
+			level = "4-1",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 0, 10),
+			enemyDamage = 1.11,
+			enemyHealth = 1.87,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-2",
+			level = "4-2",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 10, 10),
+			enemyDamage = 1.11,
+			enemyHealth = 1.89,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-3",
+			level = "4-3",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 20, 10),
+			enemyDamage = 1.12,
+			enemyHealth = 1.9,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-4",
+			level = "4-4",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 30, 15),
+			enemyDamage = 1.12,
+			enemyHealth = 1.92,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-5",
+			level = "4-5",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 45, 15),
+			enemyDamage = 1.12,
+			enemyHealth = 1.94,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-6",
+			level = "4-6",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 60, 15),
+			enemyDamage = 1.12,
+			enemyHealth = 1.95,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-7",
+			level = "4-7",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 75, 15),
+			enemyDamage = 1.13,
+			enemyHealth = 1.97,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-8",
+			level = "4-8",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 90, 15),
+			enemyDamage = 1.13,
+			enemyHealth = 1.99,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-9",
+			level = "4-9",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 105, 20),
+			enemyDamage = 1.13,
+			enemyHealth = 2,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-10",
+			level = "4-10",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 125, 20),
+			enemyDamage = 1.14,
+			enemyHealth = 2.02,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-11",
+			level = "4-11",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 145, 20),
+			enemyDamage = 1.14,
+			enemyHealth = 2.03,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-12",
+			level = "4-12",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 165, 20),
+			enemyDamage = 1.14,
+			enemyHealth = 2.05,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-13",
+			level = "4-13",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 185, 20),
+			enemyDamage = 1.14,
+			enemyHealth = 2.07,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-14",
+			level = "4-14",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 205, 20),
+			enemyDamage = 1.15,
+			enemyHealth = 2.08,
+			area = "BogheartCaverns",
+		},
+		{
+			name = "Bogheart Caverns 4-15",
+			level = "4-15",
+			mode = "Rooms",
+			rooms = roomsAfter(BOGHEART_LEVEL_BASE + 225, 25),
+			enemyDamage = 1.15,
+			enemyHealth = 2.1,
+			area = "BogheartCaverns",
+		},
+		-- END areaLevelStages
 	} :: { StageConfig },
 
 	--[[ The tutorial stage, played after the story cutscene and won into the
@@ -5209,8 +14233,14 @@ local Balance = {
 	tutorialStage = 6,
 
 	--[[ The Endless stage (`Balance.Endless`), behind the lobby's Endless
-	     portal once Mossy Glade 1-10 is beaten. The last of `Stages`. ]]
+	     portal once Mossy Glade 1-10 is beaten. ]]
 	endlessStage = 17,
+
+	--[[ The Drowned Village's and Bogheart Caverns' first levels, 3-1 and
+	     4-1 (2026-11-13). Their single stages, 18 and 19, are behind no
+	     portal now, as Thornwood's old one (4) is; kept so no index moves. ]]
+	drownedStage = 30,
+	bogheartStage = 45,
 
 	--[[ Which stage a run plays before any portal has chosen one: Mossy
 	     Glade 1-1. Level 2, Thornwood, is 4; the old Mossy Glade run 5 and
@@ -5219,12 +14249,21 @@ local Balance = {
 	--[[ The story, in order, for the FARTHEST ADVENTURERS board
 	     (`Util/StoryProgress`): Mossy Glade 1-1..1-10, then Thornwood (owner,
 	     2026-10-25: "go into mossy glade ... then ... go into thornwood";
-	     2026-10-26: the ten levels). NEXT LEVEL on a Victory starts the next
+	     2026-10-26: the ten levels), then each later area's levels
+	     (2026-11-13: "10 for area 2, 15 for 3, 15 for 4"). NEXT LEVEL on a Victory starts the next
 	     level of the portal's list (`Config/Lobby`, `Util/LevelUnlocks`),
 	     upgrades reset, or goes back to the lobby after its last; TRY AGAIN
 	     on Defeat replays. A stage behind no portal still follows this list
 	     (`Util/CurrentStage`). ]]
-	campaign = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 4 },
+	campaign = (function(): { number }
+		-- Mossy Glade 1-1..1-10, then Thornwood 2-1..2-10, the Drowned
+		-- Village 3-1..3-15 and Bogheart Caverns 4-1..4-15 (2026-11-13)
+		local list = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }
+		for index = 20, 59 do
+			table.insert(list, index)
+		end
+		return list
+	end)(),
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the
@@ -5266,6 +14305,22 @@ local Balance = {
 		`Config/Economy`'s coins and gems so depth can never inflate the
 		story economy. What the screens print is `SaveSchema.SOULSTONES`.
 	]]
+	--[[
+		Hard mode (owner, 2026-11-18: "yes all of these create them"; the
+		owner picked these as starting numbers). Once an area's boss is
+		beaten its levels can be played on HARD (`Util/HardRules`): every
+		enemy's health and damage, bosses included, multiplied by these on
+		top of the level's own numbers and its within-level ramp, with co-op's
+		scaling on top as on normal (`Enemies/EnemyManager.difficulty`). Every
+		fight without a boss also has one elite, `eliteHealth` times as
+		tough, marked in gold (`EnemyManager.spawnWave`).
+	]]
+	Hard = {
+		health = 2.5,
+		damage = 1.8,
+		eliteHealth = 2.5,
+	},
+
 	Endless = {
 		--[[ A floor is one wave: a Waves stage is 20 waves at 8-12 minutes
 		     (`docs/PROGRESSION.md`), so a floor is about 30 seconds and
@@ -5331,13 +14386,24 @@ local Balance = {
 		     runs end too soon; floor 10 holding its old value is the fixed
 		     point, not the depth of the wall.
 
-		     Damage starts at the same 0.7 and keeps its gentler 1.03, so an
-		     opening floor hits softer as well as dying faster, and health
+		     Damage starts lower still, at 0.5, and keeps its gentler 1.03, so
+		     an opening floor hits softer as well as dying faster, and health
 		     still outgrows damage at every depth. Starting health below damage
 		     would invert that — enemies that delete you without warning are a
-		     worse game than enemies that take a while. ]]
+		     worse game than enemies that take a while.
+
+		     It was 0.7 until the owner's playtest (2026-11-19: "in endless i
+		     only died in the teens and i got 2 shot, the enemies do way too
+		     much damage"). Floors 11-20 are Thornwood's, whose Lurker fires
+		     five 56s and Burr Thistle three 45s, met by a player who has
+		     only Mossy Glade's gear (Endless opens after 1-10): at 0.7 a
+		     floor-15 volley was up to 1.06 x 280 against the Ranger's 225.
+		     0.5 cuts every floor's damage by 29%:
+
+		       floor      1    10    15    20    30
+		       damage  0.50  0.65  0.76  0.88  1.18   (was 0.70 0.91 1.06 1.23 1.65) ]]
 		healthStart = 0.7,
-		damageStart = 0.7,
+		damageStart = 0.5,
 		health = 1.0872,
 		damage = 1.03,
 
@@ -5371,8 +14437,8 @@ local Balance = {
 			{
 				name = "Mossy Glade",
 				area = "MossyGlade",
-				-- the Glade Heart, 1-10's arena
-				arena = levelRoom(56),
+				-- the Glade Heart, 1-10's last room
+				arena = levelRoom(80),
 				fights = {
 					{ enemyCount = 5, roster = { meleeCharger, broodSlime, spreadShooter } },
 					{
@@ -5447,42 +14513,70 @@ local Balance = {
 		]]
 		blockPay = 25,
 		runCap = 525,
+		--[[ Coins for every floor cleared, at the player's passes' scale as
+		     any run's coins (`RunSession.payEarned`): a little, so a first
+		     visit that dies before floor 10 does not end with nothing (the
+		     run-through, 2026-11-14: 13 kills and +0). Ten floors pay about
+		     half a campaign level's coins. Soulstones still vest only at
+		     boss floors. ]]
+		floorCoins = 30,
 
 		--[[
 			The one-time milestones, each hitting a different system on
 			purpose so no one of them is skippable because you already have
 			enough of that thing (`docs/ENDLESS.md`).
 
-			**This table is the swap point, and the owner has not confirmed
-			it.** The egg, gear, cosmetic and title grants do not exist yet
-			either, so a claim today records the milestone and pays its
-			`soulstones`; when those systems land, each entry's `kind`,
-			`rarity` and `name` is what they read, and nothing else about
-			the mode changes.
+			**The owner's call, 2026-11-11:** real rewards, and big ones
+			("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE THAT
+			EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE
+			ROOMS"). Each milestone hatches its `eggs` and opens its
+			`crates` for the player on the spot, free, with one of each
+			batch sure to be at least its `rarity`, on top of its
+			`soulstones` (`Server/Data/EndlessPrizes`). The cosmetic and
+			title the first table promised at 30 and 100 do not exist, so
+			those floors pay in eggs and crates too.
 		]]
 		milestones = {
-			{ floor = 10, kind = "Egg", name = "A PET EGG", soulstones = 50 },
-			{ floor = 20, kind = "Gear", name = "A GEAR PIECE", soulstones = 100 },
-			{ floor = 30, kind = "Cosmetic", name = "A TRAIL OR AURA", soulstones = 200 },
+			{ floor = 10, kind = "Egg", name = "5 PET EGGS", eggs = 5, soulstones = 50 },
+			{
+				floor = 20,
+				kind = "Gear",
+				name = "5 WEAPON CRATES",
+				crates = 5,
+				soulstones = 100,
+			},
+			{
+				floor = 30,
+				kind = "Both",
+				name = "5 EGGS AND 5 CRATES",
+				eggs = 5,
+				crates = 5,
+				soulstones = 200,
+			},
 			{
 				floor = 50,
 				kind = "Egg",
-				name = "A LEGENDARY PET EGG",
+				name = "5 EGGS, ONE LEGENDARY",
+				eggs = 5,
 				rarity = "Legendary",
 				soulstones = 400,
 			},
 			{
 				floor = 75,
 				kind = "Gear",
-				name = "A LEGENDARY GEAR PIECE",
+				name = "5 CRATES, ONE LEGENDARY",
+				crates = 5,
 				rarity = "Legendary",
 				soulstones = 700,
 			},
 			{
 				floor = 100,
-				kind = "Title",
-				name = "A TITLE AND A MYTHIC COSMETIC",
+				kind = "Both",
+				name = "ANY VOIDGLASS WEAPON, 10 EGGS AND 10 CRATES",
+				eggs = 10,
+				crates = 10,
 				rarity = "Mythic",
+				pick = "Voidglass",
 				soulstones = 1200,
 			},
 		} :: { EndlessMilestone },
@@ -5694,6 +14788,13 @@ local Balance = {
 			BroodSlime = { hop = 3.6, height = 0.6 },
 			-- A quick skitter.
 			BabySlime = { hop = 1.6, height = 0.5 },
+			--[[ Bogheart Caverns' single-mesh Tripo bodies move whole, by
+			     this hop (they have no clips): the Spore Puff bounces like
+			     the puffball it is, the Shellback plods in long, low
+			     stomps, and the Glowcap, which never moves, only breathes. ]]
+			SporePuff = { hop = 2.6, height = 0.7 },
+			Shellback = { hop = 4.4, height = 0.18 },
+			Glowcap = { hop = 3, height = 0.05 },
 		},
 		--[[ The breath when standing: this share of height, over this many
 		     seconds. ]]
@@ -5799,6 +14900,30 @@ local Balance = {
 				moss = Color3.fromRGB(44, 104, 56),
 				size = 1.0,
 				count = 7,
+			},
+			--[[ Bogheart Caverns (they hop, so they throw): pink puff and
+			     its pale spots; the Glowcap's teal cap and glowing gills;
+			     the Shellback's teal shell and its moss. ]]
+			SporePuff = {
+				light = Color3.fromRGB(246, 140, 176),
+				dark = Color3.fromRGB(214, 84, 128),
+				moss = Color3.fromRGB(250, 222, 200),
+				size = 0.38,
+				count = 5,
+			},
+			Glowcap = {
+				light = Color3.fromRGB(70, 168, 160),
+				dark = Color3.fromRGB(32, 104, 104),
+				moss = Color3.fromRGB(196, 248, 140),
+				size = 0.4,
+				count = 5,
+			},
+			Shellback = {
+				light = Color3.fromRGB(46, 120, 120),
+				dark = Color3.fromRGB(24, 76, 80),
+				moss = Color3.fromRGB(130, 210, 60),
+				size = 0.55,
+				count = 6,
 			},
 		},
 		--[[ Share of the cubes that are moss rather than jelly. ]]
@@ -5948,6 +15073,81 @@ local Balance = {
 			lightShafts = 1,
 			shaftColor = Color3.fromRGB(255, 244, 200),
 			shaftTransparency = 0.92,
+		},
+		--[[ The Drowned Village's flood (assets/concepts/blocky/arenas/
+		     area03_drowned_village_ambience_v2.png): no canopy and no
+		     leaves, so the life hangs low over the open water. Pale cyan
+		     glints and dragonflies for fireflies, thin teal mist, gulls for
+		     birds, and the sheet's two warm light shafts. ]]
+		Drowned = {
+			gap = 3,
+			reach = 46,
+			ends = 16,
+			leafFrom = { 17, 21 },
+			canopy = { 0, 0.2 },
+			hover = 3,
+			clearance = 1.5,
+			leavesPerSecond = 0,
+			leafPool = 0,
+			leafFall = { 0.5, 0.9 },
+			leafRest = 2.5,
+			leafFade = 1.5,
+			leafColors = { Color3.fromRGB(124, 196, 56) },
+			gustSpeed = 0.6,
+			fireflyDensity = 1,
+			fireflyMax = 4,
+			mistDensity = 1,
+			fireflyColor = Color3.fromRGB(190, 250, 250),
+			mistColor = Color3.fromRGB(214, 240, 238),
+			butterflies = 0,
+			butterflyColors = { Color3.fromRGB(245, 241, 230) },
+			birds = 4,
+			birdGap = { 16, 28 },
+			birdHeight = 22,
+			birdSpeed = 16,
+			birdColor = Color3.fromRGB(245, 245, 240),
+			lightShafts = 2,
+			shaftColor = Color3.fromRGB(255, 236, 170),
+			shaftTransparency = 0.92,
+		},
+		--[[ Bogheart Caverns (area04_bogheart_caverns_ambience*.png):
+		     cyan and lime spores drifting down out of the dark onto the
+		     cave floor (the leaves), lime glow-bugs over it (the
+		     fireflies), low teal mist, the sheet's pale cyan light shafts,
+		     and no birds under the rock. ]]
+		Bogheart = {
+			gap = 3,
+			reach = 46,
+			ends = 16,
+			leafFrom = { 10, 14 },
+			canopy = { 0, 0.2 },
+			hover = 4,
+			clearance = 1.5,
+			leavesPerSecond = 1.5,
+			leafPool = 40,
+			leafFall = { 0.3, 0.6 },
+			leafRest = 1.5,
+			leafFade = 1.5,
+			leafColors = {
+				Color3.fromRGB(90, 230, 240),
+				Color3.fromRGB(190, 240, 60),
+			},
+			gustSpeed = 0.4,
+			fireflyDensity = 1,
+			fireflyMax = 4,
+			mistDensity = 1,
+			fireflyColor = Color3.fromRGB(200, 255, 90),
+			mistColor = Color3.fromRGB(170, 220, 215),
+			butterflies = 0,
+			butterflyColors = { Color3.fromRGB(245, 241, 230) },
+			birds = 0,
+			birdGap = { 20, 35 },
+			birdHeight = 22,
+			birdSpeed = 18,
+			birdColor = Color3.fromRGB(30, 30, 33),
+			lightShafts = 2,
+			shaftColor = Color3.fromRGB(170, 240, 245),
+			shaftTransparency = 0.9,
 		},
 	},
 
@@ -6112,6 +15312,14 @@ local Balance = {
 		     to show the whole gatehouse as the player nears it. At 3 the
 		     camera stopped at the wall and the gate never came into view. ]]
 		gateMargin = 12,
+		--[[ Studs further still the view goes past the north wall as the
+		     player walks up to the gate, on a screen where the camera
+		     follows (the view shorter than the room): the run HUD's bars
+		     lie across the top of the screen, and at `gateMargin` alone the
+		     gate and the player leaving through it were under them (the
+		     every-class run-through, 2026-11-16). Not added where the view
+		     is longer than the room (an upright phone), which centres. ]]
+		gateHud = 8,
 		--[[ Studs the focus may follow the player either side of the room's
 		     middle when the view is longer than the room (an upright
 		     phone), rather than sitting still. ]]
@@ -6133,6 +15341,23 @@ local Balance = {
 			     depth. ]]
 			fitWidth = 36,
 			minVisibleDepth = 30,
+			--[[ While a tutorial prompt is up on a phone held upright, the
+			     camera pulls back to this (owner, 2026-11-19: "Pull camera
+			     back", so the prompt stands outside the arena): 1.33x
+			     further out, the floor about 81% of the width. The view is
+			     then long enough that the camera can put the forest past the
+			     wall at the player's end under the prompt
+			     (`CameraFit.clearFocus`); 44 and 46 left a few rows of floor
+			     under it mid-room on a 360 x 780 phone
+			     (`tests/ArenaMargin.spec`). ]]
+			promptFitWidth = 48,
+			--[[ How fast it eases out and back, as a per-second lerp factor. ]]
+			promptEase = 6,
+			--[[ Studs past the room's middle the player walks before the
+			     prompt moves to the other end, and screen points the camera
+			     keeps between the player's feet and the prompt or a HUD. ]]
+			promptSwitch = 1,
+			promptPlayerRoom = 48,
 		},
 	},
 	--[[ The upgrade cards' effects (`Fx/Upgrades`, docs/effects/). Phones
@@ -6146,12 +15371,10 @@ local Balance = {
 		-- parts are posed every frame
 		maxParts = 40,
 		caps = {
-			FxSoulChain = 6,
 			FxBlaze = 6,
 			FxDeadlyStrike = 3,
 			FxBloodletting = 3,
 			FxCleave = 3,
-			FxChainLightning = 6,
 			-- the Broodmother's web: a strand is up to ten segments
 			FxBroodWebStrand = 12,
 		},
@@ -6200,10 +15423,54 @@ local Balance = {
 		-- at the blast's real radius
 		blastRadius = 2.5,
 		blastLife = 0.45,
-		-- Soul Chain: the chain's own length, its lift off the floor, its life
-		chainLength = 10,
-		chainLift = 1.1,
-		chainLife = 0.35,
+		--[[ Soul Chain's fireball (owner, 2026-11-11: "soul link should be like
+		     brand ult"; `Fx/Upgrades/SoulFireFx`, built in code): a blazing
+		     cube with a flame trail that leaps from enemy to enemy, bursts
+		     into fire on each and leaves it burning for a moment. When it
+		     lands is the server's (`Balance.Projectile.linkHop`). ]]
+		soul = {
+			-- most fireballs in the air at once on the best device; a share of
+			-- it on the others, never under one
+			cap = 6,
+			-- studs above the floor it leaves and lands at, and how high a leap
+			-- rises at its middle: a share of its length, between two heights
+			height = 1.8,
+			leap = { share = 0.34, min = 1.6, max = 4.2 },
+			-- the white-hot heart and the fire round it, in studs, and how fast
+			-- they tumble (radians a second)
+			core = 0.95,
+			shell = 1.6,
+			spin = 11,
+			-- the flame trail: its width, how long it hangs (seconds) and how
+			-- much it glows. Fire-coloured from the first inch and well short of
+			-- full glow: at 1 it burned out to a white band (Studio, 2026-11-12)
+			trailWidth = 1,
+			trailLife = 0.2,
+			trailGlow = 0.45,
+			-- embers shed a second on the best device
+			embers = 46,
+			-- the warm light it throws on the floor under it, widest on the ground
+			floorGlow = 2.6,
+			-- landing: flames thrown on the best device, the flash's size and
+			-- the ring on the floor's, and their seconds
+			burst = 16,
+			flash = 3.4,
+			ring = 5,
+			burstLife = 0.18,
+			-- how long the enemy it landed on burns, and the flames a second
+			-- for each of the device's `burnParticleRate`
+			burn = 0.75,
+			burnRate = 2,
+			-- the heart is white-hot; every flame (embers, bursts, the burning)
+			-- starts at `flameColour` and glows `flameGlow`: started from the
+			-- heart's white at full glow, the fire read as yellow-white light
+			-- (Studio, 2026-11-12)
+			coreColour = Color3.fromRGB(255, 244, 196),
+			flameColour = Color3.fromRGB(255, 190, 70),
+			fireColour = Color3.fromRGB(255, 122, 30),
+			emberColour = Color3.fromRGB(206, 40, 18),
+			flameGlow = 0.55,
+		},
 		slamLife = 0.6,
 		cleaveLife = 0.4,
 		-- Bloodletting: its full length in studs, where its heart sits
@@ -6220,20 +15487,58 @@ local Balance = {
 		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
 		twinLife = 0.6,
 		echoLife = 0.9,
-		-- Chain Lightning's bolt: segments, width, how far each kink pushes
-		-- off the line, how often it re-kinks, its colours and life
-		boltSegments = 6,
-		boltWidth = 0.42,
-		boltKink = 0.9,
-		boltCrackle = 0.05,
-		boltCore = Color3.fromRGB(235, 250, 255),
-		boltRim = Color3.fromRGB(60, 190, 255),
-		boltLife = 0.28,
-		nodeLift = 1.4,
-		-- the chain's target is the enemy most nearly along its aim (the
-		-- cosine it must beat), a little past the reach for one that moved
-		boltAimed = 0.8,
-		boltReachSlack = 3,
+		--[[ Chain Lightning's bolt (owner, 2026-11-11: "like the stattik shiv
+		     effect"; `Fx/Upgrades/LightningFx`, built in code from
+		     `Util/BoltPath`): a jagged, forked bolt that snaps from the enemy
+		     struck to the next, white-hot inside a coloured glow, with sparks
+		     and a flash on each enemy it touches, gone in a fraction of a
+		     second. How fast it hops is the server's
+		     (`Balance.Projectile.arcSpeed`). ]]
+		bolt = {
+			-- most bolts drawn at once on the best device; a share of it on
+			-- the others, never under two (one chain is two or three hops)
+			cap = 9,
+			-- studs of bolt to a segment, and the fewest and most segments
+			segmentLength = 1.5,
+			minSegments = 4,
+			maxSegments = 9,
+			-- how far a joint is thrown off the line, as a share of a segment
+			kink = 0.62,
+			-- forks: most on a bolt, each this share of the bolt long and no
+			-- longer than `forkReach` studs, this far off the bolt's heading,
+			-- in this many pieces
+			forks = 3,
+			forkShare = { min = 0.18, max = 0.34 },
+			forkReach = 3.6,
+			forkAngle = { min = math.rad(22), max = math.rad(55) },
+			forkSegments = 2,
+			-- studs wide: the white-hot core, the glow round it, and a fork as
+			-- a share of both; and how clear the glow is. Thick and deep blue:
+			-- at 0.22 and 0.7, half clear, it was a thin white line whose glow
+			-- was lost against the grass (Studio, 2026-11-12)
+			core = 0.3,
+			glow = 1,
+			forkWidth = 0.6,
+			glowClear = 0.28,
+			coreColour = Color3.fromRGB(246, 252, 255),
+			glowColour = Color3.fromRGB(44, 132, 255),
+			-- seconds it shows, seconds between re-kinks, and the share of its
+			-- life it spends thinning away
+			life = 0.17,
+			crackle = 0.04,
+			fade = 0.45,
+			-- studs above the shot's own height it is drawn at, over the bodies
+			lift = 0.7,
+			-- an enemy touched: sparks thrown on the best device, the flash's
+			-- size in studs and its seconds; and the seconds inside which a
+			-- second touch of the same enemy is not drawn again
+			sparks = 12,
+			flash = 3.2,
+			flashLife = 0.1,
+			touchGap = 0.12,
+			-- hops this close together share one sound
+			soundGap = 0.15,
+		},
 		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
 	},

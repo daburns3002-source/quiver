@@ -3,7 +3,46 @@
 Owner, 2026-10-27: **two players first, raised to three later.** Built after Endless
 (`docs/ENDLESS.md`), which is why this doc is decisions-locked rather than a build plan.
 
-Roadmap Phase 9. Everything below is settled; nothing is implemented.
+Roadmap Phase 9. **Built 2026-11-06** (`Shared/Util/Coop`, `Run/Party`, `UI/CoopHud`, downed and
+revive in `Run/RunSession`): party portals, a reserved run server per run (solo and the tutorial
+too; in Studio, which cannot teleport, runs play in place), scaling locked at start, downed and
+revive (radius 6, hold 2.5 s, 40%; 20 s bleed-out, then out until the next fight at 30%), shared
+XP and kill coins, no player collision, the teammate arrow. **Lobby parties built 2026-11-20**
+("Parties", below): invite a player in the server, and the leader's PLAY takes the party. **Not
+built:** the arena footprint (the arenas are art imports now, 1:1 with their sheets, so they cannot
+stretch), a public queue, three players.
+
+---
+
+## Parties (built 2026-11-20)
+
+Owner, 2026-11-19: "make co-op work from the PLAY button too", then "have there be a party system
+where you can invite someone in the server". `Shared/Util/PartyRules` (the pure rules,
+`tests/PartyRules.spec`), `Run/Parties` (the server's one state), `UI/PartyScreen` and `UI/PartyAsk`.
+
+- **Forming.** PARTY in the lobby lists the other players in this server with INVITE. The server
+  checks both are free in its lobby (arrived, off the title, not choosing a class, not travelling,
+  never on a run server), that the sender is in no party or leads one with room, that neither has
+  another invite open (one out and one in each), and that the same pair is not asked again within
+  `againSeconds` (20) of a NO or a lapse. An invite lapses after `inviteSeconds` (30). ACCEPT makes
+  the sender the leader. Open invites a change makes impossible are taken away (`tidy`).
+- **Leaving.** LEAVE, or leaving the server, takes a player out; a party left with one player is
+  over; if the leader went and two or more remain, the next member leads.
+- **Starting.** The leader's start (PLAY's screen or a portal) takes each member who is free with the
+  level open (on hard, open on hard), wherever they stand, then whoever stands in the portal's mouth
+  and is in no party, up to `maxParty`. A member who cannot come is told why (not opened, on the
+  title, busy, the run full). **A member who starts a run without the whole party leaves the party**
+  (picked over refusing them: a kid is never blocked from playing; the leader is told).
+- **The round trip.** A party whose every member goes is written into the teleport's data
+  (`groups`); the run server forms it again from its members' join data, and `sendToLobby` writes the
+  parties there into the data back. Roblox's group teleport lands the group in one public server, where
+  the party forms again within `regroupSeconds` (60) once every member is there. Teleport data passes
+  through the client, so a party forms only when **every** member's data names the same party: one
+  player's data can never put them in someone's party. A party whose members land apart (a full
+  server) is simply not formed again.
+- **Not built:** a party across servers (inviting a friend elsewhere is still Roblox's INVITE A FRIEND,
+  which brings them here), a party card in the run HUD (the teammate arrow and names stand for it), and
+  three players (`Coop.maxParty` is 2; the rules are written for more).
 
 ---
 

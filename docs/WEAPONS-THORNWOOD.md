@@ -1,6 +1,6 @@
 # Weapons — Thornwood (Act 1, area 2)
 
-**Design only; nothing here is built; the owner picks.** Ideas written by
+**In the game since 2026-11-26** (see "Status" at the foot): the fifteen bows, staffs and blades below, with the Assassin's five daggers of 2026-11-17, are sold by Thornwood's crate and store. What follows is the October design. Ideas written by
 Codex (2026-10-26) from the owner's ask: "i need codex to create ideas and
 reference sheets for pets and weapons for area 2 now", then reviewed for
 name clashes with the Mossy Glade, class silhouettes and tone (two effect
@@ -211,3 +211,52 @@ keeps its effect whichever take is picked:
 2. The six effects and their numbers (each a new card except Root Hold).
 3. Whether the Epic blades get anything beyond their glow, as the Epic bows
    and staffs get projectiles.
+
+## Daggers (the Assassin), drawn 2026-11-16
+
+The Assassin opened on 2026-11-16 with no Thornwood daggers; the owner, told so, said "Ok take care
+of this". Codex's front views, in `assets/concepts/blocky/weapons/skins/thornwood/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Modelled in Tripo on 2026-11-16** (owner: "Yes, model them", then "8k textures"): HD model, 4,000 triangles, 8K texture, 65 credits each, 715 for the eleven. The jobs are in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`; the GLBs are not in git, as no Tripo export is: `name_daggers_glb.py` names them for the Import Queue in `Downloads\assassin_daggers_import`, each one textured mesh with UVs. Shop and gear pictures (two copies crossed in a V): `assets/ui/shop/new_dagger_icons.py`. **Imported and wired 2026-11-17** (owner: "models are in"): mesh and texture ids in `assets/models/weapons/blocky/daggers/skin_imports.json`, grips measured from the GLBs (`measure_grips.py`), written into `Config/Weapons` by `skins_to_luau.py` (its `DAGGERS` list), each held in both hands; stats and effects in `Config/WeaponStats`, a cleave each in `Config/WeaponFx`, pictures uploaded (`Config/ShopAssets`, `Config/GearAssets`).
+
+| Tier | Daggers | Picture |
+|---|---|---|
+| Uncommon | **Hedge Prickers**: a long cream thorn for a blade, hedge-green handle bound in brown cord, a leaf at the guard | `hedge_prickers.png` |
+| Rare | **Tusk Knives**: a curved ivory boar tusk, brown leather grip, dark iron guard, a tuft of bristle at the pommel | `tusk_knives.png` |
+| Epic | **Burrfang Daggers**: a plum bramble blade with cream thorn barbs, maroon grip, a spiky burr pommel, a magenta glow in the groove | `burrfang_daggers.png` |
+| Legendary | **Silkfang Daggers**: a dark spider fang with an olive-gold edge, bound in white brood silk, a magenta gem; glows magenta | `silkfang_daggers.png` |
+| Mythic | **Lurker Claws**: a hooked black-green claw wrapped in living vine, a glowing magenta eye in the guard; glows magenta and green | `lurker_claws.png` |
+
+Effects: the Silkfang Daggers carry Poison Trail, the Lurker Claws Fan of Knives. Thornwood is not stocked (`Config/Shop`) and no other class has Thornwood weapons built, so these are held in the sandbox and not for sale.
+
+## Status (2026-11-18)
+
+The owner, asking why Thornwood sold no daggers and told that no Thornwood weapon had ever been built:
+"Yes, all fifteen". The five bows, five staffs and five blades above (the picked Mythics: Nightbarb Bow,
+Blackspine Staff, Briarbreaker Blade) are **modelled in Tripo**: HD model, 4,000 triangles, 8K texture,
+65 credits each, 975 in all (4,980 left).
+
+- Each model was made from Codex's redrawing of its sheet's FRONT view alone
+  (`assets/concepts/blocky/weapons/skins/thornwood/<name>_single.png`, `thornwood_single_prompts.py`);
+  nothing was redesigned. A bow's string is drawn as a thick bar, and all five came out of Tripo whole.
+  Three bow pictures were first refused by the image generator's filter and went through described as a
+  toy prop.
+- Jobs: `assets/models/weapons/blocky/thornwood_tripo_2026_11_18.json`. The GLBs are not in git:
+  `name_tripo_glb.py` names them for the Import Queue in `Downloads\thornwood_weapons_import`, each one
+  textured mesh with UVs.
+- Shop and gear pictures: `assets/ui/shop/thornwood_icons.py` (cut, not uploaded yet).
+- **In the game (2026-11-27).** Uploaded as Model assets through Open Cloud (no owner import; the ids
+  are in `write_skin_imports.py`) and read in Studio into
+  `assets/models/weapons/blocky/thornwood/skin_imports.json`; held by `skins_to_luau.py` (`THORNWOOD`) at
+  grips measured from the GLBs (`themed_sets/measure_grips.py`) and turned into the uploaded meshes' axes,
+  which are the GLB's with x and z negated (checked in Studio from the meshes' own vertices): every bow's
+  riser is on +X of its mesh, a quarter turn; staffs 43% up; blades at their handles, the Briarbreaker
+  Blade at the middle of its whole handle. Stats in `Config/WeaponStats` (area 2), pictures uploaded
+  into `Config/ShopAssets`, and Thornwood's crate is stocked (`Config/Shop`; at launch it waits on King
+  Bloblin, as the portal waits on 1-10). The Legendaries glow silk magenta and each Mythic its own colour
+  (an `aura`; none rainbow, owner 2026-11-06): Nightbarb red, Blackspine violet, Briarbreaker amber.
+- **Shots and cleaves.** No projectile was modelled, so each bow and staff flies a `WeaponFx.shots` look
+  drawn from its sheet's words, and each blade cuts a ribbon cleave (`WeaponFx.cleaves`). None has a card
+  of the Projectile Shots or Blade Cleaves pages yet: those pages were drawn before these weapons were.
+- **Effects.** The owner (2026-11-18): "Build the six new". Built as cards (`docs/CLASS-CARDS.md`,
+  "Thornwood's six cards"), carried as `innate` since 2026-11-26: Silkweaver Bow Web Snare, Nightbarb Bow
+  Thorn Burst, Silk Diadem Staff Root Hold, Blackspine Staff Burr Blight, Silkbound Blade Boar Rush,
+  Briarbreaker Blade Ruin Cracks.

@@ -1,68 +1,55 @@
 --!strict
 --[[
 	The Dex Hall's three books (owner, 2026-10-25: Enemy, Weapon and Pet
-	codexes, "a 2D book with a little page turn frame animation every time
-	the page is turned", entries not yet found drawn as black silhouettes;
-	2026-11-01: "start on the dex screens").
+	codexes, entries not yet found drawn as black silhouettes; 2026-11-01:
+	"start on the dex screens").
 
-	Codex's spread is one finished picture, so this draws it whole and puts
-	only the live furniture on it: the chosen entry down the left page, nine
-	slots on the right, and the tabs and arrows round the outside. Where
-	each panel sits is measured off the art (`Config/Dex`); what goes in
-	them is `Util/DexBook`, which is three readings of configs the rest of
-	the game already keeps.
+	**A book is a page an area** (owner, 2026-11-12: "the dexes should be 1
+	page for each area with bigger icons on the right page. the page should
+	also be themed to match the area"). The left card writes out the chosen
+	entry, standing in front of its area's own scenery; the right-hand page
+	is that area's whole set at once, its tiles as large as the page allows
+	(`HatchStand.grid`: four enemies are a quarter of the page each, an
+	area's eighteen weapons still fit), on a page in the area's colours
+	with its name on the area's plate and its motes drifting over it
+	(`Config/Dex.areas`, sampled off the area's approved NEW ENEMY! sheet).
+	The arrows turn to the next area; `Util/DexBook` says which areas a
+	book has.
+
+	Drawn in the chunky style (owner, 2026-11-05, approving the mockups in
+	`assets/concepts/ui_refs/mockups/dex.jpg`): the panel with the DEX
+	ribbon, a tab for each book and the FOUND count along its head.
 
 	A locked entry is its own picture tinted black. That is the whole trick
 	of a silhouette here -- the shape is the answer, so it has to be the
 	real picture and not a stand-in.
 
 	`draw` builds the whole screen, because `UI/StationScreen` empties the
-	canvas before every redraw: anything made once in `start` would be
-	destroyed the first time the screen opened. Within a draw the work is
-	split in two, and the split matters:
-
-	- the **book** -- the spread, the tabs, the count and the arrows -- is
-	  built once and never touched again while that book is open;
-	- the **pages** -- the left-hand entry and the nine slots -- live in
-	  their own frame that `fill` empties and remakes.
-
-	Turning a page calls `fill`, never `draw`. Rebuilding everything would
-	destroy and remake the spread mid-animation, and the book flickered as
-	the image reloaded (owner, 2026-11-01: "make sure the book doesnt move
-	at all when the animation plays"). Only changing books rebuilds, since
-	that is a different picture.
-
-	The turn itself never touches the spread either. Codex's frames are
-	whole-book pictures that differ from the spread everywhere -- around
-	450,000 pixels on the left page, spine and covers alone -- so playing
-	them as the spread shook the entire book. `Config/Dex` holds them cut
-	down to the right page (`turnWindow`), and they play in a `TurningPage`
-	label laid over the spread, which never changes at all.
+	canvas before every redraw. Within a draw, everything that changes with
+	the page -- the left card's entry, the area's page and its tiles --
+	lives in its own `Pages` frame that `fill` empties and remakes, so
+	turning a page or picking a tile never rebuilds the panel or re-pops it.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Chunky = require(script.Parent.Chunky)
 local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
+local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local StationScreen = require(script.Parent.StationScreen)
 
 local DexScreen = {}
 
---[[ Nine, and the same nine in all three books; `tests/DexBook.spec`
-     holds the three grids to that. ]]
-local PER_PAGE = Dex.books[Dex.order[1]].grid.columns * Dex.books[Dex.order[1]].grid.rows
-local WHITE = Color3.new(1, 1, 1)
-
 local screen: StationScreen.Screen? = nil
---[[ Which book is open, which page of it, and which entry is written out
-     on the left. The page and the choice reset with the book, because
-     entry 4 of the enemies has nothing to do with entry 4 of the pets. ]]
-local book = Dex.order[1]
+--[[ Which book is open, which area's page of it, and which entry is
+     written out on the left. The page and the choice reset with the book,
+     because the weapon book has no Thornwood page to stay on. ]]
+local book = DexBook.BOOKS[1]
 local page = 1
 local chosen: string? = nil
---[[ True while the turn frames are running, so a second press cannot start
-     another turn over the top of the first. ]]
-local turning = false
 
 function DexScreen.open()
 	if screen then
@@ -80,284 +67,415 @@ function DexScreen.isOpen(): boolean
 	return screen ~= nil and screen.isOpen()
 end
 
+--[[ Where everything sits, in sheet pixels, landscape and upright. Each
+     box is x, y, w, h. ]]
+type Layout = {
+	tab: { number }, -- the first tab; the rest step right
+	found: { number },
+	card: { number },
+	scene: { number },
+	picture: { number },
+	name: { number },
+	detail: { number },
+	line: { number },
+	leaf: { number }, -- the area's page
+	back: { number },
+	forward: { number },
+	title: { number },
+	count: { number },
+	grid: { number }, -- the box the tiles are fitted into
+	gap: number,
+	--[[ The largest a tile is drawn: three enemies would otherwise be a
+	     third of the page each and run off its foot. ]]
+	most: number,
+}
+
+local WIDE: Layout = {
+	tab = { 190, 182, 290, 88 },
+	found = { 1330, 186, 400, 80 },
+	card = { 190, 296, 380, 716 },
+	scene = { 208, 314, 344, 300 },
+	picture = { 240, 324, 280, 280 },
+	name = { 204, 628, 352, 64 },
+	detail = { 228, 704, 304, 56 },
+	line = { 208, 774, 344, 224 },
+	leaf = { 588, 296, 1142, 716 },
+	back = { 604, 310, 84, 72 },
+	forward = { 1630, 310, 84, 72 },
+	title = { 700, 310, 620, 72 },
+	count = { 1334, 310, 284, 72 },
+	grid = { 606, 396, 1106, 598 },
+	gap = 14,
+	most = 300,
+}
+
+local TALL: Layout = {
+	tab = { 70, 290, 300, 88 },
+	found = { 290, 400, 500, 76 },
+	card = { 70, 496, 940, 330 },
+	scene = { 90, 514, 400, 294 },
+	picture = { 155, 526, 270, 270 },
+	name = { 510, 520, 480, 78 },
+	detail = { 530, 608, 440, 58 },
+	line = { 510, 678, 480, 134 },
+	leaf = { 70, 846, 940, 1004 },
+	back = { 86, 862, 100, 80 },
+	forward = { 894, 862, 100, 80 },
+	title = { 200, 862, 420, 80 },
+	count = { 632, 862, 250, 80 },
+	grid = { 82, 960, 916, 872 },
+	gap = 12,
+	most = 300,
+}
+
+--[[ Where an area's motes sit on its page, as shares of the page: along
+     its edges and its head, where the tiles do not cover them. ]]
+local MOTES = {
+	{ 0.03, 0.2 },
+	{ 0.97, 0.3 },
+	{ 0.5, 0.135 },
+	{ 0.025, 0.62 },
+	{ 0.975, 0.74 },
+	{ 0.22, 0.985 },
+	{ 0.68, 0.985 },
+	{ 0.86, 0.14 },
+	{ 0.14, 0.14 },
+	{ 0.975, 0.5 },
+}
+
+--[[ A pill with words that read on it: deep sea with white words, or
+     `colour` with the words that colour's face has (`Chunky.textOn`). For
+     the FOUND count, an area's name and count, and the entry's name. ]]
+local function plate(sheet: Chunky.Sheet, words: string, box: { number }, colour: Color3?): Frame
+	local p = Instance.new("Frame")
+	p.Name = "Plate"
+	p.BorderSizePixel = 0
+	p.BackgroundColor3 = colour or Chunky.edge
+	p.ZIndex = 6
+	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
+	Chunky.round(p, box[4])
+	Chunky.outline(p, 5, if colour then Chunky.shade(colour) else nil)
+	local t = if colour then Chunky.textOn(p, words, colour, 4) else Chunky.text(p, words, nil, 4)
+	t.Position, t.Size = UDim2.fromScale(0.08, 0.18), UDim2.fromScale(0.84, 0.64)
+	t.ZIndex = 7
+	return p
+end
+
+--[[ The area's page: its ground in the area's two colours inside its
+     trim, and its motes, glowing round and breathing in turn. ]]
+local function leaf(sheet: Chunky.Sheet, theme: Dex.AreaTheme, box: { number }): Frame
+	local ground = Instance.new("Frame")
+	ground.Name = "Leaf"
+	ground.BorderSizePixel = 0
+	ground.BackgroundColor3 = Color3.new(1, 1, 1)
+	ground.ZIndex = 4
+	Chunky.put(sheet, ground, box[1], box[2], box[3], box[4])
+	local wash = Instance.new("UIGradient")
+	wash.Rotation = 90
+	wash.Color = ColorSequence.new(theme.groundTop, theme.groundBottom)
+	wash.Parent = ground
+	Chunky.round(ground, 26)
+	Chunky.outline(ground, 8, theme.trim)
+	for index, at in MOTES do
+		local mote = Instance.new("Frame")
+		mote.Name = "Mote"
+		mote.BorderSizePixel = 0
+		mote.BackgroundColor3 = theme.accent
+		mote.AnchorPoint = Vector2.new(0.5, 0.5)
+		mote.Position = UDim2.fromScale(at[1], at[2])
+		mote.Size = UDim2.fromScale(0.012, 0.012)
+		mote.SizeConstraint = Enum.SizeConstraint.RelativeXX
+		mote.ZIndex = 5
+		mote.Parent = ground
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0.5, 0)
+		round.Parent = mote
+		local halo = Instance.new("UIStroke")
+		halo.Color = theme.accent
+		halo.Transparency = 0.7
+		halo.Parent = mote
+		Kit.animate(mote, function(t)
+			local glow = 0.5 + 0.5 * math.sin(t * 1.6 + index * 1.9)
+			mote.BackgroundTransparency = 0.55 - 0.45 * glow
+			halo.Thickness = math.max(1, mote.AbsoluteSize.X * (0.25 + 0.35 * glow))
+		end)
+	end
+	return ground
+end
+
 function DexScreen.start()
 	if screen then
 		return
 	end
-	local s = StationScreen.new("DexScreen", "DexHall", "READ THE DEXES")
+	local s = StationScreen.new("DexScreen", "DexHall", "DEX")
 	screen = s
 
 	s.draw = function()
-		--[[ Every box comes from the open book: the three spreads look
-		     alike but are drawn differently, so one shared layout put the
-		     enemy grid out of its frames. ]]
-		local art = Dex.books[book]
+		local area = HatchStand.chrome(s, "DEX")
+		local sheet = area.sheet
+		local L = if sheet.upright then TALL else WIDE
 
-		--[[ The book, held to the art's own shape so every box below lands
-		     where it was measured however the window is sized. It sits a
-		     little low, leaving the top of the screen for the tabs. ]]
-		local stage = Instance.new("Frame")
-		stage.Name = "Book"
-		stage.BackgroundTransparency = 1
-		stage.AnchorPoint = Vector2.new(0.5, 0.5)
-		stage.Position = UDim2.fromScale(0.5, 0.55)
-		stage.Size = UDim2.fromScale(0.9, 0.82)
-		stage.Parent = s.canvas
-		local shape = Instance.new("UIAspectRatioConstraint")
-		shape.AspectRatio = Dex.canvas.X / Dex.canvas.Y
-		shape.Parent = stage
+		for index, name in DexBook.BOOKS do
+			Chunky.tab(
+				sheet,
+				string.upper(name),
+				name == book,
+				L.tab[1] + (index - 1) * (L.tab[3] + 18),
+				L.tab[2],
+				L.tab[3],
+				L.tab[4],
+				function()
+					if book == name then
+						return
+					end
+					book = name
+					page = 1
+					chosen = nil
+					-- `open` clears the canvas before it draws; `draw` alone would not
+					s.open()
+				end
+			)
+		end
 
-		local spread = Instance.new("ImageLabel")
-		spread.Name = "Spread"
-		spread.BackgroundTransparency = 1
-		spread.Image = art.spread
-		spread.Size = UDim2.fromScale(1, 1)
-		spread.ZIndex = 1
-		spread.Parent = stage
+		local all = DexBook.entries(book, s.profile)
+		local found, every = DexBook.found(all)
+		plate(sheet, `FOUND {found} / {every}`, L.found)
+		Chunky.card(sheet, table.unpack(L.card))
 
-		--[[ Everything that changes with the page lives in here, so a turn
-		     can empty it without going near the spread. ]]
+		--[[ Everything that changes with the page, on its own full-canvas
+		     frame so a turn can empty it and slide it in. Laid out against
+		     the same sheet, so its boxes line up with the panel's. ]]
 		local pages = Instance.new("Frame")
 		pages.Name = "Pages"
 		pages.BackgroundTransparency = 1
 		pages.Size = UDim2.fromScale(1, 1)
-		pages.ZIndex = 2
-		pages.Parent = stage
+		-- above the panel (2) and the card (4): siblings draw by ZIndex
+		pages.ZIndex = 8
+		pages.Parent = sheet.canvas
+		local on: Chunky.Sheet =
+			{ canvas = pages, w = sheet.w, h = sheet.h, upright = sheet.upright }
 
-		local function place(item: GuiObject, box: Dex.Box)
-			item.Position = UDim2.fromScale(box.x / Dex.canvas.X, box.y / Dex.canvas.Y)
-			item.Size = UDim2.fromScale(box.w / Dex.canvas.X, box.h / Dex.canvas.Y)
-		end
+		local areas = DexBook.areas(all)
+		local total = math.max(#areas, 1)
+		local fill: (number) -> ()
 
-		--[[ The turning page: a crop of the right page only, laid over the
-		     spread while a turn runs. Nothing else on the book is touched,
-		     so the covers and the spine cannot move -- Codex's frames are
-		     whole-book pictures that differ everywhere, and playing them
-		     as the spread shook the lot (owner, 2026-11-01: "the only part
-		     changing should be the tan pages"). ]]
-		local leaf = Instance.new("ImageLabel")
-		leaf.Name = "TurningPage"
-		leaf.BackgroundTransparency = 1
-		leaf.Visible = false
-		leaf.ZIndex = 4
-		leaf.Parent = stage
-		place(leaf, art.turnWindow)
-
-		--[[ The tabs over the book. Left of centre: `StationScreen`'s own
-		     draw puts the coin and gem pills in the top right, and centred
-		     tabs ran under them. ]]
-		local tabs = Instance.new("Frame")
-		tabs.Name = "Tabs"
-		tabs.BackgroundTransparency = 1
-		tabs.AnchorPoint = Vector2.new(0.5, 0)
-		tabs.Position = UDim2.fromScale(0.4, 0.012)
-		tabs.Size = UDim2.fromScale(0.42, 0.068)
-		tabs.ZIndex = 6
-		tabs.Parent = s.canvas
-		local row = Instance.new("UIListLayout")
-		row.FillDirection = Enum.FillDirection.Horizontal
-		row.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		row.VerticalAlignment = Enum.VerticalAlignment.Center
-		row.Padding = UDim.new(0.02, 0)
-		row.Parent = tabs
-		for _, name in Dex.order do
-			local tab = Kit.nativeButton(tabs, Dex.books[name].title, Kit.colour("Rare"), function()
-				if turning or book == name then
-					return
-				end
-				book = name
-				page = 1
-				chosen = nil
-				--[[ A different book is a different picture, so this one
-				     really does rebuild. ]]
-				s.draw()
-			end)
-			tab.Size = UDim2.fromScale(0.31, 1)
-			tab.BackgroundTransparency = if name == book then 0 else 0.5
-		end
-
-		local count = Instance.new("TextLabel")
-		count.Name = "Count"
-		count.BackgroundTransparency = 1
-		count.Font = Enum.Font.Arcade
-		count.TextColor3 = Dex.countText
-		count.TextScaled = true
-		count.AnchorPoint = Vector2.new(0.5, 0)
-		count.Position = UDim2.fromScale(0.4, 0.086)
-		count.Size = UDim2.fromScale(0.34, 0.032)
-		count.ZIndex = 6
-		count.Parent = s.canvas
-
-		--[[ Declared before the arrows, so their callbacks close over this
-		     local rather than a global that is never set. ]]
-		local fill: () -> ()
-
-		--[[ Both arrows are made once and shown or hidden by `fill`, so a
-		     page change never adds or removes a button. ]]
-		local arrows: { [number]: Frame } = {}
-		local function arrow(x: number, words: string, step: number)
-			local button = Kit.nativeButton(s.canvas, words, Kit.colour("Common"), function()
-				if turning then
-					return
-				end
-				local total = DexBook.pages(DexBook.entries(book, s.profile), PER_PAGE)
-				if page + step < 1 or page + step > total then
-					return
-				end
-				page += step
-				chosen = nil
-				turning = true
-				for _, child in pages:GetChildren() do
-					if child:IsA("GuiObject") then
-						child.Visible = false
-					end
-				end
-				task.spawn(function()
-					--[[ Backwards for the back arrow (owner, 2026-11-01:
-					     "the page animation needs to turn the other way if
-					     they click the back page arrow"). The frames are a
-					     page lifting off the right and falling to the
-					     left, so run in reverse they are a page coming
-					     back the other way. Frames 1 and 6 are the resting
-					     page, so either way begins and ends where the book
-					     already was. ]]
-					local frames = art.turn
-					leaf.Visible = true
-					for index = 1, #frames do
-						--[[ The screen may have closed, or the player may
-						     have changed books; either way this book is
-						     gone and there is nothing to animate. ]]
-						if stage.Parent == nil then
-							return
-						end
-						leaf.Image = if step > 0 then frames[index] else frames[#frames - index + 1]
-						task.wait(Dex.turnFrame)
-					end
-					leaf.Visible = false
-					turning = false
-					--[[ `fill`, not `draw`: the spread is never reassigned
-					     and the stage is never rebuilt, so the book holds
-					     still from the first frame to the last. ]]
-					if stage.Parent ~= nil then
-						fill()
-					end
-				end)
-			end)
-			button.AnchorPoint = Vector2.new(0.5, 1)
-			button.Position = UDim2.fromScale(x, 0.985)
-			button.Size = UDim2.fromScale(0.08, 0.052)
-			button.ZIndex = 6
-			arrows[step] = button
-			return button
-		end
-
-		local function pageText(
-			name: string,
-			box: Dex.Box,
-			colour: Color3,
-			biggest: number
-		): TextLabel
-			local label = Instance.new("TextLabel")
-			label.Name = name
-			label.BackgroundTransparency = 1
-			label.Font = Enum.Font.Arcade
-			label.TextColor3 = colour
-			label.TextScaled = true
-			label.TextWrapped = true
-			label.ZIndex = 3
-			label.Parent = pages
-			place(label, box)
-			local limit = Instance.new("UITextSizeConstraint")
-			limit.MaxTextSize = biggest
-			limit.Parent = label
-			return label
-		end
-
-		fill = function()
-			for _, child in pages:GetChildren() do
-				child:Destroy()
+		local function turn(step: number)
+			if page + step < 1 or page + step > total then
+				return
 			end
-			local all = DexBook.entries(book, s.profile)
-			local total = DexBook.pages(all, PER_PAGE)
-			page = math.clamp(page, 1, total)
-			local shown = DexBook.page(all, page, PER_PAGE)
-			local found, every = DexBook.found(all)
+			page += step
+			chosen = nil
+			fill(step)
+		end
 
-			count.Text = `FOUND {found}/{every}    PAGE {page}/{total}`
-			arrows[-1].Visible = page > 1
-			arrows[1].Visible = page < total
+		fill = function(step: number)
+			pages:ClearAllChildren()
+			page = math.clamp(page, 1, total)
+			local here = areas[page]
+			local theme: Dex.AreaTheme = (if here then Dex.areas[here] else nil) or Dex.plainArea
+			local shown: { DexBook.Entry } = if here then DexBook.inArea(all, here) else {}
 
 			--[[ With nothing picked, the page writes out its first entry,
-			     so the left page is never blank. ]]
+			     so the card is never blank. ]]
 			local pick: DexBook.Entry? = nil
 			for _, entry in shown do
 				if entry.key == chosen then
 					pick = entry
 				end
 			end
+			-- one already found if the page has any: it opened on "???"
+			if not pick then
+				for _, entry in shown do
+					if entry.unlocked then
+						pick = entry
+						break
+					end
+				end
+			end
 			pick = pick or shown[1]
 
-			if pick then
-				local picture = Instance.new("ImageLabel")
-				picture.Name = "Picture"
-				picture.BackgroundTransparency = 1
-				picture.ScaleType = Enum.ScaleType.Fit
-				picture.Image = pick.picture
-				picture.ImageColor3 = if pick.unlocked then WHITE else Dex.silhouette
-				picture.ZIndex = 3
-				picture.Parent = pages
-				place(picture, art.picture)
+			-- the left card: the area's scenery, and the chosen entry in front of it
+			local sheetArt = if here then NewEnemies.sheets[here] else nil
+			local scene = Instance.new("ImageLabel")
+			scene.Name = "Scene"
+			scene.BorderSizePixel = 0
+			scene.BackgroundColor3 = theme.groundTop
+			scene.ZIndex = 6
+			if sheetArt and theme.scene.w > 0 then
+				scene.Image = sheetArt.top
+				scene.ImageRectOffset = Vector2.new(theme.scene.x, theme.scene.y)
+				scene.ImageRectSize = Vector2.new(theme.scene.w, theme.scene.h)
+				scene.ScaleType = Enum.ScaleType.Crop
+				scene.ResampleMode = Enum.ResamplerMode.Pixelated
+			end
+			Chunky.put(on, scene, table.unpack(L.scene))
+			Chunky.round(scene, 18)
+			Chunky.outline(scene, 6, theme.trim)
 
-				pageText("Name", art.plaque, Dex.nameText, 44).Text = if pick.unlocked
-					then pick.name
-					else Dex.unknownName
-				local line = pageText("Line", art.description, Dex.descriptionText, 30)
-				line.Text = if pick.unlocked then pick.description else Dex.unknownLine
-				local pad = Instance.new("UIPadding")
-				pad.PaddingLeft = UDim.new(0.04, 0)
-				pad.PaddingRight = UDim.new(0.04, 0)
-				pad.PaddingTop = UDim.new(0.08, 0)
-				pad.PaddingBottom = UDim.new(0.08, 0)
-				pad.Parent = line
+			if pick then
+				local picture = Kit.image(pages, pick.picture, not pick.unlocked)
+				Chunky.put(on, picture, table.unpack(L.picture))
+				picture.ZIndex = 8
+				if not pick.unlocked then
+					picture.ImageColor3 = Dex.silhouette
+				end
+				local name = plate(
+					on,
+					if pick.unlocked then pick.name else Dex.unknownName,
+					L.name,
+					theme.plate
+				)
+				name.Name = "Name"
+
+				local tone = Chunky.rarity[pick.rarity] or Chunky.grey
+				local tag = plate(
+					on,
+					string.upper(if pick.unlocked then pick.detail else "???"),
+					L.detail,
+					tone
+				)
+				tag.Name = "Detail"
+
+				local line = Chunky.text(
+					pages,
+					if pick.unlocked then pick.description else Dex.unknownLine,
+					Chunky.ink,
+					0
+				)
+				Chunky.put(on, line, table.unpack(L.line))
+				line.TextWrapped = true
+				line.TextYAlignment = Enum.TextYAlignment.Top
+				line.ZIndex = 8
+				local most = Instance.new("UITextSizeConstraint")
+				most.MaxTextSize = 34
+				most.Parent = line
 			end
 
-			--[[ The right page's nine slots. A short last page leaves the
-			     rest of its slots empty paper rather than padding them. ]]
+			--[[ The area's page, and what turns with it: the page itself,
+			     its name, its own count, the arrows and the tiles. A turned
+			     page slides in from the side it was turned to; the card
+			     stays put. ]]
+			local turning = Instance.new("Frame")
+			turning.Name = "Turning"
+			turning.BackgroundTransparency = 1
+			turning.Size = UDim2.fromScale(1, 1)
+			turning.ZIndex = 4
+			turning.Parent = pages
+			local leafOn: Chunky.Sheet =
+				{ canvas = turning, w = sheet.w, h = sheet.h, upright = sheet.upright }
+			leaf(leafOn, theme, L.leaf)
+			local title = "NOTHING HERE YET"
+			if here then
+				title = if theme.name ~= ""
+					then theme.name
+					else string.upper((string.gsub(here, "(%l)(%u)", "%1 %2")))
+			end
+			plate(leafOn, title, L.title, theme.plate).Name = "Area"
+			local areaFound = DexBook.found(shown)
+			-- with the word, so it is not read as "page 2 of 4" beside the arrow
+			plate(leafOn, `{areaFound} / {#shown} FOUND`, L.count).Name = "AreaFound"
+			if page > 1 then
+				Chunky.button(
+					leafOn,
+					"<",
+					Chunky.blue,
+					L.back[1],
+					L.back[2],
+					L.back[3],
+					L.back[4],
+					function()
+						turn(-1)
+					end
+				)
+			end
+			if page < total then
+				Chunky.button(
+					leafOn,
+					">",
+					Chunky.blue,
+					L.forward[1],
+					L.forward[2],
+					L.forward[3],
+					L.forward[4],
+					function()
+						turn(1)
+					end
+				)
+			end
+
+			--[[ The tiles, as large as the page allows for however many the
+			     area has, centred on it. ]]
+			local gx, gy, gw, gh = L.grid[1], L.grid[2], L.grid[3], L.grid[4]
+			local columns, size = HatchStand.grid(#shown, gw, gh, L.gap)
+			size = math.min(size, L.most)
+			local rows = math.max(math.ceil(#shown / columns), 1)
+			local x0 = gx + (gw - (columns * size + (columns - 1) * L.gap)) / 2
+			local y0 = gy + (gh - (rows * size + (rows - 1) * L.gap)) / 2
 			for index, entry in shown do
-				local down = math.floor((index - 1) / art.grid.columns)
-				local across = (index - 1) % art.grid.columns
-				local slot = Instance.new("ImageButton")
+				local across = (index - 1) % columns
+				local down = (index - 1) // columns
+				-- a short last row sits in the middle, not against the left
+				local inRow = if down == rows - 1 then #shown - down * columns else columns
+				local shift = (columns - inRow) * (size + L.gap) / 2
+				local slot = Instance.new("Frame")
 				slot.Name = `Slot{index}`
 				slot.BackgroundTransparency = 1
-				slot.AutoButtonColor = false
-				slot.ScaleType = Enum.ScaleType.Fit
-				slot.Image = entry.icon
-				slot.ImageColor3 = if entry.unlocked then WHITE else Dex.silhouette
-				slot.ZIndex = 3
-				slot.Parent = pages
-				place(slot, {
-					x = art.grid.x + across * art.grid.stepX,
-					y = art.grid.y + down * art.grid.stepY,
-					w = art.grid.w,
-					h = art.grid.h,
-				})
-				--[[ Connected straight to the button, not through
-				     `s.connect`: the slot is remade on every fill, so the
-				     connection should go with it rather than pile up for
-				     the screen's lifetime. ]]
-				slot.Activated:Connect(function()
-					if turning then
-						return
+				slot.ZIndex = 6
+				Chunky.put(
+					leafOn,
+					slot,
+					x0 + shift + across * (size + L.gap),
+					y0 + down * (size + L.gap),
+					size,
+					size
+				)
+				local tile = Chunky.tile(slot, entry.rarity, entry.picture, nil, not entry.unlocked)
+				--[[ No caption here, so the picture has the whole tile
+				     (owner: "bigger icons"). ]]
+				local art = tile:FindFirstChild("Picture")
+				if art and art:IsA("GuiObject") then
+					art.Position, art.Size =
+						UDim2.fromScale(0.07, 0.07), UDim2.fromScale(0.86, 0.86)
+				end
+				Chunky.tier(tile, entry.tier)
+				if not entry.unlocked then
+					local mark = Chunky.text(tile, "?", nil, 5)
+					mark.AnchorPoint = Vector2.new(1, 1)
+					mark.Position, mark.Size =
+						UDim2.fromScale(0.95, 0.95), UDim2.fromScale(0.34, 0.34)
+					mark.ZIndex = 14
+				end
+				if pick and entry.key == pick.key then
+					local ring = Instance.new("Frame")
+					ring.Name = "Chosen"
+					ring.BackgroundTransparency = 1
+					ring.AnchorPoint = Vector2.new(0.5, 0.5)
+					ring.Position, ring.Size =
+						UDim2.fromScale(0.5, 0.5), UDim2.fromScale(1.08, 1.08)
+					ring.ZIndex = 15
+					ring.Parent = slot
+					Chunky.round(ring, 22)
+					Chunky.outline(ring, 7, Chunky.white)
+				end
+				Chunky.press(slot, function()
+					if chosen ~= entry.key then
+						chosen = entry.key
+						fill(0)
 					end
-					chosen = entry.key
-					fill()
 				end)
+			end
+
+			if step ~= 0 then
+				turning.Position = UDim2.fromScale(0.05 * step, 0)
+				TweenService:Create(
+					turning,
+					TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+					{ Position = UDim2.fromScale(0, 0) }
+				):Play()
 			end
 		end
 
-		arrow(0.60, "<", -1)
-		arrow(0.71, ">", 1)
-		fill()
+		fill(0)
 	end
 end
 

@@ -28,11 +28,12 @@ return function(t: TestRunner.Helper)
 	t.test("the owner's ladder: rarer hits harder", function()
 		local bonus = WeaponStats.bonus :: any
 		t.equal(bonus.Common, 0)
-		t.near(bonus.Uncommon, 0.05, 1e-9)
-		t.near(bonus.Rare, 0.15, 1e-9)
-		t.near(bonus.Epic, 0.25, 1e-9)
-		t.near(bonus.Legendary, 0.4, 1e-9)
-		t.near(bonus.Mythic, 0.7, 1e-9)
+		-- raised 2026-11-13 (owner, balance review item 4)
+		t.near(bonus.Uncommon, 0.1, 1e-9)
+		t.near(bonus.Rare, 0.25, 1e-9)
+		t.near(bonus.Epic, 0.45, 1e-9)
+		t.near(bonus.Legendary, 0.75, 1e-9)
+		t.near(bonus.Mythic, 1.2, 1e-9)
 	end)
 
 	t.test("every Legendary and Mythic has an extra effect of real cards", function()
@@ -55,14 +56,16 @@ return function(t: TestRunner.Helper)
 	t.test("the weapon in hand sets the damage", function()
 		local base = AbilityEffects.serverStats({}, "Ranger").damage
 		t.near(AbilityEffects.serverStats({}, "Ranger", "TwigBow").damage, base, 1e-6)
-		t.near(AbilityEffects.serverStats({}, "Ranger", "AcornBow").damage, base * 1.05, 1e-6)
-		t.near(AbilityEffects.serverStats({}, "Ranger", "GladeSpiritBow").damage, base * 1.7, 1e-6)
-		-- a pair of bows is its single bow's
+		local bonus = WeaponStats.bonus :: any
 		t.near(
-			AbilityEffects.serverStats({}, "Ranger", "GladeSpiritBowDual").damage,
-			base * 1.7,
+			AbilityEffects.serverStats({}, "Ranger", "AcornBow").damage,
+			base * (1 + bonus.Uncommon),
 			1e-6
 		)
+		local mythic = base * (1 + bonus.Mythic)
+		t.near(AbilityEffects.serverStats({}, "Ranger", "GladeSpiritBow").damage, mythic, 1e-6)
+		-- a pair of bows is its single bow's
+		t.near(AbilityEffects.serverStats({}, "Ranger", "GladeSpiritBowDual").damage, mythic, 1e-6)
 	end)
 
 	t.test("a Legendary's effect reaches the shot, on the server and the client alike", function()

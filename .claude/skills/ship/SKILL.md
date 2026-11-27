@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Finish a change the Arrow Legends way — gates, sync check, in-Roblox tests, a real playtest, FIXES/TRACKER/CLAUDE.md, self-review, then PR and merge with tools/ship.sh.
+description: Finish a change the Arrowborne way — gates, sync check, in-Roblox tests, a real playtest, FIXES/TRACKER/CLAUDE.md, self-review, then PR and merge with tools/ship.sh.
 ---
 
 # Ship a change

@@ -1,0 +1,22 @@
+Generate ONE 16:9 image and save it in the current directory as palace_d_landmark_options.png
+
+This is a clean reference sheet on a plain light-grey backdrop, not a scene. Image 1 is the style reference: clean, smooth, chunky low-poly shapes, flat saturated colours, no pixel textures. Image 1's building construction is copied for every building here: brown walls, white columns with gold bands, a carpet, a sloped roof with gold corners.
+
+Three rows, three small buildings in each row, all from the same three-quarter angle, each with a different huge landmark on its roof at the same scale as the giant book in image 1. Label each row at the left in blocky pixel letters with exactly the words given, and label each building underneath with A, B or C.
+
+Row WEAPON SHOP, orange-red roof, in orange letters:
+A. A colossal sword driven point-down through the roof, with a glowing forge chimney.
+B. A giant bow and three giant arrows crossed behind the roof ridge.
+C. A giant anvil on the roof, with a hammer mid-strike and orange sparks.
+
+Row HATCH EGGS, golden-yellow roof, in yellow letters:
+A. A giant speckled egg in a nest, cracked with warm light pouring out.
+B. The whole roof shaped as the top half of an enormous hatching eggshell, with a small round pet peeking over its jagged rim.
+C. Three giant colourful eggs in a row on golden stands, the middle one floating and glowing.
+
+Row YOUR GEAR, light-blue roof, in light-blue letters:
+A. A giant knight's helmet and round shield mounted on the roof.
+B. A giant suit of armour standing on the roof, arms at its sides, like a statue.
+C. A giant open treasure chest on the roof, with gear spilling from it and a soft blue glow.
+
+No characters and no other words.

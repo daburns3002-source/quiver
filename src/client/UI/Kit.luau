@@ -2,25 +2,37 @@
 --[[
 	The shops' drawing kit (owner, 2026-10-26: "Scale, never Offset").
 	All layout rectangles use the 1920 by 1080 sheet's 8px grid.
-	Candy gloss (owner: "Match option B"): cream, gold and warm ink.
+	Candy gloss (owner: "Match option B"), in Lagoon's colours since
+	2026-11-12 (`Config/UiPalette`): mint-white, sunny gold and deep-sea ink.
+	A piece with white words carries no gloss: a white shine over the face
+	would drop them under 3:1.
 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Device = require(script.Parent.Parent.Device)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local OptcAssets = require(ReplicatedStorage.Shared.Config.OptcAssets)
+local Palette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local Kit = {}
-Kit.wood = Color3.fromRGB(255, 236, 196)
-Kit.slate = Color3.fromRGB(235, 211, 164)
-Kit.gold = Color3.fromRGB(255, 205, 40)
-Kit.green = Color3.fromRGB(46, 220, 46)
-Kit.white = Color3.fromRGB(255, 248, 220)
-local INK = Color3.fromRGB(58, 36, 18)
+--[[ The panel's two colours (their old names), the main button's sunny
+     gold, go's green, white, and the ink of outlines and dark words. ]]
+Kit.wood = Palette.panelTop
+Kit.slate = Palette.panelBottom
+Kit.gold = Palette.primary.top
+Kit.green = Palette.go.top
+Kit.white = Palette.white
+local INK = Palette.edge
+--[[ Whether a piece in `colour` is pale: dark words, and a gloss. ]]
+local function pale(colour: Color3): boolean
+	return colour == Kit.wood or colour == Kit.slate or UiContrast.faceOf(colour).stroke == nil
+end
 function Kit.box(x: number, y: number, w: number, h: number): (UDim2, UDim2)
 	return UDim2.fromScale(x / 1920, y / 1080), UDim2.fromScale(w / 1920, h / 1080)
 end
@@ -56,7 +68,9 @@ end
 function Kit.panel(parent: Instance, colour: Color3): Frame
 	local f = Instance.new("Frame")
 	f.BorderSizePixel = 0
-	f.BackgroundColor3 = colour
+	-- white under the gradient, which carries the colour: a coloured ground
+	-- would multiply with it and draw the piece darker than its palette
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
 	f.Size = UDim2.fromScale(1, 1)
 	f.Parent = parent
 	local stroke = Instance.new("UIStroke")
@@ -65,17 +79,10 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 	rounded(f, 0.06)
 	f:SetAttribute("CornerPixels", 28)
 	local gradient = Instance.new("UIGradient")
-	gradient.Color = if colour == Kit.green
-		then ColorSequence.new(Color3.fromRGB(123, 234, 58), Kit.green)
-		elseif colour == Kit.gold then ColorSequence.new(
-			Kit.gold,
-			Color3.fromRGB(247, 165, 49)
-		)
-		elseif colour == Kit.wood or colour == Kit.slate then ColorSequence.new(
-			Kit.wood,
-			Kit.slate
-		)
-		else ColorSequence.new(colour:Lerp(Kit.white, 0.22), colour:Lerp(INK, 0.12))
+	local look = UiContrast.faceOf(colour)
+	gradient.Color = if colour == Kit.wood or colour == Kit.slate
+		then ColorSequence.new(Kit.wood, Kit.slate)
+		else ColorSequence.new(look.top, look.bottom)
 	gradient.Rotation = 90
 	gradient.Parent = f
 	local bevel = Instance.new("Frame")
@@ -85,7 +92,7 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 	bevel.Parent = f
 	rounded(bevel, 0.06)
 	local edge = Instance.new("UIStroke")
-	edge.Color, edge.Thickness = Kit.gold, 2
+	edge.Color, edge.Thickness, edge.Transparency = Kit.white, 2, 0.25
 	edge.Parent = bevel
 	local function resizeSurface()
 		local unit = canvasUnit(f)
@@ -115,7 +122,9 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 		radiusChanged:Disconnect()
 	end)
 	resizeSurface()
-	gloss(f, false)
+	if pale(colour) then
+		gloss(f, false)
+	end
 	return f
 end
 function Kit.pill(f: Frame)
@@ -134,8 +143,8 @@ function Kit.pill(f: Frame)
 	local old = f:FindFirstChild("Gloss")
 	if old then
 		old:Destroy()
+		gloss(f, true)
 	end
-	gloss(f, true)
 end
 function Kit.plate(parent: Instance): Frame
 	local f = Kit.panel(parent, Color3.fromRGB(132, 49, 14))
@@ -180,7 +189,7 @@ function Kit.label(parent: Instance, words: string, colour: Color3?): TextLabel
 	if parent.Name == "TitlePlate" then
 		l.Position, l.Size = UDim2.fromScale(0.08, 0.12), UDim2.fromScale(0.84, 0.76)
 	end
-	l.Font = Enum.Font.Arcade
+	l.Font = Enum.Font.FredokaOne
 	l.Text = words
 	l.TextColor3 = colour or Kit.white
 	l.TextStrokeColor3 = INK
@@ -366,7 +375,11 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 	local l = Kit.label(f, words)
 	l.Position = UDim2.fromScale(0.04, 0.12)
 	l.Size = UDim2.fromScale(0.92, 0.76)
-	l.TextColor3 = if colour == Kit.gold or colour == Kit.slate then INK else Kit.white
+	if pale(colour) then
+		l.TextColor3, l.TextStrokeTransparency = Palette.ink, 1
+	else
+		l.TextStrokeColor3 = UiContrast.faceOf(colour).edge
+	end
 	local limit = l:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then
 		limit.MaxTextSize = 72
@@ -374,7 +387,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 	local scale = Instance.new("UIScale")
 	scale.Parent = f
 	local b = Instance.new("TextButton")
-	b.Font = Enum.Font.Arcade
+	b.Font = Enum.Font.FredokaOne
 	b.Text = ""
 	b.BackgroundTransparency = 1
 	b.Size = UDim2.fromScale(1, 1)
@@ -412,7 +425,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			or input.UserInputType == Enum.UserInputType.Touch
 		then
 			pressed = true
-			grow(0.96)
+			grow(0.9)
 		end
 	end)
 	connect(b.InputEnded, function()
@@ -443,9 +456,24 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			sweep.Position = UDim2.fromScale(0.05 + math.min(phase / 1.2, 1) * 0.78, 0.1)
 		end)
 	end
+	--[[ Let go: a click, a ring off its edge (`Kit.ring`), and the face
+	     jumps past its size and wobbles back, as every other button does
+	     (owner, 2026-11-26: "make it more lively to click on buttons"). A
+	     click the action plays too is dropped by the sound's `minGap`. ]]
 	connect(b.Activated, function()
-		scale.Scale = 0.94
-		grow(if hovered then 1.025 else 1)
+		SoundFx.play("card_click")
+		Kit.ring(f)
+		if motion then
+			motion:Cancel()
+		end
+		scale.Scale = 1.1
+		local settle = TweenService:Create(
+			scale,
+			TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+			{ Scale = if hovered then 1.025 else 1 }
+		)
+		motion = settle
+		settle:Play()
 		action()
 	end)
 	return f
@@ -729,14 +757,15 @@ function Kit.stage(parent: Instance, x: number, y: number, w: number, moss: bool
 end
 function Kit.wallet(parent: Instance, coins: number, gems: number)
 	for index, entry in { { ShopAssets.coin, tostring(coins) }, { ShopAssets.gem, tostring(gems) } } do
-		local p = Kit.panel(parent, Color3.fromRGB(70, 29, 12))
+		local p = Kit.panel(parent, Palette.pill)
 		Kit.pill(p)
 		p.Name = "Wallet"
 		Kit.put(p, if index == 1 then 1352 else 1632, 52, if index == 1 then 264 else 240, 100)
 		local i = Kit.image(p, entry[1])
 		i.Size = UDim2.fromScale(0.24, 0.8)
 		i.Position = UDim2.fromScale(0.04, 0.1)
-		local l = Kit.label(p, entry[2])
+		local l = Kit.label(p, entry[2], Palette.pillText)
+		l.TextStrokeTransparency = 1
 		l.Position = UDim2.fromScale(0.3, 0.2)
 		l.Size = UDim2.fromScale(0.66, 0.6)
 	end
@@ -795,7 +824,7 @@ function Kit.pixelPanel(parent: Instance, w: number, h: number, colour: Color3):
 	return f
 end
 
---[[ A word on a pixel panel: Press Start 2P with Codex's ink outline,
+--[[ A word on a pixel panel: Fredoka One with Codex's ink outline,
      scaled to fit its box and capped at the size it was drawn for, so it
      may shrink to stay inside but never grow (CLAUDE.md rule 11). ]]
 function Kit.pixelText(parent: Instance, words: string, size: number, colour: Color3?): TextLabel
@@ -803,7 +832,7 @@ function Kit.pixelText(parent: Instance, words: string, size: number, colour: Co
 	t.Name = "PixelText"
 	t.BackgroundTransparency = 1
 	t.Size = UDim2.fromScale(1, 1)
-	t.Font = Enum.Font.Arcade
+	t.Font = Enum.Font.FredokaOne
 	t.Text = words
 	t.TextSize = size
 	t.TextScaled = true
@@ -829,19 +858,76 @@ end
 	and settles back on a Back ease, so the button answers before the
 	server does. `burst` throws his ring of coins out of the press itself —
 	twelve, on the clock, fading as they fly.
+
+	`swell` is how much it lifts under the pointer, 0.08 of its size if not
+	given. Something big (a whole card) gives less, or it grows out of its
+	panel: an area's card, 8% bigger, hung out of CHOOSE AN AREA's foot (the
+	every-class run-through, 2026-11-16).
 ]]
-function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
+--[[ A ring out of a pressed button's edge (owner, 2026-11-26: "make it more
+     lively to click on buttons too with effects"): its own outline in white,
+     growing out and fading in about a third of a second, over everything
+     on its screen. Not for something filling most of the screen (a
+     tap-anywhere layer), where a ring the size of the screen means nothing. ]]
+function Kit.ring(visual: GuiObject)
+	local layer = visual:FindFirstAncestorWhichIsA("ScreenGui")
+	if not layer then
+		return
+	end
+	local size = visual.AbsoluteSize
+	local screen = layer.AbsoluteSize
+	if size.X <= 4 or size.Y <= 4 or size.X > screen.X * 0.6 or size.Y > screen.Y * 0.6 then
+		return
+	end
+	local middle = visual.AbsolutePosition + size / 2 - layer.AbsolutePosition
+	local ring = Instance.new("Frame")
+	ring.Name = "PressRing"
+	ring.AnchorPoint = Vector2.new(0.5, 0.5)
+	ring.BackgroundTransparency = 1
+	ring.Position = UDim2.fromOffset(middle.X, middle.Y)
+	ring.Size = UDim2.fromOffset(size.X, size.Y)
+	ring.ZIndex = 58
+	ring.Parent = layer
+	local corner = Instance.new("UICorner")
+	local own = visual:FindFirstChildWhichIsA("UICorner", true)
+	corner.CornerRadius = if own then own.CornerRadius else UDim.new(0.3, 0)
+	corner.Parent = ring
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(1, 1, 1)
+	stroke.Thickness = 5
+	stroke.Transparency = 0.1
+	stroke.Parent = ring
+	local grow = math.clamp(math.min(size.X, size.Y) * 0.45, 14, 40)
+	local info = TweenInfo.new(0.36, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService
+		:Create(ring, info, { Size = UDim2.fromOffset(size.X + grow * 2, size.Y + grow * 2) })
+		:Play()
+	local fade = TweenService:Create(stroke, info, { Transparency = 1, Thickness = 1 })
+	fade:Play()
+	fade.Completed:Once(function()
+		ring:Destroy()
+	end)
+end
+
+function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: number?)
 	local scale = visual:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
 	scale.Parent = visual
 	local base = scale.Scale
+	local lift = 1 + (swell or 0.08)
 	local showing: number? = nil
 	local playing: Tween? = nil
-	local function settle()
+	--[[ While the release's pop plays, the pointer leaving or hovering
+	     does not cut it short; it settles from there. ]]
+	local poppingUntil = 0
+	local function settle(style: Enum.EasingStyle?)
+		if os.clock() < poppingUntil and hit.GuiState ~= Enum.GuiState.Press then
+			return
+		end
 		local want = base
 		if hit.GuiState == Enum.GuiState.Press then
-			want = base * 0.9
+			want = base * 0.86
 		elseif hit.GuiState == Enum.GuiState.Hover then
-			want = base * 1.08
+			want = base * lift
 		end
 		if showing == want then
 			return
@@ -852,12 +938,42 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
 		end
 		playing = TweenService:Create(
 			scale,
-			TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			if style
+				then TweenInfo.new(0.5, style, Enum.EasingDirection.Out)
+				else TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
 			{ Scale = want }
 		)
 		assert(playing, "a tween"):Play()
 	end
-	hit:GetPropertyChangedSignal("GuiState"):Connect(settle)
+	hit:GetPropertyChangedSignal("GuiState"):Connect(function()
+		settle()
+	end)
+	--[[ Let go: the face jumps past its size and wobbles back (Elastic), and
+	     a ring leaves its edge (`Kit.ring`). ]]
+	hit.Activated:Connect(function()
+		if playing then
+			playing:Cancel()
+		end
+		showing = nil
+		poppingUntil = os.clock() + 0.09
+		local up = TweenService:Create(
+			scale,
+			TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Scale = base * 1.14,
+			}
+		)
+		playing = up
+		up:Play()
+		up.Completed:Once(function(state)
+			if state ~= Enum.PlaybackState.Completed or playing ~= up then
+				return
+			end
+			poppingUntil = 0
+			settle(Enum.EasingStyle.Elastic)
+		end)
+		Kit.ring(visual)
+	end)
 	if not burst then
 		return
 	end
@@ -902,125 +1018,53 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
 	end)
 end
 
---[[
-	A pet standing on its card, as the real model rather than a picture
-	(Codex's `EggHatcheryUI` drew its cards this way and the owner,
-	2026-10-31, asked for it back). The server builds the pets once into
-	`ReplicatedStorage.PetPreview` (`Server/Dev/PetPreview`), so this clones
-	one and frames it.
-
-	The camera is placed off the model's own extents, never by eye, so a
-	tall pet and a wide one both sit inside the card with room around them
-	— the pictures were being cut at the card's edge. It stands in front of
-	the pet: `Config/PetModels` is in Roblox's frame, where a model's front
-	is its pivot's look vector, which an identity pivot points down -Z.
-
-	Returns nil when the pet has no model yet, and the card falls back to
-	its picture.
-]]
-local MODEL_FOV = 40
---[[ How much of the card the pet fills, leaving the rest as margin. ]]
-local MODEL_FILL = 1.12
---[[ The eight corners of a unit box, for framing a model against a card. ]]
-local CORNERS = {}
-for _, x in { -1, 1 } do
-	for _, y in { -1, 1 } do
-		for _, z in { -1, 1 } do
-			table.insert(CORNERS, Vector3.new(x, y, z))
-		end
-	end
+--[[ The press feel for a button built by hand rather than through `Chunky`
+     or a `Kit` maker (2026-11-26): `pressFx` on its face (the button itself
+     unless `visual` is given) and the click every other button makes. ]]
+function Kit.juice(hit: GuiButton, visual: GuiObject?, sound: string?)
+	Kit.pressFx(hit, visual or hit, false)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
+	end)
 end
---[[ The three-quarter turn: round to its left and a little above it. ]]
-local MODEL_YAW = 20
-local MODEL_PITCH = 11
 
-function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportFrame?
-	local built = ReplicatedStorage:FindFirstChild("PetPreview")
-	local template = if built then built:FindFirstChild(key) else nil
-	if not template or not template:IsA("Model") then
-		return nil
+--[[ A click and a ring for a button whose face something else already
+     moves (an entrance, a bob): nothing on it is scaled. ]]
+function Kit.answer(hit: GuiButton, face: GuiObject?, sound: string?)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
+		Kit.ring(face or hit)
+	end)
+end
+
+--[[ A refused press (a LOCKED button): the face shakes its head, a quick
+     tilt each way, rather than doing nothing at all. ]]
+function Kit.shake(item: GuiObject)
+	if item:GetAttribute("Shaking") then
+		return
 	end
-
-	local view = Instance.new("ViewportFrame")
-	view.Name = "PetModel"
-	view.Ambient = Color3.fromRGB(220, 220, 220)
-	view.BackgroundTransparency = 1
-	view.LightColor = Color3.new(1, 1, 1)
-	view.LightDirection = Vector3.new(-1, -1, -2)
-	view.Size = UDim2.fromScale(1, 1)
-	view.ZIndex = 12
-	view.Parent = parent
-
-	local world = Instance.new("WorldModel")
-	world.Parent = view
-	local model = template:Clone()
-	model.Parent = world
-	--[[ Squared up first, so the pet faces the camera whatever pose the
-	     server left it in, then shifted so its middle is the origin. ]]
-	model:PivotTo(CFrame.new())
-	local middle, extents = model:GetBoundingBox()
-	model:PivotTo(CFrame.new(-middle.Position))
-
-	if hidden then
-		for _, part in model:GetDescendants() do
-			if part:IsA("BasePart") then
-				part.Color = Color3.new(0, 0, 0)
-				part.Material = Enum.Material.SmoothPlastic
-				if part:IsA("MeshPart") then
-					part.TextureID = ""
-				end
-			end
+	item:SetAttribute("Shaking", true)
+	local start = item.Rotation
+	task.spawn(function()
+		for _, tilt in { 7, -7, 5, -5, 2, 0 } do
+			local turn = TweenService:Create(
+				item,
+				TweenInfo.new(0.045, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+				{ Rotation = start + tilt }
+			)
+			turn:Play()
+			turn.Completed:Wait()
 		end
-	end
+		item:SetAttribute("Shaking", nil)
+	end)
+end
 
-	--[[ Seen from a three-quarter view rather than head on (owner,
-	     2026-10-31: "i still want them at an angle"), which is how a pet
-	     reads as a model instead of a picture of one.
-
-	     Turned that way the pet is wider on screen than its own X, so the
-	     room it needs is measured across the turn, not off one axis; and
-	     the distance is to its middle, with its near corner half a
-	     diagonal closer. Both were what cut pets at the card's edge. ]]
-	local yaw, pitch = math.rad(MODEL_YAW), math.rad(MODEL_PITCH)
-	local across = extents.X * math.cos(yaw) + extents.Z * math.sin(yaw)
-	local deep = extents.Z * math.cos(yaw) + extents.X * math.sin(yaw)
-	local tall = extents.Y * math.cos(pitch) + deep * math.sin(pitch)
-	local reach = math.max(across, tall)
-	local away = (reach / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
-		+ math.sqrt(extents.X ^ 2 + extents.Z ^ 2) / 2
-	local camera = Instance.new("Camera")
-	camera.FieldOfView = MODEL_FOV
-	local eye = CFrame.Angles(0, yaw, 0) * CFrame.Angles(pitch, 0, 0) * Vector3.new(0, 0, -away)
-	camera.CFrame = CFrame.lookAt(eye, Vector3.zero)
-	camera.Parent = view
-
-	--[[ A model centred on the origin does not land centred on the card:
-	     the camera looks down at it, so the near and far faces of its box
-	     project by different amounts and the pet rides high. Rather than
-	     guess an offset, its box is projected and the pet is slid by what
-	     that measures — which holds for any pet, whatever its shape. ]]
-	local half = math.tan(math.rad(MODEL_FOV) / 2)
-	--[[ Sliding the pet changes its own projection, since a corner nearer
-	     the lens moves further on screen than one behind it, so one pass
-	     lands close rather than true. A few settle it. ]]
-	for _ = 1, 4 do
-		local here = model:GetBoundingBox().Position
-		local low, high = Vector2.one * math.huge, Vector2.one * -math.huge
-		for _, corner in CORNERS do
-			local at = camera.CFrame:PointToObjectSpace(here + corner * extents / 2)
-			local flat = Vector2.new(at.X, at.Y) / (-at.Z * half)
-			low, high = low:Min(flat), high:Max(flat)
-		end
-		local drift = (low + high) / 2
-		if drift.Magnitude < 1e-4 then
-			break
-		end
-		local reachOut = camera.CFrame.RightVector * (drift.X * away * half)
-		local reachUp = camera.CFrame.UpVector * (drift.Y * away * half)
-		model:PivotTo(model:GetPivot() - reachOut - reachUp)
-	end
-	view.CurrentCamera = camera
-	return view
+--[[ Only the click, for a tap-anywhere layer whose face is the whole screen
+     and must not squash. ]]
+function Kit.click(hit: GuiButton, sound: string?)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
+	end)
 end
 
 --[[ Codex's bright rarity palette, which is not `Config/Rarities`: his
@@ -1053,8 +1097,7 @@ function Kit.rarityCard(
 	art: string,
 	chance: number,
 	hidden: boolean,
-	owned: boolean,
-	key: string?
+	owned: boolean
 ): Frame
 	local base = Kit.bright[rarity] or Kit.colour(rarity)
 
@@ -1118,20 +1161,13 @@ function Kit.rarityCard(
 	})
 	slant.Parent = gleam
 
-	--[[ The model where there is one, as Codex drew them, and the picture
-	     where there is not — a weapon always keeps its 2D art. ]]
-	local standing = if key then Kit.petModel(card, key, hidden) else nil
-	if standing then
-		--[[ The whole card, as Codex fills his: the odds sit over the pet
-		     in the corner rather than taking a strip of their own. ]]
-		standing.Position, standing.Size = UDim2.fromScale(0.02, 0), UDim2.fromScale(0.96, 1)
-	else
-		local picture = Kit.image(card, art)
-		picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
-		picture.ZIndex = 12
-		if hidden then
-			picture.ImageColor3 = Color3.new(0, 0, 0)
-		end
+	--[[ Its one picture (`Util/ItemIcons`): a pet is its 2D picture like
+	     a weapon (owner, 2026-11-19). ]]
+	local picture = Kit.image(card, art)
+	picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
+	picture.ZIndex = 12
+	if hidden then
+		picture.ImageColor3 = Color3.new(0, 0, 0)
 	end
 
 	local odds = Kit.pixelText(card, string.format("%g%%", math.round(chance * 10000) / 100), 26)
@@ -1208,6 +1244,17 @@ function Kit.rarityCard(
 		Kit.owned(card)
 	end
 	return card
+end
+
+--[[ Whether the player is steering with a gamepad right now: the last
+     thing they touched was one. A screen that puts the selection on its main
+     button for a gamepad asks this, not `GamepadEnabled`: with a controller
+     only plugged in, a mouse player got the white selection box round PLAY,
+     and the selected card drawn bigger, as if hovered (the every-class
+     run-through, 2026-11-16). ]]
+function Kit.gamepadInUse(): boolean
+	local last = UserInputService:GetLastInputType()
+	return string.sub(last.Name, 1, 7) == "Gamepad"
 end
 
 function Kit.canvas(parent: Instance): Frame
@@ -1316,7 +1363,7 @@ function Kit.nativeText(parent: Instance, words: string, colour: Color3?): TextL
 	text.BackgroundTransparency = 1
 	text.Size = UDim2.fromScale(0.88, 0.72)
 	text.Position = UDim2.fromScale(0.06, 0.14)
-	text.Font = Enum.Font.Arcade
+	text.Font = Enum.Font.FredokaOne
 	text.Text = words
 	text.TextColor3 = colour or Color3.new(1, 1, 1)
 	text.TextStrokeTransparency = 1
@@ -1353,7 +1400,7 @@ function Kit.nativeText(parent: Instance, words: string, colour: Color3?): TextL
 end
 function Kit.nativePress(frame: Frame, action: () -> ()): TextButton
 	local hit = Instance.new("TextButton")
-	hit.Font = Enum.Font.Arcade
+	hit.Font = Enum.Font.FredokaOne
 	hit.Text = ""
 	hit.BackgroundTransparency = 1
 	hit.AutoButtonColor = false

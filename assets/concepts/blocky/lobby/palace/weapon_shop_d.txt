@@ -1,0 +1,11 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as building_weapon_shop_detailed.png
+
+A detailed art-direction reference sheet for one building in a mobile game's lobby, precise enough for a modeller to work from.
+
+The building is the WEAPON SHOP. Roof: orange-red shingles, with chunky broken tiles and exposed rafters heaved up around the blade.
+Landmark: a colossal steel sword driven point-down through the roof with a bevelled fuller down the blade, an ornate gold crossguard with a red gem, a brown leather-wrapped grip and a gold pommel. Beside it, a stone-block chimney with iron bands and glowing slots.
+Gable emblem: a gold crossed sword and hammer. Banners: red with a gold sword.
+Interior through the door: weapon racks and shields on the walls, and warm forge light.
+Props at the door: an iron anvil on a banded wooden stump with a hammer resting on it, a carved rack of three swords, a small stone-block forge with a glowing mouth and bellows, and a barrel of arrows.
+Character: the blacksmith, at the anvil.
+Title: WEAPON SHOP, in glowing orange.

@@ -10,6 +10,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Lobby = require(ReplicatedStorage.Shared.Config.Lobby)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -85,36 +86,129 @@ return function(t: TestRunner.Helper)
 	     class, so one Mythic, and choosing a class must not treble the
 	     chance of pulling one (owner, 2026-10-28: "make the odds of
 	     pulling a mythic 1%"). ]]
-	t.test("a Mythic is about 1% of an open, from any chest", function()
-		for _, chest in Shop.chests do
-			local pool = ShopRules.cratePool(1, chest.class)
-			local mythic = nil
-			for _, entry in pool do
-				if entry.rarity == "Mythic" then
-					mythic = entry
-				end
+	t.test("a Mythic is about 1% of an open, from any chest of any area", function()
+		for index, crate in Shop.crates do
+			if not crate.stocked then
+				continue
 			end
-			t.notNil(mythic, `{chest.name}: no Mythic in the chest`)
-			if mythic then
-				t.near(ShopRules.chance(1, mythic, chest.class), 0.01, 0.003, chest.name)
+			for _, chest in Shop.chests do
+				local pool = ShopRules.cratePool(index, chest.class)
+				local mythic = nil
+				local sum = 0
+				for _, entry in pool do
+					sum += ShopRules.chance(index, entry, chest.class)
+					if entry.rarity == "Mythic" then
+						mythic = entry
+					end
+				end
+				local name = `{crate.name} {chest.name}`
+				t.near(sum, 1, 1e-9, `{name}: the chances do not add up`)
+				t.notNil(mythic, `{name}: no Mythic in the chest`)
+				if mythic then
+					--[[ The Drowned Village has no Uncommon bow: its share goes
+					     to the Rare and the Epic, never to the Mythic. ]]
+					t.near(ShopRules.chance(index, mythic, chest.class), 0.01, 0.003, name)
+				end
 			end
 		end
 	end)
 
-	t.test("only the three chests can be opened", function()
+	t.test("a stronger weapon for the class goes in hand by itself, never a weaker", function()
+		-- a class's starter and something rarer it can hold, from the catalog
+		local starter: string?, better: string?, other: string? = nil, nil, nil
+		for _, entry in ShopRules.catalog() do
+			if entry.class == "Ranger" and entry.rarity == "Common" then
+				starter = starter or entry.weapon
+			elseif entry.class == "Ranger" and not better then
+				better = entry.weapon
+			elseif entry.class ~= "Ranger" and entry.rarity ~= "Common" then
+				other = other or entry.weapon
+			end
+		end
+		t.notNil(starter)
+		t.notNil(better)
+		t.notNil(other)
+		local function atC(_weapon: string): string?
+			return "C"
+		end
+		local s, b, o = starter :: string, better :: string, other :: string
+		t.isTrue(ShopRules.strength(b, "C") > ShopRules.strength(s, "C"))
+		t.equal(ShopRules.upgrade({ b }, "Ranger", s, atC), b)
+		-- not a weaker one, not the same one, not another class's
+		t.isNil(ShopRules.upgrade({ s }, "Ranger", b, atC))
+		t.isNil(ShopRules.upgrade({ b }, "Ranger", b, atC))
+		t.isNil(ShopRules.upgrade({ o }, "Ranger", s, atC))
+		-- a merge tier counts: the same weapon merged up is stronger
+		t.isTrue(ShopRules.strength(s, "B") > ShopRules.strength(s, "C"))
+		t.isNil(ShopRules.upgrade({}, "Ranger", s, atC))
+	end)
+
+	t.test("only a class's own chest can be opened", function()
+		t.equal(#Shop.chests, 4, "a chest a class: bow, staff, sword, dagger")
 		for _, chest in Shop.chests do
 			t.notNil(ShopRules.chest(chest.class), chest.class)
 		end
-		t.isNil(ShopRules.chest("Assassin"), "a class with no weapons is no chest")
+		t.isNil(ShopRules.chest("Duelist"), "a class there is not is no chest")
 		t.isNil(ShopRules.chest(nil))
 		t.isNil(ShopRules.chest(7))
 	end)
 
-	t.test("areas with no weapons have an empty crate (a silhouette)", function()
-		for index = 2, #Shop.crates do
+	t.test("areas with no weapons for sale have an empty crate (a silhouette)", function()
+		for index, crate in Shop.crates do
 			local pool = ShopRules.cratePool(index)
-			t.isNil(ShopRules.roll(pool, 0.5, 0.5))
+			if crate.stocked then
+				t.isTrue(#pool > 0, `{crate.name} is stocked and sells nothing`)
+			else
+				t.isNil(ShopRules.roll(pool, 0.5, 0.5))
+			end
 		end
+	end)
+
+	--[[ The later areas' crates (owner, 2026-11-13): open while the game is
+	     in playtest, and at launch shut until the boss their area's portal
+	     waits on is beaten, so gear stronger than the glade's is not sold
+	     to a glade-only player. ]]
+	t.test("a later crate waits at launch on what its portal waits on", function()
+		local stocked = 0
+		for index, crate in Shop.crates do
+			if not crate.stocked or index == 1 then
+				continue
+			end
+			stocked += 1
+			t.isTrue(ShopRules.crateOpen(index, {}, false), `{crate.name} shut in playtest`)
+			t.notNil(crate.atLaunch, `{crate.name} is open to a new player at launch`)
+			t.isFalse(ShopRules.crateOpen(index, {}, true), `{crate.name} open at launch`)
+			t.isTrue(
+				ShopRules.crateOpen(index, { [crate.atLaunch :: string] = true }, true),
+				`{crate.name} stays shut after its boss`
+			)
+			t.isTrue(
+				string.find(ShopRules.crateWords(index, {}, true) or "", "BEAT", 1, true) ~= nil,
+				`{crate.name} does not say what opens it`
+			)
+			local portal: any = nil
+			for _, each in Lobby.portals do
+				if string.upper(each.name or "") == crate.name then
+					portal = each
+				end
+			end
+			t.notNil(portal, `{crate.name} has no portal`)
+			if portal then
+				--[[ A portal waits on a boss, or on a level ("1-10"): the
+				     last level of an area, whose crate is that area's. ]]
+				local gate = portal.atLaunch or {}
+				local level = gate.requires and tonumber(string.match(gate.requires, "^(%d+)%-"))
+				local waits = gate.boss
+					or (level and Shop.crates[level] and Shop.crates[level].area)
+				t.equal(crate.atLaunch, waits, crate.name)
+			end
+		end
+		t.isTrue(
+			stocked >= 3,
+			"Thornwood's, the Drowned Village's and Bogheart's crates are stocked"
+		)
+		t.isTrue(ShopRules.crateOpen(1, nil, true), "the first crate is always open")
+		t.isNil(ShopRules.crateWords(1, nil, true))
 	end)
 
 	t.test(
@@ -122,12 +216,17 @@ return function(t: TestRunner.Helper)
 		function()
 			for _, entry in ShopRules.catalog() do
 				local price = ShopRules.price(entry)
-				if entry.rarity == "Legendary" then
+				if entry.set then
+					-- a themed set's weapon is priced by its set, coins and gems
+					-- (`WeaponSets.spec`)
+					continue
+				elseif entry.rarity == "Legendary" and not entry.earned then
 					t.notNil(price, entry.weapon)
 					local item = Economy.areas[Shop.crates[entry.area].area].bossItem
 					t.isTrue(price ~= nil and (price.coins or 0) > 0, entry.weapon)
 					t.equal(price and price.items and price.items[item], Shop.legendaryItems)
-				elseif entry.rarity == "Mythic" or entry.rarity == "Common" then
+				elseif entry.earned or entry.rarity == "Mythic" or entry.rarity == "Common" then
+					-- a golden weapon is earned, never sold (`Config/ClassLevels`)
 					t.isNil(price, entry.weapon)
 				else
 					t.isTrue(price ~= nil and (price.gems or 0) > 0, entry.weapon)
@@ -136,16 +235,18 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
-	t.test("a duplicate pays back part of the crate, never all of it", function()
-		t.isTrue(ShopRules.refund(1) > 0 and ShopRules.refund(1) < Shop.crates[1].price)
-	end)
-
 	t.test("every weapon a player can own has its 2D icon, and every boss item too", function()
 		for _, entry in ShopRules.catalog() do
 			t.notNil(ShopAssets.weapons[entry.weapon], entry.weapon)
 		end
-		for id in Economy.items do
-			t.notNil(ShopAssets.items[id], id)
+		--[[ A boss item is drawn only once its area's crate is stocked (its
+		     Legendaries cost it); until then no screen shows one, and
+		     `ConfigConsistency.spec` holds a stocked area to having it. ]]
+		for _, crate in Shop.crates do
+			local area = Economy.areas[crate.area]
+			if crate.stocked and area then
+				t.notNil(ShopAssets.items[area.bossItem], area.bossItem)
+			end
 		end
 	end)
 end

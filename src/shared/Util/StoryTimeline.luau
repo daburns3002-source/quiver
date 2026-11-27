@@ -4,10 +4,9 @@
 	so `UI/StoryCutscene` shows everything from one clock and
 	`tests/StoryTimeline.spec` pins its order and its end.
 
-	One frame at a time (owner, 2026-10-25): black for `lead`, then every
-	shot's frames in order, each once for its `hold`, then black for
-	`blackHold` before the run is let go. SKIP cuts to black at once. No zoom,
-	pan, shake, fade or looping.
+	Black for `lead`, then every shot's frames in order, each once for its
+	`hold`, then black for `blackHold` before the run is let go. SKIP cuts to
+	black at once. How each frame moves meanwhile is `Util/StoryMotion`.
 
 	`t` is seconds since the cutscene started; `skippedAt` is when SKIP was
 	pressed, on the same clock, or nil.

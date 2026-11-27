@@ -37,6 +37,11 @@ export type Look = {
 local PetAuras = {
 	--[[ The square every sparkle is (a white 64 x 64, tinted). ]]
 	square = "rbxassetid://96921977657831",
+	--[[ What the lobby adds to any aura, so it holds up against the lobby's
+	     bright daylight (owner, 2026-11-08: the glow "needs to stand out a
+	     little more in the lobby"): less see-through, a stronger and wider
+	     light, more and bigger sparkles. ]]
+	lobby = { fill = -0.15, outline = -0.1, brightness = 1.8, range = 1.3, rate = 1.6, size = 1.25 },
 	pets = {
 		Glimmerhorn = "Mythic",
 		SlimePrince = "Legendary",
@@ -50,6 +55,12 @@ local PetAuras = {
 		-- family's gold aura and sparkles, the Abyss Jelly the Mythic rainbow
 		TideWilf = "Legendary",
 		AbyssJelly = "Mythic",
+		-- Bogheart Caverns (docs/PETS-BOGHEART.md): the Wilf and the boss
+		-- heir in the gold; the Prism Leviathan glows its own lake cyan
+		-- (owner, 2026-11-06: a Mythic no longer has to be rainbow)
+		GlowcapWilf = "Legendary",
+		Gulpling = "Legendary",
+		PrismLeviathan = "MythicLake",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {
@@ -87,6 +98,27 @@ local PetAuras = {
 			sparkleLife = 1,
 			sparkleSize = 0.3,
 			trail = 0.5,
+		},
+		--[[ A Mythic that is not rainbow: the Prism Leviathan's crystal
+		     cyan and teal, glowing harder and sparkling thicker than any
+		     Legendary so it still reads as the top of the ladder. ]]
+		MythicLake = {
+			rainbow = nil,
+			glow = Color3.fromRGB(110, 245, 255),
+			colours = {
+				Color3.fromRGB(225, 255, 255),
+				Color3.fromRGB(110, 245, 255),
+				Color3.fromRGB(40, 200, 190),
+				Color3.fromRGB(150, 120, 255),
+			},
+			fill = 0.72,
+			outline = 0.1,
+			lightRange = 10,
+			lightBrightness = 2.5,
+			sparkleRate = 18,
+			sparkleLife = 1.1,
+			sparkleSize = 0.32,
+			trail = 0.6,
 		},
 		--[[ The Legendary aura in the Bramble Wilf's purple. ]]
 		LegendaryPurple = {

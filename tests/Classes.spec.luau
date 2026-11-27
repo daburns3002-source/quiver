@@ -10,8 +10,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponTiming = require(ReplicatedStorage.Shared.Combat.WeaponTiming)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 return function(t: TestRunner.Helper)
@@ -100,17 +102,83 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("every class has a health scale, and a melee class outlasts the Ranger", function()
-		local ranger = AbilityEffects.serverStats({}, "Ranger")
+	--[[ Every hit shoves its enemy (owner, 2026-10-25). A class may shove
+	     less with a blow, never not at all, and its combo's last blow
+	     shoves all the way. ]]
+	t.test("a blow that shoves less still shoves, and the last blow shoves whole", function()
 		for name, class in Classes do
-			t.isTrue(class.healthScale > 0, `{name}'s health scale is not positive`)
-			if class.swing then
-				local stats = AbilityEffects.serverStats({}, name)
+			local knock = class.swing and class.swing.knock
+			if class.swing and knock then
+				t.equal(#knock, #class.swing.damage, `{name} has a shove for every blow`)
+				for index, share in knock do
+					t.isTrue(share >= 0.25 and share <= 1, `{name}'s blow {index} shoves {share}`)
+				end
+				t.near(knock[#knock], 1, 1e-9)
+			end
+		end
+	end)
+
+	--[[ A class that stands and trades blows (its swing guards it) needs
+	     the health to. The Assassin guards as it strikes too (without that
+	     it did not get through 1-1 in Studio, 2026-11-16), on 1.5x the
+	     Ranger's health (owner, 2026-11-16), well under the Warden's. ]]
+	t.test(
+		"every class has a health scale, and a guarded melee class outlasts the Ranger",
+		function()
+			local ranger = AbilityEffects.serverStats({}, "Ranger")
+			for name, class in Classes do
+				t.isTrue(class.healthScale > 0, `{name}'s health scale is not positive`)
+				if class.swing then
+					local stats = AbilityEffects.serverStats({}, name)
+					t.isTrue(
+						stats.maxHealth >= ranger.maxHealth,
+						`{name} has less health than the Ranger`
+					)
+					if class.swing.guard then
+						t.isTrue(
+							stats.maxHealth > ranger.maxHealth,
+							`{name} trades blows with no more health`
+						)
+					end
+				end
+			end
+			local assassin = AbilityEffects.serverStats({}, "Assassin")
+			local warden = AbilityEffects.serverStats({}, "Warden")
+			t.near(assassin.maxHealth, ranger.maxHealth * 1.5, 1e-6)
+			t.isTrue(assassin.maxHealth < warden.maxHealth, "the Assassin outlasts the Warden")
+		end
+	)
+
+	--[[ The Assassin (owner, 2026-11-15, option A): quicker and lighter
+	     than every other class, closer in than the Warden, and its three
+	     blows fit inside its own cooldown at the speed they were made. ]]
+	t.test("the Assassin strikes fastest, lightest and closest", function()
+		local assassin = AbilityEffects.serverStats({}, "Assassin")
+		for name, class in Classes do
+			if name ~= "Assassin" then
+				local other = AbilityEffects.serverStats({}, name)
+				t.isTrue(assassin.attackCooldown < other.attackCooldown, `no quicker than {name}`)
+				t.isTrue(assassin.damage < other.damage, `hits no lighter than {name}`)
 				t.isTrue(
-					stats.maxHealth > ranger.maxHealth,
-					`{name} fights up close with no more health`
+					(Classes.Assassin.reach :: number) < (class.reach or Balance.Player.attackRange),
+					`reaches no closer than {name}`
 				)
 			end
+		end
+		local blows = Classes.Assassin.swing :: Classes.Swing
+		t.isTrue(blows.arc < (Classes.Warden.swing :: Classes.Swing).arc, "its arc is no narrower")
+		t.isTrue(blows.guard == true, "nothing guards the Assassin as it strikes")
+		for index = 1, #blows.damage do
+			t.near(
+				WeaponTiming.cycleSpeed(Classes.Assassin.weapon, index, assassin.attackCooldown),
+				1,
+				1e-9
+			)
+			t.isTrue(
+				WeaponTiming.hitDelay(Classes.Assassin.weapon, index, assassin.attackCooldown)
+					< assassin.attackCooldown / 2,
+				`blow {index} lands late in its cooldown`
+			)
 		end
 	end)
 end

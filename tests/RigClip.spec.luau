@@ -108,6 +108,39 @@ return function(t: TestRunner.Helper)
 			t.isTrue(time >= before, "the dash runs backwards")
 			before = time
 		end
+
+		--[[ Stopped short by cover halfway (`LungeStopped`): the leap lands
+		     within `SETTLE`'s share, not at the bolt's full time. ]]
+		local stopped = travel / 2
+		local mid = launch + (land - launch) / 2
+		t.near(RigClip.dashTime(dash, windup, travel, windup, stopped, stopped), mid, 1e-9)
+		local settle = RigClip.SETTLE / 2
+		t.near(
+			RigClip.dashTime(dash, windup, travel, windup, stopped + settle, stopped),
+			land,
+			1e-9
+		)
+		t.isTrue(stopped + settle < travel, "a stopped leap lands no sooner than a full one")
+		t.near(
+			RigClip.dashTime(dash, windup, travel, windup, stopped + settle + 10, stopped),
+			dash.length,
+			1e-9
+		)
+		-- stopped at the launch (a root, or cover touching): it lands within SETTLE
+		t.near(RigClip.dashTime(dash, windup, travel, windup, RigClip.SETTLE, 0), land, 1e-9)
+		-- a stop at or past the bolt's time changes nothing
+		t.near(
+			RigClip.dashTime(dash, windup, travel, windup, travel * 0.8, travel),
+			RigClip.dashTime(dash, windup, travel, windup, travel * 0.8),
+			1e-9
+		)
+		before = 0
+		for i = 0, 100 do
+			local since = i / 100 * (travel + 1)
+			local time = RigClip.dashTime(dash, windup, travel, windup, since, stopped)
+			t.isTrue(time >= before, "a stopped dash runs backwards")
+			before = time
+		end
 	end)
 
 	t.test("every rigged body names a rig that exists", function()

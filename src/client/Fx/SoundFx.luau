@@ -17,11 +17,15 @@ local SoundService = game:GetService("SoundService")
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Sounds = require(ReplicatedStorage.Shared.Config.Sounds)
 
+local Options = require(script.Parent.Parent.Options)
+
 local SoundFx = {}
 
 local log = Log.forTag("SoundFx")
 local instances: { [string]: Sound } = {}
 local lastPlayed: { [string]: number } = {}
+--[[ The loops playing now, by their own volume. ]]
+local looping: { [Sound]: number } = {}
 local random = Random.new()
 
 local function instanceFor(name: string, config: Sounds.Sound): Sound
@@ -61,6 +65,8 @@ function SoundFx.play(name: string)
 	lastPlayed[name] = now
 
 	local sound = instanceFor(name, config)
+	-- at the player's own sound volume (`Options`, the settings screen)
+	sound.Volume = config.volume * Options.sound()
 	sound.PlaybackSpeed = (config.speed or 1)
 		* (1 + random:NextNumber(-config.pitchJitter, config.pitchJitter))
 	if config.region then
@@ -78,6 +84,8 @@ function SoundFx.loop(name: string): () -> ()
 		return function() end
 	end
 	local sound = instanceFor(name, config)
+	sound.Volume = config.volume * Options.sound()
+	looping[sound] = config.volume
 	sound.Looped = true
 	local region = config.region
 	if region then
@@ -85,9 +93,17 @@ function SoundFx.loop(name: string): () -> ()
 	end
 	sound:Play()
 	return function()
+		looping[sound] = nil
 		sound:Stop()
 	end
 end
+
+--[[ A loop already playing follows the sound volume as it is changed. ]]
+Options.watch("sound", function()
+	for sound, volume in looping do
+		sound.Volume = volume * Options.sound()
+	end
+end)
 
 --[[ Loads every sound with an id now, so the first play is not late. ]]
 function SoundFx.preload()

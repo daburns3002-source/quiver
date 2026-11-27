@@ -29,12 +29,26 @@
 
 	`benched` takes a card out of rotation: never dealt, its effect left in
 	place so un-benching brings it back whole.
+
+	`weaponOnly` marks a weapon's own effect: a card no draft or Angel ever
+	deals, carried only by the weapon whose `innate` names it
+	(`Config/WeaponStats`; the themed sets' daggers, owner 2026-11-18). It is
+	in no class's pool, so it never tips the pools out of step
+	(`tests/ClassCards.spec`).
 ]]
 
 local Rarities = require(script.Parent.Rarities)
 
 export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "OnKill" | "Stats" | "Defensive"
-export type Group = "arrow" | "power" | "element" | "mobility" | "vital" | "blade" | "spell"
+export type Group =
+	"arrow"
+	| "power"
+	| "element"
+	| "mobility"
+	| "vital"
+	| "blade"
+	| "spell"
+	| "dagger"
 
 export type Ability = {
 	id: string,
@@ -52,6 +66,7 @@ export type Ability = {
 	instant: boolean?,
 	filler: boolean?,
 	benched: boolean?,
+	weaponOnly: boolean?,
 	excludes: { string }?,
 	--[[ The classes that can be dealt it; every class when absent. Each
 	     class has its own Mythic (owner, 2026-10-22): the Ranger's is Dual
@@ -67,6 +82,12 @@ export type Ability = {
 local RANGER = { "Ranger" }
 local WARDEN = { "Warden" }
 local ARCANIST = { "Arcanist" }
+local ASSASSIN = { "Assassin" }
+--[[ The blade cards that are true of any swing (faster, wider, further,
+     harder on the badly hurt, and opening what it strikes): both melee
+     classes draw them. The rest of the blade cards speak of the Warden's
+     sword, slam or guard and stay his. ]]
+local MELEE = { "Warden", "Assassin" }
 
 local abilities: { Ability } = {
 	--[[ Arrow skills: how many arrows, where they go, how they fly. ]]
@@ -293,6 +314,9 @@ local abilities: { Ability } = {
 		stats = { "+28% charged", "+56% charged", "+84% charged" },
 		icon = "overdraw",
 		classes = RANGER,
+		--[[ Sniper Shot took its place (owner, 2026-11-13: "sniper shot
+		     should replace overdraw"). ]]
+		benched = true,
 	},
 	{
 		id = "Strength",
@@ -305,7 +329,7 @@ local abilities: { Ability } = {
 		stats = { "+8% ATK", "+16% ATK", "+24% ATK", "+32% ATK", "+40% ATK" },
 		icon = "strength",
 		--[[ The Arcanist draws Intellect, the same card under its own name. ]]
-		classes = { "Ranger", "Warden" },
+		classes = { "Ranger", "Warden", "Assassin" },
 	},
 	{
 		--[[ The Arcanist's Strength (owner, 2026-10-25: "make the arcanist
@@ -339,7 +363,7 @@ local abilities: { Ability } = {
 	{
 		id = "Blaze",
 		name = "Blaze",
-		description = "Arrows set enemies on fire.",
+		description = "Your hits set enemies on fire.",
 		category = "OnHit",
 		group = "element",
 		rarity = "Rare",
@@ -500,7 +524,7 @@ local abilities: { Ability } = {
 		levels = { 0.08, 0.16, 0.24 },
 		stats = { "+8% atk spd", "+16% atk spd", "+24% atk spd" },
 		icon = "quick-hands",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "IronSkin",
@@ -526,7 +550,7 @@ local abilities: { Ability } = {
 		levels = { 0.12, 0.24, 0.36 },
 		stats = { "+12% width", "+24% width", "+36% width" },
 		icon = "cleave",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "LongReach",
@@ -538,7 +562,7 @@ local abilities: { Ability } = {
 		levels = { 1.2, 2.4, 3.6 },
 		stats = { "+1.2 reach", "+2.4 reach", "+3.6 reach" },
 		icon = "long-reach",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "Steadfast",
@@ -590,7 +614,7 @@ local abilities: { Ability } = {
 		levels = { 0.4, 0.8 },
 		stats = { "+40% under 30% HP", "+80% under 30% HP" },
 		icon = "execute",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	--[[ The Warden's new cards (owner, 2026-10-25, from the ideas offered
 	     after Iron Skin, Steadfast and Bloodletting were benched). ]]
@@ -843,11 +867,509 @@ local abilities: { Ability } = {
 		icon = "counter-strike",
 		classes = WARDEN,
 	},
+
+	--[[ The class cards of 2026-11-13 (owner's pick C, docs/CLASS-CARDS.md):
+	     every class a ladder of four class upgrades, Rare to Mythic, and the
+	     pools evened out. Numbers in `Balance.Player`, kept small. ]]
+	{
+		id = "SniperShot",
+		name = "Sniper Shot",
+		description = "Standing still readies a sniper arrow that pierces all and crits.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Rare",
+		levels = { 1 },
+		stats = { "Sniper arrow every 3s" },
+		icon = "sniper-shot",
+		classes = RANGER,
+	},
+	{
+		id = "SplitShot",
+		name = "Split Shot",
+		description = "An arrow that kills splits into 3. Splinters deal 40% damage.",
+		category = "OnKill",
+		group = "arrow",
+		rarity = "Epic",
+		levels = { 1 },
+		stats = { "Kills split into 3" },
+		icon = "split-shot",
+		classes = RANGER,
+	},
+	{
+		id = "WindArrows",
+		name = "Wind Arrows",
+		description = "Arrows knock enemies back twice as far and blow shots away.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Uncommon",
+		--[[ Extra knockback, as a share of a hit's own. ]]
+		levels = { 1 },
+		stats = { "2x knockback" },
+		icon = "wind-arrows",
+		classes = RANGER,
+	},
+	{
+		id = "ManaSurge",
+		name = "Mana Surge",
+		description = "A kill charges your staff: the next cast is bigger, +50% damage.",
+		category = "OnKill",
+		group = "spell",
+		rarity = "Rare",
+		levels = { 1 },
+		stats = { "Kill: next cast +50%" },
+		icon = "mana-surge",
+		classes = ARCANIST,
+	},
+	{
+		id = "FrostOrb",
+		name = "Frost Orb",
+		description = "Your orbs chill what they hit, slowing it for 2s.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Uncommon",
+		--[[ How much slower a chilled enemy moves. ]]
+		levels = { 0.25, 0.4 },
+		stats = { "25% slow", "40% slow" },
+		icon = "frost-orb",
+		classes = ARCANIST,
+	},
+	{
+		id = "ArcaneShield",
+		name = "Arcane Shield",
+		description = "A shield blocks one hit, then comes back.",
+		category = "Defensive",
+		group = "spell",
+		rarity = "Uncommon",
+		--[[ How fast a spent shield comes back: shields a second, so a level
+		     up is a bigger number (10 s, then about 7). ]]
+		levels = { 0.1, 0.15 },
+		stats = { "Back every 10s", "Back every 7s" },
+		icon = "arcane-shield",
+		classes = ARCANIST,
+	},
+	{
+		id = "ShieldThrow",
+		name = "Shield Throw",
+		description = "Your dash throws a shield that bounces between 3 enemies (50%).",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Rare",
+		levels = { 1 },
+		stats = { "Dash: shield hits 3" },
+		icon = "shield-throw",
+		classes = WARDEN,
+	},
+	{
+		id = "BladeStorm",
+		name = "Blade Storm",
+		description = "Every 5th swing throws a spinning sword out and back (70%).",
+		category = "Pattern",
+		group = "blade",
+		rarity = "Legendary",
+		levels = { 1 },
+		stats = { "Sword every 5th swing" },
+		icon = "blade-storm",
+		classes = WARDEN,
+	},
+	{
+		id = "Sunder",
+		name = "Sunder",
+		description = "Enemies you strike take more damage from everything for 3s.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Rare",
+		levels = { 0.1, 0.2 },
+		stats = { "+10% damage taken", "+20% damage taken" },
+		icon = "sunder",
+		classes = MELEE,
+	},
+	--[[ Wave 2's last five (docs/CLASS-CARDS.md; owner, 2026-11-26: "As
+	     written (B)"): the Warden's Echo Slash and Riposte, the Arcanist's
+	     Split Orb, Gravity Well and Orbiting Orb. The doc's numbers, at
+	     the 2026-10-25 cut (x0.8). The rest in `Balance.Player.waveTwo`. ]]
+	{
+		id = "EchoSlash",
+		name = "Echo Slash",
+		description = "Every blow strikes again a moment later.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Epic",
+		--[[ The echo's share of the blow. ]]
+		levels = { 0.32, 0.48 },
+		stats = { "Echo at 32%", "Echo at 48%" },
+		icon = "echo-slash",
+		classes = WARDEN,
+	},
+	{
+		id = "Riposte",
+		name = "Riposte",
+		description = "Shots that hit you mid-swing fly back at their shooter.",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Legendary",
+		--[[ The thrown-back shot's damage, times the Warden's. ]]
+		levels = { 0.8 },
+		stats = { "Shots back at 80%" },
+		icon = "riposte",
+		classes = WARDEN,
+	},
+	{
+		id = "SplitOrb",
+		name = "Split Orb",
+		description = "Orbs burst into shards on hit. Shards deal 24% damage.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Epic",
+		--[[ How many shards. ]]
+		levels = { 3, 5 },
+		stats = { "3 shards", "5 shards" },
+		icon = "split-orb",
+		classes = ARCANIST,
+	},
+	{
+		id = "GravityWell",
+		name = "Gravity Well",
+		description = "Your orbs' blasts pull nearby enemies in.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Legendary",
+		--[[ Studs a blast pulls an enemy in. ]]
+		levels = { 3.5 },
+		stats = { "Blasts pull enemies in" },
+		icon = "gravity-well",
+		classes = ARCANIST,
+	},
+	{
+		id = "OrbitingOrb",
+		name = "Orbiting Orb",
+		description = "Orbs circle you and strike what they touch (30%).",
+		category = "Pattern",
+		group = "spell",
+		rarity = "Legendary",
+		--[[ How many orbs circle. ]]
+		levels = { 1, 2 },
+		stats = { "1 orb", "2 orbs" },
+		icon = "orbiting-orb",
+		classes = ARCANIST,
+	},
+	--[[ Thornwood's six (owner, 2026-11-18: "Build the six new"; the effects
+	     Codex wrote for Thornwood's Legendaries and Mythics in October,
+	     docs/WEAPONS-THORNWOOD.md). Cards like any other: drafted by their
+	     class, and carried by a Thornwood weapon as its `innate`. Each rides
+	     machinery that was already there (`Combat/ClassUpgrades.dress`,
+	     `Combat/ProjectileSystem`, `Combat/MeleeSystem`); numbers in
+	     `Balance.Player.thornwood`. ]]
+	{
+		id = "WebSnare",
+		name = "Web Snare",
+		description = "Arrows tangle what they hit in web, slowing it for 2s.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Uncommon",
+		--[[ How much slower a webbed enemy moves. ]]
+		levels = { 0.3, 0.4 },
+		stats = { "30% slow", "40% slow" },
+		icon = "web-snare",
+		classes = RANGER,
+	},
+	{
+		id = "ThornBurst",
+		name = "Thorn Burst",
+		description = "Every 3rd shot bursts into thorns where it lands, hitting all nearby.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Epic",
+		--[[ The burst's damage to everything round the mark, as a share of
+		     the hit. ]]
+		levels = { 0.6, 0.8 },
+		stats = { "60% burst", "80% burst" },
+		icon = "thorn-burst",
+		classes = RANGER,
+	},
+	{
+		id = "RootHold",
+		name = "Root Hold",
+		description = "Every 4th cast roots what its orbs hit in place.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Rare",
+		--[[ Seconds held. ]]
+		levels = { 1, 1.5 },
+		stats = { "Root 1s", "Root 1.5s" },
+		icon = "root-hold",
+		classes = ARCANIST,
+	},
+	{
+		id = "BurrBlight",
+		name = "Burr Blight",
+		description = "Orbs poison what they hit. The poison stacks, up to 5 deep.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Epic",
+		--[[ One stack's damage over its three seconds, as a share of the
+		     hit. ]]
+		levels = { 0.3, 0.4 },
+		stats = { "30% poison a stack", "40% poison a stack" },
+		icon = "burr-blight",
+		classes = ARCANIST,
+	},
+	{
+		id = "BoarRush",
+		name = "Boar Rush",
+		description = "Your combo's last blow shoves everything it hits far back.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Uncommon",
+		--[[ Extra shove, in shares of a hit's own knockback. Both melee
+		     classes': the Warden's slam and the Assassin's double stab,
+		     which also keeps the four classes' pools level
+		     (`tests/ClassCards.spec`). ]]
+		levels = { 1.5, 2.5 },
+		stats = { "+150% shove", "+250% shove" },
+		icon = "boar-rush",
+		classes = MELEE,
+	},
+	{
+		id = "RuinCracks",
+		name = "Ruin Cracks",
+		description = "Your combo's last blow cracks what it hits: it takes more damage for 4s.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Epic",
+		levels = { 0.3, 0.4 },
+		stats = { "+30% damage taken", "+40% damage taken" },
+		icon = "ruin-cracks",
+		classes = MELEE,
+	},
+	--[[ The Assassin's own (owner, 2026-11-15: yes to the ten of
+	     docs/CARD-IDEAS.md as put to them; docs/CLASS-CARDS.md). Dagger
+	     cards: they speak of the double stab, the dash that cuts and the
+	     strikes of a class that fights at arm's length. Numbers in
+	     `Balance.Player.assassin`. ]]
+	{
+		id = "TwinFangs",
+		name = "Twin Fangs",
+		description = "Your double stab hits harder.",
+		category = "Stats",
+		group = "dagger",
+		rarity = "Common",
+		levels = { 0.3, 0.6, 0.9 },
+		stats = { "+30% stab", "+60% stab", "+90% stab" },
+		icon = "twin-fangs",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Backstab",
+		name = "Backstab",
+		description = "Hit harder from behind an enemy.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Uncommon",
+		levels = { 0.3, 0.55, 0.8 },
+		stats = { "+30% from behind", "+55% from behind", "+80% from behind" },
+		icon = "backstab",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Quickstep",
+		name = "Quickstep",
+		description = "A kill brings your dash back sooner.",
+		category = "OnKill",
+		group = "dagger",
+		rarity = "Uncommon",
+		--[[ Seconds off the wait, a kill. ]]
+		levels = { 0.5, 1 },
+		stats = { "-0.5s a kill", "-1s a kill" },
+		icon = "quickstep",
+		classes = ASSASSIN,
+	},
+	{
+		id = "SerratedEdge",
+		name = "Serrated Edge",
+		description = "A crit makes the enemy take more damage for 3s.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Rare",
+		levels = { 0.15, 0.25 },
+		stats = { "+15% damage taken", "+25% damage taken" },
+		icon = "serrated-edge",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Bleed",
+		name = "Bleed",
+		description = "Your strikes stack a bleed, up to 5 deep.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Rare",
+		--[[ A strike's share dealt each second, for each cut held. ]]
+		levels = { 0.03, 0.05, 0.07 },
+		stats = { "3% a second", "5% a second", "7% a second" },
+		icon = "bleed",
+		classes = ASSASSIN,
+	},
+	{
+		id = "PoisonTrail",
+		name = "Poison Trail",
+		description = "Your dash leaves a cloud of poison behind.",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Rare",
+		--[[ Seconds the cloud stays. ]]
+		levels = { 1.5, 2.5 },
+		stats = { "1.5s cloud", "2.5s cloud" },
+		icon = "poison-trail",
+		classes = ASSASSIN,
+	},
+	{
+		id = "FanOfKnives",
+		name = "Fan of Knives",
+		description = "Every 4th strike throws a fan of knives (35%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Epic",
+		levels = { 5, 7 },
+		stats = { "5 knives", "7 knives" },
+		icon = "fan-of-knives",
+		classes = ASSASSIN,
+	},
+	{
+		id = "DeathMark",
+		name = "Death Mark",
+		description = "One enemy is marked and takes more. Kill it and the mark jumps.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.35 },
+		stats = { "+35% to the marked" },
+		icon = "death-mark",
+		classes = ASSASSIN,
+	},
+	{
+		id = "PhantomBlades",
+		name = "Phantom Blades",
+		description = "Ghost daggers circle you and cut what they touch (30%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 2, 3 },
+		stats = { "2 blades", "3 blades" },
+		icon = "phantom-blades",
+		classes = ASSASSIN,
+	},
+	{
+		id = "ThousandCuts",
+		name = "Thousand Cuts",
+		description = "Every 10s shadows strike up to 8 enemies in turn (120%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Mythic",
+		levels = { 1 },
+		stats = { "Shadows every 10s" },
+		icon = "thousand-cuts",
+		classes = ASSASSIN,
+	},
+	--[[ The themed sets' daggers' own effects (owner, 2026-11-18;
+	     docs/CLASS-CARDS.md "The themed daggers' seven"): each carried by
+	     its dagger alone and never dealt. Numbers past the card's are in
+	     `Balance.Player.daggers`. ]]
+	{
+		id = "WishingStar",
+		name = "Wishing Star",
+		description = "Every 5th strike drops a wishing star that bursts round the enemy (80%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.8 },
+		stats = { "80% star burst" },
+		icon = "wishing-star",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "SpurRowel",
+		name = "Spur Rowel",
+		description = "The double stab flings a spur that bounces between 3 enemies (50%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 3 },
+		stats = { "3 bounces" },
+		icon = "spur-rowel",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "SplashWave",
+		name = "Splash Wave",
+		description = "Every 3rd strike splashes the enemies round it (40%) and slows them.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.4 },
+		stats = { "40% splash, slows" },
+		icon = "splash-wave",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "ComboCounter",
+		name = "Combo Counter",
+		description = "Each strike that lands adds +3% damage, up to +30%. Getting hit resets it.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.3 },
+		stats = { "Up to +30% ATK" },
+		icon = "combo-counter",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "CometCrash",
+		name = "Comet Crash",
+		description = "A strike calls a comet that crashes on the enemy 1.5s later (60%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.6 },
+		stats = { "60% comet" },
+		icon = "comet-crash",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "BellChime",
+		name = "Bell Chime",
+		description = "Every 6th strike rings a bell that holds the enemies near you (40%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.8 },
+		stats = { "Holds 0.8s" },
+		icon = "bell-chime",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "LavaBurst",
+		name = "Lava Burst",
+		description = "The double stab sends lava bursting along the ground, burning enemies (50%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.5 },
+		stats = { "50% lava, burns" },
+		icon = "lava-burst",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
 	--[[ The owner's picks from `docs/CARD-IDEAS.md` (2026-11-03): "i like
 	     thornfall, headhunter, ghost quiver, windrunner, twin elements, time
 	     dilation, prismatic burst, guard break, bull rush, blood pact,
-	     vengeful spirit". Numbers in `Balance.Player`; the Assassin's ten
-	     were held back, since the class has no combat system. ]]
+	     vengeful spirit". Numbers in `Balance.Player`. Guard Break, Blood
+	     Pact and Vengeful Spirit are both melee classes' (2026-11-27), as
+	     Boar Rush and Ruin Cracks are, which keeps the pools within three. ]]
 	{
 		id = "Windrunner",
 		name = "Windrunner",
@@ -941,7 +1463,7 @@ local abilities: { Ability } = {
 	{
 		id = "GuardBreak",
 		name = "Guard Break",
-		description = "Your slam throws enemies back and leaves them reeling.",
+		description = "Your combo's last blow throws enemies back and leaves them reeling.",
 		category = "Pattern",
 		group = "blade",
 		rarity = "Uncommon",
@@ -949,7 +1471,7 @@ local abilities: { Ability } = {
 		levels = { 6, 9, 12 },
 		stats = { "Throws 6 studs", "Throws 9 studs", "Throws 12 studs" },
 		icon = "guard-break",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "BullRush",
@@ -972,10 +1494,10 @@ local abilities: { Ability } = {
 		group = "power",
 		rarity = "Epic",
 		--[[ Extra damage under `Balance.Player.bloodPact.below`. ]]
-		levels = { 0.4, 0.7 },
-		stats = { "+40% under half HP", "+70% under half HP" },
+		levels = { 0.3, 0.5 },
+		stats = { "+30% under half HP", "+50% under half HP" },
 		icon = "blood-pact",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "VengefulSpirit",
@@ -987,7 +1509,7 @@ local abilities: { Ability } = {
 		levels = { 1 },
 		stats = { "A spirit sword" },
 		icon = "vengeful-spirit",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 }
 

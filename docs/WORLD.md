@@ -10,10 +10,9 @@ each area, with concept art, are in `ENEMIES-AND-ARENAS.md`.
 
 ## Title
 
-"Arrow Legends" names one class. Candidates that fit all three:
-**Splitpath, Threefold, Descent, Hollow Crown, Ashborn.** *Open — see the
-decisions at the end.* Until one is chosen the code, repo and docs keep
-"Arrow Legends".
+**Arrowborne** (owner, 2026-11-04). It replaced Arrow Legends, which named
+one class; the other candidates were Splitpath, Threefold, Descent, Hollow
+Crown and Ashborn.
 
 ---
 
@@ -48,7 +47,9 @@ and both melee options while the class is open — `warden_greatsword` red
 (no shield) and `duelist_daggers` purple.
 
 **Alternative to the Warden:** a **Duelist** — fast dagger strikes, crits,
-evasion — if the unlockable melee class should play faster. *Open.*
+evasion — if the unlockable melee class should play faster. *Settled 2026-11-15: both. The
+daggers' class is the **Assassin**, the fourth class (twin Splinter Daggers, quick strikes up
+close, a dash that cuts; CLAUDE.md, "The Assassin").*
 
 What exists today is the Ranger: move-or-shoot, the shot pipeline and every
 ability are built for it. How the others fit the pipeline:
@@ -108,7 +109,7 @@ an area is still unlocked by beating its boss (`PROGRESSION.md`). Ten in
 
 ## Decisions this needs from the owner
 
-1. **The title** — one of the five, or keep "Arrow Legends".
+1. ~~**The title**~~ — settled: Arrowborne.
 2. **The unlockable melee class** — Warden or Duelist.
 3. ~~**Boss cadence**~~ — settled: two bosses per act, one per area (`BOSSES.md`).
 4. **When classes land in the roadmap** — the Arcanist is cheap (projectile

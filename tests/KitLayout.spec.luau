@@ -87,7 +87,16 @@ return function(t: TestRunner.Helper)
 			local layout, shape = layoutFor(entry.room, entry.model)
 			local hz = shape.size.Z / 2
 			for _, p in layout.pieces do
-				if p.cover or p.piece == "WallBlock" or p.piece == "CornerPillar" then
+				--[[ Cover, the walls and what is part of them (a house, a
+				     lantern, a door), and what is laid flat on the floor to be
+				     walked over (a causeway, a bridge) may stand anywhere. ]]
+				if
+					p.cover
+					or p.wall
+					or p.floor
+					or p.piece == "WallBlock"
+					or p.piece == "CornerPillar"
+				then
 					continue
 				end
 				for _, box in entry.room.obstacles do

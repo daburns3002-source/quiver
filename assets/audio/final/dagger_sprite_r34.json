@@ -1,0 +1,42 @@
+{
+ "fx_wishing_star_c": [
+  0.0,
+  1.06
+ ],
+ "fx_spur_rowel_b": [
+  1.5,
+  0.551
+ ],
+ "fx_splash_wave_a": [
+  2.49,
+  0.5
+ ],
+ "fx_combo_counter_a": [
+  3.431,
+  0.136
+ ],
+ "fx_combo_break_a": [
+  4.006,
+  0.325
+ ],
+ "fx_comet_crash_b": [
+  4.771,
+  2.475
+ ],
+ "fx_bell_chime_b": [
+  7.687,
+  0.923
+ ],
+ "fx_lava_burst_a": [
+  9.05,
+  0.71
+ ],
+ "fx_thorn_burst_a": [
+  10.2,
+  0.28
+ ],
+ "fx_boar_rush_a": [
+  10.92,
+  0.49
+ ]
+}

@@ -4,33 +4,42 @@
 	players arrive after BEGIN ADVENTURE,
 	and where stepping into an active portal starts that area's run.
 
-	- `build` lays the clearing out from plain smooth parts (owner,
-	  2026-10-27: "i dont want it to have the pixely texture. just make it
-	  look like a normal lobby"): a lawn, sandy paths, the fountain, the
-	  station cottages with their egg and crate stands, the portal ledges and
-	  their arches, the two leaderboards, lamps, a ring of cliffs and trees with
-	  waterfalls, a scatter of trees, bushes, boulders, flowers and
-	  mushrooms, and invisible walls round the edge and round each station.
+	- `build` lays out Lobby B from plain smooth parts (owner, 2026-10-27:
+	  "i dont want it to have the pixely texture"; the layout sheet,
+	  `assets/concepts/blocky/lobby/palace/lobby_layout_reference.png`): the
+	  courtyard's floor, carpets, fountain and ruins (`Run/LobbyCourtyard`),
+	  the four station buildings (`Config/PalaceBuildings`), the portal terrace
+	  and its arches, the two leaderboards, and past the balustrade a ring of
+	  cliffs and trees with waterfalls and a scatter of trees, bushes,
+	  boulders, flowers and mushrooms.
 	  Round things are ellipsoids (a block with a sphere `SpecialMesh`).
 	- `place` puts a character at the spawn.
 	- `portalAt` says which active portal a player is standing in, if any,
-	  for its screen to open (`UI/PortalScreen`); `startFor` checks a START
-	  from that screen and names the stage it may start.
+	  for its screen to open (`UI/PortalScreen`); `levelOpen` checks a start
+	  (from that screen, or from the lobby's PLAY screen, `UI/AreaScreen`)
+	  and names the stage it may start; `startFor` says who stands at the
+	  portal to go along.
 
 	Seeded, so the lobby is the same every time.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
-local BlacksmithDesign = require(ReplicatedStorage.Shared.Config.BlacksmithDesign)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
-local HatcheryDesign = require(ReplicatedStorage.Shared.Config.HatcheryDesign)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
+local LobbyBackdrop = require(script.Parent.LobbyBackdrop)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local LobbyCourtyard = require(script.Parent.LobbyCourtyard)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
+local PalaceBuildings = require(ReplicatedStorage.Shared.Config.PalaceBuildings)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 local Lobby = {}
 
@@ -39,10 +48,12 @@ local COLOURS = LobbyConfig.colours
 local folder: Folder? = nil
 local leaderboardFace: Part? = nil
 local endlessLeaderboardFace: Part? = nil
+local weeklyLeaderboardFace: Part? = nil
 
---[[ The lawn's top, a little above the place's Baseplate (whose top is
-     y = 0): level with it, the two flicker. ]]
-local LAWN = 0.1
+--[[ The courtyard's floor, which the buildings and the terrace stand on, and
+     the ground past the balustrade, below it. ]]
+local LAWN = LobbyCourtyard.FLOOR
+local OUTSIDE = LobbyCourtyard.OUTSIDE
 --[[ The wood beyond the cliff ring, so the edge of the world never shows
      (owner, 2026-10-27: "the player should not see this in the lobby"):
      its rings, studs out from the clearing's edge, each tree's size range,
@@ -52,7 +63,12 @@ local OUTER_RINGS = {
 	{ out = 58, spacing = 20, grow = { 1.6, 2.2 } },
 	{ out = 86, spacing = 24, grow = { 2.0, 2.8 } },
 }
-local OUTER_FLOOR = 900
+local OUTER_FLOOR = 2000
+--[[ The courtyard's south edge, where the stairs down begin. ]]
+local SOUTH_EDGE = -math.huge
+for _, point in LobbyConfig.courtyard.outline do
+	SOUTH_EDGE = math.max(SOUTH_EDGE, point.Y)
+end
 --[[ How far each scatter kind keeps from everything else, studs. ]]
 --[[ How much room each scattered thing keeps to itself, in studs at
      `grow` 1. A tree asked for 6, which with everything else competing
@@ -87,87 +103,29 @@ local STAND_LOOK = {
 	},
 }
 
---[[ The stations' emblems' colours. ]]
-local EMBLEM = {
-	eggShell = Color3.fromRGB(250, 242, 222),
-	eggSpots = Color3.fromRGB(240, 120, 170),
-	nestEggs = {
-		Color3.fromRGB(170, 220, 255),
-		Color3.fromRGB(255, 190, 210),
-		Color3.fromRGB(200, 240, 160),
-	},
-	straw = Color3.fromRGB(222, 182, 98),
-	steel = Color3.fromRGB(206, 212, 222),
-	shield = Color3.fromRGB(212, 62, 62),
-	gem = Color3.fromRGB(150, 110, 255),
-}
-
 local function world(at: Vector2, y: number?): Vector3
 	return ORIGIN + Vector3.new(at.X, y or 0, at.Y)
 end
 
---[[ Which row arch `index` stands in: 1 the front, 2 the back. ]]
+--[[ Which row arch `index` stands in: 1 the front, 2 the back, 0 for one
+     set aside (Endless). The sums are `Config/Lobby`'s, shared with the
+     Studio bots. ]]
 function Lobby.rowOf(index: number): number
-	return math.ceil(index / LobbyConfig.perRow)
+	return (LobbyConfig.slotOf(index))
 end
 
---[[ The centre of row `row`'s ledge, and how high its top stands. ]]
-local function rowCentre(row: number): (Vector2, number)
-	return LobbyConfig.terrace - Vector2.new(0, (row - 1) * LobbyConfig.rowDepth),
-		LobbyConfig.ledge + (row - 1) * LobbyConfig.rowRise
-end
+local rowCount = LobbyConfig.rowCount
+local rowCentre = LobbyConfig.rowCentre
 
---[[ Where arch `index` stands: front row west to east, then the back. ]]
+--[[ Where arch `index` stands: front row west to east, then the back, each
+     row centred on the carpet however many arches it has; Endless apart. ]]
 function Lobby.archAt(index: number): Vector2
-	local perRow = LobbyConfig.perRow
-	local column = (index - 1) % perRow + 1
-	local offset = (column - (perRow + 1) / 2) * LobbyConfig.archSpacing
-	return rowCentre(Lobby.rowOf(index)) + Vector2.new(offset, 0)
+	return LobbyConfig.archAt(index)
 end
 
---[[ A smooth part, seen but never met: no collision, no queries (the
-     camera and the prompts see through it). ]]
-local function part(
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	colour: Color3,
-	parent: Instance,
-	shape: Enum.PartType?
-): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Anchored = true
-	p.CanCollide = false
-	p.CanQuery = false
-	p.CanTouch = false
-	p.Material = Enum.Material.SmoothPlastic
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	if shape then
-		p.Shape = shape
-	end
-	p.Size = size
-	p.CFrame = cframe
-	p.Color = colour
-	p.Parent = parent
-	return p
-end
-
---[[ An ellipsoid `size` studs across. ]]
-local function blob(
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	colour: Color3,
-	parent: Instance
-): Part
-	local p = part(name, size, cframe, colour, parent)
-	local mesh = Instance.new("SpecialMesh")
-	mesh.MeshType = Enum.MeshType.Sphere
-	mesh.Parent = p
-	return p
-end
+local part = LobbyCourtyard.part
+local blob = LobbyCourtyard.blob
+local wall = LobbyCourtyard.wall
 
 --[[
 	The Dex Hall's three imported models (`LobbyConfig.dex`): the hall
@@ -241,21 +199,6 @@ local function pillar(
 	)
 end
 
---[[ A wall a player meets and nothing sees. ]]
-local function wall(name: string, size: Vector3, cframe: CFrame, parent: Instance): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Anchored = true
-	p.Transparency = 1
-	p.CanCollide = true
-	p.CanQuery = false
-	p.CanTouch = false
-	p.Size = size
-	p.CFrame = cframe
-	p.Parent = parent
-	return p
-end
-
 --[[ Words on a board's front, in the game's one font. ]]
 local function words(board: Part, text: string, colour: Color3)
 	local gui = Instance.new("SurfaceGui")
@@ -269,8 +212,9 @@ local function words(board: Part, text: string, colour: Color3)
 	label.BackgroundTransparency = 1
 	label.AnchorPoint = Vector2.new(0.5, 0.5)
 	label.Position = UDim2.fromScale(0.5, 0.5)
-	label.Size = UDim2.fromScale(0.9, 0.66)
-	label.Font = Enum.Font.Arcade
+	label.Size = UDim2.fromScale(0.92, 0.84)
+	label.TextWrapped = true
+	label.Font = Enum.Font.FredokaOne
 	label.Text = text
 	label.TextColor3 = colour
 	label.TextStrokeColor3 = Color3.fromRGB(60, 36, 20)
@@ -279,19 +223,13 @@ local function words(board: Part, text: string, colour: Color3)
 	label.Parent = gui
 end
 
---[[ A wooden sign board facing south (+Z), its centre at `centre`. ]]
---[[
-	A wooden nameboard, reading out of `where`'s own front (+Z).
-
-	It takes a frame rather than a point because the stations are turned to
-	face the middle now (owner, 2026-11-01): a board that always faced south
-	would have its back to the lawn on three corners out of four.
-]]
+--[[ A plaque in a gold frame, reading out of `where`'s own front (+Z). ]]
 local function signboard(
 	text: string,
 	where: CFrame,
 	width: number,
 	height: number,
+	colour: Color3,
 	parent: Instance
 )
 	--[[ A part's face is its -Z, and a building's front is its +Z, so the
@@ -301,64 +239,124 @@ local function signboard(
 		"SignFrame",
 		Vector3.new(width + 0.8, height + 0.8, 0.5),
 		facing * CFrame.new(0, 0, 0.3),
-		COLOURS.woodDark,
+		COLOURS.gold,
 		parent
 	)
-	local board = part("Sign", Vector3.new(width, height, 0.5), facing, COLOURS.wood, parent)
+	local board = part("Sign", Vector3.new(width, height, 0.5), facing, colour, parent)
 	words(board, text, COLOURS.text)
 end
 
 --[[
-	A tree: the owner's imported model, `grow` times the size a tree of 1
-	stands (owner, 2026-11-01: "use the tree import and replace the
-	existing trees in the game with it").
+	A tree, built in code in the blocky voxel look of the enemy spotlight
+	loading screens: a square trunk on a flared foot, and a crown of stacked
+	slabs and offset cubes, darkest underneath and sunlit on top, each piece
+	turned a little so the outline is lumpy rather than one box (owner,
+	2026-11-05: the round-blob tree "look[s] terrible", "redo them").
 
-	It was a trunk pillar under three leaf blobs. `tall` is set to what
-	that came to, so every scatter and ring that places trees keeps its
-	spacing without being retuned.
-
-	Each is turned a random amount about Y and stretched in height on its
-	own, so no two are the same shape; without that a hundred copies of one
-	mesh read as wallpaper.
-	Falls back to nothing if the mesh did not load, as the dex books do.
+	`grow` times the size a tree of 1 stands, `tall` matched to the trees
+	before it so every scatter and ring keeps its spacing. Each is turned a
+	random amount and stretched in height on its own, so no two are the same.
+	`y` stands it on a cliff top instead of the forest floor.
 ]]
-local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, solid: boolean)
-	local spec = LobbyConfig.treeModel
-	local template = lobbyTemplates[spec.mesh]
-	if not template then
-		return
-	end
-	local p = template:Clone()
-	p.Name = "Tree"
-	p.Anchored = true
-	p.CanCollide = solid
-	p.CanQuery = solid
-	p.CanTouch = false
-	p.CastShadow = solid
-	p.Material = Enum.Material.SmoothPlastic
-	--[[ `grow` sets how wide it is and `stretch` how tall, so no two
-	     trees are the same shape. Scaling evenly only ever looked like
-	     the same tree at a different distance. The spacing between
-	     scattered things reads `grow`, so stretching the height alone
-	     never crowds anything. ]]
-	local scale = spec.tall * grow / spec.native.Y
-	local stretch = rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
-	p.Size =
-		Vector3.new(spec.native.X * scale, spec.native.Y * scale * stretch, spec.native.Z * scale)
-	p.TextureID = spec.texture
-	--[[ The tree carries its colours in its own texture, so the part must
-	     not tint them. ]]
-	p.Color = Color3.new(1, 1, 1)
-	p.CFrame = CFrame.new(world(at, LAWN) + Vector3.new(0, p.Size.Y / 2, 0))
+local function tree(
+	at: Vector2,
+	grow: number,
+	rng: Random,
+	parent: Instance,
+	solid: boolean,
+	y: number?
+)
+	local spec = LobbyConfig.tree
+	local model = Instance.new("Model")
+	model.Name = "Tree"
+	local tall = spec.tall * grow * rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
+	local c = spec.tall * grow * spec.crown
+	local bare = tall * spec.trunk
+	local foot = CFrame.new(world(at, y or OUTSIDE))
 		* CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
-	p.Parent = parent
+	local function twist(): CFrame
+		return CFrame.Angles(0, rng:NextNumber(-0.3, 0.3), 0)
+	end
+	local thick = math.max(1.2, c * 0.2)
+	local trunkTall = bare + c * 0.3
+	part(
+		"Trunk",
+		Vector3.new(thick, trunkTall, thick),
+		foot * CFrame.new(0, trunkTall / 2, 0),
+		spec.bark,
+		model
+	)
+	part(
+		"Roots",
+		Vector3.new(thick * 1.7, thick * 0.5, thick * 1.7),
+		foot * CFrame.new(0, thick * 0.25, 0) * CFrame.Angles(0, math.pi / 4, 0),
+		spec.barkDark,
+		model
+	)
+	local leaves = spec.leaves
+	local base = foot * CFrame.new(0, bare, 0)
+	-- the shaded underside, the body, and lumps hanging off its sides
+	part(
+		"Leaves",
+		Vector3.new(c, c * 0.3, c * 0.92),
+		base * CFrame.new(0, c * 0.15, 0) * twist(),
+		leaves[1],
+		model
+	)
+	part(
+		"Leaves",
+		Vector3.new(c * 0.86, c * 0.34, c),
+		base * CFrame.new(0, c * 0.4, 0) * twist(),
+		leaves[2],
+		model
+	)
+	local spin = rng:NextNumber() * math.pi * 2
+	for k = 0, 2 do
+		local angle = spin + k * math.pi * 2 / 3 + rng:NextNumber(-0.4, 0.4)
+		local s = c * rng:NextNumber(0.34, 0.46)
+		part(
+			"Leaves",
+			Vector3.new(s, s * 0.8, s),
+			base
+				* CFrame.new(
+					math.cos(angle) * c * 0.44,
+					c * rng:NextNumber(0.18, 0.5),
+					math.sin(angle) * c * 0.44
+				)
+				* twist(),
+			if k == 0 then leaves[1] else leaves[2],
+			model
+		)
+	end
+	-- the sunlit top and a small cap off centre
+	part(
+		"Leaves",
+		Vector3.new(c * 0.62, c * 0.26, c * 0.62),
+		base * CFrame.new(c * 0.05, c * 0.68, -c * 0.04) * twist(),
+		leaves[3],
+		model
+	)
+	part(
+		"Leaves",
+		Vector3.new(c * 0.3, c * 0.18, c * 0.3),
+		base * CFrame.new(-c * 0.12, c * 0.86, c * 0.08) * twist(),
+		leaves[3],
+		model
+	)
+	for _, p in model:GetChildren() do
+		local piece = p :: BasePart
+		piece.CanCollide = solid and piece.Name ~= "Leaves"
+		piece.CanQuery = solid
+		piece.CastShadow = solid
+	end
+	model.Parent = parent
 end
 
 --[[ A round grey boulder of two or three stones. ]]
 local function boulder(at: Vector2, grow: number, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Boulder"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local main = blob(
 		"Stone",
 		Vector3.new(5, 3.6, 4.4) * grow,
@@ -387,7 +385,7 @@ end
 local function bush(at: Vector2, grow: number, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Bush"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local leaves = COLOURS.leaves
 	for k = 0, 2 do
 		local angle = k * 2.1 + rng:NextNumber()
@@ -407,7 +405,7 @@ end
 local function flowers(at: Vector2, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Flowers"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local colour = COLOURS.flowers[rng:NextInteger(1, #COLOURS.flowers)]
 	for _ = 1, 5 do
 		local spot = foot + Vector3.new(rng:NextNumber(-1.6, 1.6), 0, rng:NextNumber(-1.6, 1.6))
@@ -433,7 +431,7 @@ end
 local function mushroom(at: Vector2, grow: number, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Mushroom"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	pillar("Stalk", foot, 1.4 * grow, 0.8 * grow, COLOURS.foam, model)
 	local cap = foot + Vector3.new(0, 1.5 * grow, 0)
 	blob("Cap", Vector3.new(2.6, 1.5, 2.6) * grow, CFrame.new(cap), COLOURS.mushroom, model)
@@ -450,227 +448,6 @@ local function mushroom(at: Vector2, grow: number, parent: Instance)
 	model.Parent = parent
 end
 
---[[ A smooth egg `size` studs, spotted, its centre at `cframe`. ]]
-local function egg(cframe: CFrame, size: Vector3, shell: Color3, spots: Color3, parent: Instance)
-	local middle = cframe.Position
-	blob("Shell", size, cframe, shell, parent)
-	for k = 0, 9 do
-		local turn = k * 2.4
-		local lift = math.rad(-40 + (k % 4) * 30)
-		local normal = Vector3.new(
-			math.cos(turn) * math.cos(lift),
-			math.sin(lift),
-			math.sin(turn) * math.cos(lift)
-		)
-		local spot = middle + normal * (size / 2) * 0.96
-		local across = size.X * (0.2 + (k % 3) * 0.06)
-		blob(
-			"Spot",
-			Vector3.new(across, across, 0.5),
-			CFrame.lookAt(spot, spot + normal),
-			spots,
-			parent
-		)
-	end
-end
-
---[[ A sword, its guard at `cframe`, the blade up, `grow` times a hand
-     sword's size. ]]
-local function sword(cframe: CFrame, grow: number, parent: Instance)
-	local function piece(label: string, size: Vector3, y: number, colour: Color3, round: boolean?)
-		if round then
-			blob(label, size * grow, cframe * CFrame.new(0, y * grow, 0), colour, parent)
-		else
-			part(label, size * grow, cframe * CFrame.new(0, y * grow, 0), colour, parent)
-		end
-	end
-	piece("Blade", Vector3.new(1.2, 7, 0.4), 4, EMBLEM.steel)
-	piece("Tip", Vector3.new(0.85, 0.85, 0.4), 7.5, EMBLEM.steel)
-	piece("Guard", Vector3.new(4, 0.8, 0.9), 0, COLOURS.gold)
-	piece("Grip", Vector3.new(0.7, 2.2, 0.7), -1.4, COLOURS.woodDark)
-	piece("Pommel", Vector3.new(1.1, 1.1, 1.1), -2.8, COLOURS.gold, true)
-end
-
---[[ A round shield facing south, `across` studs, its centre at `cframe`. ]]
-local function shield(cframe: CFrame, across: number, parent: Instance)
-	local facing = cframe * CFrame.Angles(0, math.pi / 2, 0)
-	part(
-		"Rim",
-		Vector3.new(0.6, across + 0.8, across + 0.8),
-		facing * CFrame.new(-0.2, 0, 0),
-		COLOURS.gold,
-		parent,
-		Enum.PartType.Cylinder
-	)
-	part(
-		"Face",
-		Vector3.new(0.6, across, across),
-		facing,
-		EMBLEM.shield,
-		parent,
-		Enum.PartType.Cylinder
-	)
-	part(
-		"Bar",
-		Vector3.new(across * 0.16, across * 0.8, 0.3),
-		cframe * CFrame.new(0, 0, 0.35),
-		COLOURS.foam,
-		parent
-	)
-	part(
-		"Bar",
-		Vector3.new(across * 0.8, across * 0.16, 0.3),
-		cframe * CFrame.new(0, 0, 0.35),
-		COLOURS.foam,
-		parent
-	)
-	blob(
-		"Boss",
-		Vector3.new(1, 1, 0.6) * across * 0.22,
-		cframe * CFrame.new(0, 0, 0.5),
-		COLOURS.gold,
-		parent
-	)
-end
-
---[[ A straw nest of three small eggs, its foot at `cframe`. ]]
-local function nest(cframe: CFrame, parent: Instance)
-	local foot = cframe.Position
-	pillar("Straw", foot, 1, 5.4, EMBLEM.straw, parent)
-	pillar(
-		"Hollow",
-		foot + Vector3.new(0, 0.2, 0),
-		0.9,
-		4.2,
-		EMBLEM.straw:Lerp(Color3.new(0, 0, 0), 0.25),
-		parent
-	)
-	for k = 0, 2 do
-		local turn = k * math.pi * 2 / 3
-		blob(
-			"Egg",
-			Vector3.new(1.6, 2.1, 1.6),
-			CFrame.new(foot + Vector3.new(math.cos(turn) * 1.1, 1.6, math.sin(turn) * 1.1)),
-			EMBLEM.nestEggs[k + 1],
-			parent
-		)
-	end
-end
-
---[[ A weapon rack: two posts and a bar with the `weapons` leaning on it,
-     its foot at `cframe`, facing south. ]]
-local function weaponRack(cframe: CFrame, weapons: { string }, parent: Instance)
-	for _, side in { -1, 1 } do
-		part(
-			"RackPost",
-			Vector3.new(0.8, 6, 0.8),
-			cframe * CFrame.new(side * 3.6, 3, 0),
-			COLOURS.woodDark,
-			parent
-		)
-	end
-	part("RackBar", Vector3.new(8, 0.6, 0.6), cframe * CFrame.new(0, 5.4, 0), COLOURS.wood, parent)
-	part(
-		"RackFoot",
-		Vector3.new(8.4, 0.6, 2.4),
-		cframe * CFrame.new(0, 0.3, 0),
-		COLOURS.woodDark,
-		parent
-	)
-	for k, kind in weapons do
-		local x = (k - (#weapons + 1) / 2) * 2.4
-		local lean = cframe * CFrame.new(x, 0, 0.6) * CFrame.Angles(-0.12, 0, 0)
-		if kind == "sword" then
-			sword(lean * CFrame.new(0, 2.4, 0), 0.75, parent)
-		elseif kind == "bow" then
-			for _, tip in { -1, 1 } do
-				part(
-					"Limb",
-					Vector3.new(0.5, 3.2, 0.5),
-					lean * CFrame.new(-0.4, 4 + tip * 1.7, 0) * CFrame.Angles(0, 0, tip * 0.35),
-					COLOURS.wood,
-					parent
-				)
-			end
-			part(
-				"Grip",
-				Vector3.new(0.6, 1.4, 0.6),
-				lean * CFrame.new(-0.9, 4, 0),
-				COLOURS.woodDark,
-				parent
-			)
-			part(
-				"String",
-				Vector3.new(0.12, 6.6, 0.12),
-				lean * CFrame.new(0.5, 4, 0),
-				COLOURS.foam,
-				parent
-			)
-		elseif kind == "staff" then
-			part(
-				"Pole",
-				Vector3.new(0.6, 7, 0.6),
-				lean * CFrame.new(0, 3.5, 0),
-				COLOURS.wood,
-				parent
-			)
-			local gem = blob(
-				"Gem",
-				Vector3.new(1.4, 1.8, 1.4),
-				lean * CFrame.new(0, 7.6, 0),
-				EMBLEM.gem,
-				parent
-			)
-			gem.Material = Enum.Material.Neon
-		end
-	end
-end
-
---[[ An armour stand: a post, a breastplate, pauldrons and a plumed helm,
-     its foot at `cframe`. ]]
-local function armourStand(cframe: CFrame, parent: Instance)
-	pillar("StandBase", cframe.Position, 0.5, 3.4, COLOURS.woodDark, parent)
-	part(
-		"StandPost",
-		Vector3.new(0.7, 5, 0.7),
-		cframe * CFrame.new(0, 2.5, 0),
-		COLOURS.woodDark,
-		parent
-	)
-	blob(
-		"Breastplate",
-		Vector3.new(3.6, 3.6, 2.4),
-		cframe * CFrame.new(0, 4.4, 0),
-		EMBLEM.steel,
-		parent
-	)
-	part("Belt", Vector3.new(3.2, 0.5, 2.2), cframe * CFrame.new(0, 3, 0), COLOURS.woodDark, parent)
-	for _, side in { -1, 1 } do
-		blob(
-			"Pauldron",
-			Vector3.new(1.6, 1.3, 1.8),
-			cframe * CFrame.new(side * 1.9, 5.6, 0),
-			EMBLEM.steel,
-			parent
-		)
-	end
-	blob("Helm", Vector3.new(2.2, 2.4, 2.2), cframe * CFrame.new(0, 7.2, 0), EMBLEM.steel, parent)
-	part(
-		"Visor",
-		Vector3.new(1.6, 0.3, 0.3),
-		cframe * CFrame.new(0, 7.2, 1.05),
-		COLOURS.woodDark,
-		parent
-	)
-	blob(
-		"Plume",
-		Vector3.new(0.7, 1.6, 1.8),
-		cframe * CFrame.new(0, 8.6, -0.2),
-		EMBLEM.shield,
-		parent
-	)
-end
-
 --[[ A station's name floating over it, which is how a player picks it
      out from across the lawn. Its own function because the Dex Hall is
      built and returned before the rest of `building` runs, and it needs
@@ -680,1049 +457,79 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	local anchor = wall("Title", Vector3.one, at, model)
 	anchor.CanCollide = false
 	local board = Instance.new("BillboardGui")
-	board.Size = UDim2.fromScale(32, 6)
+	board.Size = UDim2.fromScale(28, 14)
 	board.LightInfluence = 0
 	board.MaxDistance = 320
 	board.Parent = anchor
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
-	label.Text = spec.title or ""
+	-- two chunky lines, as the sheet letters them
+	label.Text = string.gsub(spec.title or "", " ", "\n")
 	label.TextColor3 = spec.titleColour or COLOURS.text
-	label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)
-	label.TextStrokeTransparency = 0
 	label.Parent = board
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(40, 24, 12)
+	stroke.Thickness = 3
+	stroke.Parent = label
 end
+
+--[[ The bob of the Hatch Eggs' floating egg. ]]
+local BOB = TweenInfo.new(2.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+local BOB_HEIGHT = 1.2
 
 --[[
-	The Egg Hatchery, built from its sheet's own measurements
-	(`Config/HatcheryDesign`, where every one of them is written down
-	against the reference it was read off).
+	A station's building: the owner's imported model (`Config/PalaceBuildings`),
+	its name floating over it, and a wall that keeps players out of it and off
+	its steps. Each building faces the middle of the clearing, and everything
+	is placed in its frame, front +Z. Returns its footprint.
 
-	An open timber pavilion: four posts, a beam round their heads, a flat
-	deck of stone slabs over them, the nameboard hanging from the front
-	beam with a lantern at each end of it, and one round stone nest ring
-	under it holding three eggs in gold collars. There is no wall, no door
-	and no gable -- the front is open and you look straight in at the eggs,
-	which is what the sheet shows and what the cottage that stood here did
-	not.
-
-	Built facing +Z, like every other station; `base` already carries the
-	turn that points that front at the middle of the clearing.
+	A mesh that did not load is left out rather than stopping the lobby.
 ]]
-local function hatchery(base: CFrame, model: Model): Vector3
-	local D = HatcheryDesign
-	local look = D.colours
-	local halfW, halfD = D.across / 2, D.deep / 2
-	local deckFoot = D.postTall
-	local deckTop = deckFoot + D.beam + D.slab
-
-	local function slab(label: string, size: Vector3, x: number, y: number, z: number, c: Color3)
-		return part(label, size, base * CFrame.new(x, y, z), c, model)
-	end
-
-	--[[ The paved apron the whole station stands on, which the sheet runs
-	     out past the ring on every side. ]]
-	pillar("Apron", base.Position, 0.3, D.apron, look.apron, model)
-
-	--[[ The four posts, and the beam running round their heads. ]]
-	local postX, postZ = halfW - D.postThick / 2, halfD - D.postThick / 2
-	for _, sx in { -1, 1 } do
-		for _, sz in { -1, 1 } do
-			slab(
-				"Post",
-				Vector3.new(D.postThick, D.postTall, D.postThick),
-				sx * postX,
-				D.postTall / 2,
-				sz * postZ,
-				look.timberDark
-			)
-			--[[ A short brace from the post up into the beam at each
-			     corner, as the sheet frames its openings. ]]
-			slab(
-				"Brace",
-				Vector3.new(4.4, D.postThick * 0.7, D.postThick * 0.7),
-				sx * (postX - 2.2),
-				D.postTall - 1.2,
-				sz * postZ,
-				look.timber
-			)
-		end
-		slab(
-			"BeamSide",
-			Vector3.new(D.beam, D.beam, D.deep),
-			sx * postX,
-			deckFoot + D.beam / 2,
-			0,
-			look.timber
-		)
-		slab(
-			"Beam",
-			Vector3.new(D.across, D.beam, D.beam),
-			0,
-			deckFoot + D.beam / 2,
-			sx * postZ,
-			look.timber
-		)
-	end
-
-	--[[ The flat roof deck: a grid of stone slabs in two greys, as the
-	     sheet paves it, lapped `eaves` studs past the posts all round. ]]
-	local deckW, deckD = D.across + D.eaves * 2, D.deep + D.eaves * 2
-	local cols, rows = 6, 4
-	for col = 1, cols do
-		for row = 1, rows do
-			slab(
-				"Deck",
-				Vector3.new(deckW / cols, D.slab, deckD / rows),
-				(col - (cols + 1) / 2) * (deckW / cols),
-				deckTop - D.slab / 2,
-				(row - (rows + 1) / 2) * (deckD / rows),
-				if (col + row) % 2 == 0 then look.slab else look.slabDark
-			)
-		end
-	end
-
-	--[[ The nameboard, hanging from the front beam. ]]
-	signboard(
-		"EGG HATCHERY",
-		base * CFrame.new(0, deckFoot - D.sign.tall / 2 - 0.4, halfD + D.sign.out),
-		D.sign.across,
-		D.sign.tall,
-		model
-	)
-
-	--[[ A lantern at each end of the beam, and the vines trailing off the
-	     front edge of the deck. ]]
-	for _, sx in { -1, 1 } do
-		local x = sx * D.lantern.out
-		local y = deckFoot - D.lantern.drop
-		slab("LanternArm", Vector3.new(0.4, D.lantern.drop, 0.5), x, y + 1.3, halfD, look.iron)
-		slab("LanternCap", Vector3.new(1.4, 0.5, 1.4), x, y + 0.6, halfD, look.iron)
-		local glass = slab(
-			"Lantern",
-			Vector3.new(1.1, D.lantern.tall, 1.1),
-			x,
-			y - D.lantern.tall / 2,
-			halfD,
-			look.lantern
-		)
-		glass.Material = Enum.Material.Neon
-		local light = Instance.new("PointLight")
-		light.Color = look.lantern
-		light.Range = D.lantern.range
-		light.Brightness = D.lantern.brightness
-		light.Parent = glass
-	end
-	--[[ Down each side, as the sheet hangs them. Across the front they
-	     fell over the nameboard. ]]
-	for _, sx in { -1, 1 } do
-		for k = 1, D.vines.count do
-			local z = (k - (D.vines.count + 1) / 2) * (D.deep / D.vines.count)
-			local long = D.vines.long.Min
-				+ (D.vines.long.Max - D.vines.long.Min) * (((k + sx) * 0.37) % 1)
-			slab(
-				"Vine",
-				Vector3.new(0.45, long, 0.45),
-				sx * (halfW + D.eaves * 0.6),
-				deckTop - D.slab - long / 2,
-				z,
-				look.vine
-			)
-		end
-	end
-
-	--[[
-		The nest ring: a course of stone blocks round a circle, a moss
-		floor inside it, and the three eggs in their gold collars.
-
-		Each block is turned to the circle rather than laid square, or
-		the ring reads as a cog; its width is the chord its share of the
-		circle spans, plus a little so the joints close.
-	]]
-	local ring = D.ring
-	local radius = (ring.across - ring.thick) / 2
-	local chord = 2 * math.pi * radius / ring.blocks * 1.25
-	for k = 0, ring.blocks - 1 do
-		local turn = k * math.pi * 2 / ring.blocks
-		part(
-			"RingStone",
-			Vector3.new(chord, ring.tall, ring.thick),
-			base
-				* CFrame.new(
-					math.sin(turn) * radius,
-					ring.tall / 2,
-					ring.forward + math.cos(turn) * radius
-				)
-				* CFrame.Angles(0, turn, 0),
-			if k % 2 == 0 then look.stone else look.stoneLight,
-			model
-		)
-	end
-	pillar(
-		"NestFloor",
-		(base * CFrame.new(0, 0, ring.forward)).Position,
-		ring.tall - 0.6,
-		ring.across - ring.thick * 2,
-		look.moss,
-		model
-	)
-
-	for k, spec in D.eggs do
-		local x = (k - (#D.eggs + 1) / 2) * D.nestApart
-		local foot = ring.tall - 0.6
-		local at = base * CFrame.new(x, foot, ring.forward + spec.back)
-		--[[ The gold collar the egg sits in, a shade wider than the egg
-		     so the shell rises out of it rather than off it. ]]
-		pillar("Collar", at.Position, 1.1, spec.collar, look.gold, model)
-		pillar(
-			"CollarInner",
-			at.Position + Vector3.new(0, 0.2, 0),
-			1,
-			spec.collar - 1.6,
-			look.moss,
-			model
-		)
-		local centre = at * CFrame.new(0, 0.9 + spec.tall / 2, 0)
-		blob("Shell", Vector3.new(spec.wide, spec.tall, spec.wide), centre, look.shell, model)
-		for s = 0, D.spots.count - 1 do
-			local turn = s * 2.39996
-			local lift = math.rad(-30 + (s % 4) * 28)
-			local normal = Vector3.new(
-				math.cos(turn) * math.cos(lift),
-				math.sin(lift),
-				math.sin(turn) * math.cos(lift)
-			)
-			local size = Vector3.new(spec.wide, spec.tall, spec.wide)
-			local on = centre.Position + normal * (size / 2) * 0.95
-			local across = spec.wide * D.spots.size * (0.8 + (s % 3) * 0.2)
-			blob(
-				"Spot",
-				Vector3.new(across, across, 0.4),
-				CFrame.lookAt(on, on + normal),
-				if s % 2 == 0 then look.spotA else look.spotB,
-				model
-			)
-		end
-	end
-
-	--[[ The little pedestal with a green stone on it, out front. ]]
-	local ped = D.pedestal
-	pillar(
-		"Pedestal",
-		(base * CFrame.new(0, 0, ped.forward)).Position,
-		ped.tall,
-		ped.across,
-		look.stone,
-		model
-	)
-	pillar(
-		"PedestalCap",
-		(base * CFrame.new(0, ped.tall, ped.forward)).Position,
-		0.5,
-		ped.across + 0.8,
-		look.stoneLight,
-		model
-	)
-	blob(
-		"PedestalStone",
-		Vector3.new(2.2, 1.8, 2.2),
-		base * CFrame.new(0, ped.tall + 1.2, ped.forward),
-		look.gem,
-		model
-	)
-
-	return Vector3.new(D.across + 2, deckTop, D.deep + 2)
-end
-
---[[
-	The Blacksmith, built from its sheet's own measurements
-	(`Config/BlacksmithDesign`, where every one of them is written down
-	against the reference it was read off).
-
-	A stone forge open to the front: one tall back wall in courses, a
-	short return down each side, a timber post at each end under a front
-	beam, a chimney stack behind, the hearth arch alight in the wall, the
-	nameboard over the racks, a workbench and a sword rack against the
-	wall, two anvils out on the apron and a blue banner at each end.
-
-	Built facing +Z, like every other station.
-]]
-local function blacksmith(base: CFrame, model: Model): Vector3
-	local D = BlacksmithDesign
-	local look = D.colours
-	local halfW, halfD = D.across / 2, D.deep / 2
-	--[[ The wall's front face, which everything mounted on it hangs off. ]]
-	local wallFace = -halfD + D.wallThick
-
-	local function slab(label: string, size: Vector3, x: number, y: number, z: number, c: Color3)
-		return part(label, size, base * CFrame.new(x, y, z), c, model)
-	end
-
-	--[[ The paved apron, and its darker edging. ]]
-	slab("ApronEdge", Vector3.new(D.apron.X + 2, 0.24, D.apron.Y + 2), 0, 0.12, 2, look.floorEdge)
-	slab("Apron", Vector3.new(D.apron.X, 0.3, D.apron.Y), 0, 0.3, 2, look.floor)
-
-	--[[
-		The back wall, in courses, with the hearth arch left out of it.
-
-		A strip that stands over the hearth's opening is built only from
-		the lintel up; every other strip runs the full height. Building
-		the hole this way rather than drawing a dark rectangle on the
-		wall is what makes the fire read as being INSIDE the wall, which
-		is what the sheet shows.
-	]]
-	local strips = 10
-	local stripW = D.across / strips
-	local hearthLeft = D.hearth.side - D.hearth.across / 2
-	local hearthRight = D.hearth.side + D.hearth.across / 2
-	for s = 1, strips do
-		local x = (s - (strips + 1) / 2) * stripW
-		local overHearth = x + stripW / 2 > hearthLeft and x - stripW / 2 < hearthRight
-		local foot = if overHearth then D.hearth.tall else 0
-		for course = 1, D.courses do
-			local bandFoot = (course - 1) * D.wallTall / D.courses
-			local bandTop = course * D.wallTall / D.courses
-			if bandTop <= foot then
-				continue
-			end
-			local y0 = math.max(bandFoot, foot)
-			slab(
-				"WallStone",
-				Vector3.new(stripW, bandTop - y0, D.wallThick),
-				x,
-				(y0 + bandTop) / 2,
-				-halfD + D.wallThick / 2,
-				if (s + course) % 2 == 0 then look.stone else look.stoneDark
-			)
-		end
-	end
-	--[[ The stone shelf capping the wall, lapped out past its face. ]]
-	slab(
-		"WallCap",
-		Vector3.new(D.across + D.cap.out * 2, D.cap.tall, D.wallThick + D.cap.out * 2),
-		0,
-		D.wallTall + D.cap.tall / 2,
-		-halfD + D.wallThick / 2,
-		look.stoneLight
-	)
-
-	--[[ The two short returns down the sides, and the timber frame. ]]
-	for _, sx in { -1, 1 } do
-		slab(
-			"Return",
-			Vector3.new(D.wallThick, D.wallTall, D.returns),
-			sx * (halfW - D.wallThick / 2),
-			D.wallTall / 2,
-			-halfD + D.returns / 2,
-			look.stone
-		)
-		slab(
-			"FramePost",
-			Vector3.new(D.post.thick, D.wallTall, D.post.thick),
-			sx * D.post.out,
-			D.wallTall / 2,
-			-halfD + D.returns - D.post.thick / 2,
-			look.timberDark
-		)
-	end
-
-	--[[ The chimney stack behind, with its dark mouth on top. ]]
-	local ch = D.chimney
-	slab(
-		"Chimney",
-		Vector3.new(ch.across, D.wallTall + ch.rise, ch.across),
-		ch.side,
-		(D.wallTall + ch.rise) / 2,
-		-halfD - ch.back + ch.across / 2,
-		look.stone
-	)
-	slab(
-		"ChimneyCap",
-		Vector3.new(ch.across + 1.2, 1.2, ch.across + 1.2),
-		ch.side,
-		D.wallTall + ch.rise + 0.6,
-		-halfD - ch.back + ch.across / 2,
-		look.stoneLight
-	)
-	local mouth = slab(
-		"ChimneyMouth",
-		Vector3.new(ch.mouth, 1.4, ch.mouth),
-		ch.side,
-		D.wallTall + ch.rise + 0.8,
-		-halfD - ch.back + ch.across / 2,
-		look.board
-	)
-	local smoke = Instance.new("Smoke")
-	smoke.Color = Color3.fromRGB(214, 214, 214)
-	smoke.Opacity = 0.14
-	smoke.RiseVelocity = 5
-	smoke.Size = 4
-	smoke.Parent = mouth
-
-	--[[
-		The hearth: the brick lip across the opening's foot, the coals on
-		it, and a sheet of fire standing in the arch, which is the only
-		thing lighting this corner of the lobby.
-	]]
-	local hearth = D.hearth
-	--[[ The lip juts out onto the apron, where the sheet has it, and the
-	     fire stands just inside the opening's own front: both were set
-	     inside the wall's two studs of thickness at first, where the
-	     stone hid the whole hearth from anywhere but dead in front. ]]
-	slab(
-		"HearthLip",
-		Vector3.new(hearth.across + 1.6, hearth.lip, D.wallThick + 1.6),
-		hearth.side,
-		hearth.lip / 2,
-		wallFace + 0.8,
-		look.brick
-	)
-	slab(
-		"HearthBack",
-		Vector3.new(hearth.across, hearth.tall, 0.6),
-		hearth.side,
-		hearth.tall / 2,
-		-halfD + 0.3,
-		look.brick
-	)
-	local fire = slab(
-		"ForgeFire",
-		Vector3.new(hearth.across - 2.4, hearth.tall - 2, 0.6),
-		hearth.side,
-		hearth.lip + (hearth.tall - 2) / 2,
-		wallFace - 0.5,
-		look.fire
-	)
-	fire.Material = Enum.Material.Neon
-	local light = Instance.new("PointLight")
-	light.Color = look.fire
-	light.Range = hearth.range
-	light.Brightness = hearth.brightness
-	light.Parent = fire
-	for k = -2, 2 do
-		local coal = slab(
-			"Coal",
-			Vector3.new(1.8, 0.7, 1.2),
-			hearth.side + k * 2,
-			hearth.lip + 0.5,
-			wallFace + 0.4,
-			look.ember
-		)
-		coal.Material = Enum.Material.Neon
-	end
-
-	--[[ The nameboard on the wall, over the racks -- on the side AWAY
-	     from the hearth, as the sheet hangs it. It was drawn on the
-	     hearth's own side at first, where it covered the fire. ]]
-	signboard(
-		"BLACKSMITH",
-		base
-			* CFrame.new(
-				(D.across / 2 - D.sign.across / 2 - 1.5) * -math.sign(D.hearth.side),
-				D.wallTall - D.sign.below - D.sign.tall / 2,
-				wallFace + D.sign.out
-			),
-		D.sign.across,
-		D.sign.tall,
-		model
-	)
-
-	--[[ The sword rack against the wall, left of the hearth. ]]
-	local rack = D.rack
-	for _, sx in { -1, 1 } do
-		slab(
-			"RackPost",
-			Vector3.new(0.7, rack.tall, 0.7),
-			rack.side + sx * rack.across / 2,
-			rack.tall / 2,
-			-halfD + rack.forward,
-			look.timberDark
-		)
-	end
-	slab(
-		"RackBar",
-		Vector3.new(rack.across, 0.6, 0.7),
-		rack.side,
-		rack.tall - 0.5,
-		-halfD + rack.forward,
-		look.timber
-	)
-	slab(
-		"RackFoot",
-		Vector3.new(rack.across + 0.8, 0.6, 2.2),
-		rack.side,
-		0.3,
-		-halfD + rack.forward,
-		look.timberDark
-	)
-	for k = 1, rack.blades do
-		local x = rack.side + (k - (rack.blades + 1) / 2) * (rack.across / rack.blades)
-		local z = -halfD + rack.forward + 0.7
-		slab("Blade", Vector3.new(0.7, rack.blade, 0.26), x, rack.blade / 2 + 0.6, z, look.steel)
-		slab("Guard", Vector3.new(1.9, 0.5, 0.5), x, rack.blade + 0.8, z, look.gold)
-		slab("Grip", Vector3.new(0.5, 1.4, 0.5), x, rack.blade + 1.7, z, look.timberDark)
-	end
-
-	--[[ The workbench further left, with hammers laid on it. ]]
-	local bench = D.bench
-	slab(
-		"Bench",
-		Vector3.new(bench.long, 0.6, bench.wide),
-		bench.side,
-		bench.tall,
-		-halfD + bench.forward,
-		look.timber
-	)
-	for _, sx in { -1, 1 } do
-		slab(
-			"BenchLeg",
-			Vector3.new(0.7, bench.tall, 0.7),
-			bench.side + sx * (bench.long / 2 - 0.6),
-			bench.tall / 2,
-			-halfD + bench.forward,
-			look.timberDark
-		)
-	end
-	for k = -1, 1 do
-		slab(
-			"HammerHead",
-			Vector3.new(1.5, 0.9, 0.9),
-			bench.side + k * 2.4,
-			bench.tall + 0.75,
-			-halfD + bench.forward,
-			look.anvil
-		)
-		slab(
-			"HammerShaft",
-			Vector3.new(0.4, 0.4, 2.6),
-			bench.side + k * 2.4,
-			bench.tall + 0.6,
-			-halfD + bench.forward + 1.6,
-			look.timberDark
-		)
-	end
-
-	--[[ The two anvils out on the apron: a block foot, a waist and the
-	     face over it, with the horn out one end, as the sheet draws
-	     them. ]]
-	local anvil = D.anvil
-	for _, sx in { -1, 1 } do
-		local x = sx * anvil.apart / 2
-		local z = -halfD + anvil.forward
-		slab(
-			"AnvilFoot",
-			Vector3.new(anvil.long * 0.62, anvil.tall * 0.26, anvil.wide),
-			x,
-			anvil.tall * 0.13,
-			z,
-			look.anvil
-		)
-		slab(
-			"AnvilWaist",
-			Vector3.new(anvil.long * 0.34, anvil.tall * 0.42, anvil.wide * 0.7),
-			x,
-			anvil.tall * 0.47,
-			z,
-			look.anvil
-		)
-		slab(
-			"AnvilFace",
-			Vector3.new(anvil.long, anvil.tall * 0.32, anvil.wide),
-			x,
-			anvil.tall * 0.84,
-			z,
-			look.anvil
-		)
-		slab(
-			"AnvilHorn",
-			Vector3.new(anvil.long * 0.3, anvil.tall * 0.2, anvil.wide * 0.6),
-			x + sx * anvil.long * 0.62,
-			anvil.tall * 0.84,
-			z,
-			look.anvil
-		)
-	end
-
-	--[[ A banner at each end: the cross pole, the cloth, and the gold
-	     emblem on its face. ]]
-	local banner = D.banner
-	for _, sx in { -1, 1 } do
-		local x = sx * banner.out
-		local z = -halfD + banner.forward
-		slab("BannerPost", Vector3.new(0.7, banner.top, 0.7), x, banner.top / 2, z, look.timberDark)
-		slab(
-			"BannerPole",
-			Vector3.new(banner.wide + 1.6, 0.6, 0.6),
-			x,
-			banner.top,
-			z,
-			look.timberDark
-		)
-		slab(
-			"BannerCloth",
-			Vector3.new(banner.wide, banner.long, 0.3),
-			x,
-			banner.top - banner.long / 2 - 0.4,
-			z,
-			look.banner
-		)
-		--[[ The emblem: a stem with two arms, which is the shape the
-		     sheet's gold mark on the cloth comes to. ]]
-		slab(
-			"BannerMark",
-			Vector3.new(0.8, banner.long * 0.42, 0.4),
-			x,
-			banner.top - banner.long / 2 - 0.4,
-			z + 0.1,
-			look.gold
-		)
-		for _, ax in { -1, 1 } do
-			slab(
-				"BannerMark",
-				Vector3.new(0.7, banner.long * 0.26, 0.4),
-				x + ax * 0.9,
-				banner.top - banner.long / 2 - 0.9,
-				z + 0.1,
-				look.gold
-			)
-		end
-	end
-
-	return Vector3.new(D.across + 2, D.wallTall, D.deep + 2)
-end
-
---[[ A station's cottage (`LobbyConfig.buildings`): a stone foundation,
-     plastered walls framed in timber, a door and two windows, a gabled roof
-     with a ridge, its sign over the door, and what its kind adds. Its door
-     faces south.
-
-     The Dex Hall, the Blacksmith and the Egg Hatchery are none of those
-     things on their sheets, so each is built by its own hand and nothing
-     of the cottage runs for them. ]]
 local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	local spec = LobbyConfig.buildings[name]
-	if not spec then
+	local design = PalaceBuildings[name]
+	if not spec or not design then
 		return nil
 	end
 	local model = Instance.new("Model")
 	model.Name = name
-	local size = spec.size
-	local w, h, d = size.X, size.Y, size.Z
-	--[[ Turned to face the middle of the clearing (owner, 2026-11-01), so
-	     everything below -- walls, roof, porch, sign and props -- comes
-	     round with it: they are all placed off `base`. ]]
 	local base = CFrame.new(world(at, LAWN)) * CFrame.Angles(0, LobbyConfig.facing(at), 0)
+	local bobbing: MeshPart? = nil
 
-	--[[ The two rebuilt from their sheets on 2026-11-02: neither is a
-	     cottage on its reference, so each is built by its own hand and
-	     nothing below runs for it. Its name still floats over it, as
-	     every station's does. ]]
-	if name == "EggHatchery" or name == "Blacksmith" then
-		local built = if name == "EggHatchery"
-			then hatchery(base, model)
-			else blacksmith(base, model)
-		if spec.title then
-			floatingTitle(spec, base * CFrame.new(0, built.Y + 12, 0), model)
+	for _, piece in design.pieces do
+		local template = lobbyTemplates[piece.mesh]
+		if not template then
+			continue
 		end
-		model.Parent = parent
-		return built
+		local mesh = template:Clone()
+		local spot = base * CFrame.new(piece.offset)
+		mesh.Name = piece.name
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.CastShadow = not piece.glow
+		mesh.Material = if piece.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.Size = piece.size
+		mesh.CFrame = spot
+		mesh.Parent = model
+		if piece.bob then
+			bobbing = mesh
+		end
 	end
 
-	--[[
-		The Dex Hall is the owner's own model, not a box with props on it
-		(2026-11-01: "ok i imported the dex hall i want you to use"), so
-		it is built here and nothing below runs for it: the mesh already
-		carries its porch, its columns, its lanterns, its steps, its
-		carpet, its shelves and the two stone pads out front.
-
-		It was modelled facing -Z and a lobby building faces south, so the
-		whole thing is placed in the hall's own frame and then turned.
-		Its books ride that turn with it, which is why they are placed
-		before it rather than in world space.
-	]]
-	--[[
-		The Dex Hall is built here from parts rather than placed as a
-		model (owner, 2026-11-01: "make a whole new building", "i want you
-		to just use parts already in roblox"), so nothing below runs for
-		it. The two books the owner modelled are still imports; everything
-		they stand on is parts, in the sheet's own colours.
-	]]
+	local top = design.top
 	if name == "DexHall" then
+		--[[ The two books the owner modelled stay as they are: the open
+		     book on the hall's flat deck and a stand on each pad. They
+		     were modelled facing -Z, so they take `turn`. ]]
 		local dex = LobbyConfig.dex
-		local look = dex.colours
-		local hall = dex.hall
-		local wide, deepHall = hall.across, hall.deep
-		local halfD = deepHall / 2
-		--[[ Front is +Z, as every station's is, and `base` already
-		     carries the turn that puts that front toward the middle. ]]
-		local function spotIn(x: number, y: number, z: number): CFrame
-			return base * CFrame.new(x, y, z)
-		end
-		local function slab(
-			label: string,
-			block: Vector3,
-			x: number,
-			y: number,
-			z: number,
-			colour: Color3
-		): Part
-			return part(label, block, spotIn(x, y, z), colour, model)
-		end
-		--[[ The plinth it stands on, two steps up to the porch, and the
-		     carpet running over them and in through the front. ]]
-		slab("Plinth", Vector3.new(wide, 1.5, deepHall), 0, 0.75, -2.5, look.stone)
-		slab("Step", Vector3.new(12.8, 1, 3.1), 0, 0.5, halfD - 1.1, look.stone)
-		slab("Step", Vector3.new(12.8, 0.5, 3.1), 0, 0.25, halfD + 1.9, look.stone)
-		--[[ The carpet lies over the porch and the top step only; the
-		     sheet leaves the lower step cream, so the red reads as a
-		     runner going in rather than as a red staircase. ]]
-		slab("Carpet", Vector3.new(9, 0.12, 3.1), 0, 1.06, halfD - 1.1, look.red)
-		slab("Carpet", Vector3.new(9, 0.12, 11), 0, 1.56, 9, look.red)
-		--[[ Its gold edging, which the sheet runs down either side. ]]
-		for _, sx in { -1, 1 } do
-			slab("CarpetEdge", Vector3.new(0.7, 0.14, 11), sx * 4.85, 1.57, 9, look.gold)
-		end
-
-		--[[ The timber frame: a post at each corner and either side of
-		     the porch, a beam along the top and the bottom, and the cream
-		     panels filling between them. ]]
-		local wallY, postH = 5.5, 8
-		for _, sx in { -1, 1 } do
-			for _, sz in { -1, 1 } do
-				slab("Post", Vector3.new(2, postH, 2), sx * 18, wallY, sz * 13 - 2.5, look.timber)
-			end
-			slab("Post", Vector3.new(2, postH, 2), sx * 9.55, wallY, 10.5, look.timber)
-			slab("PanelSide", Vector3.new(1.6, 4, 24), sx * 18, wallY, -2.5, look.panel)
-			slab("BeamSide", Vector3.new(2, 2, 24), sx * 18, 2.5, -2.5, look.timber)
-			slab("BeamSide", Vector3.new(2, 2, 24), sx * 18, 8.5, -2.5, look.timber)
-			slab("PanelFront", Vector3.new(6.45, 4, 1.6), sx * 13.77, wallY, 10.5, look.panel)
-			slab("BeamFront", Vector3.new(6.45, 2, 2), sx * 13.77, 2.5, 10.5, look.timber)
-		end
-		slab("PanelBack", Vector3.new(34, 4, 1.6), 0, wallY, -15.5, look.panel)
-
-		--[[
-			The window behind each book stand (owner, 2026-11-01: "the
-			squares behind the book stand need to be windowd").
-
-			It is the front wall panel, the one the stand stands against,
-			which read as a plain cream square from out on the lawn. A
-			first attempt put panes across the back wall and down both
-			sides, inside, which was the wrong wall entirely -- those are
-			reverted.
-
-			Centred in the panel rather than set against one face, so it
-			reads as a window from the lawn and from the porch alike.
-		]]
-		for _, sx in { -1, 1 } do
-			local x = sx * 13.77
-			slab("WindowFrame", Vector3.new(5.6, 3.6, 1.9), x, wallY, 10.5, look.timber)
-			local pane = slab("Window", Vector3.new(4.6, 2.8, 2.1), x, wallY, 10.5, look.glass)
-			pane.Material = Enum.Material.Glass
-			pane.Transparency = 0.45
-			slab("WindowBar", Vector3.new(0.35, 2.8, 2.2), x, wallY, 10.5, look.timber)
-			slab("WindowBar", Vector3.new(4.6, 0.35, 2.2), x, wallY, 10.5, look.timber)
-		end
-
-		slab("BeamBack", Vector3.new(34, 2, 2), 0, 2.5, -15.5, look.timber)
-		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
-		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)
-
-		--[[
-			The porch columns. Square, as the sheet draws them -- they
-			were turned cylinders at first, which read as a temple rather
-			than the toy-brick building this is. A white shaft between two
-			wider blocks, banded in gold under each.
-
-			They stand in front of the wall line, which is at z 11.5. At
-			12.5 each one was buried 0.7 studs into the corner post and the
-			top beam, so brown timber cut through the white blocks in nine
-			places (owner, 2026-11-01: "should not be clipping through
-			anything"). Out here nothing of the frame reaches them, and the
-			head stops at 9.55 where the gable beam begins, so the column
-			meets what it holds up instead of piercing it.
-
-			Each also stands on stone down to the lawn. The plinth stops at
-			z 11.5, so a column out here had its whole foot over open grass
-			-- all 25 rays under it found lawn 1.5 studs below (owner:
-			"these pillars need to be flush to the ground"). The base is
-			the steps' own stone and runs into their outer cheeks, so it
-			reads as the porch floor carrying on under the column.
-		]]
-		for _, sx in { -1, 1 } do
-			local x = sx * 7.3
-			slab("ColumnBase", Vector3.new(3.4, 1.5, 3.6), x, 0.75, 13.2, look.stone)
-			slab("ColumnFoot", Vector3.new(3.4, 1, 3.4), x, 2, 13.3, look.column)
-			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 2.9, 13.3, look.gold)
-			slab("Column", Vector3.new(2.6, 4.45, 2.6), x, 5.525, 13.3, look.column)
-			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 8.15, 13.3, look.gold)
-			slab("ColumnHead", Vector3.new(3.4, 1, 3.4), x, 9.05, 13.3, look.column)
-		end
-
-		--[[
-			The roof. Its pitch is shallow because the sheet's is: a slope
-			of this width tilted 18.6 degrees made a steep A that read as
-			a chalet, where the sheet has a long low roof whose eaves come
-			down just over the wall tops (owner, 2026-11-01: "gable and
-			roof").
-
-			The flat top is where the two slopes meet, so the ridge
-			follows the pitch down rather than being a number of its own,
-			and the book rests on it.
-		]]
-		--[[
-			The roof: a slope either side meeting one flat cap, all of it
-			flush (owner, 2026-11-01: "make sure the roof is flush").
-
-			It was two stacked slabs over the slopes, which left a step
-			along the ridge and a wedge where each slope ran into them.
-			There is one cap now, its **top surface** set to the ridge and
-			the slopes' inner edges arriving at exactly that height: the
-			ridge is not a free number, it is where a slope of this pitch
-			gets to, which `ridgeOf` works out.
-
-			The cap reaches a little past each slope's inner edge, so the
-			join is buried rather than butted -- an overlap cannot be
-			seen, a hairline gap can.
-		]]
-		local pitch = math.rad(hall.pitch)
-		--[[ Long enough to overhang the walls by three studs. It used to
-		     stop within a thirtieth of a stud of the wall at x = 18,
-		     which left a slit of daylight along the eaves you could see
-		     straight through from inside (owner, 2026-11-01: "i dont
-		     want to see through this"). An overhang cannot leave a slit. ]]
-		local slopeWide = 17.5
-		--[[ The cap's half-width, where a slope's inner edge lands. ]]
-		local flatHalf = 4.2
-		local lift = slopeWide / 2 * math.sin(pitch)
-		local reach = slopeWide / 2 * math.cos(pitch)
-		local thick = 1.5
-		--[[ The eaves sit a little *under* the top beam, so the roof laps
-		     over the wall rather than meeting it edge to edge. ]]
-		local eave = 9.3
-		--[[ Where the slope's top surface arrives over the middle. ]]
-		local ridge = eave + 2 * lift + (thick / 2) / math.cos(pitch)
-		for _, sx in { -1, 1 } do
-			--[[ `fromOrientation` and not `Angles`: a slope is turned a
-			     quarter round to lie along the building and then tilted,
-			     and doing the tilt about the wrong axis stood one slope
-			     on its edge and laid the other flat over the lawn. ]]
-			part(
-				"RoofSlope",
-				Vector3.new(30, thick, slopeWide),
-				spotIn(sx * (flatHalf + reach), eave + lift, -2.5)
-					* CFrame.fromOrientation(math.rad(sx * hall.pitch), math.pi / 2, 0),
-				look.roof,
-				model
-			)
-			--[[ A gold block at each of the roof's four corners. Square,
-			     as the sheet has them, not the turned cylinders they
-			     were. ]]
-			for _, sz in { -1, 1 } do
-				slab(
-					"RoofCap",
-					Vector3.new(3, 2.4, 3.4),
-					sx * (flatHalf + reach * 2 - 1),
-					eave - 0.3,
-					sz * 13.2 - 2.5,
-					look.gold
-				)
-			end
-		end
-		slab(
-			"RoofTop",
-			Vector3.new(flatHalf * 2 + 1.8, thick, 30),
-			0,
-			ridge - thick / 2,
-			-2.5,
-			look.roof
-		)
-
-		--[[
-			The gable ends.
-
-			The roof's ridge runs front to back, so it rises toward the
-			middle while the wall tops stay level: that left a triangle
-			of open sky over the back wall and over the porch, which from
-			inside is a clear view out (owner, 2026-11-01: "the roof isnt
-			closed"). A vertical ray never found it -- the roof is over
-			your head the whole way -- because the hole is sideways.
-
-			Filled with a run of panels stepping in toward the middle,
-			each one rising to the roof's underside at the *outer* edge
-			of its own band, so no step can poke through the slope above
-			it.
-		]]
-		local wallTop = 9.4
-		local outerX = flatHalf + reach * 2
-		--[[ How high the roof's underside is over the middle. ]]
-		local peakUnder = (eave - 0.8) + (outerX - flatHalf) * math.tan(pitch)
-		--[[
-			One wedge each side, rather than a run of steps: stepped
-			panels showed from outside under the eaves as a cream
-			staircase climbing to the gable. A wedge lies flush under the
-			slope.
-
-			A wedge's face falls along its own +Z, so a quarter turn about
-			Y lays it along X; the sign of the turn picks which end is
-			tall, and each side wants its tall end at the middle.
-		]]
-		local function gableEnd(z: number)
-			for _, sx in { -1, 1 } do
-				local wedge = part(
-					"GableEnd",
-					Vector3.new(1.5, peakUnder - wallTop, outerX),
-					spotIn(-sx * outerX / 2, (wallTop + peakUnder) / 2, z)
-						* CFrame.Angles(0, sx * math.pi / 2, 0),
-					look.panel,
-					model,
-					Enum.PartType.Wedge
-				)
-				wedge.CanCollide = true
-			end
-			--[[ The flat over the middle, where the roof is level. ]]
-			slab(
-				"GableEnd",
-				Vector3.new(flatHalf * 2, peakUnder - wallTop, 1.5),
-				0,
-				(wallTop + peakUnder) / 2,
-				z,
-				look.panel
-			)
-		end
-		gableEnd(-15.5)
-		gableEnd(10.5)
-
-		--[[
-			The gable over the porch.
-
-			Its two arms are **timber**, not roof. The sheet frames a
-			cream face with brown rafters and lets the purple show behind
-			them; drawn in the roof's own purple they read as two beams
-			thrown across the front rather than the edges of a gable.
-
-			The face sits behind the rafters, the king post runs up the
-			middle of it, a beam closes the bottom and a gold block caps
-			the peak where the two meet.
-		]]
-		local gableFoot, gableApex, gableHalf = 10.1, 13.4, 7
-		local gableMid = (gableApex + gableFoot) / 2
-		local gableRun = math.sqrt(gableHalf ^ 2 + (gableApex - gableFoot) ^ 2)
-		local gableTilt = math.atan2(gableApex - gableFoot, gableHalf)
-		slab(
-			"GableFace",
-			Vector3.new(gableHalf * 2, gableApex - gableFoot, 0.8),
-			0,
-			gableMid,
-			13.6,
-			look.panel
-		)
-		slab(
-			"GablePost",
-			Vector3.new(1.3, gableApex - gableFoot, 1.1),
-			0,
-			gableMid,
-			10.7,
-			look.timber
-		)
-		--[[ Turning a part about Z by a positive angle lifts its +X end,
-		     so the left arm takes the positive one: with the signs the
-		     other way round they made a V hanging into the doorway
-		     instead of a peak over it. ]]
-		for _, sx in { -1, 1 } do
-			part(
-				"GableRafter",
-				Vector3.new(gableRun, 1.1, 1.6),
-				spotIn(sx * gableHalf / 2, gableMid, 14.1)
-					* CFrame.fromOrientation(0, 0, -sx * gableTilt),
-				look.timber,
-				model
-			)
-		end
-		slab(
-			"GableBeam",
-			Vector3.new(gableHalf * 2 + 1.4, 1.1, 1.6),
-			0,
-			gableFoot,
-			14.1,
-			look.timber
-		)
-		slab("GablePeak", Vector3.new(2.4, 1.3, 2.2), 0, gableApex + 0.5, 14.1, look.gold)
-
-		--[[ Inside: the counter, and a shelf of books behind it. ]]
-		--[[ Set well back. It stood at the front at first, which
-		     turned the whole entrance into a letterbox slot over its
-		     top: the sheet shows a doorway you see through, with the
-		     counter and the shelves behind it. ]]
-		slab("Counter", Vector3.new(20, 2.6, 3.4), 0, 2.8, -4, look.timber)
-		slab("CounterTop", Vector3.new(21, 0.5, 4.4), 0, 4.35, -4, look.timber)
-		slab("ShelfBack", Vector3.new(22.8, 6, 3), 0, 4.5, -13, look.timber)
-		for row = 0, 2 do
-			slab("ShelfBoard", Vector3.new(22.8, 0.4, 1), 0, 4.37 + row * 1.66, -11, look.timber)
-			for col = 0, 5 do
-				slab(
-					"ShelfBook",
-					Vector3.new(1.3, 1.6, 0.8),
-					(col - 2.5) * 3.4,
-					5.3 + row * 1.66,
-					-11.1,
-					look.books[(row * 6 + col) % #look.books + 1]
-				)
-			end
-		end
-
-		--[[ A lantern either side of the porch, lit. ]]
-		local lantern = dex.lanterns
-		for _, sx in { -1, 1 } do
-			local x = sx * lantern.out
-			slab(
-				"LanternArm",
-				Vector3.new(0.4, 0.3, 0.6),
-				x,
-				lantern.height + 1.15,
-				lantern.forward - 0.3,
-				look.iron
-			)
-			slab(
-				"LanternCap",
-				Vector3.new(1.2, 0.5, 1.2),
-				x,
-				lantern.height + 0.75,
-				lantern.forward,
-				look.iron
-			)
-			slab(
-				"LanternFoot",
-				Vector3.new(1.2, 0.3, 1.2),
-				x,
-				lantern.height - 0.65,
-				lantern.forward,
-				look.iron
-			)
-			local glass = slab(
-				"Lantern",
-				Vector3.new(0.96, 1, 0.96),
-				x,
-				lantern.height,
-				lantern.forward,
-				look.lantern
-			)
-			glass.Material = Enum.Material.Neon
-			local light = Instance.new("PointLight")
-			light.Color = look.lantern
-			light.Range = lantern.range
-			light.Brightness = lantern.brightness
-			light.Parent = glass
-		end
-
-		--[[ The two pads out front, and the owner's stand on each. The
-		     books were modelled facing -Z, so they take `turn` on top of
-		     the building's own. ]]
 		local pads = dex.pads
 		for _, sx in { -1, 1 } do
-			slab("StandPad", pads.size, sx * pads.out, pads.top / 2, pads.forward, look.stone)
 			dexPiece(
 				"StandBook",
 				dex.standBook,
@@ -1732,240 +539,47 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 				model
 			)
 		end
-
-		--[[ And the open book resting on the roof. ]]
-		dexPiece(
+		local book = dexPiece(
 			"RoofBook",
 			dex.roofBook,
 			base
-				* CFrame.new(0, ridge - dex.roofBook.seat, dex.roofBook.forward)
+				* CFrame.new(0, dex.hall.ridge - dex.roofBook.seat, dex.roofBook.forward)
 				* CFrame.Angles(0, dex.turn, 0),
 			model
 		)
+		if book then
+			top += book.Size.Y - dex.roofBook.seat
+		end
+	end
 
-		--[[ No wooden board on this one: at any size it covered the
-		     gable it had to hang on. Its name floats over it instead,
-		     as every other station's does. ]]
-		if spec.title then
-			floatingTitle(spec, base * CFrame.new(0, ridge + 12, 0), model)
-		end
-		model.Parent = parent
-		return Vector3.new(wide + 2, ridge, deepHall + 2)
-	end
-	local function box(label: string, s: Vector3, offset: Vector3, colour: Color3): Part
-		return part(label, s, base * CFrame.new(offset), colour, model)
-	end
-	local floor = 1.4
-	local top = floor + h
-	local front = d / 2
-	box("Foundation", Vector3.new(w + 2, floor, d + 2), Vector3.new(0, floor / 2, 0), COLOURS.rock)
-	box("Walls", Vector3.new(w, h, d), Vector3.new(0, floor + h / 2, 0), spec.walls)
-	for _, sx in { -1, 1 } do
-		for _, sz in { -1, 1 } do
-			box(
-				"Post",
-				Vector3.new(1.4, h, 1.4),
-				Vector3.new(sx * w / 2, floor + h / 2, sz * d / 2),
-				COLOURS.woodDark
-			)
-		end
-	end
-	for _, sz in { -1, 1 } do
-		box(
-			"Beam",
-			Vector3.new(w + 0.8, 1.2, 0.8),
-			Vector3.new(0, top - 0.6, sz * (front + 0.1)),
-			COLOURS.woodDark
-		)
-	end
-	box(
-		"Sill",
-		Vector3.new(w + 0.6, 0.8, 0.6),
-		Vector3.new(0, floor + 0.4, front + 0.2),
-		COLOURS.woodDark
-	)
-	-- the door
-	box(
-		"DoorFrame",
-		Vector3.new(6.4, 8.4, 0.4),
-		Vector3.new(0, floor + 4.2, front + 0.1),
-		COLOURS.wood
-	)
-	box(
-		"Door",
-		Vector3.new(5, 7.6, 0.4),
-		Vector3.new(0, floor + 3.8, front + 0.3),
-		COLOURS.woodDark
-	)
-	blob(
-		"Knob",
-		Vector3.new(0.6, 0.6, 0.6),
-		base * CFrame.new(1.6, floor + 3.6, front + 0.6),
-		COLOURS.gold,
+	--[[ From the back wall to the foot of the steps, turned with the building.
+	     Nobody walks in: a station's screen opens from out front. ]]
+	local back = spec.size.Z / 2
+	wall(
+		"StationWall",
+		Vector3.new(spec.size.X, 20, back + design.front),
+		base * CFrame.new(0, 10, (design.front - back) / 2),
 		model
 	)
-	-- two windows, framed and crossed
-	for _, sx in { -1, 1 } do
-		local x = sx * w * 0.3
-		local y = floor + h * 0.5
-		box("WindowFrame", Vector3.new(5.4, 5, 0.4), Vector3.new(x, y, front + 0.1), COLOURS.wood)
-		box("Window", Vector3.new(4.4, 4, 0.4), Vector3.new(x, y, front + 0.25), COLOURS.glass).Material =
-			Enum.Material.Glass
-		box("Bar", Vector3.new(0.4, 4, 0.5), Vector3.new(x, y, front + 0.3), COLOURS.woodDark)
-		box("Bar", Vector3.new(4.4, 0.4, 0.5), Vector3.new(x, y, front + 0.3), COLOURS.woodDark)
-		-- a flower box under it
-		box("FlowerBox", Vector3.new(5.4, 1, 1.4), Vector3.new(x, y - 3, front + 0.7), COLOURS.wood)
-		for k = -2, 2 do
-			blob(
-				"Bloom",
-				Vector3.new(1, 0.9, 1),
-				base * CFrame.new(x + k * 1, y - 2.2, front + 0.7),
-				COLOURS.flowers[(k + 2) % #COLOURS.flowers + 1],
-				model
-			)
-		end
+
+	-- everything grows from the building's own foot
+	local scale = LobbyConfig.buildingScale
+	model.WorldPivot = base
+	model:ScaleTo(scale)
+	if bobbing then
+		-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+		CollectionService:AddTag(bobbing, "SmoothMotion")
+		TweenService
+			:Create(bobbing, BOB, { CFrame = bobbing.CFrame * CFrame.new(0, BOB_HEIGHT, 0) })
+			:Play()
 	end
-	-- the roof: two slopes meeting at a ridge along the front
-	local over = 2
-	local slope = Vector3.new(w + over * 2, spec.rise, front + over)
-	local frontSlope = part(
-		"Roof",
-		slope,
-		base * CFrame.new(0, top + spec.rise / 2, (front + over) / 2) * CFrame.Angles(0, math.pi, 0),
-		spec.roof,
-		model
-	)
-	frontSlope.Shape = Enum.PartType.Wedge
-	local backSlope = part(
-		"Roof",
-		slope,
-		base * CFrame.new(0, top + spec.rise / 2, -(front + over) / 2),
-		spec.roof,
-		model
-	)
-	backSlope.Shape = Enum.PartType.Wedge
-	part(
-		"Ridge",
-		Vector3.new(w + over * 2 + 0.6, 1.8, 1.8),
-		base * CFrame.new(0, top + spec.rise, 0),
-		spec.roof:Lerp(Color3.new(0, 0, 0), 0.25),
-		model,
-		Enum.PartType.Cylinder
-	)
-	box(
-		"Eave",
-		Vector3.new(w + over * 2, 0.6, 0.8),
-		Vector3.new(0, top, front + over),
-		spec.roof:Lerp(Color3.new(0, 0, 0), 0.25)
-	)
-	if spec.chimney then
-		box(
-			"Chimney",
-			Vector3.new(4, spec.rise + 5, 4),
-			Vector3.new(-w * 0.28, top + (spec.rise + 5) / 2, -d * 0.2),
-			COLOURS.rock
-		)
-		local cap = box(
-			"ChimneyCap",
-			Vector3.new(5, 1, 5),
-			Vector3.new(-w * 0.28, top + spec.rise + 5, -d * 0.2),
-			COLOURS.rockLight
-		)
-		local smoke = Instance.new("Smoke")
-		smoke.Color = Color3.fromRGB(220, 220, 220)
-		smoke.Opacity = 0.12
-		smoke.RiseVelocity = 4
-		smoke.Size = 3
-		smoke.Parent = cap
-	end
-	if spec.columns then
-		-- a porch of white pillars along the front, under a flat roof
-		for k = 0, 3 do
-			local x = (k - 1.5) * (w - 6) / 3
-			pillar(
-				"Column",
-				base.Position + Vector3.new(x, floor, front + 3.4),
-				h,
-				2,
-				COLOURS.foam,
-				model
-			)
-		end
-		box("Porch", Vector3.new(w, 1.2, 7), Vector3.new(0, top + 0.6, front + 3), spec.walls)
-		box(
-			"PorchFloor",
-			Vector3.new(w + 2, floor, 7),
-			Vector3.new(0, floor / 2, front + 3.5),
-			COLOURS.rockLight
-		)
-	end
-	signboard(
-		spec.sign,
-		base * CFrame.new(0, top - 2.2, front + (if spec.columns then 6.8 else 0.6)),
-		math.min(w * 0.6, 20),
-		3.4,
-		model
-	)
-	-- what each station is for, out front
-	if name == "Blacksmith" then
-		local anvilAt = Vector3.new(-w / 2 + 3, 0, front + 5)
-		box(
-			"AnvilFoot",
-			Vector3.new(1.6, 2.2, 1.2),
-			anvilAt + Vector3.new(0, 1.1, 0),
-			COLOURS.woodDark
-		)
-		box(
-			"Anvil",
-			Vector3.new(3.6, 1.2, 1.6),
-			anvilAt + Vector3.new(0, 2.8, 0),
-			Color3.fromRGB(70, 74, 84)
-		)
-		local forgeAt = Vector3.new(w / 2 - 4, 0, front + 3)
-		box("Forge", Vector3.new(6, 5, 4), forgeAt + Vector3.new(0, 2.5, 0), COLOURS.rock)
-		local fire = box(
-			"ForgeFire",
-			Vector3.new(3.4, 2, 0.4),
-			forgeAt + Vector3.new(0, 2, 2.05),
-			Color3.fromRGB(255, 140, 40)
-		)
-		fire.Material = Enum.Material.Neon
-		local light = Instance.new("PointLight")
-		light.Color = Color3.fromRGB(255, 150, 60)
-		light.Range = 14
-		light.Brightness = 1.5
-		light.Parent = fire
-	end
-	-- its trade: a giant emblem on the ridge, props out front, its title above
-	local ridge = top + spec.rise
-	local function spot(offset: Vector3): CFrame
-		return base * CFrame.new(offset)
-	end
-	if spec.emblem == "egg" then
-		egg(
-			spot(Vector3.new(0, ridge + 4, 0)),
-			Vector3.new(6, 8, 6),
-			EMBLEM.eggShell,
-			EMBLEM.eggSpots,
-			model
-		)
-		for _, sx in { -1, 1 } do
-			nest(spot(Vector3.new(sx * (w / 2 - 3), 0, front + 2.6)), model)
-		end
-	elseif spec.emblem == "sword" then
-		sword(spot(Vector3.new(w * 0.12, ridge + 0.6, 0)) * CFrame.Angles(0, 0, -0.25), 1.4, model)
-		local rack = spot(Vector3.new(w / 2 + 3.4, 0, 0)) * CFrame.Angles(0, -math.pi / 2, 0)
-		weaponRack(rack, { "sword", "sword", "sword" }, model)
-	elseif spec.emblem == "shield" then
-		shield(spot(Vector3.new(0, ridge + 4.4, 0)), 9, model)
-		armourStand(spot(Vector3.new(-w / 2 + 3.5, 0, front + 4)), model)
-		weaponRack(spot(Vector3.new(w / 2 - 4.5, 0, front + 3)), { "bow", "staff", "sword" }, model)
-	end
-	if spec.title then
-		floatingTitle(spec, base * CFrame.new(0, ridge + 14, 0), model)
-	end
+	--[[ Its name above its outer shoulder, where the sheet letters it, so a
+	     building in front never hides behind the words of one behind. ]]
+	local titleAt = at + Vector2.new(math.sign(at.X) * spec.size.X * 0.4, 0)
+	floatingTitle(spec, CFrame.new(world(titleAt, LAWN + top * scale + 4)), model)
+
 	model.Parent = parent
-	return Vector3.new(w + 2, top + spec.rise, d + 2)
+	return Vector3.new(spec.size.X, top, spec.size.Z) * scale
 end
 
 --[[ An egg or a crate out in the open (`LobbyConfig.stands`): a smooth
@@ -2085,218 +699,413 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 		board.LightInfluence = 0
 		board.MaxDistance = 140
 		board.Parent = anchor
-		for line, text in { item.name, tostring(item.price) .. " COINS" } do
+		local function line(row: number, text: string, colour: Color3): TextLabel
 			local label = Instance.new("TextLabel")
 			label.BackgroundTransparency = 1
 			label.Size = UDim2.fromScale(1, 0.5)
-			label.Position = UDim2.fromScale(0, (line - 1) * 0.5)
-			label.Font = Enum.Font.Arcade
+			label.Position = UDim2.fromScale(0, (row - 1) * 0.5)
+			label.Font = Enum.Font.FredokaOne
 			label.TextScaled = true
 			label.Text = text
-			label.TextColor3 = if line == 1
-				then Color3.new(1, 1, 1)
-				else Color3.fromRGB(255, 205, 40)
+			label.TextColor3 = colour
 			label.TextStrokeTransparency = 0
 			label.Parent = board
+			return label
 		end
+		line(1, item.name, Color3.new(1, 1, 1))
+		--[[ The price as every screen shows one: the game's coin, then the
+		     number (CLAUDE.md rule 15). The pair is centred by the number's
+		     length; a digit is about half the line's height wide (measured
+		     in Studio, 2026-11-12). ]]
+		local amount = tostring(item.price)
+		local tall = board.Size.Y.Scale / 2 / board.Size.X.Scale
+		local wide = #amount * 0.5 * tall
+		local left = 0.5 - (tall * 1.1 + wide) / 2
+		local coin = Instance.new("ImageLabel")
+		coin.Name = "Coin"
+		coin.BackgroundTransparency = 1
+		coin.Image = ShopAssets.coin
+		coin.Position = UDim2.fromScale(left, 0.5)
+		coin.Size = UDim2.fromScale(tall, 0.5)
+		coin.Parent = board
+		local price = line(2, amount, Color3.fromRGB(255, 205, 40))
+		price.Position = UDim2.fromScale(left + tall * 1.1, 0.5)
+		price.Size = UDim2.fromScale(wide + tall, 0.5)
+		price.TextXAlignment = Enum.TextXAlignment.Left
 	end
 	model.Parent = parent
 end
 
---[[ A portal: a stone ring on two legs, a swirl in its colour (or a dark
-     disc and a padlock while its area is locked), and its name on a board
-     above. ]]
+--[[ A gold padlock hanging at `centre`, across a locked opening. ]]
+local function padlock(centre: CFrame, model: Instance)
+	local lock = centre * CFrame.new(0, -1, 0.3)
+	part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
+	part(
+		"Keyhole",
+		Vector3.new(0.6, 1, 0.2),
+		lock * CFrame.new(0, 0, 0.55),
+		COLOURS.woodDark,
+		model
+	)
+	for _, side in { -1, 1 } do
+		part(
+			"Shackle",
+			Vector3.new(0.5, 2, 0.5),
+			lock * CFrame.new(side, 2, 0),
+			COLOURS.gold,
+			model
+		)
+	end
+	part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
+end
+
+--[[ An area's portal from its import (`LobbyConfig.portalModels`), standing out
+     from the wall on `base`, its spinning vortex a picture in the doorway that
+     `Fx/PortalVortex` steps through on each client. ]]
+local function meshPortal(
+	spec: LobbyConfig.PortalModel,
+	template: MeshPart,
+	base: CFrame,
+	active: boolean,
+	model: Instance
+)
+	local vortex = LobbyConfig.portalVortex
+	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+	-- an import's front is its -Z, and the portals face south
+	local turned = middle * CFrame.Angles(0, math.pi, 0)
+	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?)
+		local mesh = from:Clone()
+		mesh.Name = "Frame"
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		mesh.Size = size
+		mesh.TextureID = spec.texture
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.CFrame = turned * CFrame.new(at)
+		mesh.Parent = model
+	end
+	if spec.parts then
+		-- a Claude Design bundle: each mesh in its own colours, glow apart
+		for _, piece in spec.parts do
+			local from = lobbyTemplates[piece.mesh]
+			if from then
+				frame(from, piece.size, piece.middle, piece.neon)
+			end
+		end
+	else
+		frame(template, spec.size, Vector3.new(0, spec.size.Y / 2, 0))
+	end
+
+	local foot = spec.vortexFoot or vortex.foot
+	local plane = part(
+		"Vortex",
+		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
+		middle * CFrame.new(0, foot + vortex.size.Y / 2, spec.vortexForward or vortex.forward),
+		spec.glow,
+		model
+	)
+	plane.Transparency = 1
+	plane.CanCollide = false
+	plane.CanQuery = false
+	plane.CanTouch = false
+	plane.CastShadow = false
+
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Back
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+	gui.CanvasSize = vortex.cell
+	gui.LightInfluence = 0
+	gui.Parent = plane
+
+	local image = Instance.new("ImageLabel")
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromScale(1, 1)
+	image.Image = spec.vortex
+	image.ImageRectSize = vortex.cell
+	image.ResampleMode = Enum.ResamplerMode.Pixelated
+	image.Parent = gui
+	CollectionService:AddTag(image, vortex.tag)
+
+	local pulse = Instance.new("ImageLabel")
+	pulse.Name = "Pulse"
+	pulse.BackgroundTransparency = 1
+	pulse.AnchorPoint = Vector2.new(0.5, 0.5)
+	pulse.Position = UDim2.fromScale(0.5, 1 - (vortex.heart - vortex.foot) / vortex.size.Y)
+	pulse.Size = UDim2.fromScale(0.45, 0.39)
+	pulse.Image = vortex.pulse
+	pulse.ImageTransparency = 0.5
+	pulse.ZIndex = 2
+	pulse.Parent = image
+
+	local light = Instance.new("PointLight")
+	light.Color = spec.glow
+	light.Range = 18
+	light.Brightness = 2
+	light.Parent = plane
+
+	if not active then
+		padlock(middle * CFrame.new(0, foot + vortex.size.Y / 2, 1.2), model)
+	end
+end
+
+--[[ A portal, set in its row's wall (`terrace` builds the wall): a stone arch
+     with a gold keystone round an opening that holds a swirl in its colour, or
+     the dark and a gold padlock while its area is locked, and its name on a
+     plaque above. Built facing south, its foot on the ledge. ]]
 local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Portal_" .. index
-	local at = Lobby.archAt(index)
-	local _, ledge = rowCentre(Lobby.rowOf(index))
-	local radius = LobbyConfig.archSize / 2 - 1
-	local centre = world(at, LAWN + ledge + LobbyConfig.archRise)
+	local base = CFrame.new(world(Lobby.archAt(index), LAWN + LobbyConfig.archFoot(index)))
+		* CFrame.Angles(0, LobbyConfig.archTurn(index), 0)
+	local across = LobbyConfig.archWidth
+	local sides = LobbyConfig.archSides
 	local active = portal.levels ~= nil
-	local stone = if active then COLOURS.rockLight else COLOURS.rock
-	--[[
-		The arch itself. An area the owner has imported stands as its own
-		model; one past `archSilhouetteFrom` has no model and none coming,
-		so it stands as the first area's painted black (owner, 2026-11-01:
-		"replace every portal past 4 with a silhouette of the arena 1
-		portal until portals are made for them"). The rest -- Thornwood and
-		the Drowned Village, whose models arrive tomorrow -- keep the built
-		stone ring until they have one.
-	]]
-	local spec = LobbyConfig.archModels[index]
-	local silhouette = spec == nil and index >= LobbyConfig.archSilhouetteFrom
-	if silhouette then
-		spec = LobbyConfig.archModels[1]
-	end
+	local spec = if portal.name then LobbyConfig.portalModels[portal.name] else nil
 	local template = if spec then lobbyTemplates[spec.mesh] else nil
-
 	if spec and template then
-		local arch = template:Clone()
-		arch.Name = "Arch"
-		arch.Anchored = true
-		arch.CanCollide = false
-		arch.CanQuery = false
-		arch.CanTouch = false
-		arch.Material = Enum.Material.SmoothPlastic
-		arch.Size = spec.native * (LobbyConfig.archTall / spec.native.Y)
-		if silhouette then
-			--[[ No texture and no light in it: the shape is all a
-			     silhouette says, which is the point of one. ]]
-			arch.TextureID = ""
-			arch.Color = LobbyConfig.archSilhouette
-		else
-			arch.TextureID = spec.texture
-			--[[ It carries its colours in its own texture, so the part
-			     must not tint them. ]]
-			arch.Color = Color3.new(1, 1, 1)
-		end
-		arch.CFrame = CFrame.new(world(at, LAWN + ledge) + Vector3.new(0, arch.Size.Y / 2, 0))
-			* CFrame.Angles(0, LobbyConfig.archTurn, 0)
-		arch.Parent = model
-		--[[ The legs stay, invisible, so a player is held out of the
-		     uprights exactly as before whatever shape the model is. ]]
-		for _, side in { -1, 1 } do
-			local leg = part(
-				"Leg",
-				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
-				CFrame.new(
-					world(
-						at + Vector2.new(side * radius, 0),
-						LAWN + ledge + LobbyConfig.archRise / 2
-					)
-				),
-				stone,
+		meshPortal(spec, template, base, active, model)
+		-- one set aside stands free: its jambs and its dark veil are solid
+		if portal.aside then
+			local door = LobbyConfig.portalVortex.size.X
+			local tall = if spec.parts then spec.parts[1].size.Y else spec.size.Y
+			local jamb = (spec.size.X - door) / 2
+			local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+			for _, side in { -1, 1 } do
+				local block = part(
+					"Jamb",
+					Vector3.new(jamb, tall, spec.size.Z),
+					middle * CFrame.new(side * (door + jamb) / 2, tall / 2, 0),
+					COLOURS.stone,
+					model
+				)
+				block.Transparency = 1
+				block.CanCollide = true
+			end
+			local veil = part(
+				"Veil",
+				Vector3.new(door, tall, 0.4),
+				middle * CFrame.new(0, tall / 2, 0),
+				COLOURS.stone,
 				model
 			)
-			leg.CanCollide = true
-			leg.Transparency = 1
-			leg.CastShadow = false
+			veil.Transparency = 1
+			veil.CanCollide = true
 		end
-	else
-		local SEGMENTS = 18
-		for k = 0, SEGMENTS - 1 do
-			local angle = k / SEGMENTS * math.pi * 2
-			local spot = centre + Vector3.new(math.cos(angle), math.sin(angle), 0) * radius
-			local colour = if k == SEGMENTS / 4 then COLOURS.gold else stone
-			part(
-				"Ring",
-				Vector3.new(2.4, 2.6, 2.4),
-				CFrame.new(spot) * CFrame.Angles(0, 0, angle),
-				colour,
-				model
-			)
-		end
-		for _, side in { -1, 1 } do
-			local leg = part(
-				"Leg",
-				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
-				CFrame.new(
-					world(
-						at + Vector2.new(side * radius, 0),
-						LAWN + ledge + LobbyConfig.archRise / 2
-					)
-				),
-				stone,
-				model
-			)
-			leg.CanCollide = true
-		end
+		signboard(
+			string.upper(portal.name :: string),
+			base * CFrame.new(0, spec.size.Y + 1.8 + (spec.signLift or 0), 1.6),
+			LobbyConfig.archSpacing - 5.5,
+			3.4,
+			LobbyConfig.plaques[portal.name :: string] or COLOURS.woodDark,
+			model
+		)
+		model.Parent = parent
+		return
 	end
-	local disc = part(
+	local fill = if active
+		then (portal.tint or COLOURS.gold):Lerp(Color3.new(0, 0, 0), 0.35)
+		else LobbyConfig.archDark
+
+	-- one set aside has no row's wall behind it, so it stands in its own
+	if portal.aside then
+		local tall = LobbyConfig.archWall
+		part(
+			"Backing",
+			Vector3.new(across + 6, tall, 1.6),
+			base * CFrame.new(0, tall / 2, 0),
+			COLOURS.stone,
+			model
+		).CanCollide =
+			true
+		part(
+			"Cornice",
+			Vector3.new(across + 7, 0.8, 2.6),
+			base * CFrame.new(0, tall + 0.4, 0),
+			COLOURS.gold,
+			model
+		)
+	end
+
+	-- the opening: straight sides and a round top, laid on the wall
+	local mouth = part(
+		"Mouth",
+		Vector3.new(across, sides, 0.3),
+		base * CFrame.new(0, sides / 2, 1),
+		fill,
+		model
+	)
+	local top = part(
 		"Swirl",
-		Vector3.new(0.4, radius * 2 - 1.2, radius * 2 - 1.2),
-		CFrame.new(centre) * CFrame.Angles(0, math.pi / 2, 0),
-		if active then portal.tint or COLOURS.gold else Color3.fromRGB(44, 46, 60),
+		Vector3.new(0.3, across, across),
+		base * CFrame.new(0, sides, 1) * CFrame.Angles(0, math.pi / 2, 0),
+		fill,
 		model,
 		Enum.PartType.Cylinder
 	)
-	if active then
-		disc.Material = Enum.Material.Neon
-		disc.Transparency = 0.15
-		local core = part(
-			"SwirlCore",
-			Vector3.new(0.5, radius, radius),
-			CFrame.new(centre) * CFrame.Angles(0, math.pi / 2, 0),
-			(portal.tint or COLOURS.gold):Lerp(Color3.new(1, 1, 1), 0.5),
-			model,
-			Enum.PartType.Cylinder
-		)
-		core.Material = Enum.Material.Neon
-		local light = Instance.new("PointLight")
-		light.Color = portal.tint or COLOURS.gold
-		light.Range = 18
-		light.Brightness = 2
-		light.Parent = disc
-	else
-		-- a padlock across the dark
-		local lock = centre + Vector3.new(0, -1, 0.6)
-		part("Lock", Vector3.new(3.2, 2.8, 1), CFrame.new(lock), COLOURS.gold, model)
+	mouth.CastShadow = false
+	top.CastShadow = false
+
+	-- the stones round it
+	local ring = across / 2 + 0.8
+	for _, side in { -1, 1 } do
 		part(
-			"Keyhole",
-			Vector3.new(0.6, 1, 0.2),
-			CFrame.new(lock + Vector3.new(0, 0, 0.55)),
-			COLOURS.woodDark,
-			model
-		)
-		for _, side in { -1, 1 } do
-			part(
-				"Shackle",
-				Vector3.new(0.5, 2, 0.5),
-				CFrame.new(lock + Vector3.new(side * 1, 2, 0)),
-				COLOURS.rockLight,
-				model
-			)
-		end
-		part(
-			"Shackle",
-			Vector3.new(2.5, 0.5, 0.5),
-			CFrame.new(lock + Vector3.new(0, 3, 0)),
-			COLOURS.rockLight,
+			"Jamb",
+			Vector3.new(1.6, sides, 1.2),
+			base * CFrame.new(side * ring, sides / 2, 1.1),
+			COLOURS.stoneShade,
 			model
 		)
 	end
+	local STONES = 9
+	for k = 0, STONES do
+		local turn = k / STONES * math.pi
+		local keystone = k == math.floor(STONES / 2) or k == math.ceil(STONES / 2)
+		part(
+			if keystone then "Keystone" else "Stone",
+			Vector3.new(1.6, 2.2, 1.2),
+			base
+				* CFrame.new(math.cos(turn) * ring, sides + math.sin(turn) * ring, 1.1)
+				* CFrame.Angles(0, 0, turn - math.pi / 2),
+			if keystone then COLOURS.gold else COLOURS.stoneShade,
+			model
+		)
+	end
+
+	local centre = base * CFrame.new(0, sides - 0.5, 1.3)
+	if active then
+		local tint = portal.tint or COLOURS.gold
+		-- the swirl's arms, paler toward its heart
+		for arm = 0, 2 do
+			for step = 1, 8 do
+				local turn = step * 0.62 + arm * math.pi * 2 / 3
+				local out = step * 0.62
+				local piece = part(
+					"SwirlArm",
+					Vector3.new(1.1, 1.1, 0.2),
+					centre
+						* CFrame.new(math.cos(turn) * out, math.sin(turn) * out, 0)
+						* CFrame.Angles(0, 0, turn),
+					tint:Lerp(Color3.new(1, 1, 1), 0.5 - step * 0.055),
+					model
+				)
+				piece.Material = Enum.Material.Neon
+				piece.CastShadow = false
+			end
+		end
+		local light = Instance.new("PointLight")
+		light.Color = tint
+		light.Range = 18
+		light.Brightness = 2
+		light.Parent = top
+	else
+		padlock(centre, model)
+	end
 	if portal.name then
-		--[[ The arches stand in rows across the north edge and all face
-		     the lawn, so theirs is the plain southward board. ]]
 		signboard(
 			string.upper(portal.name),
-			CFrame.new(centre + Vector3.new(0, radius + 2.6, 0.4)),
-			LobbyConfig.archSpacing - 4,
-			2.4,
+			base * CFrame.new(0, sides + across / 2 + 3.5, 1.6),
+			LobbyConfig.archSpacing - 5.5,
+			3.4,
+			LobbyConfig.plaques[portal.name] or COLOURS.woodDark,
 			model
 		)
 	end
 	model.Parent = parent
 end
 
---[[ Wide wooden steps up a ledge's front edge: from `low` to `high`,
-     starting at `edge` (z) and coming south, `width` across at `x`. ]]
+--[[ Broad marble steps up a ledge's front edge: from `low` to `high`, starting
+     at `edge` (z) and coming south, `width` across at `x`. `carpet` is how wide
+     a red carpet runs up their middle, if one does. A flight that must fit
+     `run` studs instead rises up to `steep` a step, its treads shared out
+     over the run. Returns the foot's z. ]]
 local function steps(
 	x: number,
 	edge: number,
 	low: number,
 	high: number,
 	width: number,
-	parent: Instance
-)
-	local count = math.max(1, math.ceil((high - low) / 0.6))
+	parent: Instance,
+	carpet: number?,
+	steep: number?,
+	run: number?
+): number
+	local count = math.max(1, math.ceil((high - low) / (steep or 0.6)))
 	local rise = (high - low) / count
+	local depth = if run then run / count else 1.4
 	for k = 1, count do
 		-- step k's top stands k rises above the lower floor, k steps back
 		local topY = low + k * rise
-		local depth = 1.4
 		local z = edge + (count - k + 0.5) * depth
 		local step = part(
 			"Step",
 			Vector3.new(width, topY, depth),
 			CFrame.new(world(Vector2.new(x, z), LAWN + topY / 2 - 0.01)),
-			if k % 2 == 0 then COLOURS.wood else COLOURS.woodDark:Lerp(COLOURS.wood, 0.5),
+			if k % 2 == 0 then COLOURS.stone else COLOURS.stoneShade,
 			parent
 		)
 		step.CanCollide = true
 		step.CanQuery = true
+		if carpet then
+			local edge2 = LobbyConfig.courtyard.carpetEdge * 2
+			local at = world(Vector2.new(x, z), LAWN + topY)
+			part(
+				"StepEdge",
+				Vector3.new(carpet + edge2, 0.1, depth),
+				CFrame.new(at + Vector3.new(0, 0.05, 0)),
+				COLOURS.gold,
+				parent
+			).CastShadow =
+				false
+			part(
+				"StepCarpet",
+				Vector3.new(carpet, 0.1, depth),
+				CFrame.new(at + Vector3.new(0, 0.1, 0)),
+				COLOURS.carpet,
+				parent
+			).CastShadow =
+				false
+		end
 	end
+	return edge + count * depth
+end
+
+--[[ A stone pier between two arches: a gold band at its foot and head, and a
+     red banner hung down its front. ]]
+local function pier(at: Vector2, foot: number, tall: number, parent: Instance)
+	local base = CFrame.new(world(at, foot))
+	part(
+		"Pier",
+		Vector3.new(3.4, tall, 3),
+		base * CFrame.new(0, tall / 2, 0.6),
+		COLOURS.stone,
+		parent
+	)
+	for _, y in { 1, tall - 0.8 } do
+		part(
+			"PierGold",
+			Vector3.new(3.8, 0.6, 3.4),
+			base * CFrame.new(0, y, 0.6),
+			COLOURS.gold,
+			parent
+		)
+	end
+	part(
+		"Banner",
+		Vector3.new(2, tall * 0.42, 0.2),
+		base * CFrame.new(0, tall * 0.7, 2.2),
+		COLOURS.carpet,
+		parent
+	)
+	part(
+		"BannerHem",
+		Vector3.new(2, 0.4, 0.3),
+		base * CFrame.new(0, tall * 0.49, 2.2),
+		COLOURS.gold,
+		parent
+	)
 end
 
 local function near(a: Vector2, list: { Vector2 }, reach: number): boolean
@@ -2310,14 +1119,22 @@ end
 
 function Lobby.build(parent: Instance)
 	--[[ Every mesh the lobby uses, fetched before anything is placed: the
-	     Dex Hall's two books, the tree, and each arch the owner has
-	     imported. One wait for the lot, which is what `MeshTemplates` is
+	     Dex Hall's two books and the four buildings. One wait for the lot, which is what `MeshTemplates` is
 	     for -- asked one at a time they cost about a second each. ]]
 	do
 		local ids = { LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh }
-		table.insert(ids, LobbyConfig.treeModel.mesh)
-		for _, arch in LobbyConfig.archModels do
-			table.insert(ids, arch.mesh)
+		for _, design in PalaceBuildings do
+			for _, piece in design.pieces do
+				table.insert(ids, piece.mesh)
+			end
+		end
+		for _, spec in LobbyConfig.portalModels do
+			table.insert(ids, spec.mesh)
+			if spec.parts then
+				for _, piece in spec.parts do
+					table.insert(ids, piece.mesh)
+				end
+			end
 		end
 		dexTemplates = MeshTemplates.load(ids)
 		lobbyTemplates = dexTemplates
@@ -2327,7 +1144,7 @@ function Lobby.build(parent: Instance)
 	root.Name = "Lobby"
 	local half = LobbyConfig.size / 2
 
-	-- the lawn, out to the wood's edge
+	-- the ground past the balustrade, out to the wood's edge
 	local baseplate = Workspace:FindFirstChild("Baseplate")
 	if baseplate then
 		baseplate:Destroy()
@@ -2335,194 +1152,172 @@ function Lobby.build(parent: Instance)
 	part(
 		"Lawn",
 		Vector3.new(OUTER_FLOOR, 1, OUTER_FLOOR),
-		CFrame.new(world(Vector2.zero, LAWN - 0.5)),
-		COLOURS.grass,
+		CFrame.new(world(Vector2.zero, OUTSIDE - 0.5)),
+		LobbyConfig.forestFloor,
 		root
 	).CanCollide =
 		true
 
-	-- the sandy paths: an edge under each run, rounded at every bend
-	local width = LobbyConfig.pathWidth
-	local trail: { Vector2 } = {}
-	local paths = Instance.new("Model")
-	paths.Name = "Paths"
-	local function lay(a: Vector2, b: Vector2, extra: number, y: number, colour: Color3)
-		local length = (b - a).Magnitude
-		local middle = (a + b) / 2
-		local flat = CFrame.lookAt(world(middle, y), world(b, y))
-		part("Path", Vector3.new(width + extra, 0.2, length), flat, colour, paths)
-	end
-	local function joint(at: Vector2, across: number, y: number, colour: Color3)
-		part(
-			"Joint",
-			Vector3.new(0.2, across, across),
-			CFrame.new(world(at, y)) * CFrame.Angles(0, 0, math.pi / 2),
-			colour,
-			paths,
-			Enum.PartType.Cylinder
-		)
-	end
-	for _, run in LobbyConfig.paths do
-		for k = 1, #run do
-			joint(run[k], width + 2, LAWN + 0.02, COLOURS.sandEdge)
-			joint(run[k], width, LAWN + 0.08, COLOURS.sand)
-			if k < #run then
-				lay(run[k], run[k + 1], 2, LAWN + 0.02, COLOURS.sandEdge)
-				lay(run[k], run[k + 1], 0, LAWN + 0.08, COLOURS.sand)
-				local count = math.ceil((run[k + 1] - run[k]).Magnitude / 4)
-				for s = 0, count do
-					table.insert(trail, run[k]:Lerp(run[k + 1], s / count))
-				end
-			end
-		end
-	end
-	paths.Parent = root
+	-- the courtyard's floor, its rings and its ruins
+	LobbyCourtyard.floor(rng, root)
+	LobbyCourtyard.plaza(rng, root)
+	LobbyCourtyard.arrival(rng, root)
+	LobbyCourtyard.buildingCarpets(root)
+	LobbyCourtyard.southStairs(root)
+	LobbyCourtyard.balustrade(rng, root)
+	LobbyCourtyard.ruins(rng, root)
+	LobbyCourtyard.sky()
 
-	--[[ Where the lawn's scatter may not go: each station and a little round
-	     it, the stands, the spawn, the portals and the paths (`trail`). ]]
-	local clear: { { at: Vector2, reach: number } } = { { at = LobbyConfig.spawn, reach = 8 } }
-	local function keep(at: Vector2, reach: number)
-		table.insert(clear, { at = at, reach = reach })
-	end
-
-	-- the fountain at the spawn, on a paved ring
+	-- the stations, and their stands out front
 	for _, station in LobbyConfig.stations do
-		if station.piece == "SpawnCampfire" then
-			local plaza = LobbyConfig.plaza
-			local basin = LobbyConfig.fountain
-			joint(station.at, plaza + 2, LAWN + 0.03, COLOURS.sandEdge)
-			joint(station.at, plaza, LAWN + 0.1, COLOURS.sand)
-			local fountain = Instance.new("Model")
-			fountain.Name = "Fountain"
-			local foot = world(station.at, LAWN)
-			pillar("Basin", foot, 2.4, basin, COLOURS.rockLight, fountain)
-			local pool = pillar("Pool", foot, 2.5, basin - 2, COLOURS.water, fountain)
-			pool.Transparency = 0.1
-			pillar("Column", foot, 7, 2.4, COLOURS.rock, fountain)
-			pillar("Bowl", foot + Vector3.new(0, 6, 0), 1.2, 7, COLOURS.rockLight, fountain)
-			pillar("BowlWater", foot + Vector3.new(0, 6.1, 0), 1.2, 6, COLOURS.water, fountain).Transparency =
-				0.1
-			blob(
-				"Spout",
-				Vector3.new(2, 3, 2),
-				CFrame.new(foot + Vector3.new(0, 8.4, 0)),
-				COLOURS.foam,
-				fountain
-			).Transparency =
-				0.2
-			for k = 0, 7 do
-				local angle = k * math.pi / 4
-				blob(
-					"Splash",
-					Vector3.new(1.6, 1, 1.6),
-					CFrame.new(
-						foot + Vector3.new(math.cos(angle) * 4.2, 2.6, math.sin(angle) * 4.2)
-					),
-					COLOURS.foam,
-					fountain
-				).Transparency =
-					0.3
-			end
-			fountain.Parent = root
-			local ring = wall(
-				"FountainWall",
-				Vector3.new(8, basin, basin),
-				CFrame.new(world(station.at, 4)) * CFrame.Angles(0, 0, math.pi / 2),
-				root
-			)
-			ring.Shape = Enum.PartType.Cylinder
-			keep(station.at, plaza / 2 + 2)
-		end
-	end
-
-	-- the stations, each with a wall round it, and their stands out front
-	for _, station in LobbyConfig.stations do
-		local size = building(station.piece, station.at, root)
-		if size then
-			keep(station.at, Vector2.new(size.X, size.Z).Magnitude / 2 + 3)
-			--[[ The wall that keeps players out of it is turned with it,
-			     or a building standing at an angle would be fenced by a
-			     box squared to the lawn. ]]
-			wall(
-				"StationWall",
-				Vector3.new(size.X, 20, size.Z),
-				CFrame.new(world(station.at, 10))
-					* CFrame.Angles(0, LobbyConfig.facing(station.at), 0),
-				root
-			)
-		end
+		building(station.piece, station.at, root)
 		local spots = LobbyConfig.stands[station.piece]
 		if spots then
 			for _, spot in spots do
 				--[[ Out front of its own station, whichever corner that
 				     is on: the offset turns with the building. ]]
-				local at = station.at + LobbyConfig.turnedOffset(station.at, spot.at)
+				local at = station.at
+					+ LobbyConfig.turnedOffset(station.at, spot.at * LobbyConfig.buildingScale)
 				standOut(spot.kind, spot.key, world(at, LAWN), root)
-				keep(at, LobbyConfig.standSize / 2 + 2)
 			end
 		end
 	end
 
-	-- the portal ledges, back row first, with steps up each
-	local rows = Lobby.rowOf(#LobbyConfig.portals)
-	local across = LobbyConfig.perRow * LobbyConfig.archSpacing + 24
+	-- the portal ledges, back row first, each with its wall of arches
+	local rows = LobbyConfig.rows()
+	local across = LobbyConfig.terraceAcross
+	local drop = LobbyConfig.courtyard.drop
+	local walkWidth = LobbyConfig.courtyard.walkWidth
+	local carpetFoot = 0
 	for row = rows, 1, -1 do
 		local centre, height = rowCentre(row)
-		local depth = LobbyConfig.rowDepth + (if row == rows then 24 else 0)
-		local back = centre.Y - LobbyConfig.rowDepth / 2 - (if row == rows then 24 else 0)
+		local extra = if row == rows then 8 else 0
+		local depth = LobbyConfig.rowDepth + extra
+		local back = centre.Y - LobbyConfig.rowDepth / 2 - extra
 		local middle = Vector2.new(centre.X, back + depth / 2)
 		local ledge = part(
 			"Ledge",
-			Vector3.new(across, height - 0.5, depth),
-			CFrame.new(world(middle, LAWN + (height - 0.5) / 2)),
-			COLOURS.cliff,
+			Vector3.new(across, height + drop, depth),
+			CFrame.new(world(middle, LAWN + (height - drop) / 2)),
+			COLOURS.stoneShade,
 			root
 		)
 		ledge.CanCollide = true
 		ledge.CanQuery = true
-		local grass = part(
-			"LedgeGrass",
-			Vector3.new(across + 1, 0.6, depth + 1),
-			CFrame.new(world(middle, LAWN + height - 0.3)),
-			COLOURS.grass,
-			root
-		)
-		grass.CanCollide = true
-		grass.CanQuery = true
 		part(
-			"LedgeShade",
-			Vector3.new(across + 0.4, 0.8, depth + 0.4),
-			CFrame.new(world(middle, LAWN + 0.4)),
-			COLOURS.cliffDark,
+			"LedgeTop",
+			Vector3.new(across + 0.6, 0.2, depth + 0.6),
+			CFrame.new(world(middle, LAWN + height + 0.02)),
+			COLOURS.marble[1],
 			root
-		)
+		).CastShadow =
+			false
 		local front = centre.Y + LobbyConfig.rowDepth / 2 + 0.5
 		local _, below = rowCentre(row - 1)
 		local low = if row == 1 then 0 else below
 		if row == 1 then
-			steps(0, front, low, height, 40, root)
+			carpetFoot = steps(0, front, low, height, LobbyConfig.terraceSteps, root, walkWidth)
 		else
 			for _, side in { -1, 1 } do
-				steps(side * (across / 2 - 8), front, low, height, 12, root)
+				-- down to the front ledge's edge, so steeper than the front's
+				steps(
+					side * (across / 2 - 5),
+					front,
+					low,
+					height,
+					9,
+					root,
+					nil,
+					LobbyConfig.backStep,
+					LobbyConfig.rowDepth - 0.5
+				)
+			end
+		end
+
+		-- the wall the arches are set in, solid, with a pier either side of each
+		local count = rowCount(row)
+		local tall = LobbyConfig.archWall
+		local long = count * LobbyConfig.archSpacing + 3.4
+		local arcade = part(
+			"Arcade",
+			Vector3.new(long, tall, 1.6),
+			CFrame.new(world(centre, LAWN + height + tall / 2)),
+			COLOURS.stone,
+			root
+		)
+		arcade.CanCollide = true
+		part(
+			"Cornice",
+			Vector3.new(long + 1, 0.8, 2.6),
+			CFrame.new(world(centre, LAWN + height + tall + 0.4)),
+			COLOURS.gold,
+			root
+		)
+		for k = 0, count do
+			local x = (k - count / 2) * LobbyConfig.archSpacing
+			pier(centre + Vector2.new(x, 0), LAWN + height, tall, root)
+			if k % 2 == 0 then
+				local leaves = COLOURS.leaves
+				blob(
+					"ArcadeLeaves",
+					Vector3.new(7, 2.6, 3.6),
+					CFrame.new(world(centre + Vector2.new(x + 3, 0), LAWN + height + tall + 1.2)),
+					leaves[k % #leaves + 1],
+					root
+				)
 			end
 		end
 	end
+	-- the carpet from the plaza's inner ring to the foot of the steps, and on
+	-- across the ledge to the arches
+	do
+		local carpets = root:FindFirstChild("Carpets") :: Instance
+		local top = LobbyConfig.middle.Y - LobbyConfig.courtyard.plazaInner / 2 + 0.4
+		LobbyCourtyard.carpet(Vector2.new(0, top), Vector2.new(0, carpetFoot), walkWidth, carpets)
+		local front, height = rowCentre(1)
+		LobbyCourtyard.carpet(
+			Vector2.new(0, front.Y + 1),
+			Vector2.new(0, front.Y + LobbyConfig.rowDepth / 2 + 0.5),
+			walkWidth,
+			carpets,
+			height
+		)
+		-- and south between the leaderboards to the stairs
+		local arrival = LobbyConfig.courtyard.arrival
+		LobbyCourtyard.carpet(
+			arrival.at + Vector2.new(0, arrival.across / 2 - 0.5),
+			Vector2.new(0, SOUTH_EDGE),
+			walkWidth,
+			carpets
+		)
+	end
 	for index, portal in LobbyConfig.portals do
 		portalArch(index, portal, root)
-		keep(Lobby.archAt(index), 10)
 	end
-	local back = rowCentre(rows)
+	-- the unseen walls round the terrace, 30 studs over its highest ledge
+	local back, top = rowCentre(rows)
+	local fence = top + 30
 	wall(
 		"TerraceWall",
-		Vector3.new(LobbyConfig.size.X, 24, 8),
-		CFrame.new(world(back + Vector2.new(0, -14), 12)),
+		Vector3.new(across, fence, 4),
+		CFrame.new(world(back + Vector2.new(0, -10), fence / 2)),
 		root
 	)
+	for _, side in { -1, 1 } do
+		local z = LobbyConfig.terrace.Y - LobbyConfig.rowDepth
+		wall(
+			"TerraceSide",
+			Vector3.new(4, fence, 60),
+			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), fence / 2)),
+			root
+		)
+	end
 
-	--[[ A leaderboard: a board on two posts, the names on its dark face.
-	     Built twice — FARTHEST ADVENTURERS and DEEPEST DELVERS
-	     (`LobbyConfig.leaderboard`, `LobbyConfig.endlessLeaderboard`) — so
-	     the two boards are the same board, drawn on by different modules.
+	--[[ A leaderboard: a stone board on two posts, the names on its dark face.
+	     Built three times — FARTHEST ADVENTURERS, DEEPEST DELVERS and THIS
+	     WEEK'S DELVERS (`LobbyConfig.leaderboard`, `.endlessLeaderboard`,
+	     `.weeklyLeaderboard`) — so the boards are the same board, drawn on
+	     by different modules.
 
 	     Everything is placed off `base`, which carries the board's `turn`.
 	     It used to be built straight onto world axes, which only read the
@@ -2544,7 +1339,7 @@ function Lobby.build(parent: Instance)
 						(face.centre.Y + face.size.Y / 2 + 1.5) / 2,
 						0
 					),
-				COLOURS.woodDark,
+				COLOURS.stone,
 				model
 			)
 			post.CanCollide = true
@@ -2553,14 +1348,39 @@ function Lobby.build(parent: Instance)
 			"Backing",
 			Vector3.new(face.size.X + 2, face.size.Y + 2, 0.8),
 			base * CFrame.new(0, face.centre.Y, face.centre.Z - 0.6),
-			COLOURS.wood,
+			COLOURS.gold,
 			model
 		)
 		part(
 			"Crest",
 			Vector3.new(face.size.X + 3, 1.4, 1.2),
 			base * CFrame.new(0, face.centre.Y + face.size.Y / 2 + 1.4, face.centre.Z - 0.6),
+			COLOURS.stone,
+			model
+		)
+		-- stone behind, where the frame's gold would otherwise show as one slab
+		part(
+			"BackPanel",
+			Vector3.new(face.size.X, face.size.Y, 0.2),
+			base * CFrame.new(0, face.centre.Y, face.centre.Z - 1.05),
+			COLOURS.stoneShade,
+			model
+		)
+		-- the gold diamond and its red gem on the crest
+		local crest = base
+			* CFrame.new(0, face.centre.Y + face.size.Y / 2 + 3.2, face.centre.Z - 0.6)
+		part(
+			"CrestGold",
+			Vector3.new(3, 3, 0.8),
+			crest * CFrame.Angles(0, 0, math.pi / 4),
 			COLOURS.gold,
+			model
+		)
+		part(
+			"CrestGem",
+			Vector3.new(1.5, 1.5, 1.2),
+			crest * CFrame.Angles(0, 0, math.pi / 4),
+			COLOURS.carpet,
 			model
 		)
 		model.Parent = root
@@ -2572,53 +1392,18 @@ function Lobby.build(parent: Instance)
 			root
 		)
 		surface.CastShadow = false
-		keep(board.at, 14)
 		return surface
 	end
 
 	leaderboardFace = buildBoard("Leaderboard", LobbyConfig.leaderboard)
 	endlessLeaderboardFace = buildBoard("EndlessLeaderboard", LobbyConfig.endlessLeaderboard)
-
-	-- lamps along the paths, at every other bend
-	for _, run in LobbyConfig.paths do
-		for k = 2, #run, 2 do
-			local along = (run[k] - run[k - 1]).Unit
-			local side = Vector2.new(-along.Y, along.X) * (width / 2 + 2)
-			local at = run[k] + side
-			local lamp = Instance.new("Model")
-			lamp.Name = "Lamp"
-			local post = pillar("Post", world(at, LAWN), 7, 0.8, COLOURS.woodDark, lamp)
-			post.CanCollide = true
-			local glow = blob(
-				"Lantern",
-				Vector3.new(1.8, 2, 1.8),
-				CFrame.new(world(at, LAWN + 7.6)),
-				Color3.fromRGB(255, 222, 140),
-				lamp
-			)
-			glow.Material = Enum.Material.Neon
-			part(
-				"LampCap",
-				Vector3.new(2.2, 0.5, 2.2),
-				CFrame.new(world(at, LAWN + 8.8)),
-				COLOURS.woodDark,
-				lamp
-			)
-			local light = Instance.new("PointLight")
-			light.Color = Color3.fromRGB(255, 214, 150)
-			light.Range = 14
-			light.Brightness = 0.8
-			light.Parent = glow
-			lamp.Parent = root
-			keep(at, 2)
-		end
-	end
+	weeklyLeaderboardFace = buildBoard("WeeklyLeaderboard", LobbyConfig.weeklyLeaderboard)
 
 	-- waterfalls down the corner cliffs into round pools
 	for _, at in LobbyConfig.waterfalls do
 		local fall = Instance.new("Model")
 		fall.Name = "Waterfall"
-		local facing = CFrame.lookAt(world(at, LAWN), world(Vector2.zero, LAWN))
+		local facing = CFrame.lookAt(world(at, OUTSIDE), world(Vector2.zero, OUTSIDE))
 		local function put(label: string, size: Vector3, offset: Vector3, colour: Color3): Part
 			return part(label, size, facing * CFrame.new(offset), colour, fall)
 		end
@@ -2661,44 +1446,13 @@ function Lobby.build(parent: Instance)
 		fall.Parent = root
 	end
 
-	-- the cliffs round the clearing, grass on top, trees behind
+	-- the trees round the clearing, below the balustrade
 	local spacing = LobbyConfig.ringSpacing
 	local function ring(at: Vector2, out: Vector2)
-		if near(at, LobbyConfig.waterfalls, spacing + 6) then
+		if near(at, LobbyConfig.waterfalls, spacing + 6) or (at.Y > 0 and math.abs(at.X) < 24) then
 			return
 		end
-		local tall = rng:NextNumber(14, 26)
-		local deep = rng:NextNumber(12, 18)
-		local facing = CFrame.lookAt(world(at, LAWN), world(at - out, LAWN))
-			* CFrame.Angles(0, rng:NextNumber(-0.12, 0.12), 0)
-		local cliff = Instance.new("Model")
-		cliff.Name = "Cliff"
-		part(
-			"Rock",
-			Vector3.new(spacing + 6, tall, deep),
-			facing * CFrame.new(0, tall / 2, deep / 2 - 3),
-			COLOURS.cliff,
-			cliff
-		)
-		part(
-			"Shade",
-			Vector3.new(spacing + 6.4, tall * 0.35, deep + 0.4),
-			facing * CFrame.new(0, tall * 0.175, deep / 2 - 3),
-			COLOURS.cliffDark,
-			cliff
-		)
-		part(
-			"Grass",
-			Vector3.new(spacing + 7, 1.4, deep + 1),
-			facing * CFrame.new(0, tall + 0.5, deep / 2 - 3),
-			COLOURS.grass,
-			cliff
-		)
-		for _, p in cliff:GetChildren() do
-			(p :: BasePart).CastShadow = false
-		end
-		cliff.Parent = root
-		tree(at + out * (deep + 4), rng:NextNumber(1.1, 1.5), rng, root, false)
+		tree(at + out * rng:NextNumber(8, 22), rng:NextNumber(1.1, 1.5), rng, root, false)
 	end
 	for x = -half.X, half.X, spacing do
 		ring(Vector2.new(x, -half.Y - 6), Vector2.new(0, -1))
@@ -2723,8 +1477,9 @@ function Lobby.build(parent: Instance)
 		end
 	end
 
-	--[[ The lawn's scatter: one jittered point in each cell of a grid, its
-	     kind drawn by weight, clear of everything above and of each other. ]]
+	--[[ The scatter past the balustrade: one jittered point in each cell of a grid, its
+	     kind drawn by weight, clear of the courtyard, the south stairs and
+	     each other. ]]
 	local weights = LobbyConfig.scatter
 	local kinds: { string } = {}
 	local totalWeight = 0
@@ -2737,18 +1492,16 @@ function Lobby.build(parent: Instance)
 	local scattered: { { at: Vector2, reach: number } } = {}
 	local function blocked(at: Vector2, reach: number): boolean
 		if
-			at.Y - reach < LobbyConfig.terrace.Y + LobbyConfig.rowDepth / 2 + 8
-			or near(at, trail, width / 2 + 1 + reach)
+			LobbyCourtyard.inside(at, -(reach + 2))
+			or (at.Y > SOUTH_EDGE - 8 and math.abs(at.X) < 20)
 		then
 			return true
 		end
 		if math.abs(at.X) + reach > half.X - 2 or math.abs(at.Y) + reach > half.Y - 2 then
 			return true
 		end
-		for _, area in clear do
-			if (at - area.at).Magnitude < area.reach + reach then
-				return true
-			end
+		if at.Y < LobbyConfig.terrace.Y + 12 and math.abs(at.X) < across / 2 + reach then
+			return true
 		end
 		for _, other in scattered do
 			if (at - other.at).Magnitude < other.reach + reach then
@@ -2780,7 +1533,7 @@ function Lobby.build(parent: Instance)
 			end
 			table.insert(scattered, { at = at, reach = reach })
 			if kind == "Tree" then
-				tree(at, grow * 0.9, rng, root, true)
+				tree(at, grow * 0.9, rng, root, false)
 			elseif kind == "Bush" then
 				bush(at, grow, rng, root)
 			elseif kind == "Boulder" then
@@ -2793,32 +1546,10 @@ function Lobby.build(parent: Instance)
 		end
 	end
 
-	-- the clearing's edge
-	local thick = 8
-	wall(
-		"WallNorth",
-		Vector3.new(LobbyConfig.size.X + 2 * thick, 24, thick),
-		CFrame.new(world(Vector2.new(0, -half.Y - thick / 2), 12)),
-		root
-	)
-	wall(
-		"WallSouth",
-		Vector3.new(LobbyConfig.size.X + 2 * thick, 24, thick),
-		CFrame.new(world(Vector2.new(0, half.Y + thick / 2), 12)),
-		root
-	)
-	wall(
-		"WallWest",
-		Vector3.new(thick, 24, LobbyConfig.size.Y),
-		CFrame.new(world(Vector2.new(-half.X - thick / 2, 0), 12)),
-		root
-	)
-	wall(
-		"WallEast",
-		Vector3.new(thick, 24, LobbyConfig.size.Y),
-		CFrame.new(world(Vector2.new(half.X + thick / 2, 0), 12)),
-		root
-	)
+	-- the cliffs, falls and ruins far past the wood
+	LobbyBackdrop.build(rng, root, function(at, grow, treeRng, treeParent, y)
+		tree(at, grow, treeRng, treeParent, false, y)
+	end)
 
 	root.Parent = parent
 	folder = root
@@ -2829,13 +1560,25 @@ function Lobby.place(character: Model)
 	character:PivotTo(CFrame.lookAt(at, at + Vector3.new(0, 0, -1)))
 end
 
+--[[ Whether `stage` is the first level of a portal's area. Endless has no
+     area to load into. ]]
+function Lobby.isFirstLevel(stage: number): boolean
+	for _, portal in LobbyConfig.portals do
+		local levels = portal.levels
+		if levels and levels[1] == stage and portal.name ~= "Endless" then
+			return true
+		end
+	end
+	return false
+end
+
 --[[ The index of the nearest active portal whose mouth `position` stands
      within `LobbyConfig.portalReach` (plus `slack`) of, or nil. ]]
 function Lobby.portalAt(position: Vector3, slack: number?): number?
 	local best, bestDistance = nil, LobbyConfig.portalReach + (slack or 0)
 	for index, portal in LobbyConfig.portals do
 		if portal.levels then
-			local mouth = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead))
+			local mouth = world(LobbyConfig.mouthAt(index))
 			local distance = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z).Magnitude
 			if distance <= bestDistance then
 				best, bestDistance = index, distance
@@ -2846,21 +1589,53 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 end
 
 --[[
-	START on a portal's screen: the stage level `level` of portal `index`
-	plays, or nil when the request is not one this player may make. Both
-	numbers come from the client, so each is checked: a whole number, an
-	active portal, the portal itself open to this player (`requires`:
-	Endless waits on 1-10), one of its levels, that level open to this
-	player (the levels they have beaten, `beaten`, from their saved profile:
-	`Util/LevelUnlocks`), and the player standing at that portal (within
-	`startSlack` more than its screen opens at, for the press's trip), so
-	nobody starts an area from across the lobby.
+	Whether a player at `position` joins a start of portal `index`'s level
+	`level`: `levelOpen` for them, and standing at that portal (within
+	`startSlack` more than its screen opens at, for the press's trip). A
+	party is gathered with it (`Run/Party`): only those in the portal's
+	mouth go along. The starter's own request is checked by `levelOpen`
+	alone since 2026-11-14, when the lobby's PLAY screen began starting runs
+	from anywhere in the lobby (`Main`, `Remotes.PortalStart`). A `hard`
+	start takes only those with it open on hard (`hardOpen`, their own
+	`hardBeaten`).
 ]]
 function Lobby.startFor(
 	position: Vector3,
 	index: unknown,
 	level: unknown,
-	beaten: LevelUnlocks.Beaten?
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	hard: boolean?,
+	hardBeaten: LevelUnlocks.Beaten?
+): number?
+	local stage = if hard
+		then Lobby.hardOpen(index, level, beaten, bosses, hardBeaten)
+		else Lobby.levelOpen(index, level, beaten, bosses)
+	if not stage or Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+		return nil
+	end
+	return stage
+end
+
+--[[
+	PLAY on an area's level screen: the stage level `level` of portal
+	`index` plays for a player who has beaten `beaten`, or nil when the
+	request is not one this player may make. Both numbers come from the
+	client, so each is checked: a whole number, an active portal, the portal
+	itself open to this player (`Util/LaunchLocks`: at launch each area
+	waits on the one before it), one of its levels, and that level open to
+	this player (`Util/LevelUnlocks`). This is the whole of what a start
+	needs (`Main`, `Remotes.PortalStart`), and a party's run server checks
+	its leader's request again with it (`Run/Party`), since what a teleport
+	carries passes through the client. `locks` is the launch switch, for a
+	spec; left out, it is `Config/Launch.locks`.
+]]
+function Lobby.levelOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	locks: boolean?
 ): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
@@ -2874,15 +1649,40 @@ function Lobby.startFor(
 	if not stage or not levels then
 		return nil
 	end
-	--[[ The portal's own gate first (Endless waits on 1-10), then the
-	     level's. Both are checked here because both come from the client. ]]
-	if not LevelUnlocks.portalOpen(portal.requires, beaten) then
+	--[[ The portal's own gate first (at launch each area waits on the
+	     one before it, `Util/LaunchLocks`), then the level's. Both are
+	     checked here because both come from the client. `bosses` is the
+	     player's beaten bosses, for a gate that waits on one. ]]
+	if not LaunchLocks.portalOpen(portal, beaten, bosses, locks) then
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then
 		return nil
 	end
-	if Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+	return stage
+end
+
+--[[
+	PLAY on an area's level screen with HARD on (`Util/HardRules`): the
+	stage, as `levelOpen` gives it, only when that level is also open on
+	hard for this player: their area's boss beaten (`bosses`) and the hard
+	level before it won on hard (`hardBeaten`). Nil otherwise, so a hard
+	level whose area boss stands is refused whatever the client sends.
+]]
+function Lobby.hardOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	hardBeaten: LevelUnlocks.Beaten?,
+	locks: boolean?
+): number?
+	local stage = Lobby.levelOpen(index, level, beaten, bosses, locks)
+	if not stage then
+		return nil
+	end
+	local portal = LobbyConfig.portals[index :: number]
+	if not HardRules.isOpen(portal.levels, Balance.Stages, bosses, hardBeaten, level :: number) then
 		return nil
 	end
 	return stage
@@ -2900,6 +1700,11 @@ end
 --[[ The DEEPEST DELVERS board's face (`Run/EndlessLeaderboard`). ]]
 function Lobby.endlessLeaderboardFace(): Part?
 	return endlessLeaderboardFace
+end
+
+--[[ The THIS WEEK'S DELVERS board's face (`Run/WeeklyTournament`). ]]
+function Lobby.weeklyLeaderboardFace(): Part?
+	return weeklyLeaderboardFace
 end
 
 function Lobby.folder(): Folder?

@@ -12,8 +12,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local Launch = require(ReplicatedStorage.Shared.Config.Launch)
 local PetAuras = require(ReplicatedStorage.Shared.Config.PetAuras)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
@@ -37,19 +40,17 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Owner's standing rule: every Legendary and Mythic glows, and a
-	     Mythic's glow is the rainbow (`Config/PetAuras`). ]]
-	t.test("every modelled Legendary and Mythic wears an aura", function()
-		for _, model in ReplicatedStorage.Shared.Config.PetModels:GetChildren() do
-			local info = Pets[model.Name]
-			if not info or (info.rarity ~= "Legendary" and info.rarity ~= "Mythic") then
+	--[[ Owner's standing rule: every Legendary and Mythic glows
+	     (`Config/PetAuras`). Since 2026-11-06 a Mythic need not be
+	     rainbow (CLAUDE.md rule 12), so this asks for a glow, any glow --
+	     and of every such pet in `Config/Pets`, modelled yet or not, so
+	     one cannot be imported dark. ]]
+	t.test("every Legendary and Mythic wears an aura", function()
+		for key, info in Pets do
+			if info.rarity ~= "Legendary" and info.rarity ~= "Mythic" then
 				continue
 			end
-			local look = PetAuras.looks[PetAuras.pets[model.Name]]
-			t.notNil(look, model.Name)
-			if look and info.rarity == "Mythic" then
-				t.notNil(look.rainbow, model.Name)
-			end
+			t.notNil(PetAuras.looks[PetAuras.pets[key]], key)
 		end
 	end)
 
@@ -84,6 +85,17 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md): all eight imported
+	     2026-11-06 and in the Bogheart Egg, one Mythic among them. ]]
+	t.test("the Bogheart Egg holds the Bogheart eight", function()
+		local pool = EggRules.pool("BogheartEgg")
+		t.equal(#pool, 8)
+		for _, entry in pool do
+			t.equal(Pets[entry.pet].egg, "BogheartEgg", entry.pet)
+		end
+		t.equal(pool[#pool].pet, "PrismLeviathan")
+	end)
+
 	t.test("rolls follow the chances across the whole range", function()
 		local pool = EggRules.pool("MossyEgg")
 		local counts: { [string]: number } = {}
@@ -101,17 +113,21 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Both eggs are open from the start for now (owner, 2026-10-27: "the
-	     mossy glade egg and thornwood egg should be unlocked for now"), so
-	     what is pinned here is that neither asks for a boss, and that the
-	     gate still works for the egg that takes one up when `unlock` comes
-	     back. ]]
-	t.test("both eggs are open from the start", function()
-		for _, key in { "MossyEgg", "ThornwoodEgg" } do
+	--[[ The Mossy Egg is open from the start. Every later egg is open from
+	     the start only while the launch switch is off (playtest), and opens
+	     with the boss it waits on once it is on (`Config/Launch.locks`, on
+	     since 2026-11-19). ]]
+	t.test("the first egg is open from the start, the others as the switch says", function()
+		for _, key in { "MossyEgg", "ThornwoodEgg", "BogheartEgg" } do
 			local egg = EggRules.find(key)
 			t.notNil(egg, key)
 			if egg then
-				t.isTrue(EggRules.open(egg, {}), key)
+				local waits = egg.atLaunch ~= nil or egg.unlock ~= nil
+				t.equal(EggRules.open(egg, {}), not (waits and Launch.locks), key)
+				local boss = egg.unlock or egg.atLaunch
+				if boss then
+					t.isTrue(EggRules.open(egg, { [boss] = true }), `{key} opens with {boss}`)
+				end
 			end
 		end
 	end)
@@ -123,7 +139,49 @@ return function(t: TestRunner.Helper)
 		t.isTrue(EggRules.open(gated :: any, { MossyGlade = true }))
 	end)
 
-	t.test("two pet slots, matching the save", function()
-		t.equal(#Eggs.slots, 2)
+	t.test("a shut egg names the boss it waits on, not always King Bloblin", function()
+		local after = {
+			key = "x",
+			name = "X",
+			area = "BogheartCaverns",
+			price = 1,
+			unlock = "DrownedVillage",
+		}
+		t.equal(EggRules.lockWords(after :: any, {}), "BEAT OLD TOLLCRAB")
+		t.isNil(EggRules.lockWords(after :: any, { DrownedVillage = true }), "beaten: open")
+		for _, egg in Eggs.list do
+			local words = EggRules.lockWords(egg, {}, true)
+			if egg.atLaunch then
+				t.isTrue(words ~= nil and string.find(words, "BEAT ", 1, true) == 1, egg.key)
+			end
+		end
+	end)
+
+	t.test("a hatched pet goes into an empty slot by itself, rarest first", function()
+		-- the Mossy Egg's rarest and commonest, whatever they are
+		local pool = EggRules.pool("MossyEgg")
+		local common, rare = pool[1].pet, pool[#pool].pet
+		t.isTrue(EggRules.ORDER[pool[#pool].rarity] > EggRules.ORDER[pool[1].rarity])
+
+		-- nothing in the slots: the rarest takes slot 1, the next slot 2
+		local filled = EggRules.fill({}, 2, { common, rare })
+		t.equal(filled[1], rare)
+		t.equal(filled[2], common)
+
+		-- a slot the player filled is never changed, and a pet is in one slot only
+		local kept = EggRules.fill({ [1] = common }, 2, { common, common, rare })
+		t.isNil(kept[1])
+		t.equal(kept[2], rare)
+		t.isNil(next(EggRules.fill({ [1] = common }, 2, { common })))
+
+		-- only the slots open to the player, and nothing when both are full
+		t.isNil(EggRules.fill({}, 1, { common, rare })[2])
+		t.isNil(next(EggRules.fill({ [1] = common, [2] = rare }, 2, { rare })))
+	end)
+
+	t.test("two pet slots, a third with the pass, matching the save", function()
+		t.equal(#Eggs.slots, SaveSchema.PET_SLOTS)
+		t.equal(StoreRules.petSlots({}), 2)
+		t.equal(StoreRules.petSlots({ PetSlot = true }), #Eggs.slots)
 	end)
 end

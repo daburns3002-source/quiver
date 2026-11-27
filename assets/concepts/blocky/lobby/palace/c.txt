@@ -1,0 +1,3 @@
+Generate ONE 16:9 image and save it in the current directory as palace_c_great_hall.png
+
+Setting for this version: THE GREAT HALL. Everything is indoors, in one vast palace hall with its roof cut away for the camera. Tall walls of dark red and purple panelling with gold trim enclose the whole scene, hung with long banners. The four buildings stand inside the hall as grand houses, like a small town under one roof. Checkered dark and cream marble floor, long red carpets, chandeliers of warm candlelight hanging low, and a calm blue fountain at the centre as the one cool colour.

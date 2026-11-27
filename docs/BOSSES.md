@@ -138,6 +138,17 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
 - **Phase 2 (50%) — The Drowned Rise.** Each toll raises Drowned Zombies; the
   bell's rings now come in pairs, and Echo Mark drops two marks at once (one on
   the player, one where they are heading).
+- **Built 2026-11-07** (`Balance` `oldTollcrab`, `Enemies/TollcrabMoves`;
+  owner: "give me unique moves", none of King Bloblin's): **Toll Wave** — he
+  plants the bell and one bronze ring rolls out to 24 studs through the
+  houses, one 70° gap lit on the floor through the wind-up, set 50–100° round
+  from the player; then the bell sticks (punish). **Echo Mark** — three raps,
+  each a red ring under the player that strikes 1 s later. **Crab Scuttle** —
+  into the bell, side-on, then a zigzag of three short sideways dashes, each
+  down its own lane marked at the player, then stunned 2.5 s. **The Drowned Rise** at 50%: Hollow Fishermen
+  (until the Drowned Zombie is modelled); from then on rings come in pairs
+  (second gap 90° back) and each rap drops two marks, the second where the
+  player is heading. The claw lash is gone.
 - *Teaches:* ring timing; nothing can hide behind a wall here. *Class notes:*
   Warden can stand inside the ring's gap; Ranger must keep line of sight.
 
@@ -149,6 +160,18 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
   sends a shockwave ring and splashes poison.
 - **Phase 3 (33%) — The Bog Rises.** Poison floods the room's edges, shrinking
   the dry floor; she swallows Spore Puffs and spits them as bursting clouds.
+- **Built 2026-11-08, her own fight** (`Balance` `grandmotherGulp`; owner,
+  2026-11-07: "no these are copies of king bloblin fight, give me unique
+  moves"; the list below is the one the owner OK'd). The Slime King's lash,
+  bounce and summon are gone. **Spore Spit:** her throat swells while three
+  circles are marked (on you and either side), globs land in spore clouds;
+  she pants after. **Belly Slide:** a lane as wide as she is, marked to the
+  wall past you; she slides down it on her belly (over the low ledges, not
+  the rocks), leaving a slime trail, and lies stuck after. **Big Gulp**
+  (below 2/3): a marked cone she inhales through, dragging you toward her
+  mouth slower than you walk; reaching it is being swallowed and spat out;
+  she burps after. **The Bog Rises** (1/3): a roar, then poison creeps in
+  from the walls and stays until she dies. Each notch is a roar and a pause.
 - *Arena:* an underground lake ringed by glowing mushrooms. *Teaches:* every
   Lowlands lesson at once. *Class notes:* Ranger has the safest tongue
   windows; Arcanist's freeze can hold her mid-leap.

@@ -7,8 +7,9 @@
 
 	- **Session locked.** The stored record carries the server that holds
 	  it. A server only loads a record no other live server holds (a lock
-	  goes stale after `LOCK_STALE` seconds without a save, for a server
-	  that died), and only saves over a record it holds. A player who
+	  goes stale after `SaveLock.STALE` seconds without a save, for a server
+	  that died), and only saves over a record it holds (`Data/SaveLock`),
+	  never over one it let go. A player who
 	  rejoins faster than their last server saved waits for the lock; if it
 	  never comes free they are asked to rejoin rather than handed an empty
 	  profile that would overwrite their real one.
@@ -31,6 +32,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local SaveLock = require(script.Parent.SaveLock)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
 local log = Log.forTag("Data")
@@ -42,24 +44,28 @@ local STORE_NAME = if RunService:IsStudio() then "PlayerData_Studio" else "Playe
 local AUTOSAVE = 60
 --[[ Seconds within which a changed profile is saved. ]]
 local SOON = 6
---[[ Seconds after a lock's last save that another server may take it. ]]
-local LOCK_STALE = 600
---[[ Tries at taking the lock before the player is asked to rejoin. ]]
-local LOAD_TRIES = 6
+--[[ Tries at taking the lock before the player is asked to rejoin: about
+     40 s, for a last server still letting go behind a queue of saves. ]]
+local LOAD_TRIES = 10
 local LOAD_WAIT = 4
 
-type Lock = { job: string, time: number }
-type Record = { profile: SaveSchema.Profile, lock: Lock? }
+type Record = { profile: SaveSchema.Profile, lock: SaveLock.Lock? }
 
 type Entry = {
 	profile: SaveSchema.Profile,
 	--[[ False for a record from a newer game version: played, never saved. ]]
 	saving: boolean,
 	dirty: boolean,
+	--[[ No record existed: this player's very first join (`isNew`). ]]
+	fresh: boolean,
+	--[[ The player is leaving: their last save lets the lock go, and no
+	     autosave may follow it. ]]
+	leaving: boolean?,
 }
 
 local entries: { [Player]: Entry } = {}
 local loaded = Instance.new("BindableEvent")
+local leaving: { (Player, SaveSchema.Profile) -> () } = {}
 local store: DataStore? = nil
 local jobId = if game.JobId ~= "" then game.JobId else "studio-" .. tostring(math.random(1e9))
 
@@ -88,21 +94,22 @@ end
 
 --[[ Takes the lock and reads the record in one write. Returns the profile,
      whether it may be saved, and false when another live server holds it. ]]
-local function tryLoad(player: Player): (SaveSchema.Profile?, boolean)
+local function tryLoad(player: Player): (SaveSchema.Profile?, boolean, boolean)
 	local current = store
 	if not current then
-		return SaveSchema.default(), false
+		return SaveSchema.default(), false, true
 	end
 	local profile: SaveSchema.Profile? = nil
 	local saving = true
+	local fresh = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
-			local lock = old and old.lock
-			if lock and lock.job ~= jobId and os.time() - (lock.time or 0) < LOCK_STALE then
+			if not SaveLock.mayTake(old and old.lock, jobId, os.time()) then
 				profile = nil
 				return nil -- held elsewhere: write nothing
 			end
 			local raw = old and old.profile
+			fresh = raw == nil
 			saving = SaveSchema.readable(raw)
 			profile = SaveSchema.migrate(raw)
 			if not saving then
@@ -113,24 +120,25 @@ local function tryLoad(player: Player): (SaveSchema.Profile?, boolean)
 	end)
 	if not ok then
 		log.warn("load of %s failed: %s", player.Name, tostring(problem))
-		return nil, false
+		return nil, false, false
 	end
-	return profile, saving
+	return profile, saving, fresh
 end
 
 local function load(player: Player)
 	if not store then
-		entries[player] = { profile = SaveSchema.default(), saving = false, dirty = false }
+		entries[player] =
+			{ profile = SaveSchema.default(), saving = false, dirty = false, fresh = true }
 		loaded:Fire(player)
 		return
 	end
 	for _ = 1, LOAD_TRIES do
-		local profile, saving = tryLoad(player)
+		local profile, saving, fresh = tryLoad(player)
 		if not player.Parent then
 			return
 		end
 		if profile then
-			entries[player] = { profile = profile, saving = saving, dirty = false }
+			entries[player] = { profile = profile, saving = saving, dirty = false, fresh = fresh }
 			if not saving then
 				log.warn("%s's save is from a newer version: playing without saving", player.Name)
 			end
@@ -144,19 +152,26 @@ local function load(player: Player)
 end
 
 --[[ Writes the profile over the record this server holds; `release`
-     lets the lock go (the player left, the server is closing). ]]
-local function save(player: Player, release: boolean)
+     lets the lock go (the player left, the server is closing). Returns
+     whether the record now holds this profile. ]]
+local function save(player: Player, release: boolean): boolean
 	local entry = entries[player]
 	local current = store
 	if not entry or not entry.saving or not current then
-		return
+		return false
+	end
+	if entry.leaving and not release then
+		return false -- only the leaving save, which lets the lock go
 	end
 	local profile = entry.profile
+	local written = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
-			local lock = old and old.lock
-			if lock and lock.job ~= jobId and os.time() - (lock.time or 0) < LOCK_STALE then
-				return nil -- another server took it: never write over it
+			-- the transform can run more than once; only its last answer stands
+			written = false
+			if not SaveLock.mayWrite(old and old.lock, jobId) then
+				-- not ours: let go already, or taken by another server
+				return nil
 			end
 			if old and not SaveSchema.readable(old.profile) then
 				return nil
@@ -165,13 +180,38 @@ local function save(player: Player, release: boolean)
 				profile = profile,
 				lock = if release then nil else { job = jobId, time = os.time() },
 			}
+			written = true
 			return record
 		end)
 	end)
 	if not ok then
 		entry.dirty = true -- tried again on the next pass
 		log.warn("save of %s failed: %s", player.Name, tostring(problem))
+		return false
 	end
+	return written
+end
+
+--[[ Saves now and says whether the record holds the profile: what a Robux
+     receipt waits on before it is called granted (`Data/Purchases`). A
+     profile that is not saved at all (Studio without DataStores, a newer
+     game's record) says false, and the caller decides. ]]
+function PlayerData.saveNow(player: Player): boolean
+	local entry = entries[player]
+	if not entry then
+		return false
+	end
+	local ok = save(player, false)
+	if ok then
+		entry.dirty = false
+	end
+	return ok
+end
+
+--[[ Whether this player's profile is written to a DataStore at all. ]]
+function PlayerData.saves(player: Player): boolean
+	local entry = entries[player]
+	return entry ~= nil and entry.saving and store ~= nil
 end
 
 --[[ The player's profile, or nil until it has loaded. Read-only: change it
@@ -179,6 +219,19 @@ end
 function PlayerData.get(player: Player): SaveSchema.Profile?
 	local entry = entries[player]
 	return entry and entry.profile
+end
+
+--[[ Whether DataStores can be reached at all (decided as `start` runs). ]]
+function PlayerData.storeReady(): boolean
+	return store ~= nil
+end
+
+--[[ Whether this is the player's very first join ever: no record was
+     stored for them (`Data/Invites`). In Studio without DataStores every
+     join is a first. ]]
+function PlayerData.isNew(player: Player): boolean
+	local entry = entries[player]
+	return entry ~= nil and entry.fresh
 end
 
 --[[ Marks the profile changed, for the next save. ]]
@@ -197,6 +250,13 @@ function PlayerData.onLoaded(callback: (Player) -> ())
 	end
 end
 
+--[[ Calls back as the player leaves, with the profile as it is saved:
+     before it is let go, so the callback need not race the save. Called in
+     its own thread; it must not change the profile. ]]
+function PlayerData.onLeaving(callback: (Player, SaveSchema.Profile) -> ())
+	table.insert(leaving, callback)
+end
+
 function PlayerData.start()
 	openStore()
 	for _, player in Players:GetPlayers() do
@@ -204,6 +264,13 @@ function PlayerData.start()
 	end
 	Players.PlayerAdded:Connect(load)
 	Players.PlayerRemoving:Connect(function(player)
+		local entry = entries[player]
+		if entry then
+			entry.leaving = true
+			for _, callback in leaving do
+				task.spawn(callback, player, entry.profile)
+			end
+		end
 		save(player, true)
 		entries[player] = nil
 	end)
@@ -233,7 +300,7 @@ function PlayerData.start()
 				lastAll = os.clock()
 			end
 			for player, entry in entries do
-				if all or entry.dirty then
+				if not entry.leaving and (all or entry.dirty) then
 					entry.dirty = false
 					task.spawn(save, player, false)
 				end

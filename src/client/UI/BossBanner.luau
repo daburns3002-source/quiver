@@ -27,6 +27,7 @@ local RunService = game:GetService("RunService")
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 
 local BossWatch = require(script.Parent.Parent.Fx.BossWatch)
+local FirstTips = require(script.Parent.FirstTips)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local BossBanner = {}
@@ -34,9 +35,9 @@ local BossBanner = {}
 local TAG_COLOUR = Color3.fromRGB(255, 210, 63)
 local TAG_TEXT = Color3.fromRGB(42, 28, 0)
 local INK = Color3.fromRGB(16, 14, 10)
-local NAME_FONT = Font.fromEnum(Enum.Font.Arcade)
-local TAG_FONT = Font.fromEnum(Enum.Font.Arcade)
-local SUB_FONT = Font.fromEnum(Enum.Font.Arcade)
+local NAME_FONT = Font.fromEnum(Enum.Font.FredokaOne)
+local TAG_FONT = Font.fromEnum(Enum.Font.FredokaOne)
+local SUB_FONT = Font.fromEnum(Enum.Font.FredokaOne)
 local LINES = 9
 
 type Parts = {
@@ -358,6 +359,8 @@ function BossBanner.start()
 			shown = nil
 			made.gui.Enabled = false
 			RunPaused.setIntro(false)
+			-- the first boss met: how to live through it (`Config/Tips`)
+			FirstTips.show("Boss")
 			return
 		end
 		pose(made, banner, t)

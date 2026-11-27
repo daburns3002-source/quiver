@@ -3,30 +3,33 @@
 	Each class's card pool (`Ability.classes`; docs/CLASS-CARDS.md). A card
 	that only means something for one weapon must be dealt to that class
 	alone, or a Warden drafts Multishot and wastes the pick; and each class
-	needs enough cards that a draft can always deal a full hand.
+	needs enough cards that a draft can always deal a full hand. A weapon's
+	own card (`weaponOnly`, the themed daggers') is in no pool: only its
+	weapon carries it.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
-local ClassUpgrades = require(ServerScriptService.Server.Combat.ClassUpgrades)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local TestRunner = require(script.Parent.TestRunner)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
+local WeaponTiming = require(ReplicatedStorage.Shared.Combat.WeaponTiming)
+local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 local HAND = 3
 
 local function pool(class: string): { Abilities.Ability }
 	local out = {}
 	for _, ability in Abilities.all do
-		if ability.filler then
+		if ability.filler or ability.weaponOnly then
 			continue
 		end
 		if not ability.classes or table.find(ability.classes, class) then
@@ -66,23 +69,60 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ Arrow cards shape a volley of arrows, blade cards a swing, spell
-	     cards an orb: each belongs to the one class that has that attack. ]]
-	t.test("weapon cards are dealt to one class only", function()
-		local owner = { arrow = "Ranger", blade = "Warden", spell = "Arcanist" }
+	     cards an orb, dagger cards the Assassin's strikes and dash: each
+	     belongs to the one class that has that attack. A blade card that is
+	     true of any swing (faster, wider, further) is the Assassin's too,
+	     and no other class's. ]]
+	t.test("weapon cards are dealt to the class that has the weapon", function()
+		local owner =
+			{ arrow = "Ranger", blade = "Warden", spell = "Arcanist", dagger = "Assassin" }
 		for _, ability in Abilities.all do
 			local class = owner[ability.group]
 			if class then
 				local classes: { string } = ability.classes or {}
-				t.isTrue(
-					#classes == 1 and classes[1] == class,
-					`{ability.id} is a {ability.group} card but is not {class}'s alone`
-				)
+				t.notNil(table.find(classes, class), `{ability.id} is not {class}'s`)
+				for _, other in classes do
+					local swings = Classes[other].swing ~= nil
+					t.isTrue(
+						other == class or (ability.group == "blade" and swings),
+						`{ability.id} is a {ability.group} card dealt to the {other}`
+					)
+				end
 			end
 		end
 	end)
 
+	--[[ What a card says must be true of every class that draws it: a
+	     blade card shared with the Assassin changes a number its swing
+	     reads, never the Warden's guard, slam wave or thrown sword. ]]
+	t.test("a blade card the Assassin draws changes the Assassin's swing", function()
+		local plain = AbilityEffects.serverStats({}, "Assassin")
+		local shared = 0
+		for _, ability in Abilities.all do
+			local classes: { string } = ability.classes or {}
+			if ability.group == "blade" and table.find(classes, "Assassin") then
+				shared += 1
+				local with = AbilityEffects.serverStats(max(ability.id), "Assassin")
+				local changed = with.attackCooldown ~= plain.attackCooldown
+					or with.melee.widthScale ~= plain.melee.widthScale
+					or with.melee.reachBonus ~= plain.melee.reachBonus
+					or with.melee.executeBonus ~= plain.melee.executeBonus
+					or with.melee.sunder ~= plain.melee.sunder
+					-- Thornwood's two, on the combo's last blow (its double stab)
+					or with.melee.boarRush ~= plain.melee.boarRush
+					or with.melee.ruinCracks ~= plain.melee.ruinCracks
+					-- the owner's two (2026-11-27): Guard Break on the double
+					-- stab, and the sword a kill raises
+					or with.melee.guardBreak ~= plain.melee.guardBreak
+					or with.upgrades.vengefulSpirit ~= plain.upgrades.vengefulSpirit
+				t.isTrue(changed, `{ability.id} does nothing for the Assassin`)
+			end
+		end
+		t.isTrue(shared >= 3, "the melee classes share almost nothing")
+	end)
+
 	t.test("every class can be dealt a full hand at every rarity mix", function()
-		for name in Classes do
+		for _, name in ClassList.all() do
 			t.isTrue(#pool(name) >= HAND * 3, `{name} has only {#pool(name)} cards`)
 		end
 	end)
@@ -150,7 +190,7 @@ return function(t: TestRunner.Helper)
 	     Titan's Grip), and a class Mythic is never shared between classes
 	     (Second Wind, for every class, names none). ]]
 	t.test("every class has a Mythic, and every class Mythic is one class's", function()
-		for name in Classes do
+		for _, name in ClassList.all() do
 			local mythics = {}
 			for _, ability in Abilities.all do
 				local classes: { string } = ability.classes or {}
@@ -262,6 +302,122 @@ return function(t: TestRunner.Helper)
 		t.equal(AbilityEffects.moveSpeedAt(base, 0, 99), base)
 	end)
 
+	--[[ The class cards of 2026-11-13 (owner's pick C): each off without its
+	     card and on with it, for its own class only. ]]
+	t.test("the class cards of 2026-11-13 switch on with their cards", function()
+		local cases = {
+			{ "SniperShot", "Ranger", "sniper" },
+			{ "SplitShot", "Ranger", "splitShot" },
+			{ "WindArrows", "Ranger", "wind" },
+			{ "ManaSurge", "Arcanist", "manaSurge" },
+			{ "FrostOrb", "Arcanist", "frost" },
+			{ "ArcaneShield", "Arcanist", "arcaneShield" },
+			{ "ShieldThrow", "Warden", "shieldThrow" },
+			{ "BladeStorm", "Warden", "bladeStorm" },
+		}
+		for _, case in cases do
+			local id, class, field = case[1], case[2], case[3]
+			t.equal((AbilityEffects.serverStats({}, class).upgrades :: any)[field], 0, id)
+			t.isTrue((AbilityEffects.serverStats(max(id), class).upgrades :: any)[field] > 0, id)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, class) ~= nil, id)
+		end
+		t.equal(AbilityEffects.serverStats({}, "Warden").melee.sunder, 0)
+		t.isTrue(AbilityEffects.serverStats(max("Sunder"), "Warden").melee.sunder > 0, "Sunder")
+		-- Sniper Shot took Overdraw's place (owner, 2026-11-13)
+		t.isTrue(Abilities.byId.Overdraw.benched == true, "Overdraw is benched")
+	end)
+
+	--[[ "A fuller, even set" (owner's pick C): no class drafts from a pool
+	     much smaller than another's. Within a card until wave 2's last five
+	     (owner, 2026-11-26: "As written (B)"), which left the Arcanist 29,
+	     the Warden 28, the Ranger 27 and the Assassin 26: within three. The
+	     owner's eleven (2026-11-27) make them 32, 32, 31 and 29, three of
+	     them shared by both melee classes. ]]
+	t.test("the class pools are within three cards of each other", function()
+		local sizes: { number } = {}
+		for _, class in ClassList.all() do
+			local dealt = 0
+			for _, ability in pool(class) do
+				if not ability.benched then
+					dealt += 1
+				end
+			end
+			table.insert(sizes, dealt)
+		end
+		t.isTrue(
+			math.max(table.unpack(sizes)) - math.min(table.unpack(sizes)) <= 3,
+			`pools of {table.concat(sizes, ", ")}`
+		)
+	end)
+
+	--[[ Wave 2's last five (docs/CLASS-CARDS.md, 2026-11-26): each off
+	     without its card and on with it, for its own class only, and no
+	     stronger than the doc's numbers at the 2026-10-25 cut. ]]
+	t.test("wave 2's last five switch on with their cards", function()
+		local melee = {
+			{ "EchoSlash", "echoSlash" },
+			{ "Riposte", "riposte" },
+		}
+		for _, case in melee do
+			local id, field = case[1], case[2]
+			t.equal((AbilityEffects.serverStats({}, "Warden").melee :: any)[field], 0, id)
+			t.isTrue((AbilityEffects.serverStats(max(id), "Warden").melee :: any)[field] > 0, id)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, "Warden") ~= nil, id)
+		end
+		local spells = {
+			{ "SplitOrb", "splitOrb" },
+			{ "GravityWell", "gravityWell" },
+			{ "OrbitingOrb", "orbitingOrb" },
+		}
+		for _, case in spells do
+			local id, field = case[1], case[2]
+			t.equal((AbilityEffects.serverStats({}, "Arcanist").upgrades :: any)[field], 0, id)
+			t.isTrue(
+				(AbilityEffects.serverStats(max(id), "Arcanist").upgrades :: any)[field] > 0,
+				id
+			)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, "Arcanist") ~= nil, id)
+		end
+		-- the doc's 40% / 60% echo, 30% shards, full-damage riposte, at x0.8
+		t.isTrue(Abilities.byId.EchoSlash.levels[2] <= 0.6 * 0.8 + 1e-9, "Echo Slash")
+		t.isTrue(Balance.Player.waveTwo.shard.damage <= 0.3 * 0.8 + 1e-9, "Split Orb")
+		t.isTrue(Abilities.byId.Riposte.levels[1] <= 0.8 + 1e-9, "Riposte")
+		-- the doc's counts: 3 / 5 shards, one then two orbs
+		t.equal(Abilities.byId.SplitOrb.levels[1], 3)
+		t.equal(Abilities.byId.SplitOrb.levels[2], 5)
+		t.equal(Abilities.byId.OrbitingOrb.levels[1], 1)
+		t.equal(Abilities.byId.OrbitingOrb.levels[2], 2)
+	end)
+
+	--[[ What `ClassUpgrades.dress` puts on a projectile: Split Shot's
+	     splinters, Wind Arrows' gust, Frost Orb's chill, and the stronger
+	     chill when Elemental Orbs' ice is on it too. ]]
+	t.test("the cards dress a projectile, the stronger chill winning", function()
+		local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
+		local function dressed(upgrades: { [string]: number }): { [string]: any }
+			local held = AbilityEffects.serverStats({}, "Ranger").upgrades :: any
+			for key, value in upgrades do
+				held[key] = value
+			end
+			local params = {}
+			ClassUpgrades.dress({ upgrades = held }, params)
+			return params
+		end
+		t.equal(dressed({}).split, nil)
+		t.equal(dressed({}).slow, nil)
+		t.equal(dressed({ splitShot = 1 }).split, Balance.Player.splitShot.count)
+		t.equal(dressed({ wind = 1 }).gust, 1)
+		local chilled = dressed({ frost = 0.25 })
+		t.near(chilled.slow, 0.75, 1e-9)
+		t.equal(chilled.slowDuration, Balance.Player.frost.duration)
+		local params = { slow = 0.75, slowDuration = 2 }
+		ClassUpgrades.dressAs("Ice", params)
+		t.isTrue(params.slow <= Balance.Player.elemental.slow, "the stronger chill wins")
+	end)
+
 	--[[ Titan's Grip grows the whole swing, and the client draws and aims by
 	     the same scale the server hits with. ]]
 	t.test("Titan's Grip grows every blow's shape by its scale", function()
@@ -321,6 +477,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("Bull Rush's immunity outlasts the dash and never shortens a shield", function()
+		local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
 		local rush = Balance.Player.bullRush
 		t.isTrue(rush.immune > Balance.Player.dash.duration, "immune for less than the charge")
 
@@ -336,5 +493,30 @@ return function(t: TestRunner.Helper)
 		t.equal(charge(1, 0), 100 + rush.immune)
 		t.equal(charge(0, 0), 0)
 		t.equal(charge(1, 1000), 1000)
+	end)
+
+	--[[ The Meteor cast fits inside one of the staff's attacks, even with
+	     the most haste the draft gives, so the next cast is never cut into
+	     it and the staff's own cast shows between Meteors (`rg-meteor`). The
+	     Earthbreaker's is never fitted: its slam is timed by the server. ]]
+	t.test("the Meteor cast ends before the staff's next cast", function()
+		local staff = Classes.Arcanist.weapon
+		local clip = WeaponTiming.clips(staff)[(Weapons :: any)[staff].clips.special.meteor]
+		t.notNil(clip, "the staff has no Meteor clip")
+		local base = Balance.Player.attackCooldown * Classes.Arcanist.cooldownScale
+		for _, cooldown in { base, base * 0.75, base * 0.5, 0.3 } do
+			local speed = WeaponTiming.specialSpeed(staff, "meteor", cooldown)
+			t.isTrue(speed >= 1, "the Meteor cast plays slower than written")
+			t.isTrue(
+				clip.length / speed <= cooldown,
+				`the Meteor cast outlasts a {cooldown} s attack`
+			)
+			t.isTrue(
+				clip.markers.Point / speed <= Balance.Player.meteor.delay,
+				"the staff points after the meteor lands"
+			)
+		end
+		t.near(WeaponTiming.specialSpeed(staff, "meteor", 100), 1, 1e-9)
+		t.near(WeaponTiming.specialSpeed(Classes.Warden.weapon, "earthbreaker", 0.1), 1, 1e-9)
 	end)
 end

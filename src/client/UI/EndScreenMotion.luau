@@ -71,6 +71,7 @@ export type Parts = {
 	rewards: Frame,
 	rewardCounts: { Count },
 	buttonGroup: Frame,
+	lobbyGroup: Frame,
 	icon: ImageLabel,
 	shine: Frame,
 }
@@ -87,6 +88,8 @@ export type Motion = {
 
 local WHITE = EndScreenTheme.white
 local SPARK_YELLOW = Color3.fromRGB(255, 225, 77)
+--[[ Milliseconds BACK TO LOBBY pops after the main button. ]]
+local LOBBY_BUTTON_LAG = 120
 --[[ Milliseconds from one shine across the button to the next; each
      takes the whole period to cross. ]]
 local SHINE_PERIOD = 2400
@@ -173,7 +176,15 @@ function EndScreenMotion.play(parts: Parts): Motion
 
 	local base: { [GuiObject]: UDim2 } = {}
 	for _, obj in
-		{ parts.ribbon, parts.sub, parts.hero, parts.statsGroup, parts.buttonGroup, parts.root } :: { GuiObject }
+		{
+			parts.ribbon,
+			parts.sub,
+			parts.hero,
+			parts.statsGroup,
+			parts.buttonGroup,
+			parts.lobbyGroup,
+			parts.root,
+		} :: { GuiObject }
 	do
 		base[obj] = obj.Position
 	end
@@ -580,6 +591,11 @@ function EndScreenMotion.play(parts: Parts): Motion
 			then 1 + button.pulse * math.sin(seconds * button.pulseRadPerSec)
 			else 1
 		scaleOf(parts.buttonGroup).Scale = math.max(0, backOut(btp)) * pulse
+
+		-- BACK TO LOBBY pops in just after it and stays still
+		local lbp = clamp01((t - button.start - LOBBY_BUTTON_LAG) / button.dur)
+		show(parts.lobbyGroup, lbp > 0)
+		scaleOf(parts.lobbyGroup).Scale = math.max(0, backOut(lbp))
 
 		parts.shine.Visible = live
 		local sweep = (t % SHINE_PERIOD) / SHINE_PERIOD

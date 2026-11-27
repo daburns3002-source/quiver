@@ -15,6 +15,13 @@
 	  model, and their line is the one the loading screen already writes.
 	- **Pets** from `Config/Pets`, found once hatched.
 
+	**A book is a page an area** (owner, 2026-11-12: "the dexes should be 1
+	page for each area with bigger icons on the right page. the page should
+	also be themed to match the area"): every entry says which area it is
+	from, `areas` lists the areas a book has anything from in the order the
+	game plays them, and `inArea` is that area's page. `Config/Dex.areas`
+	has each area's look.
+
 	A pet no egg holds is still in its book: the dex is a record of the
 	world, not of what is obtainable this week. A **benched** enemy is not,
 	because it cannot be met at all -- it would be a slot that can never be
@@ -27,13 +34,14 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
-local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
-local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 --[[ `icon` goes in the grid slot and `picture` on the left page. They are
@@ -47,6 +55,19 @@ export type Entry = {
 	picture: string,
 	description: string,
 	unlocked: boolean,
+	--[[ The frame the tile wears: a weapon's or pet's rarity. Enemies
+	     carry none, so they wear Common. ]]
+	rarity: string,
+	--[[ The area it is from (a `Balance.Stages` `area`), which is the page
+	     it is on. ]]
+	area: string,
+	--[[ One short fact for the line under the name: where an enemy is met,
+	     or a weapon's or pet's rarity. ]]
+	detail: string,
+	--[[ The best merge tier held of a found weapon or pet (`Util/MergeRules`),
+	     for the letter in its tile's bottom left. Nil for an enemy, and for
+	     anything not found. ]]
+	tier: string?,
 }
 
 local DexBook = {}
@@ -67,8 +88,14 @@ local RANK = {
 --[[ The areas in the order the game plays them, so enemies group by where
      they are met rather than by name. An area not listed here sorts after
      all of them, which is what a new one does until it is added. ]]
-local AREAS = { MossyGlade = 1, Thornwood = 2, DrownedVillage = 3 }
+DexBook.AREAS = { "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns" }
+local AREAS: { [string]: number } = {}
+for index, area in DexBook.AREAS do
+	AREAS[area] = index
+end
 local LAST_AREA = 99
+--[[ A themed set's weapons rank after every area's (`pageRank`). ]]
+local SET_RANK = LAST_AREA
 
 local function label(weapon: string): string
 	for _, entry in Sandbox.weapons do
@@ -91,13 +118,14 @@ end
 --[[ A pet's line. It has no written description of its own anywhere, so
      this is made of what it does have: how rare it is, and which egg it
      comes out of. ]]
+--[[ The page's line under the rarity pill, which already names the rarity
+     (it said "COMMON." twice on the page until 2026-11-13). ]]
 local function describePet(pet: Pets.Pet): string
-	local rarity = string.upper(pet.rarity)
 	if not pet.egg then
-		return `{rarity}. Not in any egg yet.`
+		return "Not in any egg yet."
 	end
 	local egg = eggName(pet.egg)
-	return if egg then `{rarity}. Hatches from the {egg}.` else `{rarity}.`
+	return if egg then `Hatches from the {egg}.` else ""
 end
 
 --[[ Sort by a rank, then by name, so a book's order never depends on the
@@ -141,35 +169,63 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						picture = enemy.picture,
 						description = enemy.description,
 						unlocked = seen[key] == true,
+						rarity = "Common",
+						area = enemy.area,
+						detail = (string.gsub(enemy.area, "(%l)(%u)", "%1 %2")),
 					},
 				})
 			end
 		end
 	elseif book == "Weapons" then
 		local owned = if saved then saved.weapons else {}
+		local tiers = if saved then saved.tiers.weapons else {}
 		for key, stats in WeaponStats.weapons do
-			local art = ShopAssets.weapons[key]
-			if art then
+			local art = ItemIcons.weapon(key)
+			--[[ Not the golden weapons (`Config/ClassLevels`): a class's
+			     trophy belongs to no area, and an area's page is laid out
+			     for its own eighteen (`Dex.pageMost`). They show at Gear.
+			     Nor a weapon of a class still locked on its card, nor one
+			     of a themed set that is not for sale yet: a set's page
+			     comes with its shelf (`Config/Shop.sets`). A set's weapons
+			     have a page of their own, after the areas'. ]]
+			local hidden = stats.set ~= nil and not ShopRules.stocked(stats)
+			if art ~= "" and not stats.earned and not hidden and ShopRules.shown(key) then
 				table.insert(ranked, {
-					rank = stats.area * 10 + (RANK[stats.rarity] or 9),
+					rank = (if stats.set
+						then SET_RANK + ShopRules.setIndex(stats.set)
+						else stats.area) * 10 + (RANK[stats.rarity] or 9),
 					entry = {
 						key = key,
 						name = label(key),
-						icon = GearAssets.weapons[key] or art,
+						--[[ the same 2D art as every other screen's (the Blacksmith,
+						     Gear, the reveal); the grid showed the old mini pixel
+						     icons for the first two areas' weapons until
+						     2026-11-13 (owner: "make sure the icons ... all match") ]]
+						icon = art,
 						picture = art,
-						description = LoadingPick.describeWeapon(key),
+						-- without its leading rarity: the pill under the name says it
+						description = (string.gsub(LoadingPick.describeWeapon(key), "^%u+%. ", "")),
 						unlocked = owned[key] == true,
+						rarity = stats.rarity,
+						-- `WeaponStats.area` is the area's number, in the order played
+						-- a themed set's page is its set's (`pageRank`)
+						area = stats.set or DexBook.AREAS[stats.area] or `Area{stats.area}`,
+						detail = stats.rarity,
+						tier = if owned[key] == true
+							then MergeRules.best(tiers[key]) or MergeRules.TIERS[1]
+							else nil,
 					},
 				})
 			end
 		end
 	elseif book == "Pets" then
 		local hatched = if saved then saved.pets else {}
+		local tiers = if saved then saved.tiers.pets else {}
 		for key, pet in Pets do
-			local icon = GearAssets.pets[key]
-			if icon then
+			local icon = ItemIcons.pet(key)
+			if icon ~= "" then
 				table.insert(ranked, {
-					rank = RANK[pet.rarity] or 9,
+					rank = (AREAS[pet.area] or LAST_AREA) * 10 + (RANK[pet.rarity] or 9),
 					entry = {
 						key = key,
 						name = pet.name,
@@ -177,6 +233,12 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						picture = icon,
 						description = describePet(pet),
 						unlocked = (hatched[key] or 0) > 0,
+						rarity = pet.rarity,
+						area = pet.area,
+						detail = pet.rarity,
+						tier = if (hatched[key] or 0) > 0
+							then MergeRules.best(tiers[key]) or MergeRules.TIERS[1]
+							else nil,
 					},
 				})
 			end
@@ -197,20 +259,47 @@ function DexBook.found(entries: { Entry }): (number, number)
 	return found, #entries
 end
 
---[[ How many pages `entries` fills. Always at least one, so an empty book
-     still draws its spread rather than nothing. ]]
-function DexBook.pages(entries: { Entry }, perPage: number): number
-	return math.max(1, math.ceil(#entries / perPage))
+--[[ Where a page stands in its book: an area by the order played, an
+     area the order does not know after those, and a themed set's page
+     (the weapon book's, `Config/Shop.sets`) after every area's, in the
+     shelf's order. ]]
+local function pageRank(page: string): number
+	if AREAS[page] then
+		return AREAS[page]
+	elseif ShopRules.set(page) then
+		return LAST_AREA + ShopRules.setIndex(page)
+	end
+	return LAST_AREA
 end
 
---[[ Page `index` (1-based) of `entries`. A short last page is short: the
-     slots it does not fill are left empty, not padded. ]]
-function DexBook.page(entries: { Entry }, index: number, perPage: number): { Entry }
+--[[ The areas `entries` has anything from, in the order the game plays
+     them: a book's pages. An area the order does not know yet comes after
+     the ones it does, by name, so a new area's page shows up rather than
+     going missing; a themed set's page comes last (`pageRank`). ]]
+function DexBook.areas(entries: { Entry }): { string }
+	local seen: { [string]: boolean } = {}
+	local out: { string } = {}
+	for _, entry in entries do
+		if not seen[entry.area] then
+			seen[entry.area] = true
+			table.insert(out, entry.area)
+		end
+	end
+	table.sort(out, function(a, b)
+		local ra, rb = pageRank(a), pageRank(b)
+		if ra ~= rb then
+			return ra < rb
+		end
+		return a < b
+	end)
+	return out
+end
+
+--[[ `area`'s page: its entries, in the book's own order. ]]
+function DexBook.inArea(entries: { Entry }, area: string): { Entry }
 	local out: { Entry } = {}
-	local first = (index - 1) * perPage + 1
-	for offset = 0, perPage - 1 do
-		local entry = entries[first + offset]
-		if entry then
+	for _, entry in entries do
+		if entry.area == area then
 			table.insert(out, entry)
 		end
 	end

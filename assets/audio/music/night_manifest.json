@@ -1,0 +1,34 @@
+[
+ {
+  "take": "d",
+  "seconds": 60.0,
+  "samples": 2646000,
+  "lufs": -16.0,
+  "true_peak_db": -5.2,
+  "bus_rms_db": {
+   "bass": -21.0,
+   "pad": -23.0,
+   "chip": -31.3,
+   "chiplead": -20.9,
+   "bells": -27.1
+  },
+  "seam": {
+   "jump": 0.00343,
+   "p99_inside": 0.08549,
+   "max_inside": 0.30948
+  },
+  "intros": {
+   "build": {
+    "intro_seconds": 5.0,
+    "loop_start": 11.0,
+    "loop_end": 71.0,
+    "seconds": 71.5,
+    "lufs": -16.2,
+    "true_peak_db": -2.4,
+    "note": "Moonrise: A minor that lifts to the major in every phrase. The lead is high and sparse, the bass walks, no drum at all. The most hopeful."
+   }
+  },
+  "name": "Moonrise",
+  "note": "Moonrise: A minor that lifts to the major in every phrase. The lead is high and sparse, the bass walks, no drum at all. The most hopeful."
+ }
+]

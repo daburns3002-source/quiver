@@ -1,0 +1,125 @@
+{
+  "note": "Tripo web studio jobs for five themed sets: Tumbleweed, Splash Day, Coin-Op, Voidglass and Lantern Bloom (owner, 2026-11-18: 'make the designs for all first', then 'the last one should be redrawn, the rest are good'). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (1300 in all; 4460 before, 3160 after). Each from Codex's front view in `assets/concepts/blocky/weapons/skins/sets/<set>/<name>.png`. Cinderforge waits for its redrawn Molten Blade. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>. Import folder: `Downloads\themed_sets_import`.",
+  "jobs": {
+    "saddlehorn_bow": {
+      "set": "tumbleweed",
+      "class": "Ranger",
+      "key": "SaddlehornBow",
+      "id": "39f88310-511a-46d5-9e1f-d413e50e35a0"
+    },
+    "wagonwheel_staff": {
+      "set": "tumbleweed",
+      "class": "Arcanist",
+      "key": "WagonwheelStaff",
+      "id": "75b41957-90dc-43a1-86b0-bbacc98b6d70"
+    },
+    "trailboss_blade": {
+      "set": "tumbleweed",
+      "class": "Warden",
+      "key": "TrailbossBlade",
+      "id": "603a7de3-7206-4776-ac9c-9152716a7d36"
+    },
+    "spur_daggers": {
+      "set": "tumbleweed",
+      "class": "Assassin",
+      "key": "SpurDaggers",
+      "id": "fda7fa24-6c3a-4449-9091-c87a438fa779"
+    },
+    "noodle_bow": {
+      "set": "splash_day",
+      "class": "Ranger",
+      "key": "NoodleBow",
+      "id": "9679d274-7fa0-45e2-8a0e-2b06740b586c"
+    },
+    "splashring_staff": {
+      "set": "splash_day",
+      "class": "Arcanist",
+      "key": "SplashringStaff",
+      "id": "534f11fb-0636-4111-8e43-f883716ba672"
+    },
+    "breaker_blade": {
+      "set": "splash_day",
+      "class": "Warden",
+      "key": "BreakerBlade",
+      "id": "d7c5bace-4309-4b63-8a3e-4b02201a30c7"
+    },
+    "squirt_daggers": {
+      "set": "splash_day",
+      "class": "Assassin",
+      "key": "SquirtDaggers",
+      "id": "8da859d9-dc03-4744-9342-2d2f76adb45b"
+    },
+    "highscore_bow": {
+      "set": "coin_op",
+      "class": "Ranger",
+      "key": "HighscoreBow",
+      "id": "5cd5b727-5cd5-4815-8bd8-0a90bd9edc66"
+    },
+    "joystick_staff": {
+      "set": "coin_op",
+      "class": "Arcanist",
+      "key": "JoystickStaff",
+      "id": "a2da6a8a-9be5-412e-bec8-40153a241335"
+    },
+    "pixel_blade": {
+      "set": "coin_op",
+      "class": "Warden",
+      "key": "PixelBlade",
+      "id": "6f88509d-a2e3-4299-83d9-faf828d41db5"
+    },
+    "token_daggers": {
+      "set": "coin_op",
+      "class": "Assassin",
+      "key": "TokenDaggers",
+      "id": "f732a2c9-d006-4931-9fdd-46242989b5fa"
+    },
+    "orbit_bow": {
+      "set": "voidglass",
+      "class": "Ranger",
+      "key": "OrbitBow",
+      "id": "fecd6809-2c65-4a0f-9d9d-dc6f385c4313"
+    },
+    "starwell_staff": {
+      "set": "voidglass",
+      "class": "Arcanist",
+      "key": "StarwellStaff",
+      "id": "61acefe1-e9fd-4c4a-b3e7-337e0f2e2f14"
+    },
+    "nebula_blade": {
+      "set": "voidglass",
+      "class": "Warden",
+      "key": "NebulaBlade",
+      "id": "2b925f00-7ea3-4496-a12b-2cf0f87a1116"
+    },
+    "comet_daggers": {
+      "set": "voidglass",
+      "class": "Assassin",
+      "key": "CometDaggers",
+      "id": "862252a2-0c35-4163-83fa-272ecbccf27e"
+    },
+    "blossom_bow": {
+      "set": "lantern_bloom",
+      "class": "Ranger",
+      "key": "BlossomBow",
+      "id": "297e99f9-6c82-4b7b-a313-5cb4149a9924"
+    },
+    "paperglow_staff": {
+      "set": "lantern_bloom",
+      "class": "Arcanist",
+      "key": "PaperglowStaff",
+      "id": "e5a08b30-7e7a-4f7e-9971-5d5b4237ca85"
+    },
+    "petalfall_blade": {
+      "set": "lantern_bloom",
+      "class": "Warden",
+      "key": "PetalfallBlade",
+      "id": "74e65b41-ef47-459f-b08d-525c0661353a"
+    },
+    "bellchime_daggers": {
+      "set": "lantern_bloom",
+      "class": "Assassin",
+      "key": "BellchimeDaggers",
+      "id": "27e2be00-dc92-4d35-a940-ec7822e2a960"
+    }
+  }
+}

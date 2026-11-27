@@ -7,7 +7,7 @@
 ]]
 
 local Game = {
-	Name = "Arrow Legends",
+	Name = "Arrowborne",
 
 	--[[
 		Phase 0 placeholder. Real balance tables arrive with Phase 1.

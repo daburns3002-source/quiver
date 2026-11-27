@@ -1,0 +1,9 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as building_weapon_shop.png
+
+A detailed art-direction reference sheet for one building in a mobile game's lobby, precise enough for a modeller to work from.
+
+The building is the WEAPON SHOP, landmark row WEAPON SHOP, option A. Roof: orange-red.
+Landmark: a colossal steel sword driven point-down through the roof, with a gold crossguard, a brown wrapped grip and a gold pommel, and chunky broken roof tiles heaved up around the blade where it went in. It is clearly the tallest thing on the building. Beside it, a stone forge chimney with glowing orange windows and a soft plume of smoke.
+Props at the door: an iron anvil on a wooden stump, a rack of three swords, and a small stone forge with a warm glow.
+Character: the blacksmith, at the anvil.
+Title: WEAPON SHOP, in glowing orange.

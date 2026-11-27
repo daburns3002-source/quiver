@@ -44,34 +44,68 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Analytics = require(script.Parent.Parent.Data.Analytics)
 local AngelProp = require(script.Parent.AngelProp)
 local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
+local AssassinUpgrades = require(script.Parent.Parent.Combat.AssassinUpgrades)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local ClassUpgrades = require(script.Parent.Parent.Combat.ClassUpgrades)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
+local EndlessPrizes = require(script.Parent.Parent.Data.EndlessPrizes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
+local FallRescue = require(script.Parent.FallRescue)
+local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local Hatchery = require(script.Parent.Parent.Data.Hatchery)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
+local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local PlayerData = require(script.Parent.Parent.Data.PlayerData)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
+local Purchases = require(script.Parent.Parent.Data.Purchases)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Rewards = require(script.Parent.Parent.Data.Rewards)
+local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
+local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
+local VictoryChests = require(script.Parent.VictoryChests)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
+local WeeklyTournament = require(script.Parent.WeeklyTournament)
+
+--[[ Seconds into a level before its coin bonuses are said (`Util/RunBonus`):
+     past the loading screen. ]]
+local BONUS_SAID_AFTER = 3
 
 local log = Log.forTag("Run")
 
 local RoomController = {}
+
+--[[ Set on a party's run server (`Run/Party`): leaving the run leaves the
+     server, back to a public lobby. ]]
+RoomController.leaveServer = nil :: (() -> boolean)?
 
 --[[ `Lobby`: before a run, everyone in the lobby (`Run/Lobby`), nothing
      fighting; a portal starts the next run (`beginStage`).
@@ -89,10 +123,21 @@ export type State =
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
 local endlessCheckpoint = Remotes.event(Remotes.EndlessCheckpoint)
+local shotsParried = Remotes.event(Remotes.ShotsParried)
 
 --[[ The stage being played, published for the clients and the enemies
      (`Util/CurrentStage`). ]]
 local stageIndex = Balance.stage
+--[[ Whether the stage is being played on hard (`Util/HardRules`), published
+     as the Workspace's `Hard` (`CurrentStage.hard`) for the enemies, the
+     coins and the clients. Set by `beginStage`, kept by TRY AGAIN and NEXT
+     LEVEL, and dropped in the lobby. ]]
+local hard = false
+
+local function setHard(on: boolean)
+	hard = on
+	workspace:SetAttribute(HardRules.ATTRIBUTE, if on then true else nil)
+end
 
 local function stage(): Balance.StageConfig
 	return Balance.Stages[stageIndex]
@@ -125,10 +170,16 @@ local collectAt: number? = nil
      so it is rebuilt when the rotation moves on and not every floor. 0
      before the first floor of a run. ]]
 local endlessArea = 0
+--[[ `os.clock()` until which TRY AGAIN waits on a revive's prompt
+     (`RoomController.holdForRevive`), 0 for no wait. ]]
+local reviveHeldUntil = 0
 --[[ Soulstones this run has paid each player, for the per-run cap. Per
      player rather than one number, because the cap is each player's
      (co-op-shaped from day one, non-negotiable 3). ]]
 local endlessBanked: { [Player]: number } = {}
+--[[ Each player's best floor as this Endless run began, so its DEFEAT can
+     say whether the run beat it. ]]
+local endlessBestBefore: { [Player]: number } = {}
 --[[ The cleared floor owes a draft (every third floor). Kept apart from
      `checkpointOwed` because the two are orthogonal: floor 30 owes both,
      and the draft is never displaced by the checkpoint or deferred past
@@ -141,6 +192,9 @@ local extraDraftOwed = false
 --[[ Which pick each player has made at the checkpoint now open; a living
      player missing from it is still being waited on. ]]
 local picked: { [Player]: boolean } = {}
+--[[ The place (`progress`) whose clear was last counted towards the class
+     levels (`noteClear`), 0 at the start of a stage. ]]
+local clearCounted = 0
 
 local function total(): number
 	local current = stage()
@@ -235,19 +289,25 @@ end
 	an arrow fired at the last enemy of the old room would otherwise arrive in
 	the new one.
 ]]
-local function buildArena(layout: Balance.RoomConfig)
-	Arena.build(workspace, layout.obstacles, layout.arena)
-	--[[ A new room's gate is built shut. ]]
+local function clearFight()
+	--[[ A new room's gate is shut, and so is the last one's when leaving. ]]
 	workspace:SetAttribute("ExitOpen", false)
 	EnemyManager.init(workspace)
 
 	ProjectileSystem.clear()
 	MeleeSystem.clear()
 	Burning.clear()
+	SoulLink.clear()
 	AreaStrikes.clear()
 	ClassUpgrades.clear()
+	AssassinUpgrades.clear()
 	Pickups.clear()
 	collectAt = nil
+end
+
+local function buildArena(layout: Balance.RoomConfig)
+	Arena.build(workspace, layout.obstacles, layout.arena)
+	clearFight()
 	ProjectileSystem.refreshFilters()
 
 	--[[ Players are put back at the start. Without this they would begin the
@@ -303,7 +363,8 @@ local function prepareNext(position: number)
 			return
 		end
 		local began = os.clock()
-		Arena.prepare(nextRoom.obstacles, nextRoom.arena, rosterNames(nextRoom))
+		local names = rosterNames(nextRoom)
+		Arena.prepare(nextRoom.obstacles, nextRoom.arena, names, nil, EnemyModel.meshesFor(names))
 		log.info(
 			"prepared room %d (%s) in %.1f ms",
 			position + 1,
@@ -341,8 +402,19 @@ local function setCombatEncounter(position: number)
 	workspace:SetAttribute("CombatEncounter", ordinal)
 end
 
+--[[ Where the run has got, for a death's or a quit's event (`Data/Analytics`). ]]
+local function noteReach()
+	local place = `{unit()} {progress}`
+	for _, session in RunSession.all() do
+		Analytics.reach(session.player, progress, place)
+	end
+end
+
 local function enterRoom(position: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = position
+	noteReach()
 	state = "Fighting"
 	resumeAt = nil
 
@@ -363,13 +435,31 @@ local function enterRoom(position: number)
 	local encounter = room.encounter
 	if encounter then
 		state = "Choosing"
-		--[[ The Angel itself, in the middle of the room facing whoever walked
-		     in. Into the arena folder, so the next room tears it down with
-		     everything else. ]]
+		--[[ The Angel itself, beside the line from the spawn to the door
+		     (she stood on it, and the way out ran through her) and facing
+		     whoever walked in: on the side with no cover near her spot, or
+		     in the middle if both have. Into the arena folder, so the next
+		     room tears it down with everything else. ]]
 		local arena = workspace:FindFirstChild("Arena")
 		if arena and encounter == "Angel" then
-			local middle = Vector3.new(0, 0, 0)
-			AngelProp.build(arena, middle, Balance.Arena.spawnPosition - middle)
+			local aside = Balance.encounterLane + 3
+			local at = Vector3.new(0, 0, 0)
+			for _, x in { aside, -aside } do
+				local free = true
+				for _, obstacle in room.obstacles do
+					if
+						math.abs(obstacle.offset.X - x) < obstacle.size.X / 2 + 3
+						and math.abs(obstacle.offset.Y) < obstacle.size.Z / 2 + 3
+					then
+						free = false
+					end
+				end
+				if free then
+					at = Vector3.new(x, 0, 0)
+					break
+				end
+			end
+			AngelProp.build(arena, at, Balance.Arena.spawnPosition - at)
 		end
 		for _, session in RunSession.all() do
 			RunSession.offerEncounter(session, encounter :: any)
@@ -398,7 +488,10 @@ end
 	every player and the run waits on their choice, paused like a level-up.
 ]]
 local function startWave(wave: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = wave
+	noteReach()
 	resumeAt = nil
 
 	local description = Waves.describe(wave, total(), stage())
@@ -440,7 +533,10 @@ end
 	the floor's curve as they are built (`EnemyManager`'s `difficulty`).
 ]]
 local function startFloor(floor: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = floor
+	noteReach()
 	resumeAt = nil
 	state = "Fighting"
 	workspace:SetAttribute(CurrentStage.FLOOR_ATTRIBUTE, floor)
@@ -473,19 +569,45 @@ end
 
 local function startStage()
 	local current = stage()
+	clearCounted = 0
 	workspace:SetAttribute("CombatEncounter", 0)
 	RunSession.holdOffers(false)
+	-- no Victory is up any more, so nothing is owed on one
+	Purchases.forgetStarter()
 
 	for _, session in RunSession.all() do
 		RunSession.newStage(session)
 	end
+	--[[ A campaign level: each player's win streak goes on the line, out
+	     of the save and into the run, which pays more coins for it and
+	     writes it back one longer only on the win (`Util/RunBonus`). ]]
+	local counts = current.level ~= nil and not current.tutorial
+	for _, session in RunSession.all() do
+		session.streak = if counts then Wallet.riskStreak(session.player) else 0
+		local lines = RunBonus.lines(session.streak, Coop.partySize(), hard)
+		-- said once the room is up, not under the loading screen
+		task.delay(BONUS_SAID_AFTER, function()
+			for _, line in lines do
+				Rewards.say(session.player, line)
+			end
+		end)
+	end
 	-- the tutorial's fixed hands, class and pool (`Config/Tutorial`)
 	RunSession.setTutorial(current.tutorial == true)
+	for _, session in RunSession.all() do
+		Analytics.runStarted(session.player, stageIndex, session.loadout.class)
+		Analytics.step(session.player, if current.tutorial then "Tutorial" else "FirstRun")
+	end
 
 	if current.mode == "Endless" then
 		jumped = false
 		endlessArea = 0
 		table.clear(endlessBanked)
+		table.clear(endlessBestBefore)
+		for _, session in RunSession.all() do
+			local profile = PlayerData.get(session.player)
+			endlessBestBefore[session.player] = if profile then profile.endlessBest else 0
+		end
 		table.clear(picked)
 		draftOwed = false
 		checkpointOwed = false
@@ -515,18 +637,38 @@ function RoomController.start()
 end
 
 --[[ A portal: run stage `index` (a `Balance.Stages` entry), published as
-     the Workspace's `Stage` so both sides read it (`Util/CurrentStage`).
-     From there NEXT LEVEL follows `Balance.campaign` as before. ]]
-function RoomController.beginStage(index: number)
+     the Workspace's `Stage` so both sides read it (`Util/CurrentStage`),
+     on hard with `onHard` (already checked by `Run/Lobby.hardOpen`). From
+     there NEXT LEVEL follows `Balance.campaign` as before. ]]
+function RoomController.beginStage(index: number, onHard: boolean?)
 	if state ~= "Lobby" or not Balance.Stages[index] then
 		return
 	end
 	stageIndex = index
+	setHard(onHard == true and Balance.Stages[index].level ~= nil)
 	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
 	for _, session in RunSession.all() do
 		RunSession.resetRun(session)
 	end
 	startStage()
+end
+
+--[[ Builds stage `index`'s first room ahead and parks it where clients fetch it
+     (`Fx/RoomPreload`). False for a stage with no first room to send ahead. ]]
+function RoomController.prepareFirstRoom(index: number): boolean
+	local target = Balance.Stages[index]
+	if state ~= "Lobby" or not target or target.mode == "Endless" then
+		return false
+	end
+	local room = if target.mode == "Waves"
+		then Balance.Rooms[target.arena or 1]
+		else Balance.Rooms[(target.rooms or {})[1]]
+	if not room then
+		return false
+	end
+	local names = if room.roster then rosterNames(room) else {}
+	Arena.prepare(room.obstacles, room.arena, names, nil, EnemyModel.meshesFor(names))
+	return true
 end
 
 --[[ Everyone in the lobby, before a run. ]]
@@ -572,7 +714,145 @@ end
 	through it they got. Sent at the moment the run ends, so the time and
 	health are the ones the player finished with.
 ]]
-local function sendSummary(won: boolean)
+--[[ The area key of the story beat a win owes this player, if any. ]]
+local function storyOwed(player: Player, beatBoss: boolean): string?
+	local profile = PlayerData.get(player)
+	local area = CurrentStage.config().area
+	if
+		beatBoss
+		and profile
+		and StoryBeatRules.due(area, profile.bossesBeaten, profile.storySeen)
+	then
+		return area
+	end
+	return nil
+end
+
+--[[ A fight or an encounter is cleared: one more room, wave or floor each
+     player's class is owed XP for (`Config/ClassLevels`). Not the
+     tutorial's, whose class is the tutorial's own pick. Each place counts
+     once: a room whose arena was still loading when the run looked (a
+     Studio jump to an unprepared room) reads as cleared, then is entered
+     and cleared again (`clearCounted`). ]]
+local function noteClear()
+	if stage().tutorial or progress == clearCounted then
+		return
+	end
+	clearCounted = progress
+	-- a campaign room's season XP; an Endless floor's is `clearedFloor`'s
+	local room = stage().mode ~= "Endless" and not sandbox
+	for _, session in RunSession.all() do
+		session.classClears += 1
+		if room then
+			Rewards.note(session.player, "rooms", 1)
+		end
+	end
+end
+
+--[[ The run has ended for `session`: its class is paid for what it cleared
+     since it was last paid, and for the win (`ClassLevelRules.runXp`).
+     Decided here from the server's own count, never asked for. A revive
+     and a second death pays only the rooms cleared in between. ]]
+--[[ Opens the free eggs and weapon crates a class's new levels gave
+     (`Config/ClassLevels.gifts`): the best egg open to the player and the
+     best crate with a weapon for the class that levelled, as an Endless
+     milestone's are (`Util/PrizeRules`). Granted here; what came out is
+     returned for the end screen to reveal. What cannot be given is paid in
+     gems. ]]
+local function openClassGifts(session: RunSession.Session, eggs: number, crates: number): { any }
+	local player = session.player
+	local prizes: { any } = {}
+	local missed = 0
+	if eggs > 0 then
+		local profile = PlayerData.get(player)
+		local key = if profile then PrizeRules.eggKey(profile.bossesBeaten) else nil
+		local pets = if key then Hatchery.grantMany(player, key, eggs) else {}
+		if key and #pets > 0 then
+			table.insert(prizes, { kind = "Egg", key = key, results = pets })
+		else
+			missed += eggs
+		end
+	end
+	if crates > 0 then
+		local index = EndlessPrizes.bestCrate(player)
+		local weapons = if index then EndlessPrizes.crates(player, index, crates) else {}
+		if index and #weapons > 0 then
+			table.insert(prizes, { kind = "Crate", key = index, results = weapons })
+		else
+			missed += crates
+		end
+	end
+	if missed > 0 then
+		Wallet.addGems(player, missed * ClassLevels.insteadGems, "Swap", "ClassLevel")
+	end
+	return prizes
+end
+
+local function payClassXp(session: RunSession.Session, won: boolean): ClassLevelRules.Gain?
+	local cleared = session.classClears
+	session.classClears = 0
+	if stage().tutorial then
+		return nil
+	end
+	local xp = ClassLevelRules.runXp(cleared, won)
+	if xp <= 0 then
+		return nil
+	end
+	local gain = Wallet.addClassXp(session.player, session.loadout.class, xp)
+	if gain and gain.eggs + gain.crates > 0 then
+		gain.prizes = openClassGifts(session, gain.eggs, gain.crates)
+	end
+	--[[ A golden weapon that went on by itself (`Wallet.settleClassWeapons`)
+	     is in hand from the next run or the lobby: `RunSession.resetRun`
+	     carries the session's weapon over and applies it. ]]
+	local profile = if gain and gain.weapon then PlayerData.get(session.player) else nil
+	if gain and profile and profile.equipped == gain.weapon then
+		session.loadout.weapon = gain.weapon
+	end
+	return gain
+end
+
+--[[ What an Endless run's end screen says: the floor it died on, the best
+     floor before this run and whether the floors it cleared beat it, and
+     the Soulstones it banked. Nil in any other mode. ]]
+local function endlessSummary(player: Player): any?
+	if stage().mode ~= "Endless" then
+		return nil
+	end
+	local profile = PlayerData.get(player)
+	local before = endlessBestBefore[player] or (if profile then profile.endlessBest else 0)
+	local cleared = math.max(progress - 1, 0)
+	return {
+		floor = progress,
+		best = math.max(before, cleared),
+		newBest = cleared > before,
+		soulstones = endlessBanked[player] or 0,
+	}
+end
+
+--[[ Whether every pet slot the player has open holds a pet, so DEFEAT does
+     not tell them to hatch one more. ]]
+local function petsFull(player: Player): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	for slot = 1, StoreRules.petSlots(Passes.owned(player)) do
+		local pet = profile.equippedPets[slot]
+		if pet == nil or pet == "" then
+			return false
+		end
+	end
+	return true
+end
+
+local function sendSummary(
+	won: boolean,
+	eggs: { [Player]: any }?,
+	starters: { [Player]: boolean }?,
+	streaks: { [Player]: number }?,
+	stars: { [Player]: any }?
+)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
 		math.clamp(math.floor(finished / math.max(total(), 1) * 100 + 0.5), 0, 100)
@@ -581,16 +861,58 @@ local function sendSummary(won: boolean)
 		local healthPercent = if session.maxHealth > 0
 			then math.clamp(math.floor(session.health / session.maxHealth * 100 + 0.5), 0, 100)
 			else 0
+		-- alive with a sliver (the tutorial's floor of 1) is 1%, never 0%
+		if session.alive and session.health > 0 then
+			healthPercent = math.max(healthPercent, 1)
+		end
 
 		runSummary:FireClient(session.player, {
+			--[[ The class's own level (`Config/ClassLevels`): the XP this
+			     run paid, the standing before and after, the levels reached
+			     with their gifts, and the golden weapon if it was given. ]]
+			classXp = payClassXp(session, won),
 			won = won,
 			stage = stageIndex,
+			--[[ Played on hard (`Util/HardRules`): the tab says HARD, and an
+			     area's last level is won into the lobby. ]]
+			hard = if hard then true else nil,
 			kills = session.stageKills,
 			seconds = math.floor(os.clock() - session.stageStartedAt),
 			healthPercent = healthPercent,
 			progressPercent = progressPercent,
 			coins = session.stageCoins,
 			gems = session.stageGems,
+			--[[ Victory's chest slot: the first clear's free egg (its key,
+			     pet and whether new, for the reveal), and the boss item. ]]
+			egg = eggs and eggs[session.player],
+			item = if won then session.stageItem else nil,
+			--[[ The area whose story beat this win owes (`Config/StoryBeats`):
+			     its boss fell in this run and the beat has not been watched.
+			     The client plays it as the player leaves Victory. ]]
+			story = storyOwed(session.player, won and session.stageItem ~= nil),
+			--[[ The end screen's nudge: Victory says so when the coins buy
+			     an egg. ]]
+			canHatch = Hatchery.canHatch(session.player),
+			--[[ DEFEAT's line: with every pet slot full it says to merge,
+			     not to hatch. ]]
+			petsFull = if won then nil else petsFull(session.player),
+			--[[ An Endless run: its floor, best and Soulstones, in place
+			     of the campaign's level and progress. ]]
+			endless = endlessSummary(session.player),
+			--[[ DEFEAT's revive (`Config/RobuxStore`): "buy" for 15 Robux,
+			     "use" for one already held, nil for none. ]]
+			revive = if won then nil else Purchases.reviveOffer(session.player),
+			--[[ The starter pack's one offer is owed (`Purchases.offerStarter`):
+			     the client shows it if the player leaves Victory for the
+			     lobby. ]]
+			starter = if starters and starters[session.player] then true else nil,
+			--[[ A campaign level won: three chests wait for a pick
+			     (`Run/VictoryChests`; nothing of what is in them is sent),
+			     and the win streak as it now stands (`Util/RunBonus`). ]]
+			streak = streaks and streaks[session.player],
+			--[[ The level's stars (`Util/StarRules`): what it held before
+			     this win and holds now, one bit a star, and its time. ]]
+			stars = stars and stars[session.player],
 		})
 	end
 end
@@ -605,6 +927,9 @@ function RoomController.onPlayerDied()
 	state = "Dead"
 	resumeAt = os.clock() + Balance.Run.deathPause
 	setDoorOpen(false)
+	for _, session in RunSession.all() do
+		Analytics.runEnded(session.player, "Died")
+	end
 
 	log.info("run ended at %s %d/%d", unit():lower(), progress, total())
 	broadcast()
@@ -666,14 +991,86 @@ end
 local function complete(now: number)
 	state = "Complete"
 	local level = stage().level
+	local eggKey = RunSession.areaPay().firstClearEgg
+	local eggs: { [Player]: any } = {}
+	local starters: { [Player]: boolean } = {}
+	local streaks: { [Player]: number } = {}
+	local stars: { [Player]: any } = {}
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
-		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+		RunSession.payEarned(session, RunSession.areaPay().clearCoins)
+		--[[ The tutorial's first win pays for the first egg
+		     (`Util/FirstEgg`): what the player is still short of it, so the
+		     lobby opens on a hatch. Once only (`tutorialDone`): the tutorial
+		     is owed until 1-1 is won, and replaying it must farm nothing. ]]
+		local profile = if stage().tutorial then PlayerData.get(session.player) else nil
+		if profile and not profile.tutorialDone then
+			RunSession.payCoins(session, FirstEgg.topUp(profile.coins))
+		end
+		if stage().tutorial then
+			-- won once: later joins may skip it (SKIP TUTORIAL)
+			Wallet.finishTutorial(session.player)
+		end
 		--[[ The level is won, for everyone in the run: saved, and the next
 		     one opens. Decided here, never asked for. A Studio jump
-		     (`debugEnterRoom`) counts, so unlocking can be tested there. ]]
+		     (`debugEnterRoom`) counts, so unlocking can be tested there.
+		     The first time, the area's egg is given free (review item 5),
+		     rolled here and revealed on Victory. ]]
 		if level then
-			Wallet.beatLevel(session.player, level)
+			-- every win counts for the daily quests, not only the first
+			Rewards.note(session.player, "levels", 1)
+			-- and for the class's own goal (`Config/Goals`)
+			Rewards.note(session.player, "levels" .. session.loadout.class, 1)
+		end
+		if level and not stage().tutorial then
+			--[[ The level's stars (`Util/StarRules`): from the health this
+			     server holds and the time it measured, never from a client. ]]
+			local health = if session.maxHealth > 0
+				then session.health / session.maxHealth * 100
+				else 0
+			local seconds = os.clock() - session.stageStartedAt
+			--[[ A hard win fills the level's own stars: hard has none of
+			     its own (`HardRules.starLevel`). ]]
+			local had, held = Wallet.addStars(
+				session.player,
+				HardRules.starLevel(stage()) or level,
+				StarRules.earned(stage(), health, seconds)
+			)
+			stars[session.player] = { had = had, now = held, par = StarRules.par(stage()) }
+			-- the streak comes back one longer, and three chests are rolled
+			streaks[session.player] = Wallet.bankStreak(session.player, session.streak)
+			VictoryChests.offer(
+				session.player,
+				stage().area,
+				eggKey,
+				RunSession.areaPay().clearCoins
+			)
+		end
+		--[[ On hard the level was beaten long since: its first hard clear
+		     is saved instead and pays gems, more for an area's last level,
+		     whose hard win also earns the area's name-tag frame
+		     (`Util/HardRules`, `Wallet.beatHard`). The free egg stays the
+		     normal first clear's. ]]
+		local firstClear = level ~= nil and not hard and Wallet.beatLevel(session.player, level)
+		if hard and level and not stage().tutorial then
+			local levels, at = HardRules.find(LobbyConfig.portals, stageIndex)
+			if levels and at and Wallet.beatHard(session.player, level) then
+				local gems = HardRules.gems(levels, at)
+				Wallet.addGems(session.player, gems, "HardClear", level)
+				session.stageGems += gems
+				Rewards.say(session.player, `FIRST HARD CLEAR: +{gems} GEMS`)
+			end
+		end
+		if firstClear and level == Tutorial.untilBeaten then
+			Analytics.step(session.player, "Cleared1-1")
+		end
+		starters[session.player] = Purchases.offerStarter(session.player)
+		Analytics.runEnded(session.player, "Won")
+		if firstClear and eggKey then
+			local pet = Hatchery.grantFree(session.player, eggKey)
+			if pet then
+				eggs[session.player] = { key = eggKey, pet = pet.pet, new = pet.new }
+			end
 		end
 	end
 	resumeAt = now + Balance.Run.deathPause
@@ -681,7 +1078,7 @@ local function complete(now: number)
 	recordStory()
 	log.info("run complete")
 	broadcast()
-	sendSummary(true)
+	sendSummary(true, eggs, starters, streaks, stars)
 end
 
 --[[ Rooms: hold the pause after a clear, light the door, wait for a player
@@ -729,7 +1126,7 @@ local function vestFloor(floor: number)
 	for _, session in RunSession.all() do
 		local player = session.player
 		local banked = endlessBanked[player] or 0
-		endlessBanked[player] = banked + Wallet.addSoulstones(player, pay, banked)
+		endlessBanked[player] = banked + Wallet.addSoulstones(player, pay, banked, "Endless")
 	end
 	log.info(
 		"floor %d vested: %d Soulstones each (capped at %d a run)",
@@ -761,8 +1158,16 @@ local function clearedFloor(floor: number)
 	if not jumped and not sandbox then
 		for _, session in RunSession.all() do
 			local player = session.player
+			-- a little for every floor (`Balance.Endless.floorCoins`)
+			RunSession.payEarned(session, Balance.Endless.floorCoins)
 			Wallet.recordEndlessFloor(player, floor)
+			-- the floor's season XP (`Config/Season.xp`)
+			Rewards.note(player, "floors", 1)
+			-- each class's own deepest, for Starfall (`Config/Trails.endless`)
+			Wallet.recordClassFloor(player, session.loadout.class, floor)
 			EndlessLeaderboard.record(player, floor)
+			-- this week's board, the time since the run began breaking ties
+			WeeklyTournament.record(player, floor, os.clock() - session.stageStartedAt)
 			for _, milestone in Wallet.claimEndlessMilestones(player, floor) do
 				log.info(
 					"floor %d milestone for %s: %s",
@@ -770,6 +1175,16 @@ local function clearedFloor(floor: number)
 					player.Name,
 					milestone.name
 				)
+				--[[ Its eggs and crates, opened on the spot. Guarded: the
+				     floor's own bookkeeping below must run whatever
+				     happens to a prize. ]]
+				local granted, problem = pcall(function()
+					EndlessPrizes.grant(player, milestone)
+					return nil
+				end)
+				if not granted then
+					log.warn("floor %d prize failed: %s", milestone.floor, tostring(problem))
+				end
 			end
 		end
 	end
@@ -936,7 +1351,13 @@ function RoomController.endlessPick(player: Player, choice: unknown): boolean
 		     this pays its stand-in bundle, still under the run's cap, and is
 		     the one place to swap when the shop lands. ]]
 		local banked = endlessBanked[player] or 0
-		local paid = Wallet.addSoulstones(player, Balance.Endless.checkpoint.shopBundle, banked)
+		local paid = Wallet.addSoulstones(
+			player,
+			Balance.Endless.checkpoint.shopBundle,
+			banked,
+			"Endless",
+			"Checkpoint"
+		)
 		endlessBanked[player] = banked + paid
 	end
 	log.info("%s takes %s at floor %d", player.Name, pick.name, progress)
@@ -1015,10 +1436,26 @@ end
 --[[ Everyone back to the lobby's campfire, the run put away: after the
      tutorial, and after an area's last level. ]]
 local function toLobby()
+	--[[ A party's run server sends everyone back to a public lobby
+	     (`Run/Party`); the lobby here stands in until they land. ]]
+	local leave = RoomController.leaveServer
+	if leave then
+		leave()
+	end
+	workspace:SetAttribute(Coop.ATTRIBUTE, nil)
+	setHard(false)
 	for _, session in RunSession.all() do
+		-- a run still under way is given up (nothing if it already ended)
+		Analytics.runEnded(session.player, "Left")
+		--[[ What was cleared before leaving still counts for the class's
+		     level (nothing if the run ended: it was paid with its summary). ]]
+		payClassXp(session, false)
 		RunSession.resetRun(session)
 	end
 	RunSession.setTutorial(false)
+	--[[ Nothing of the fight comes along: a boss left alive here kept its
+	     health bar on screen in the lobby. ]]
+	clearFight()
 	resumeAt = nil
 	state = "Lobby"
 	broadcast()
@@ -1026,6 +1463,12 @@ local function toLobby()
 		local character = session.character
 		if character then
 			Lobby.place(character)
+		end
+		--[[ They stand in the lobby now (`RunSession.ARRIVED`): everyone who
+		     was in the run, never someone still on the title, and not on a
+		     run server, whose lobby only stands in until the teleport. ]]
+		if not leave and not session.atTitle then
+			RunSession.arrive(session)
 		end
 	end
 end
@@ -1044,6 +1487,29 @@ local function nextLevel(index: number): (number?, boolean)
 		end
 	end
 	return nil, false
+end
+
+--[[ The first level of the area after the one whose last level is stage
+     `index` (`LevelUnlocks.nextArea`), if everybody in the run may enter
+     that area: its portal's own gate, as the lobby asks before it starts a
+     level there (`Util/LaunchLocks`). The win that ends an area is what
+     opens the next, so this is nil only after the last area built. ]]
+local function nextAreaLevel(index: number): number?
+	local first, at = LevelUnlocks.nextArea(LobbyConfig.portals, Balance.Stages, index)
+	local portal = if at then LobbyConfig.portals[at] else nil
+	if not first or not portal then
+		return nil
+	end
+	for _, session in RunSession.all() do
+		local profile = PlayerData.get(session.player)
+		if
+			not profile
+			or not LaunchLocks.portalOpen(portal, profile.levelsBeaten, profile.bossesBeaten)
+		then
+			return nil
+		end
+	end
+	return first
 end
 
 --[[ Leave the run for the lobby (`Remotes.RunLobby`). Unlike `toLobby`'s
@@ -1067,6 +1533,10 @@ function RoomController.requestRestart(): boolean
 	if resumeAt and os.clock() < resumeAt then
 		return false
 	end
+	-- a teammate's revive prompt is open (co-op): the run waits on it
+	if state == "Dead" and os.clock() < reviveHeldUntil then
+		return false
+	end
 
 	--[[ The tutorial won: on to the lobby, where the portals start the
 	     campaign's runs (`Config/Tutorial`). ]]
@@ -1077,13 +1547,31 @@ function RoomController.requestRestart(): boolean
 	end
 
 	if state == "Complete" then
-		--[[ NEXT LEVEL: the portal's next level, or the lobby after its
-		     last (owner, 2026-10-26: Mossy Glade 1-1 to 1-10). ]]
+		--[[ NEXT LEVEL: the portal's next level (owner, 2026-10-26: Mossy
+		     Glade 1-1 to 1-10); after its last, the first level of the area
+		     that win opened (the every-class run-through, 2026-11-16: the
+		     button said NEXT LEVEL and led to the lobby); the lobby after
+		     the last area built, where the button says CONTINUE
+		     (`EndScreenRules.goesOn`). ]]
 		local nextIndex, behindPortal = nextLevel(stageIndex)
+		--[[ On hard: the area's next level, still on hard (everyone here
+		     just won this one on hard, which opens it); after the area's
+		     last, the lobby, never the next area (`HardRules.nextIndex`). ]]
+		if hard then
+			nextIndex = HardRules.nextIndex(LobbyConfig.portals, stageIndex)
+			if not nextIndex then
+				toLobby()
+				log.info("%s won on hard, the area's last level: to the lobby", stage().name)
+				return true
+			end
+		end
 		if behindPortal and not nextIndex then
-			toLobby()
-			log.info("%s won, its area's last level: to the lobby", stage().name)
-			return true
+			nextIndex = nextAreaLevel(stageIndex)
+			if not nextIndex then
+				toLobby()
+				log.info("%s won, the last level there is: to the lobby", stage().name)
+				return true
+			end
 		end
 		stageIndex = nextIndex or CurrentStage.nextAfter(Balance.campaign, stageIndex)
 		workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
@@ -1106,6 +1594,96 @@ function RoomController.requestRestart(): boolean
 	return true
 end
 
+--[[ Whether the run is still in the rooms (waves, floors) a revive is not
+     sold in (`RobuxStore.reviveFromRoom`). ]]
+function RoomController.reviveEarly(): boolean
+	return StoreRules.reviveEarly(progress, RobuxStore.reviveFromRoom)
+end
+
+--[[ Whether `player` may be revived now (`Config/RobuxStore`): the run is
+     lost, it is not the tutorial or the sandbox, and their one revive this
+     run is not spent (`Util/StoreRules.reviveAllowed`). ]]
+function RoomController.canRevive(player: Player): boolean
+	local session = RunSession.get(player)
+	return session ~= nil
+		and not sandbox
+		and not session.atTitle
+		and StoreRules.reviveAllowed(state, stage().tutorial == true, session.paidReviveUsed)
+end
+
+--[[ A revive's prompt is open: TRY AGAIN waits `seconds` for it, or until
+     it is answered (`releaseRevive`), so a teammate cannot restart the run
+     from under it. BACK TO LOBBY is anyone's to press. ]]
+function RoomController.holdForRevive(seconds: number)
+	if state == "Dead" then
+		reviveHeldUntil = math.max(reviveHeldUntil, os.clock() + seconds)
+	end
+end
+
+function RoomController.releaseRevive()
+	reviveHeldUntil = 0
+end
+
+--[[
+	The Robux revive (`Data/Purchases`): `player` goes back into the room,
+	wave or floor they fell in, which starts over, with their level and
+	cards kept and full health behind the revive's shield. In co-op only the
+	buyer comes back: everyone else sits that room out and returns for the
+	next, as a teammate who bled out does (`RunSession.sitOut`). Returns
+	false, spending nothing, when the run can no longer take it.
+]]
+function RoomController.revive(player: Player): boolean
+	local session = RunSession.get(player)
+	if not session or not RoomController.canRevive(player) then
+		return false
+	end
+	-- claimed before anything yields, so a second ask cannot slip in
+	session.paidReviveUsed = true
+	--[[ A death takes the body (`humanoid.Health = 0`) until Roblox brings
+	     a new one; bring it now and wait for it to be bound. ]]
+	local humanoid = session.humanoid
+	if session.character ~= player.Character or not humanoid or humanoid.Health <= 0 then
+		local loaded = pcall(function()
+			player:LoadCharacterAsync()
+		end)
+		local deadline = os.clock() + 5
+		while
+			loaded
+			and player.Parent
+			and (session.character == nil or session.character ~= player.Character)
+			and os.clock() < deadline
+		do
+			task.wait()
+		end
+	end
+	if state ~= "Dead" or not player.Parent or session.character == nil then
+		session.paidReviveUsed = false
+		log.warn("revive for %s could not be applied: the run moved on", player.Name)
+		return false
+	end
+	reviveHeldUntil = 0
+	local current = stage()
+	if current.mode == "Endless" then
+		-- the floor's arena is built afresh, as a Studio jump does
+		endlessArea = 0
+		startFloor(progress)
+	elseif current.mode == "Waves" then
+		buildArena(Balance.Rooms[current.arena or 1])
+		startWave(progress)
+	else
+		enterRoom(progress)
+	end
+	for _, other in RunSession.all() do
+		if other ~= session and not other.atTitle then
+			RunSession.sitOut(other)
+		end
+	end
+	RunSession.paidRevive(session)
+	Analytics.runRevived(player)
+	log.info("%s revived into %s %d", player.Name, unit():lower(), progress)
+	return true
+end
+
 function RoomController.step(now: number)
 	--[[ The sandbox holds the run where it is: its dummies never die. ]]
 	if sandbox then
@@ -1114,6 +1692,22 @@ function RoomController.step(now: number)
 	--[[ Nothing runs in the lobby. ]]
 	if state == "Lobby" then
 		return
+	end
+
+	--[[ A body that went through the floor goes back on the start
+	     (`Run/FallRescue`): its own client moves it, and can drop it
+	     through a floor it has not been sent yet. ]]
+	for _, session in RunSession.all() do
+		local root = session.root
+		if root and root.Parent and FallRescue.fallen(root.Position.Y) then
+			log.info(
+				"%s was under the floor (y %.1f): back on the start",
+				session.player.Name,
+				root.Position.Y
+			)
+			root.AssemblyLinearVelocity = Vector3.zero
+			root.CFrame = CFrame.new(Balance.Arena.spawnPosition)
+		end
 	end
 
 	--[[ Over: the end screen is up, and the next run starts when a player
@@ -1138,6 +1732,11 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		--[[ An encounter room or wave is one cleared; an Endless draft
+		     comes between floors and is not one. ]]
+		if stage().mode ~= "Endless" then
+			noteClear()
+		end
 		resumeAt = now + clearPause()
 		recordStory()
 		broadcast()
@@ -1150,6 +1749,13 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		noteClear()
+		--[[ A won fight cannot hurt (2026-11-14, the kid playtest: dead half
+		     a second after CLEARED, from seeds already in the air): every
+		     enemy shot goes, here and on every client's screen. ]]
+		local everywhere = Balance.Arena.size.Magnitude
+		ProjectileSystem.clearEnemyShotsNear(Vector3.zero, everywhere)
+		shotsParried:FireAllClients(Vector3.zero, everywhere)
 		recordStory()
 		--[[ Endless: the floor's best, what it owes, and a boss floor's
 		     rewards, before anything moves the run on. ]]

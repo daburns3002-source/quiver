@@ -16,6 +16,21 @@ local EndScreenAssets = {
 	ribbonVictory = "rbxassetid://104233184250779",
 	ribbonDefeat = "rbxassetid://121514637917026",
 	heroVictory = "rbxassetid://131261335765461",
+	--[[ `heroVictory` with its three stars taken out, and the three stars
+	     by themselves (uploaded 2026-11-16, cut by
+	     `assets/ui/end_screens/split_victory_stars.py`): Victory draws the
+	     stars itself, gold only for the ones the level holds. The whole
+	     picture showed three gold stars whatever was won (the every-class
+	     run-through, 2026-11-16). ]]
+	heroTrophy = "rbxassetid://132912726945912",
+	--[[ Where each star sits on `heroTrophy`, as shares of the picture's
+	     width and height (left, top, width, height), in the order they
+	     light: the big middle one for the win, then left, then right. ]]
+	heroStars = {
+		{ image = "rbxassetid://106888506086829", box = { 0.3888, 0.0014, 0.2225, 0.2707 } },
+		{ image = "rbxassetid://124836431068661", box = { 0.2246, 0.0994, 0.1555, 0.2003 } },
+		{ image = "rbxassetid://133464795806322", box = { 0.621, 0.0994, 0.1555, 0.2003 } },
+	},
 	heroDefeat = "rbxassetid://91611465071192",
 	rays = "rbxassetid://110500527798364",
 
@@ -23,8 +38,8 @@ local EndScreenAssets = {
 	hourglass = "rbxassetid://93832562742445",
 	heart = "rbxassetid://132016175854758",
 	chart = "rbxassetid://89255397360408",
-	coin = "rbxassetid://105417892155855",
-	gem = "rbxassetid://110312361811467",
+	--[[ No coin or gem here: the game has one of each, `Config/ShopAssets`'s
+	     (CLAUDE.md rule 15). ]]
 	chevron = "rbxassetid://102496291506472",
 	refresh = "rbxassetid://131860825119130",
 	cube = "rbxassetid://93394386923395",
@@ -36,12 +51,12 @@ local EndScreenAssets = {
 	     "codex needs to draw a chest per area"), keyed by the stage's
 	     `area` in `Balance.Stages`. Acts 1–3 only. ]]
 	chests = {
-		MossyGlade = "rbxassetid://139169356487754",
-		Thornwood = "rbxassetid://121658796918340",
-		DrownedVillage = "rbxassetid://124545791980392",
-		BogheartCaverns = "rbxassetid://107033812916752",
-		WindsweptCliffs = "rbxassetid://76194147797596",
-		FrostpeakPass = "rbxassetid://99991548828480",
+		MossyGlade = "rbxassetid://120544977723441",
+		Thornwood = "rbxassetid://124847317110705",
+		DrownedVillage = "rbxassetid://78250046012977",
+		BogheartCaverns = "rbxassetid://86834655328819",
+		WindsweptCliffs = "rbxassetid://93546563759704",
+		FrostpeakPass = "rbxassetid://125278204199154",
 	},
 }
 

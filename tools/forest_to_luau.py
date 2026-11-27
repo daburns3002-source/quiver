@@ -3,6 +3,8 @@ module, the parts ArenaModels draws round every room of that area.
 
     python -I tools/forest_to_luau.py            # the Mossy Glade's
     python -I tools/forest_to_luau.py thornwood  # Thornwood's
+    python -I tools/forest_to_luau.py drowned    # the Drowned Village's
+    python -I tools/forest_to_luau.py bogheart   # Bogheart Caverns'
 
 Reads the area's `*_outer_ids.json` (FORESTS below), the output of
 tools/studio/dump_forest.luau. Each forest is authored in the room's own
@@ -61,6 +63,39 @@ FORESTS = {
         # Its design checks the crowns' spacing itself (2.3 studs at least),
         # and the boxes `separate` compares are whole trunks with their
         # branches, which would pull each snag's split pieces apart.
+        "separate": False,
+    },
+    "drowned": {
+        "source": "assets/models/arenas/drowned_village_outer_ids.json",
+        "target": "src/shared/Config/DrownedForest.luau",
+        "about": [
+            "The Drowned Village's outer flood as the owner imported it",
+            "(assets/concepts/blocky/arenas/area03_drowned_village_ambience_v2.png,",
+            "built by assets/models/arenas/outer34_build.py): sunken houses, the",
+            "bell tower, the toll gate, dead trees with nets, boats and reeds in the",
+            "open water round the room, with a hole where the room goes.",
+        ],
+        # Lantern lights, drawn white in the GLB for the game to tint.
+        "glow": {"Lamp": (255, 196, 110)},
+        # The flood is water, drawn smooth like the room's floor, not matte.
+        "matte": (),
+        "separate": False,
+    },
+    "bogheart": {
+        "source": "assets/models/arenas/bogheart_caverns_outer_ids.json",
+        "target": "src/shared/Config/BogheartForest.luau",
+        "about": [
+            "Bogheart Caverns' outer cavern as the owner imported it",
+            "(assets/concepts/blocky/arenas/area04_bogheart_caverns_ambience*.png,",
+            "built by assets/models/arenas/outer34_build.py): rock rims and columns,",
+            "giant mushroom groves, bog sprouts, the glowing stream and its pools,",
+            "two side cave mouths, with a hole where the room goes.",
+        ],
+        # Drawn white in the GLB. Deep enough that the caps read cyan, not
+        # white, under the outer arena's 0.8 glow (checked in Studio
+        # against the sheet, 2026-11-05).
+        "glow": {"GlowCap": (50, 188, 206), "Sprout": (150, 212, 50), "GlowWater": (70, 170, 180)},
+        "matte": ("Ground",),
         "separate": False,
     },
 }

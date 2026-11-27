@@ -39,14 +39,188 @@
 	no milestones and no Soulstones, which is also exactly what a new one
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
+
+	Version 7 (the Dex Hall): `enemiesSeen`, the enemies ever met. An older
+	profile has met none.
+
+	Version 8 (2026-11-11, SKIP TUTORIAL): `tutorialDone`, set once the
+	tutorial has been won. The tutorial still plays on every join until 1-1
+	is beaten; a player who has won it before may skip it. An older profile
+	has it only if it has beaten 1-1 (who must have been through it).
+
+	Version 9 (2026-11-11, the settings screen): `settings`, the player's
+	own music and sound volume and whether the device shakes
+	(`Config/Settings`). An older profile has the defaults: nobody had
+	chosen anything. Read through `Util/SettingsRules.read`, so a stored
+	value that is not a volume step or a yes/no is its default.
+
+	Version 10 (2026-11-11, merge tiers — owner, 2026-10-28): `tiers`, the
+	copies of each weapon and pet held at each merge tier C, B, A and S
+	(`Util/MergeRules`). Every crate or egg duplicate is one more C copy,
+	and three of a tier merge into one of the next. Before this a weapon
+	was only owned or not, so a duplicate saved nothing; an older profile
+	holds every owned weapon at one C and every pet's count at C, and a
+	pet's `pets` count is from now on the total of its copies.
+
+	Version 11 (2026-11-11, reasons to come back — `Config/Rewards`):
+	`rewards`, the login calendar's last day and count, today's quest
+	progress and claims, the starter list's claims, the crates ever opened
+	(the starter list's "open a crate") and the Dex entries already paid
+	for. An older profile starts with nothing claimed, so its next login
+	takes day 1 and the starter list pays what it has already done. Its
+	crates count from its pity counter (a lower bound, nothing invented),
+	and everything it already owns or has met counts as a Dex entry paid,
+	so the update is no windfall.
+
+	Version 12 (2026-11-13, the story through the areas -- `Config/StoryBeats`):
+	`storySeen`, the areas whose story beat the player has watched, by
+	`Config/Economy` area key. An older profile has watched none, so a boss
+	it has beaten before plays its beat the next time it is beaten.
+
+	Version 13 (2026-11-13, first-time tips -- `Config/Tips`): `tipsSeen`,
+	the tips ever shown, by tip key (`Util/TipRules`). An older profile has
+	seen none, so it sees each tip once, the next time it meets that thing.
+
+	Version 14 (2026-11-13, the trails -- `Config/Trails`): `trails`, the
+	trails held, by key; `equippedTrail`, the one worn, nil for none; and
+	`endlessClassBest`, the deepest Endless floor reached as each class
+	(Starfall's). An older profile holds none and wears none; the trails
+	its beaten bosses earned are given on its next join
+	(`Wallet.settleTrails`). Nobody's class was written beside a floor
+	before, so every class counts from 0: nothing is invented.
+
+	Version 15 (2026-11-13, the Robux store -- `Config/RobuxStore`):
+	`purchases`, the receipt ids already granted (newest last, so a receipt
+	Roblox retries is never granted twice), whether the starter pack has
+	been bought and offered, revives bought and not yet used, and the last
+	day VIP's gems were paid (`Util/StoreRules`). And a third pet slot, the
+	Extra Pet Slot pass's: `equippedPets[3]` is read from version 15 on. An
+	older profile has bought nothing, been offered nothing and holds two
+	slots, which is all an older game had.
+
+	Version 16 (2026-11-14, class levels -- `Config/ClassLevels`):
+	`classLevels`, each class's own lasting level and the XP into it
+	(`Util/ClassLevelRules`). Nobody's runs were counted by class before,
+	so an older profile starts every class at level 1: nothing is
+	invented. A golden weapon a stored level has earned and the profile
+	does not hold is given on its next join (`Wallet.settleClassWeapons`).
+
+	Version 17 (2026-11-14, the quests' bonus chest -- `Config/Rewards`
+	`bonus`): `rewards.bonusDay`, the day the chest for finishing all
+	three quests was last opened, 0 never. An older profile has opened
+	none.
+
+	Version 18 (2026-11-14, Goals -- `Config/Goals`): `stats`, lifetime
+	counters the server keeps from then on (enemies defeated, levels won
+	and by which class, eggs hatched, crates opened, merges, quests
+	claimed), and `goalsClaimed`, how many steps of each goal have been
+	paid. Nobody's kills or wins were counted before, so an older profile's
+	counters start at 0: nothing is invented. Goals read from what a save
+	already holds (pets owned, the deepest Endless floor, the Dex) count
+	what is there.
+
+	Version 19 (2026-11-14, the win streak -- `Util/RunBonus`): `winStreak`,
+	the campaign levels won in a row, 0 for none. Nobody had one, so an
+	older profile starts at 0.
+
+	Version 20 (2026-11-14, the gift box and the Dex pages' chests --
+	`Util/GiftRules`, `Util/PageRules`): `gift`, the wins counted towards
+	gifts and how many have been opened, and `dexChests`, the Dex pages
+	whose chest has been opened. An older profile has an empty box and has
+	opened none: a page it had already finished can be claimed at once.
+
+	Version 21 (2026-11-14, level stars -- `Util/StarRules`): `levelStars`,
+	the stars held on each campaign level, one bit a star (1 the win, 2
+	the health, 4 the time), and `starChests`, the area star chests
+	opened. No win before this was timed or had its health written down,
+	but a level beaten was won, so an older profile holds the first star of
+	every level it has beaten and nothing more is invented.
+
+	Version 22 (2026-11-14, the run-through): `rewards.bossMet`, whether
+	any boss has been beaten, so the daily quests can leave BEAT A BOSS
+	out for a player who has met none (`RewardRules.questsFor`). Read from
+	`bossesBeaten` on every load, so an older profile has it right.
+
+	Version 23 (2026-11-15, the Assassin opens): a fourth class weapon owned
+	from the start, the Splinter Daggers. Nothing new is stored: the
+	starters are the weapon of every class that can be chosen
+	(`Util/ClassList`), given on every load, so an older profile holds the
+	daggers the first time it is read. The number moved so that a server
+	still on the build before the Assassin never reads a profile with
+	daggers in hand.
+
+	Version 24 (2026-11-18, hard mode -- `Util/HardRules`): `hardBeaten`,
+	the levels won on hard, by name. Nothing was ever played on hard, so an
+	older profile has won none.
+
+	Version 25 (2026-11-18, experience notifications -- `Util/NotifyRules`):
+	`notify`, the sessions begun, whether and when the player was asked to
+	opt in and what they answered, and their device's offset from UTC. An
+	older profile was never asked; one that has claimed a daily reward or
+	won a level has had a session, so it counts one and may be asked in
+	its next.
+
+	Version 26 (2026-11-19, the weekly Endless tournament,
+	`Util/TournamentRules`): `tournamentWeeks`, each week played and not yet
+	paid, by week number, holding that week's best score; and
+	`tournamentWins`, the weeks won, for the ENDLESS CHAMPION title; and
+	`tournamentPicks`, the themed set weapons a top-ten finish still lets
+	the player pick. An older profile has played no week and won none.
+
+	Version 27 (2026-11-18, the retention hooks): `playtime`, this session's
+	playtime clock (`Util/PlaytimeRules`): saved because every run is played
+	on a server of its own, so the session crosses servers; `premiumDay`, the
+	last reward day Premium's free egg was paid (`Util/PremiumRules`); and
+	`invites`, who invited this player and whether that is settled, and the
+	friends they were paid for inviting (`Util/InviteRules`). An older
+	profile starts a new session, was never paid an egg, and was invited by
+	nobody: a player who already had a save is not new, so nothing is owed.
+
+	Version 28 (2026-11-18, the season pass -- `Config/Season`): `season`,
+	this month's season XP, the tiers claimed on each track and whether
+	premium was bought (`Util/SeasonRules`), and `titles` and `title`, the
+	season-only titles held and the one worn over the name tag. No season
+	existed, so an older profile has no XP, nothing claimed and no title.
+
+	Version 29 (2026-11-19, the reward picks -- `Util/RewardPickRules`):
+	`rewardPicks`, the themed set picks owed and not yet taken, by the
+	reward's id ("Endless:100"), each holding its set's key. No pick existed,
+	so an older profile owes none.
+	Version 30 (2026-11-18, codes and the favourite prompt -- `Data/Codes`,
+	`Data/Favourite`): `codesUsed`, the code words this player has redeemed
+	(each works once a player), and `favouriteAsked`, whether Roblox's
+	favourite prompt has been shown (it is shown once ever). Nobody had used
+	a code or been asked, so an older profile has neither.
 ]]
+
+local ClassLevelRules = require(script.Parent.ClassLevelRules)
+local ClassList = require(script.Parent.ClassList)
+local Classes = require(script.Parent.Parent.Config.Classes)
+local GiftRules = require(script.Parent.GiftRules)
+local InviteRules = require(script.Parent.InviteRules)
+local MergeRules = require(script.Parent.MergeRules)
+local NotifyRules = require(script.Parent.NotifyRules)
+local PlaytimeRules = require(script.Parent.PlaytimeRules)
+local PremiumRules = require(script.Parent.PremiumRules)
+local RunBonus = require(script.Parent.RunBonus)
+local SeasonRules = require(script.Parent.SeasonRules)
+local SettingsRules = require(script.Parent.SettingsRules)
+local Shop = require(script.Parent.Parent.Config.Shop)
+local StoreRules = require(script.Parent.StoreRules)
+local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 7
+SaveSchema.VERSION = 30
 
---[[ The classes' own weapons, owned from the start. ]]
-local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
+--[[ The classes' own weapons, owned from the start: one for every class a
+     player can choose (`Util/ClassList`). Given on every load (`migrate`
+     starts from `default`), so the day a class opens every older profile
+     holds its weapon too. ]]
+local STARTERS: { string } = {}
+for _, class in ClassList.open() do
+	table.insert(STARTERS, Classes[class].weapon)
+end
 
 export type Profile = {
 	version: number,
@@ -61,7 +235,8 @@ export type Profile = {
 	levelsBeaten: { [string]: boolean },
 	--[[ Pets hatched, by `Config/Pets` key, and how many of each. ]]
 	pets: { [string]: number },
-	--[[ The pets in runs, by slot (1 and 2); a slot may be empty. ]]
+	--[[ The pets in runs, by slot (1 to 3, the third the Extra Pet Slot
+	     pass's); a slot may be empty. ]]
 	equippedPets: { [number]: string },
 	--[[ The model picked on the class select screen, nil until chosen. ]]
 	look: string?,
@@ -85,13 +260,123 @@ export type Profile = {
 	     show the NEW ENEMY! card -- and this is the lasting copy: the card
 	     shows once ever, and the dex remembers. ]]
 	enemiesSeen: { [string]: boolean },
+	--[[ The tutorial has been won once (version 8): later joins may skip
+	     it (`UI/TutorialPrompts`' SKIP TUTORIAL). ]]
+	tutorialDone: boolean,
+	--[[ The player's own settings (version 9): volumes and vibration. ]]
+	settings: SettingsRules.Settings,
+	--[[ Copies at each merge tier, by weapon and by pet (version 10); a
+	     pet's `pets` count is their total, an owned weapon has at least one. ]]
+	tiers: { weapons: { [string]: MergeRules.Counts }, pets: { [string]: MergeRules.Counts } },
+	--[[ The login calendar, quests, starter list and Dex payouts
+	     (version 11, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
+	rewards: RewardState,
+	--[[ The areas whose story beat has been watched (version 12). ]]
+	storySeen: { [string]: boolean },
+	--[[ The first-time tips ever shown, by `Config/Tips` key (version 13). ]]
+	tipsSeen: { [string]: boolean },
+	--[[ The trails held and the one worn (version 14, `Config/Trails`). ]]
+	trails: { [string]: boolean },
+	equippedTrail: string?,
+	--[[ The deepest Endless floor reached as each class (version 14). ]]
+	endlessClassBest: { [string]: number },
+	--[[ What Robux bought and what is still owed of it (version 15). ]]
+	purchases: StoreRules.Purchases,
+	--[[ Each class's own level and the XP into it (version 16,
+	     `Config/ClassLevels`); a class never played is not here and reads
+	     as level 1. Server-decided (`Run/RoomController`), never reported
+	     by a client. ]]
+	classLevels: ClassLevelRules.Levels,
+	--[[ Lifetime counters, by `Config/Goals.counted` key (version 18):
+	     server-kept (`Data/Rewards.note`), never reported by a client. ]]
+	stats: { [string]: number },
+	--[[ How many steps of each goal have been paid, by `Config/Goals` key
+	     (version 18): 0 to 3. ]]
+	goalsClaimed: { [string]: number },
+	--[[ Campaign levels won in a row (version 19, `Util/RunBonus`): taken
+	     out as a level starts and written back, one longer, on the win. ]]
+	winStreak: number,
+	--[[ The gift box (version 20, `Util/GiftRules`). ]]
+	gift: GiftRules.Gift,
+	--[[ Dex pages whose chest has been opened, by "Book:Area" (version 20,
+	     `Util/PageRules`). ]]
+	dexChests: { [string]: boolean },
+	--[[ The stars held on each level, by its name ("1-3"), one bit a star
+	     (version 21, `Util/StarRules`): 1 to 7. ]]
+	levelStars: { [string]: number },
+	--[[ Area star chests opened, by "Area:Stars" (version 21). ]]
+	starChests: { [string]: boolean },
+	--[[ The levels won on hard, by name ("1-3"; version 24,
+	     `Util/HardRules`). ]]
+	hardBeaten: { [string]: boolean },
+	--[[ The notifications' opt-in (version 25, `Util/NotifyRules`). ]]
+	notify: NotifyRules.State,
+	--[[ The tournament weeks played and still to be paid, by week number
+	     ("2967"), each holding that week's best score (version 26,
+	     `Util/TournamentRules`). Paying a week takes it out. ]]
+	tournamentWeeks: { [string]: number },
+	--[[ Weeks won (version 26): the ENDLESS CHAMPION title. ]]
+	tournamentWins: number,
+	--[[ Themed set weapons still to pick from a top-ten week (version 26,
+	     `Wallet.pickTournamentWeapon`). ]]
+	tournamentPicks: number,
+	--[[ This session's playtime gifts (version 27, `Util/PlaytimeRules`). ]]
+	playtime: PlaytimeRules.Clock,
+	--[[ The last reward day Premium's egg was paid, 0 never (version 27). ]]
+	premiumDay: number,
+	--[[ Who invited this player, and who they invited (version 27,
+	     `Util/InviteRules`). ]]
+	invites: InviteRules.Invites,
+	--[[ This month's season (version 28, `Util/SeasonRules`): server-kept
+	     XP, tiers claimed, premium bought. ]]
+	season: SeasonRules.State,
+	--[[ Season titles held, by `Config/Season.titles` key, and the one worn
+	     over the name tag (version 28). ]]
+	titles: { [string]: boolean },
+	title: string?,
+	--[[ Themed set picks owed by Endless and the season pass (version 29,
+	     `Util/RewardPickRules`): reward id to set key, taken out when picked
+	     (`Wallet.pickReward`). ]]
+	rewardPicks: { [string]: string },
+	--[[ Code words redeemed, by word as `Util/CodeRules.normalise` reads it
+	     (version 30); each pays once. ]]
+	codesUsed: { [string]: boolean },
+	--[[ Roblox's favourite prompt has been shown (version 30, once ever). ]]
+	favouriteAsked: boolean,
+}
+
+export type RewardState = {
+	--[[ Whether any boss has been beaten (version 22): `bossesBeaten` has
+	     an entry. Kept here because the quests' rules read this table. ]]
+	bossMet: boolean,
+	--[[ The last day the calendar paid, 0 never; and how many times. ]]
+	loginDay: number,
+	loginCount: number,
+	--[[ The day the quest progress below belongs to. ]]
+	questDay: number,
+	questProgress: { [string]: number },
+	questClaimed: { [string]: boolean },
+	starterClaimed: { [string]: boolean },
+	cratesOpened: number,
+	--[[ Dex entries paid for, "Enemies:MossSlime", "Pets:EmberWilf". ]]
+	dexPaid: { [string]: boolean },
+	--[[ The day the quests' bonus chest was last opened, 0 never
+	     (version 17). ]]
+	bonusDay: number,
 }
 
 --[[ The looks the class select screen offers. ]]
 SaveSchema.LOOKS = { "male", "female" }
 
---[[ Pets a player can take into a run (`Config/Eggs.slots`). ]]
-SaveSchema.PET_SLOTS = 2
+--[[ Pet slots a save can hold (`Config/Eggs.slots`): two for everyone, the
+     third open with the Extra Pet Slot pass (`Util/StoreRules.petSlots`).
+     A pet in the third without the pass is kept and simply not taken into
+     a run. ]]
+SaveSchema.PET_SLOTS = 3
+--[[ The steps a goal has (`Config/Goals`: bronze, silver, gold). ]]
+local GOAL_STEPS = 3
+--[[ The slots a save before version 15 could hold. ]]
+local OLD_PET_SLOTS = 2
 
 --[[ What the Endless currency is called on screen (owner, 2026-10-27:
      "Soulstones"), in caps as the HUD draws the others. Every screen that
@@ -100,8 +385,10 @@ SaveSchema.SOULSTONES = "SOULSTONES"
 
 function SaveSchema.default(): Profile
 	local weapons = {}
+	local weaponTiers = {}
 	for _, name in STARTERS do
 		weapons[name] = true
+		weaponTiers[name] = { C = 1 }
 	end
 	return {
 		version = SaveSchema.VERSION,
@@ -120,6 +407,49 @@ function SaveSchema.default(): Profile
 		endlessMilestones = {},
 		soulstones = 0,
 		enemiesSeen = {},
+		tutorialDone = false,
+		rewards = {
+			loginDay = 0,
+			loginCount = 0,
+			questDay = 0,
+			questProgress = {},
+			questClaimed = {},
+			starterClaimed = {},
+			cratesOpened = 0,
+			dexPaid = {},
+			bonusDay = 0,
+			bossMet = false,
+		},
+		settings = SettingsRules.default(),
+		tiers = { weapons = weaponTiers, pets = {} },
+		storySeen = {},
+		tipsSeen = {},
+		trails = {},
+		equippedTrail = nil,
+		endlessClassBest = {},
+		purchases = StoreRules.empty(),
+		classLevels = {},
+		stats = {},
+		goalsClaimed = {},
+		winStreak = 0,
+		gift = { wins = 0, opened = 0 },
+		dexChests = {},
+		levelStars = {},
+		starChests = {},
+		hardBeaten = {},
+		notify = NotifyRules.default(),
+		tournamentWeeks = {},
+		tournamentWins = 0,
+		tournamentPicks = 0,
+		playtime = { start = 0, seen = 0, claimed = 0 },
+		premiumDay = 0,
+		invites = InviteRules.empty(),
+		season = SeasonRules.empty(),
+		titles = {},
+		title = nil,
+		rewardPicks = {},
+		codesUsed = {},
+		favouriteAsked = false,
 	}
 end
 
@@ -164,6 +494,36 @@ function SaveSchema.readable(raw: unknown): boolean
 	return type(version) ~= "number" or version <= SaveSchema.VERSION
 end
 
+--[[ A stored `rewardPicks` (version 29, `Util/RewardPickRules`) as one to
+     trust: string ids holding the key of a stocked themed set
+     (`Config/Shop.sets`), at most `MAX_PICKS`. Read here, not by
+     `RewardPickRules`, whose `ShopRules` needs this module. ]]
+local MAX_PICKS = 8
+local function rewardPicks(raw: unknown): { [string]: string }
+	local out: { [string]: string } = {}
+	if type(raw) ~= "table" then
+		return out
+	end
+	local sets: { [string]: boolean } = {}
+	for _, set in Shop.sets do
+		sets[set.key] = set.stocked == true
+	end
+	local kept = 0
+	for id, set in raw :: { [unknown]: unknown } do
+		if
+			kept < MAX_PICKS
+			and type(id) == "string"
+			and #id <= 40
+			and type(set) == "string"
+			and sets[set] == true
+		then
+			out[id] = set
+			kept += 1
+		end
+	end
+	return out
+end
+
 --[[ Any stored copy (nothing for a new player) as a current profile.
      Missing or broken fields take their defaults; nothing is lost that
      reads as valid. ]]
@@ -192,7 +552,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 	end
 	profile.pets = counts(data.pets)
 	if type(data.equippedPets) == "table" then
-		for slot = 1, SaveSchema.PET_SLOTS do
+		local slots = if version >= 15 then SaveSchema.PET_SLOTS else OLD_PET_SLOTS
+		for slot = 1, slots do
 			local pet = data.equippedPets[slot]
 			if type(pet) == "string" and profile.pets[pet] then
 				profile.equippedPets[slot] = pet
@@ -224,6 +585,144 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     fills in; inventing entries would show creatures somebody has
 	     never seen. ]]
 	profile.enemiesSeen = flags(data.enemiesSeen)
+	--[[ 7 → 8: nobody's tutorial win was written down. Whoever has beaten
+	     1-1 came through it; anyone else plays it once more before they
+	     may skip. ]]
+	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
+	--[[ 8 → 9: no settings were kept, so an older profile has the defaults. ]]
+	profile.settings = SettingsRules.read(data.settings)
+	--[[ 9 -> 10: what was owned is held at C -- one copy of each weapon
+	     (duplicates were never saved), each pet's count as that many C.
+	     A stored pet's tiers are its count from then on. ]]
+	local stored = if type(data.tiers) == "table" then data.tiers else {}
+	local storedWeapons = if type(stored.weapons) == "table" then stored.weapons else {}
+	local storedPets = if type(stored.pets) == "table" then stored.pets else {}
+	for name in profile.weapons do
+		local held = MergeRules.clean(storedWeapons[name])
+		profile.tiers.weapons[name] = if MergeRules.total(held) > 0 then held else { C = 1 }
+	end
+	for pet, n in profile.pets do
+		local held = MergeRules.clean(storedPets[pet])
+		if MergeRules.total(held) == 0 then
+			held = { C = n }
+		end
+		profile.tiers.pets[pet] = held
+		profile.pets[pet] = MergeRules.total(held)
+	end
+	--[[ 10 → 11: the rewards. A stored copy is read field by field; an older
+	     one has none, so nothing is claimed, its crates are its pity count,
+	     and what it already has counts as paid for in the Dex. ]]
+	local storedRewards = if type(data.rewards) == "table" then data.rewards else nil
+	local rewards = profile.rewards
+	if storedRewards then
+		rewards.loginDay = count(storedRewards.loginDay)
+		rewards.loginCount = count(storedRewards.loginCount)
+		rewards.questDay = count(storedRewards.questDay)
+		rewards.questProgress = counts(storedRewards.questProgress)
+		rewards.questClaimed = flags(storedRewards.questClaimed)
+		rewards.starterClaimed = flags(storedRewards.starterClaimed)
+		rewards.cratesOpened = count(storedRewards.cratesOpened)
+		rewards.dexPaid = flags(storedRewards.dexPaid)
+		-- 16 -> 17: no bonus chest was ever opened
+		rewards.bonusDay = count(storedRewards.bonusDay)
+	else
+		rewards.cratesOpened = profile.pity.crates
+		for kind in profile.enemiesSeen do
+			rewards.dexPaid["Enemies:" .. kind] = true
+		end
+		for weapon in profile.weapons do
+			rewards.dexPaid["Weapons:" .. weapon] = true
+		end
+		for pet in profile.pets do
+			rewards.dexPaid["Pets:" .. pet] = true
+		end
+	end
+	--[[ 11 -> 12: no beat was ever shown, so an older profile has watched
+	     none; a stored copy keeps its yes flags. ]]
+	profile.storySeen = flags(data.storySeen)
+	--[[ 12 -> 13: no tip was ever shown, so an older profile has seen none;
+	     a stored copy keeps its yes flags. ]]
+	profile.tipsSeen = flags(data.tipsSeen)
+	--[[ 13 -> 14: no trail existed, so none is held or worn and no class
+	     has a floor; a stored copy keeps its own, and wears only one it
+	     holds. ]]
+	profile.trails = flags(data.trails)
+	if type(data.equippedTrail) == "string" and profile.trails[data.equippedTrail] then
+		profile.equippedTrail = data.equippedTrail
+	end
+	profile.endlessClassBest = counts(data.endlessClassBest)
+	--[[ 14 -> 15: nothing was ever bought, so an older profile has no
+	     receipts, no starter pack, no revive held; a stored copy is read
+	     field by field (`StoreRules.read`). ]]
+	profile.purchases = StoreRules.read(data.purchases)
+	--[[ 15 -> 16: no class had a level, so an older profile's classes are
+	     all level 1; a stored copy is read class by class
+	     (`ClassLevelRules.read`). ]]
+	profile.classLevels = ClassLevelRules.read(data.classLevels)
+	--[[ 17 -> 18: nothing was counted and no goal was paid, so an older
+	     profile starts both empty; a stored copy keeps whole counts, and
+	     never more steps than a goal has. ]]
+	profile.stats = counts(data.stats)
+	for key, steps in counts(data.goalsClaimed) do
+		profile.goalsClaimed[key] = math.min(steps, GOAL_STEPS)
+	end
+	--[[ 18 -> 19: nobody had a streak; a stored one is a whole number, no
+	     longer than the longest kept. ]]
+	profile.winStreak = math.min(count(data.winStreak), RunBonus.LONGEST)
+	--[[ 19 -> 20: no gift was ever earned and no page's chest opened; a
+	     stored box is read field by field (`GiftRules.read`). ]]
+	profile.gift = GiftRules.read(data.gift)
+	profile.dexChests = flags(data.dexChests)
+	--[[ 20 -> 21: a stored level's stars are a whole number of at most
+	     three bits. A level beaten was won, whenever that was, so it holds
+	     the first star: which also gives an older profile its due. ]]
+	for level, mask in counts(data.levelStars) do
+		profile.levelStars[level] = math.min(mask, 7)
+	end
+	for level in profile.levelsBeaten do
+		profile.levelStars[level] = bit32.bor(profile.levelStars[level] or 0, 1)
+	end
+	profile.starChests = flags(data.starChests)
+	--[[ 21 -> 22: read from the bosses beaten, whatever was stored. ]]
+	profile.rewards.bossMet = next(profile.bossesBeaten) ~= nil
+	--[[ 23 -> 24: nothing was played on hard; a stored copy keeps its
+	     true flags. ]]
+	profile.hardBeaten = flags(data.hardBeaten)
+	--[[ 24 -> 25: nobody was asked; a profile that has claimed a day or
+	     won a level has had a session already. A stored state is read
+	     field by field (`NotifyRules.read`). ]]
+	profile.notify = NotifyRules.read(data.notify)
+	if version < 25 and (profile.rewards.loginCount > 0 or next(profile.levelsBeaten) ~= nil) then
+		profile.notify.joins = math.max(profile.notify.joins, 1)
+	end
+	--[[ 25 -> 26: no week was played. A stored week is a week number with
+	     a real score; at most `Tournament.keep` of them, the newest. ]]
+	for week, score in counts(data.tournamentWeeks) do
+		if tonumber(week) and TournamentRules.valid(score) then
+			TournamentRules.note(profile.tournamentWeeks, tonumber(week) :: number, score)
+		end
+	end
+	profile.tournamentWins = count(data.tournamentWins)
+	profile.tournamentPicks = count(data.tournamentPicks)
+	--[[ 26 -> 27: no clock was kept, so an older profile's next join starts
+	     a session; no egg was paid; nobody was invited. A stored copy is
+	     read field by field. ]]
+	profile.playtime = PlaytimeRules.read(data.playtime)
+	profile.premiumDay = PremiumRules.read(data.premiumDay)
+	profile.invites = InviteRules.read(data.invites)
+	--[[ 27 -> 28: no season existed; a stored one is read field by field
+	     (`SeasonRules.read`), and a title is worn only if held. ]]
+	profile.season = SeasonRules.read(data.season)
+	profile.titles = flags(data.titles)
+	if type(data.title) == "string" and profile.titles[data.title] then
+		profile.title = data.title
+	end
+	--[[ 28 -> 29: no pick was owed; a stored table is read entry by entry. ]]
+	profile.rewardPicks = rewardPicks(data.rewardPicks)
+	--[[ 29 -> 30: no code was used and nobody was asked to favourite; a
+	     stored copy keeps its yes flags. ]]
+	profile.codesUsed = flags(data.codesUsed)
+	profile.favouriteAsked = data.favouriteAsked == true
 	return profile
 end
 

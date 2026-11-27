@@ -39,12 +39,12 @@ local CardTheme = {
 		Mythic = rgb(152, 8, 40),
 	},
 
-	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
+	--[[ Both the game's one font: Fredoka One (CLAUDE.md rule 11, owner 2026-10-24). ]]
 	fonts = {
 		--[[ Headings, rarity labels, names, badges, buttons. ]]
-		display = Enum.Font.Arcade,
+		display = Enum.Font.FredokaOne,
 		--[[ Descriptions, stat pills, other copy. ]]
-		body = Enum.Font.Arcade,
+		body = Enum.Font.FredokaOne,
 	},
 
 	card = {
@@ -85,7 +85,7 @@ local CardTheme = {
 		     inside it. All in the face's 168-wide units. ]]
 		statText = 14,
 		-- a long stat line steps its own size down to fit across the card, to
-		-- no less than this (the blocky font is wide; CLAUDE.md rule 11)
+		-- no less than this (the game's font is wide; CLAUDE.md rule 11)
 		statTextMin = 9,
 		-- the name on the banner, as large as fits its ribbon on one line or
 		-- two, up to the first and no smaller than the second
@@ -113,8 +113,19 @@ local CardTheme = {
 		dealDuration = 0.56,
 		rerollDuration = 0.4,
 		holdToOpen = 0.48,
+		--[[ One tap or click takes a card (owner, 2026-11-14, after the kid
+		     playtest: card then CHOOSE! was 16 presses in 1-1, "Build top
+		     5"). Not before the card has been dealt for this long, so a
+		     press meant for the fight cannot take one unseen. ]]
+		tapGuard = 0.35,
 		tooltipTime = 1.3,
-		pickApplyAt = 1.56,
+		--[[ Seconds from a card being taken to the fight going on. The
+		     celebration was drawn 1.56 s long (`celebrateLength`) and a
+		     level asks for about eight picks (the run-through, 2026-11-14:
+		     "every card costs 1.7 s"), so it now plays at twice the pace
+		     and a bit. A Mythic keeps its full length. ]]
+		pickApplyAt = 0.7,
+		celebrateLength = 1.56,
 		slotPop = 0.65,
 		mythicShake = 1.0,
 		mythicFlip = 0.6,

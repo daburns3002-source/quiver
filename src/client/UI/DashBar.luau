@@ -108,7 +108,7 @@ function DashBar.start()
 	text.Position = UDim2.fromScale(0.5, 0.5)
 	text.Size = UDim2.fromScale(1, Hud.barText.dash)
 	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.Arcade
+	text.Font = Enum.Font.FredokaOne
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
 	text.TextStrokeTransparency = 0
@@ -134,8 +134,11 @@ function DashBar.start()
 			return
 		end
 
-		-- the lobby has no dash (`Input/MoveController`)
+		-- the lobby has no dash (`Input/MoveController`), and an end screen
+		-- covers the fight (`UI/LobbyHud` puts the other bottom bars away)
 		gui.Enabled = Workspace:GetAttribute("InLobby") ~= true
+			and gui.Parent ~= nil
+			and gui.Parent:FindFirstChild("EndScreen") == nil
 
 		local readiness = Dash.readiness(os.clock())
 		local ready = readiness >= 1

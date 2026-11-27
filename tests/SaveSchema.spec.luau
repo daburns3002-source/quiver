@@ -11,18 +11,89 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 
 return function(t: TestRunner.Helper)
-	t.test("a new player owns the three class weapons and nothing else", function()
+	t.test("a new player owns the classes' own weapons and nothing else", function()
 		local p = SaveSchema.migrate(nil)
 		t.equal(p.version, SaveSchema.VERSION)
 		t.equal(p.coins, 0)
 		t.equal(p.gems, 0)
 		t.isTrue(p.weapons.TwigBow and p.weapons.BranchStaff and p.weapons.TimberBlade)
+		--[[ One for each class that can be chosen, and none for a class
+		     still locked on its card. ]]
+		local owned = 0
+		for _ in p.weapons do
+			owned += 1
+		end
+		t.equal(owned, #ClassList.open())
+		for _, class in ClassList.all() do
+			t.equal(
+				p.weapons[Classes[class].weapon] == true,
+				ClassList.isOpen(class),
+				class .. "'s own weapon"
+			)
+		end
 		t.isNil(p.equipped)
+	end)
+
+	--[[ Version 23: the day a class opens, every older save holds its
+	     weapon, and nothing it had is touched. ]]
+	t.test("an older save is given the Assassin's daggers, and keeps what it had", function()
+		local p = SaveSchema.migrate({
+			version = 22,
+			coins = 40,
+			weapons = { TwigBow = true, AcornBow = true },
+			equipped = "AcornBow",
+			classLevels = { Warden = { level = 4, xp = 20 } },
+		})
+		t.equal(p.version, SaveSchema.VERSION)
+		t.isTrue(p.weapons.SplinterDaggers, "no daggers")
+		t.isTrue(p.weapons.AcornBow and p.weapons.TimberBlade)
+		t.equal(p.equipped, "AcornBow")
+		t.equal(p.coins, 40)
+		t.equal(p.classLevels.Warden.level, 4)
+		t.isNil(p.classLevels.Assassin, "a class never played has no level saved")
+		-- its tier is a first copy's, like every starter's
+		t.equal(p.tiers.weapons.SplinterDaggers.C, 1)
+		-- and a save already at 23 reads the same
+		local again = SaveSchema.migrate(p)
+		t.isTrue(again.weapons.SplinterDaggers)
+		t.equal(again.equipped, "AcornBow")
+	end)
+
+	--[[ Version 24: hard mode (`Util/HardRules`). Nothing was ever played
+	     on hard, so an older save has won no hard level; a stored copy
+	     keeps its true flags and drops the rest. ]]
+	t.test("an older save has won nothing on hard, and a stored one keeps its wins", function()
+		local p = SaveSchema.migrate({
+			version = 23,
+			coins = 75,
+			levelsBeaten = { ["1-1"] = true, ["1-2"] = true },
+			bossesBeaten = { MossyGlade = true },
+		})
+		t.equal(p.version, SaveSchema.VERSION)
+		t.isNil((next(p.hardBeaten)), "hard wins invented")
+		t.equal(p.coins, 75)
+		t.isTrue(p.levelsBeaten["1-2"])
+		local stored = SaveSchema.migrate({
+			version = 24,
+			hardBeaten = { ["1-1"] = true, ["1-2"] = "yes", [3] = true },
+		})
+		t.isTrue(stored.hardBeaten["1-1"])
+		t.isNil(stored.hardBeaten["1-2"], "a flag that is not true")
+		local count = 0
+		for _ in stored.hardBeaten do
+			count += 1
+		end
+		t.equal(count, 1)
+		-- and reads the same again
+		t.isTrue(SaveSchema.migrate(stored).hardBeaten["1-1"])
 	end)
 
 	t.test("a stored profile keeps everything valid", function()
@@ -60,10 +131,99 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.equipped, "a weapon not owned is not equipped")
 	end)
 
+	--[[ Version 26: the weekly Endless tournament. An older save has played
+	     no week; a stored week is kept only as a week number with a real
+	     score. ]]
+	t.test("an older save has no tournament weeks, and a stored one is read with care", function()
+		local old =
+			SaveSchema.migrate({ version = 25, coins = 12, hardBeaten = { ["1-1"] = true } })
+		t.equal(old.version, SaveSchema.VERSION)
+		t.isNil((next(old.tournamentWeeks)))
+		t.equal(old.tournamentWins, 0)
+		t.equal(old.tournamentPicks, 0)
+		t.equal(old.coins, 12)
+		t.isTrue(old.hardBeaten["1-1"], "version 24's hard wins kept")
+
+		local score = TournamentRules.score(30, 600)
+		local p = SaveSchema.migrate({
+			version = 26,
+			tournamentWeeks = { ["2967"] = score, junk = score, ["2968"] = 12.5, ["2969"] = -4 },
+			tournamentWins = 2,
+			tournamentPicks = 1,
+		})
+		t.equal(p.tournamentWeeks["2967"], score)
+		t.isNil(p.tournamentWeeks.junk, "not a week number")
+		t.isNil(p.tournamentWeeks["2968"], "not a whole score")
+		t.isNil(p.tournamentWeeks["2969"])
+		t.equal(p.tournamentWins, 2)
+		t.equal(p.tournamentPicks, 1)
+	end)
+
+	--[[ Version 29: the reward picks. An older save owes none; a stored
+	     one keeps only ids holding a real themed set. ]]
+	t.test("an older save owes no reward pick, a stored one is checked", function()
+		t.isNil((next(SaveSchema.migrate({ version = 28, coins = 3 }).rewardPicks)))
+		local p = SaveSchema.migrate({
+			version = 29,
+			rewardPicks = {
+				["Endless:100"] = "Voidglass",
+				["Season:1:premium"] = "Nowhere",
+				[7] = "Voidglass",
+			},
+		})
+		t.equal(p.rewardPicks["Endless:100"], "Voidglass")
+		t.isNil(p.rewardPicks["Season:1:premium"], "no such set")
+		local count = 0
+		for _ in p.rewardPicks do
+			count += 1
+		end
+		t.equal(count, 1)
+	end)
+
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 7)
+		t.isTrue(SaveSchema.VERSION >= 23, "the Assassin's version or later")
 		t.isNil((next(p.levelsBeaten)))
+	end)
+
+	--[[ Version 27: the retention hooks. An older save starts a new
+	     playtime session, was never paid Premium's egg, and was invited by
+	     nobody, so nothing is owed for having a save already. ]]
+	t.test("an older save has a fresh playtime clock and owes no invite", function()
+		local p = SaveSchema.migrate({ version = 26, coins = 7 })
+		t.equal(p.version, SaveSchema.VERSION)
+		t.equal(p.coins, 7)
+		t.equal(p.playtime.start, 0, "the next join starts a session")
+		t.equal(p.playtime.claimed, 0)
+		t.equal(p.premiumDay, 0)
+		t.equal(p.invites.by, 0)
+		t.isFalse(p.invites.owed)
+		t.isNil((next(p.invites.counted)))
+		-- a stored copy reads back as it was, broken parts dropped
+		local stored = SaveSchema.migrate({
+			version = 27,
+			playtime = { start = 1000, seen = 1200, claimed = 3 },
+			premiumDay = 20400,
+			invites = {
+				by = 42,
+				owed = true,
+				counted = { ["7"] = true, nope = true },
+				day = 20400,
+				paid = 99,
+			},
+		})
+		t.equal(stored.playtime.start, 1000)
+		t.equal(stored.playtime.seen, 1200)
+		t.equal(stored.playtime.claimed, 3)
+		t.equal(stored.premiumDay, 20400)
+		t.equal(stored.invites.by, 42)
+		t.isTrue(stored.invites.owed)
+		t.isTrue(stored.invites.counted["7"])
+		t.isNil(stored.invites.counted.nope)
+		t.isTrue(stored.invites.paid < 99, "never more paid than a day allows")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.playtime.claimed, 3)
+		t.equal(again.invites.by, 42)
 	end)
 
 	t.test("version 1 migrates up: nothing lost, no levels beaten", function()
@@ -208,6 +368,42 @@ return function(t: TestRunner.Helper)
 		t.equal(SaveSchema.SOULSTONES, "SOULSTONES")
 	end)
 
+	t.test("7 -> 8: the tutorial counts as won only if saved so, or 1-1 is beaten", function()
+		t.isFalse(SaveSchema.default().tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 7, coins = 5 }).tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 8, tutorialDone = "yes" }).tutorialDone)
+		t.isTrue(SaveSchema.migrate({ version = 8, tutorialDone = true }).tutorialDone)
+		local old = SaveSchema.migrate({ version = 7, levelsBeaten = { ["1-1"] = true } })
+		t.isTrue(old.tutorialDone)
+		t.equal(old.version, SaveSchema.VERSION)
+	end)
+
+	t.test("8 -> 9: settings are the defaults unless a clean copy was saved", function()
+		local fresh = SaveSchema.default().settings
+		t.equal(fresh.music, 1)
+		t.equal(fresh.sound, 1)
+		t.isTrue(fresh.haptics)
+		local old = SaveSchema.migrate({ version = 8, coins = 5 })
+		t.equal(old.settings.music, 1, "an older save invented a volume")
+		t.isTrue(old.settings.haptics)
+		t.equal(old.version, SaveSchema.VERSION)
+		local kept = SaveSchema.migrate({
+			version = 9,
+			settings = { music = 0.5, sound = 0, haptics = false },
+		})
+		t.equal(kept.settings.music, 0.5)
+		t.equal(kept.settings.sound, 0)
+		t.isFalse(kept.settings.haptics)
+		local broken = SaveSchema.migrate({
+			version = 9,
+			settings = { music = "loud", sound = 7, haptics = 1 },
+		})
+		t.equal(broken.settings.music, 1, "a string was kept as a volume")
+		t.equal(broken.settings.sound, 1, "a volume over full was not clamped")
+		t.isTrue(broken.settings.haptics, "a number was kept as a yes/no")
+		t.equal(SaveSchema.migrate({ version = 9, settings = "x" }).settings.music, 1)
+	end)
+
 	t.test("a newer game's save is not readable here", function()
 		t.isFalse(SaveSchema.readable({ version = SaveSchema.VERSION + 1 }))
 		t.isTrue(SaveSchema.readable({ version = SaveSchema.VERSION }))
@@ -225,4 +421,316 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.items.RoyalJelly)
 		t.isFalse(Purse.pay(p, { gems = 1 }))
 	end)
+	t.test("version 10 migrates up to the rewards: nothing claimed, nothing a windfall", function()
+		local p = SaveSchema.migrate({
+			version = 10,
+			pets = { EmberWilf = 1 },
+			weapons = { AcornBow = true },
+			enemiesSeen = { MossSlime = true },
+			pity = { crates = 3, eggs = 0 },
+		})
+		local r = p.rewards
+		t.equal(r.loginDay, 0)
+		t.equal(r.loginCount, 0)
+		t.isNil((next(r.starterClaimed)), "the starter list pays what was already done")
+		t.equal(r.cratesOpened, 3, "crates count from the pity counter")
+		t.isTrue(r.dexPaid["Pets:EmberWilf"], "what was owned is not paid again")
+		t.isTrue(r.dexPaid["Weapons:AcornBow"])
+		t.isTrue(r.dexPaid["Enemies:MossSlime"])
+		t.isTrue(r.dexPaid["Weapons:TwigBow"], "the starters count as paid")
+	end)
+
+	t.test("version 11 keeps its rewards and drops what is broken", function()
+		local p = SaveSchema.migrate({
+			version = 11,
+			rewards = {
+				loginDay = 20400,
+				loginCount = 9,
+				questDay = 20400,
+				questProgress = { kills50 = 12, bad = "x" },
+				questClaimed = { boss1 = true, nope = 1 },
+				starterClaimed = { hatch = true },
+				cratesOpened = 2.6,
+				dexPaid = { ["Pets:Bramble"] = true },
+			},
+		})
+		local r = p.rewards
+		t.equal(r.loginDay, 20400)
+		t.equal(r.loginCount, 9)
+		t.equal(r.questProgress.kills50, 12)
+		t.isNil(r.questProgress.bad)
+		t.isTrue(r.questClaimed.boss1)
+		t.isNil(r.questClaimed.nope)
+		t.isTrue(r.starterClaimed.hatch)
+		t.equal(r.cratesOpened, 2)
+		t.isTrue(r.dexPaid["Pets:Bramble"])
+		t.isNil(r.dexPaid["Weapons:TwigBow"], "a stored copy is read as it is")
+	end)
+
+	t.test(
+		"version 12: an older profile has watched no story beat; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 11, bossesBeaten = { MossyGlade = true } })
+			t.isNil((next(old.storySeen)))
+			t.isNil((next(SaveSchema.migrate(nil).storySeen)))
+			local p = SaveSchema.migrate({
+				version = 12,
+				storySeen = { MossyGlade = true, Thornwood = 1 },
+			})
+			t.isTrue(p.storySeen.MossyGlade)
+			t.isNil(p.storySeen.Thornwood, "only a yes is kept")
+		end
+	)
+
+	t.test("version 13: an older profile has seen no tip; a stored one keeps its own", function()
+		local old = SaveSchema.migrate({ version = 12, storySeen = { MossyGlade = true } })
+		t.isNil((next(old.tipsSeen)))
+		t.isNil((next(SaveSchema.migrate(nil).tipsSeen)))
+		local p =
+			SaveSchema.migrate({ version = 13, tipsSeen = { Blacksmith = true, Merge = "yes" } })
+		t.isTrue(p.tipsSeen.Blacksmith)
+		t.isNil(p.tipsSeen.Merge, "only a yes is kept")
+	end)
+
+	t.test(
+		"version 14: an older profile holds and wears no trail; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 12, endlessBest = 60 })
+			t.isNil((next(old.trails)))
+			t.isNil(old.equippedTrail)
+			t.isNil((next(old.endlessClassBest)), "no class is credited with an old floor")
+			local p = SaveSchema.migrate({
+				version = 14,
+				trails = { LeafDrift = true, RoyalGoo = 1 },
+				equippedTrail = "LeafDrift",
+				endlessClassBest = { Ranger = 52, Arcanist = -3, Warden = 7.6 },
+			})
+			t.isTrue(p.trails.LeafDrift)
+			t.isNil(p.trails.RoyalGoo, "only a yes is kept")
+			t.equal(p.equippedTrail, "LeafDrift")
+			t.equal(p.endlessClassBest.Ranger, 52)
+			t.isNil(p.endlessClassBest.Arcanist, "a broken floor is dropped")
+			t.equal(p.endlessClassBest.Warden, 7)
+			local worn = SaveSchema.migrate({ version = 14, equippedTrail = "Starfall" })
+			t.isNil(worn.equippedTrail, "a trail not held is not worn")
+		end
+	)
+
+	t.test(
+		"version 15: an older profile has bought nothing and holds two pet slots; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({
+				version = 14,
+				pets = { Mosslet = 1, GladeFox = 1, Stumpy = 1 },
+				equippedPets = { "Mosslet", "GladeFox", "Stumpy" },
+			})
+			t.equal(#old.purchases.receipts, 0)
+			t.isFalse(old.purchases.starterBought)
+			t.isFalse(old.purchases.starterOffered)
+			t.equal(old.purchases.reviveCredits, 0)
+			t.equal(old.purchases.vipDay, 0)
+			t.isNil(old.equippedPets[3], "no third slot before the pass existed")
+			local p = SaveSchema.migrate({
+				version = 15,
+				pets = { Mosslet = 1, GladeFox = 1, Stumpy = 1 },
+				equippedPets = { "Mosslet", "GladeFox", "Stumpy" },
+				purchases = {
+					receipts = { "p1", "p2" },
+					starterBought = true,
+					reviveCredits = 1,
+					vipDay = 20400,
+				},
+			})
+			t.equal(p.equippedPets[3], "Stumpy")
+			t.equal(#p.purchases.receipts, 2)
+			t.isTrue(p.purchases.starterBought)
+			t.equal(p.purchases.reviveCredits, 1)
+			t.equal(p.purchases.vipDay, 20400)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.purchases.receipts[2], "p2", "a saved copy reads back the same")
+		end
+	)
+
+	t.test(
+		"version 16: an older profile's classes are all level 1; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 15, coins = 40 })
+			t.isNil((next(old.classLevels)), "no class is given a level it did not earn")
+			t.equal(old.coins, 40, "and nothing else is lost")
+			t.isNil((next(SaveSchema.migrate(nil).classLevels)))
+			local p = SaveSchema.migrate({
+				version = 16,
+				classLevels = {
+					Ranger = { level = 4, xp = 120 },
+					Arcanist = { level = 99, xp = 5 },
+					Warden = { level = 2.7, xp = 1e9 },
+					Wizard = { level = 3, xp = 0 },
+					Broken = "yes",
+				},
+			})
+			t.equal(p.classLevels.Ranger.level, 4)
+			t.equal(p.classLevels.Ranger.xp, 120)
+			t.equal(p.classLevels.Arcanist.level, 10, "never past the top")
+			t.equal(p.classLevels.Arcanist.xp, 0)
+			t.equal(p.classLevels.Warden.level, 2)
+			t.equal(p.classLevels.Warden.xp, 149, "XP stops short of the next level")
+			t.isNil(p.classLevels.Wizard, "only the classes that level")
+			t.isNil(p.classLevels.Broken)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.classLevels.Ranger.level, 4, "a saved copy reads back the same")
+			t.equal(again.classLevels.Ranger.xp, 120)
+		end
+	)
+
+	t.test(
+		"version 17: an older profile has opened no bonus chest; a stored day is kept",
+		function()
+			local old = SaveSchema.migrate({ version = 16, rewards = { loginCount = 3 } })
+			t.equal(old.rewards.bonusDay, 0)
+			t.equal(old.rewards.loginCount, 3, "and nothing else is lost")
+			t.equal(SaveSchema.migrate(nil).rewards.bonusDay, 0)
+			local p = SaveSchema.migrate({ version = 17, rewards = { bonusDay = 20400.7 } })
+			t.equal(p.rewards.bonusDay, 20400)
+			local bad = SaveSchema.migrate({ version = 17, rewards = { bonusDay = "today" } })
+			t.equal(bad.rewards.bonusDay, 0)
+			t.equal(
+				SaveSchema.migrate(p).rewards.bonusDay,
+				20400,
+				"a saved copy reads back the same"
+			)
+		end
+	)
+
+	t.test(
+		"version 18: an older profile has counted nothing and claimed no goal; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 17, coins = 9 })
+			t.isNil((next(old.stats)), "no kill or win is invented")
+			t.isNil((next(old.goalsClaimed)))
+			t.equal(old.coins, 9, "and nothing else is lost")
+			local p = SaveSchema.migrate({
+				version = 18,
+				stats = { kills = 1200.9, levels = -4, hatches = "many" },
+				goalsClaimed = { kills = 2, levels = 9, pets = 0 },
+			})
+			t.equal(p.stats.kills, 1200)
+			t.isNil(p.stats.levels, "a broken count is dropped")
+			t.isNil(p.stats.hatches)
+			t.equal(p.goalsClaimed.kills, 2)
+			t.equal(p.goalsClaimed.levels, 3, "never more steps than a goal has")
+			t.isNil(p.goalsClaimed.pets)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.stats.kills, 1200, "a saved copy reads back the same")
+			t.equal(again.goalsClaimed.kills, 2)
+		end
+	)
+
+	t.test("version 22: whether a boss has been met is read from the bosses beaten", function()
+		t.isFalse(SaveSchema.default().rewards.bossMet)
+		t.isFalse(SaveSchema.migrate({ version = 21, coins = 2 }).rewards.bossMet)
+		local old = SaveSchema.migrate({ version = 21, bossesBeaten = { MossyGlade = true } })
+		t.isTrue(old.rewards.bossMet, "an older profile that beat a boss has it right")
+		local lied = SaveSchema.migrate({ version = 22, rewards = { bossMet = true } })
+		t.isFalse(lied.rewards.bossMet, "a stored yes with no boss beaten is not believed")
+		t.isTrue(SaveSchema.migrate(old).rewards.bossMet, "a saved copy reads back the same")
+	end)
+
+	t.test(
+		"version 25: nobody was asked to opt in; a player who has played counts a session",
+		function()
+			local fresh = SaveSchema.default().notify
+			t.equal(fresh.joins, 0)
+			t.equal(fresh.answer, "", "a new profile was never asked")
+			t.equal(SaveSchema.migrate({ version = 24, coins = 3 }).notify.joins, 0)
+			local played =
+				SaveSchema.migrate({ version = 24, rewards = { loginDay = 9, loginCount = 4 } })
+			t.equal(played.notify.joins, 1, "a profile that claimed a day has had a session")
+			t.equal(played.notify.answer, "")
+			local won = SaveSchema.migrate({ version = 24, levelsBeaten = { ["1-1"] = true } })
+			t.equal(won.notify.joins, 1, "so has one that won a level")
+			local stored = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 7.5, asked = 20400, noes = 99, answer = "maybe", zone = 9000 },
+			})
+			t.equal(stored.notify.joins, 7)
+			t.equal(stored.notify.asked, 20400)
+			t.isTrue(stored.notify.noes <= 3, "never more NOT NOWs than are allowed")
+			t.equal(stored.notify.answer, "", "an answer that is not one is dropped")
+			t.equal(stored.notify.zone, 14 * 60, "an offset is one a zone can have")
+			local yes = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 3, answer = "yes", zone = -300 },
+			})
+			local again = SaveSchema.migrate(yes)
+			t.equal(again.notify.answer, "yes", "a saved copy reads back the same")
+			t.equal(again.notify.zone, -300)
+			t.equal(again.notify.joins, 3)
+		end
+	)
+
+	--[[ Version 28: the season pass. An older save has no season XP, nothing
+	     claimed, no premium and no title; a stored one reads back, and a
+	     title is worn only if held. ]]
+	t.test("version 28 adds the season, empty, and reads a stored one back", function()
+		local p = SaveSchema.migrate({ version = 27, coins = 5 })
+		t.equal(p.season.key, "")
+		t.equal(p.season.xp, 0)
+		t.equal(p.season.free + p.season.paid, 0)
+		t.isFalse(p.season.premium)
+		t.isNil((next(p.titles)))
+		t.isNil(p.title)
+		t.equal(p.coins, 5)
+		local stored = SaveSchema.migrate({
+			version = 28,
+			season = { key = "2026-12", xp = 1200, free = 3, paid = 1, premium = true },
+			titles = { Wishkeeper = true },
+			title = "Wishkeeper",
+		})
+		t.equal(stored.season.key, "2026-12")
+		t.equal(stored.season.xp, 1200)
+		t.equal(stored.season.free, 3)
+		t.isTrue(stored.season.premium)
+		t.equal(stored.title, "Wishkeeper")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.season.paid, 1)
+		local stray = SaveSchema.migrate({
+			version = 28,
+			title = "Wishkeeper",
+			season = { key = "nope", xp = -4 },
+		})
+		t.isNil(stray.title, "a title not held is not worn")
+		t.equal(stray.season.key, "")
+		t.equal(stray.season.xp, 0)
+	end)
+
+	t.test(
+		"version 30: no code used and nobody asked to favourite; a stored copy keeps its own",
+		function()
+			local fresh = SaveSchema.default()
+			t.isTrue(next(fresh.codesUsed) == nil)
+			t.isFalse(fresh.favouriteAsked)
+			local old = SaveSchema.migrate({
+				version = 29,
+				coins = 4,
+				bossesBeaten = { MossyGlade = true },
+			})
+			t.isTrue(next(old.codesUsed) == nil, "an older profile has used no code")
+			t.isFalse(old.favouriteAsked, "and has not been asked")
+			t.equal(old.coins, 4)
+			local stored = SaveSchema.migrate({
+				version = 30,
+				codesUsed = { LAUNCH = true, BAD = "yes", [3] = true },
+				favouriteAsked = true,
+			})
+			t.isTrue(stored.codesUsed.LAUNCH == true)
+			t.isTrue(stored.codesUsed.BAD == nil, "only yes flags are kept")
+			t.isTrue(stored.favouriteAsked)
+			local again = SaveSchema.migrate(stored)
+			t.isTrue(
+				again.codesUsed.LAUNCH == true and again.favouriteAsked,
+				"a saved copy reads back the same"
+			)
+			t.isFalse(SaveSchema.migrate({ version = 30, favouriteAsked = "yes" }).favouriteAsked)
+		end
+	)
 end

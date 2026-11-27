@@ -1,0 +1,4 @@
+Make the WEAPON SHOP from the sheet.
+Roof: orange-red hipped roof with chunky broken tiles heaved up around the blade.
+Landmark: a colossal steel sword driven point-down through the roof, leaning as drawn, with gold crossguard, red gem, brown wrapped grip and gold pommel; beside it, toward the back right, a stone chimney with glowing window slots.
+Door props, as separate nodes: an anvil on a wooden stump in front of the porch; in the porch, a rack of three swords and a small stone forge with a glowing mouth. Red banners on the front wall.

@@ -76,6 +76,10 @@ export type ArenaModel = {
 	     kit's room is never toned. ]]
 	outerShade: number?,
 	outerGlow: number?,
+	--[[ The floor is shallow water: every step splashes and leaves a ring
+	     (`Fx/WaterSteps`; owner, 2026-11-05: "the footsteps in the shallow
+	     water need to be emphasized"). ]]
+	shallowWater: boolean?,
 }
 
 --[[
@@ -145,10 +149,67 @@ local function thornwood(): ArenaModel
 		     2026-10-25: "make the lighting for thornwood a little darker"):
 		     about a fifth less light, and a cooler, dimmer ambient. ]]
 		lighting = {
-			brightness = 1.7,
-			ambient = Color3.fromRGB(98, 98, 84),
-			outdoorAmbient = Color3.fromRGB(116, 120, 96),
+			--[[ About a quarter off (owner, 2026-11-08: "take some lighting
+			     off of the objects"): was 1.7, 98/98/84 and 116/120/96. ]]
+			brightness = 1.3,
+			ambient = Color3.fromRGB(78, 78, 67),
+			outdoorAmbient = Color3.fromRGB(93, 96, 77),
 			gradeBrightness = -0.08,
+		},
+	}
+end
+
+local BogheartForest = require(script.Parent.BogheartForest)
+local DrownedForest = require(script.Parent.DrownedForest)
+
+local DROWNED_OUTER: { ArenaPart } = DrownedForest
+local BOGHEART_OUTER: { ArenaPart } = BogheartForest
+
+--[[ Act 1, area 3: the Drowned Village, built from the owner's kit
+     (`Config/ArenaKits.Drowned`), inside its own outer flood
+     (`Config/DrownedForest`, 2026-11-05): sunken houses, the bell tower,
+     the toll gate, dead trees with nets, boats and reeds, with its own life
+     (`Balance.Ambience.Drowned`). Past that, the deep flood water, the
+     sheet's darkest teal. Its floor is shallow water, so
+     `Fx/WaterSteps` splashes and rings under every step (`shallowWater`).
+     Its low cover would be water, though no room has any. ]]
+local DROWNED_FLOOD = Color3.fromRGB(0, 110, 118)
+local function drowned(): ArenaModel
+	return {
+		parts = DROWNED_OUTER,
+		outsideColor = DROWNED_FLOOD,
+		ambience = "Drowned",
+		kit = "Drowned",
+		lowCover = "Water",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
+		shallowWater = true,
+	}
+end
+
+--[[ Act 2, area 4: Bogheart Caverns (`Config/ArenaKits.Bogheart`), inside
+     its own outer cavern (`Config/BogheartForest`, 2026-11-05): rock rims
+     and columns, giant mushroom groves, bog sprouts, the glowing stream
+     running on to its pools and two side cave mouths, with its own life
+     (`Balance.Ambience.Bogheart`). Its water boxes are the glowing stream;
+     past it all, the cave's dark slate. Darker than the glade, a cave lit by its own glow. ]]
+local CAVERN_ROCK = Color3.fromRGB(46, 50, 64)
+local function bogheart(): ArenaModel
+	return {
+		parts = BOGHEART_OUTER,
+		outsideColor = CAVERN_ROCK,
+		ambience = "Bogheart",
+		kit = "Bogheart",
+		lowCover = "Water",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
+		lighting = {
+			--[[ About a quarter off (owner, 2026-11-08: "take some lighting
+			     off of the objects"): was 1.4, 84/92/112 and 96/106/128. ]]
+			brightness = 1.05,
+			ambient = Color3.fromRGB(67, 74, 90),
+			outdoorAmbient = Color3.fromRGB(77, 85, 102),
+			gradeBrightness = -0.06,
 		},
 	}
 end
@@ -169,6 +230,17 @@ local ArenaModels = {
 	ThornBoulders = thornwood(),
 	ThornBrambles = thornwood(),
 	ThornBoss = thornwood(),
+	--[[ The Drowned Village's rooms: the sheet's (well, ruins, crates) and
+	     its variants, the open floor, and the last room. One look, so one
+	     builder; the names say which kind of room it is. ]]
+	DrownedVillage = drowned(),
+	DrownedOpen = drowned(),
+	DrownedBoss = drowned(),
+	--[[ Bogheart Caverns: stream rooms, the open floor (no stream), and the
+	     last room. ]]
+	BogheartStream = bogheart(),
+	BogheartOpen = bogheart(),
+	BogheartBoss = bogheart(),
 }
 
 return table.freeze(ArenaModels)

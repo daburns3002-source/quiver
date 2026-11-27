@@ -65,6 +65,10 @@ enemyHealth = 1.045 ^ (floor - 1)
 enemyDamage = 1.030 ^ (floor - 1)
 ```
 
+Since 2026-10-31 both start below the area's own (health ×0.7, damage ×0.7) and health climbs at
+1.0872 (`Balance.Endless`). Damage starts at ×0.5 since the owner's playtest of 2026-11-19 ("i got
+2 shot" in the teens): floors 11–20 are Thornwood's volley shooters, met in Mossy Glade gear.
+
 **Health grows faster than damage on purpose.** Spongy enemies are a worse run; enemies that
 delete you without warning are a worse *game*. The player should always see the wall coming.
 
@@ -138,15 +142,31 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 
 | Floor | Reward |
 |---|---|
-| 10 | a pet egg |
-| 20 | a gear piece |
-| 30 | a cosmetic (trail or aura) |
-| 50 | a pet egg, guaranteed Legendary or better |
-| 75 | a gear piece, guaranteed Legendary |
-| 100 | a title, and a Mythic-tier cosmetic |
+| 10 | 5 pet eggs |
+| 20 | 5 weapon crates |
+| 30 | 5 eggs and 5 crates |
+| 50 | 5 eggs, one guaranteed Legendary or better |
+| 75 | 5 crates, one guaranteed Legendary |
+| 100 | **any one Voidglass weapon, the player's pick** (the Nebula Blade, a Mythic, or the Orbit Bow, Starwell Staff or Comet Daggers, Legendaries), 10 eggs and 10 crates, a Mythic in each |
 
-Each hits a different system on purpose, so no one milestone is skippable because you already
-have enough of that thing.
+**Room 100's pick** (owner, 2026-11-19: "make sure that the player has a choice BETWEEN THE MYTHICS
+AND LEGENDARIES FOR ALL CLASSES for the endless rewards and the battlepass", "the space and sakura
+ones"): the milestone owes a pick of the Voidglass set (`Balance.Endless.milestones` `pick`,
+`Util/RewardPickRules`), saved (`rewardPicks`, save v29) and taken on the lobby's pick panel
+(`UI/RewardPick`) once the run is over: four tiles, one for each class. The client sends only the
+weapon (`Remotes.RewardPick`); the server gives it only if it is of an owed set and can be taken
+(`Wallet.pickReward`). The Nebula Blade is held once; a bow, staff or daggers already held comes as
+another copy to merge.
+
+**Built 2026-11-11, at the owner's word** ("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE
+THAT EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each is hatched and opened for
+the player the moment its floor is cleared, free, the furthest egg and the furthest stocked crate
+for their class that they have reached (by the launch's gates, whichever way the launch switch is:
+`Util/PrizeRules`, 2026-11-16), on top of its Soulstones (`Server/Data/EndlessPrizes`). The cosmetic and the title the
+first table had at 30 and 100 do not exist, so those floors pay in eggs and crates too.
+
+Soulstones themselves now buy eggs and crates at the Soulstone shop on the Endless portal's screen
+(`Config/SoulstoneShop`).
 
 ### The reward set — designed, not built
 
@@ -157,6 +177,8 @@ to build them.
 - **Astral Arc**, a bow — `assets/concepts/blocky/weapons/endless/astral_arc_views.png`.
   Front, side, back and three-quarter, a close-up of the centre star and its orbit ring, and
   four views of the star-tipped arrow that goes with it.
+  When it is built it is given once and so takes `earned = true` in `Config/WeaponStats`: no
+  merge tier, no MERGE, never in a crate (owner, 2026-11-14, `ShopRules.merges`).
 - **Orbit Manta**, a pet — `assets/concepts/blocky/pets/endless/orbit_manta_views.png`.
   Front, right, three-quarter, back and top, plus exploded wing layers, the ring on its own,
   and how the ring sits around the body.
@@ -233,6 +255,11 @@ that the mode is worth opening.
 
 A board on `endlessBest`, following `Run/StoryLeaderboard`'s pattern and
 `docs/LEADERBOARD.md`.
+
+**And a weekly one** (2026-11-18): THIS WEEK'S DELVERS, each player's best
+floor this week (Monday 00:00 UTC reset), the faster run breaking a tie, with
+prizes for the top 1, 10 and 100 and a band for every floor reached, paid on
+the next join (`Run/WeeklyTournament`, `docs/LEADERBOARD.md`).
 
 ---
 

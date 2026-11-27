@@ -30,14 +30,17 @@ local Burning = require(script.Parent.Burning)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Pathing = require(script.Parent.Parent.Enemies.Pathing)
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
+local PetCrowd = require(ReplicatedStorage.Shared.Util.PetCrowd)
 local PetDash = require(ReplicatedStorage.Shared.Util.PetDash)
 local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Wallet = require(script.Parent.Parent.Data.Wallet)
 
 type Spec = PetCombatConfig.Spec
 type Session = RunSession.Session
@@ -66,6 +69,14 @@ type State = {
 
 --[[ Each player's pets, by slot. ]]
 local states: { [Player]: { [number]: State } } = {}
+
+--[[ A pet's damage multiplier: its merge tier (`Util/MergeRules`: the
+     best tier its owner holds, `Data/Wallet.petTier`) times every pet's
+     `damageScale` (`Config/PetCombat`). Every blow, burn, bleed and wake a
+     pet deals goes through it. ]]
+local function tierScale(player: Player, pet: string): number
+	return (MergeRules.petScale[Wallet.petTier(player, pet)] or 1) * PetCombatConfig.damageScale
+end
 
 --[[ The pets in a player's slots that can fight, by slot. ]]
 local function petsOf(player: Player): { [number]: string }
@@ -143,6 +154,20 @@ local function hit(session: Session, model: Model, amount: number, from: Vector3
 	return landed
 end
 
+--[[ The Prism Leviathan's shards: as its bolt lands on `model`, standing
+     at `at`, the nearest others round it take `share` of the blow
+     (`Shared/Util/PetCrowd`). `at` is read before the bolt lands, since a
+     killing blow takes the enemy out of `EnemyManager.positions`. ]]
+local function shatter(session: Session, spec: Spec, model: Model, at: Vector3, amount: number)
+	local split = spec.split
+	if not split or amount <= 0 then
+		return
+	end
+	for _, shard in PetCrowd.shardTargets(split, inRange(at, math.huge), at, model) do
+		hit(session, shard.model, amount * split.share, at)
+	end
+end
+
 --[[ What a pet does to an enemy besides its damage, once a target.
 
      `touched` is false for an enemy the attack reached without hitting —
@@ -162,11 +187,18 @@ local function afflict(
 	if spec.root then
 		EnemyManager.root(model, RootHold.seconds(spec.root, EnemyManager.isBoss(model)), pet)
 	end
+	--[[ Burns, bleeds and the wake are a pet's damage too, so they take its
+	     merge tier and `damageScale` as its blows do (before 2026-11-13 they
+	     took neither, so merging a Thornwake or a Bramble Wilf did less than
+	     the tier said). ]]
+	local scale = tierScale(session.player, pet)
 	if spec.burn then
-		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
+		Burning.ignite(model, spec.burn.rate * scale, spec.burn.duration, session.player, now)
 	end
 	if spec.bleed then
-		Burning.bleed(model, spec.bleed, session.player, now)
+		local bleed = table.clone(spec.bleed)
+		bleed.rate *= scale
+		Burning.bleed(model, bleed, session.player, now)
 	end
 	if spec.mark then
 		EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
@@ -180,7 +212,9 @@ local function afflict(
 	if spec.wake then
 		--[[ Wake Chase: the foam goes on, and bites it for walking
 		     (`Enemies/EnemyManager`, `Shared/Util/PetWake`). ]]
-		EnemyManager.wake(model, spec.wake, session.player)
+		local wake = table.clone(spec.wake)
+		wake.damage *= scale
+		EnemyManager.wake(model, wake, session.player)
 	end
 	if spec.healPerHit and touched then
 		RunSession.heal(session, spec.healPerHit)
@@ -216,8 +250,12 @@ local function launch(
 		then
 			return
 		end
+		local at = EnemyManager.positions()[model]
 		if amount > 0 then
 			hit(now, model, amount, from)
+			if at then
+				shatter(now, spec, model, at, amount)
+			end
 		end
 		if first then
 			afflict(now, state.pet, model, spec, os.clock(), true)
@@ -228,11 +266,44 @@ end
 --[[ Everything one attack does to the enemies and to its owner. ]]
 local function strike(session: Session, state: State, spec: Spec, origin: Vector3, now: number)
 	local targets = inRange(origin, spec.range)
+	--[[ The Cave Cricket's Long Chirp turns the order round: furthest
+	     first, so everything below that takes "the first few" takes the
+	     furthest few. ]]
+	if spec.farthest then
+		local n = #targets
+		for i = 1, n // 2 do
+			targets[i], targets[n + 1 - i] = targets[n + 1 - i], targets[i]
+		end
+	end
 	local nearest = targets[1]
 	local struck: { Model } = {}
 	local held = spec.targets or 1
+	local cone = spec.cone
+	local flop = spec.flop
 	if spec.beam and nearest then
 		struck = inLine(origin, nearest.position, spec.beam, spec.range)
+	elseif cone and nearest then
+		--[[ The Glowcap Wilf's Spore Sneeze: the whole wedge toward the
+		     nearest enemy, out to the pet's reach. ]]
+		for _, target in targets do
+			if
+				PetCrowd.inCone(origin, nearest.position, target.position, cone.angle, spec.range)
+			then
+				table.insert(struck, target.model)
+			end
+		end
+	elseif flop then
+		--[[ The Gulpling's Little Belly Flop: onto the biggest crowd in
+		     reach, and everything round where it lands. ]]
+		local spot = PetCrowd.densest(targets, flop.radius)
+		if spot then
+			table.insert(struck, spot.model)
+			for _, other in
+				PetCrowd.around(inRange(origin, math.huge), spot.position, flop.radius, spot.model)
+			do
+				table.insert(struck, other.model)
+			end
+		end
 	elseif spec.damage or spec.root or spec.mark or spec.blind or spec.wake then
 		for i = 1, math.min(held, #targets) do
 			table.insert(struck, targets[i].model)
@@ -271,22 +342,69 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		session.petShelterCut = shelter.reduction
 		session.petShelterUntil = now + shelter.duration
 	end
+	--[[ The Bog Beaver plasters its owner: a fresh coat replaces whatever
+	     was left of the last (`Shared/Util/MudCoat`). ]]
+	local coat = spec.coat
+	if coat then
+		session.petCoat = coat.amount
+		session.petCoatUntil = now + coat.duration
+	end
 
 	--[[ The Buoy Puffer's spine is the only blow in the game worth more
 	     than its own number, and only because it cost its owner health to
 	     earn (`payback`, armed in `stepPet`). ]]
 	local payback = spec.payback
 
+	--[[ The Lanternfin's mote sticks and bursts later, on its target and
+	     everything round wherever it has walked -- or where it fell, if it
+	     died first. Nothing else lands now. ]]
+	local burst = spec.burst
+	local damage = if spec.damage then spec.damage * tierScale(session.player, state.pet) else nil
+	if burst and damage then
+		local player = session.player
+		local seen = EnemyManager.positions()
+		for _, model in struck do
+			local fell = seen[model]
+			task.delay(burst.fuse, function()
+				local live = RunSession.get(player)
+				local at = EnemyManager.positions()[model] or fell
+				if not live or not live.alive or not at or not current(player, state) then
+					return
+				end
+				for _, spot in inRange(at, burst.radius) do
+					hit(live, spot.model, damage, at)
+				end
+			end)
+		end
+		struck = {}
+	end
+
+	--[[ Read once for the Olm's crowd and the Leviathan's shards. ]]
+	local everyone = if spec.crowd then inRange(origin, math.huge) else {}
+	local positions = EnemyManager.positions()
+
 	local shot = PetShots.projectile(state.pet)
 	local hits = spec.hits or 1
 	for index, model in struck do
 		local amount = if spec.damage
-			then spec.damage + (if spec.bossDamage and EnemyManager.isBoss(model)
+			then (spec.damage + (if spec.bossDamage and EnemyManager.isBoss(model)
 				then spec.bossDamage
-				else 0)
+				else 0)) * tierScale(session.player, state.pet)
 			else 0
 		if payback then
 			amount *= payback.scale
+		end
+		--[[ The Lichen Gecko's every fourth lick. ]]
+		if spec.combo then
+			amount *= PetCrowd.comboScale(spec.combo, state.attacks)
+		end
+		--[[ The Olm's bite grows with the crowd round its target. ]]
+		local at = positions[model]
+		if spec.crowd and at then
+			amount *= PetCrowd.crowdScale(
+				spec.crowd,
+				#PetCrowd.around(everyone, at, spec.crowd.radius, model)
+			)
 		end
 		if shot then
 			-- each blow waits for the piece carrying it to leave, then to fly
@@ -298,6 +416,9 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		else
 			for _ = 1, if amount > 0 then hits else 0 do
 				hit(session, model, amount, origin)
+			end
+			if at then
+				shatter(session, spec, model, at, amount)
 			end
 			afflict(session, state.pet, model, spec, now, true)
 		end
@@ -384,12 +505,14 @@ local function dashAt(
 			local live = RunSession.get(player)
 			if live and live.alive and current(player, state) then
 				if spec.damage then
-					local amount = spec.damage
+					local amount = (
+						spec.damage
 						+ (
 							if spec.bossDamage and EnemyManager.isBoss(model)
 								then spec.bossDamage
 								else 0
 						)
+					) * tierScale(player, state.pet)
 					for _ = 1, spec.hits or 1 do
 						hit(live, model, amount, landed)
 					end
@@ -413,7 +536,7 @@ end
      supports its owner without one. ]]
 local function hasWork(spec: Spec, origin: Vector3): boolean
 	--[[ A shelter needs nobody to be in range: it is cast on its owner. ]]
-	if spec.heal or spec.magnet or spec.shelter then
+	if spec.heal or spec.magnet or spec.shelter or spec.coat then
 		return true
 	end
 	return #inRange(origin, spec.range) > 0
@@ -450,7 +573,7 @@ local function stepPet(
 		     of them are priced for. A pet with a ring carries no other
 		     affliction for exactly that reason. ]]
 		for _, target in inRange(origin, aura.radius) do
-			hit(session, target.model, aura.damage, origin)
+			hit(session, target.model, aura.damage * tierScale(session.player, state.pet), origin)
 		end
 	end
 
@@ -570,7 +693,7 @@ function PetCombat.shellBlocked(session: Session, pet: string)
 	end
 	local origin = root.Position
 	for _, target in inRange(origin, reflect.radius) do
-		hit(session, target.model, reflect.damage, origin)
+		hit(session, target.model, reflect.damage * tierScale(session.player, pet), origin)
 	end
 end
 

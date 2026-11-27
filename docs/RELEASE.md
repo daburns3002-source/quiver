@@ -18,7 +18,7 @@ and what nobody has checked yet. Working notes and raw bot logs:
     opened only after 1-10, as the locks say. 12 Endless floors.
   - Arcanist, locks on, on the Assassin's profile (so replays): Mossy Glade 1-1 to 1-10, King
     Bloblin won again. Replays gave no free egg, as they should. Its level-5 prize egg was Thornwood's
-    (King Bloblin beaten); its level-3 crate was Mossy Glade's (Thornwood's has no staffs until the import).
+    (King Bloblin beaten); its level-3 crate was Mossy Glade's (Thornwood's had no staffs then; stocked 2026-11-27).
   - Warden, locks on: 1-1 and 1-2 on the same profile, then Studio was closed and the rest of that
     Play was lost. A fresh Play with Studio's unlocks: Drowned Village 3-1.
   - Hard mode (Warden): 1-1 and 1-2 on hard won. They open in order (a hard 1-3 start was refused
@@ -49,16 +49,16 @@ and what nobody has checked yet. Working notes and raw bot logs:
   states.
 
 No other bug was found. Not bugs: the Drowned Village gives no free egg (it has no egg yet);
-Thornwood's crate gives nothing until its weapons are imported, so prize crates fall back to Mossy
-Glade's; hard levels open in order (1-1 on hard first).
+Thornwood's crate gave nothing until its weapons were in (stocked 2026-11-27), so prize crates fell back
+to Mossy Glade's; hard levels open in order (1-1 on hard first).
 
 ## Only the owner can do
 
 - [ ] **Two-player co-op test** on the published game (now possible: the friend needs access,
       public or friends on the Creator Dashboard).
 - [ ] **Phone check** on a real phone (no session can emulate one).
-- [ ] **Import the fifteen Thornwood weapons** (`Downloads\thornwood_weapons_import`); until then
-      Thornwood's store and crates sell nothing.
+- [x] **Import the fifteen Thornwood weapons** (done 2026-11-27 by Claude, uploaded through Open Cloud
+      once the owner approved `Downloads`): Thornwood's store and crates sell them.
 - [ ] **Rename the experience** ("Archer Legends [TEST]", universe 10772468005). Keep this universe:
       all ten Robux product and pass ids belong to it.
 - [ ] **Maturity questionnaire**, and the store page's **icon, thumbnails and trailer**.

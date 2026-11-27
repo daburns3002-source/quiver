@@ -51,6 +51,14 @@ export type Flight = {
 	--[[ Radians a second it may turn towards what `Contact.seek` finds.
 	     0 flies straight, which is every projectile but Tracking Eye's. ]]
 	homing: number,
+	--[[ Serpent Arrow: studs either side of its line it weaves (nil or 0
+	     flies straight), the line it weaves about, and how far along it it
+	     has come, which is the weave's phase. Both sides run the same
+	     weave from the same numbers, so the drawn arrow snakes where the
+	     simulated one does. ]]
+	weave: number?,
+	weaveBase: Vector3?,
+	weaveTravelled: number?,
 	--[[ Models already reached, so one body is not hit on consecutive steps
 	     while the projectile is still inside it. ]]
 	hitModels: { [Model]: boolean },
@@ -293,6 +301,11 @@ local function sweep(
 			end
 
 			flight.bounces -= 1
+			--[[ A weaving shot's line bounces with it. ]]
+			local base = flight.weaveBase
+			if base then
+				flight.weaveBase = ProjectileFlight.reflect(base, result.Normal) or reflected
+			end
 			flight.direction = reflected
 			flight.position = result.Position + reflected * BOUNCE_CLEARANCE
 
@@ -322,6 +335,18 @@ local function sweep(
 	return true
 end
 
+--[[ Serpent Arrow: the heading `travelled` studs along a line `base` that
+     weaves `amplitude` studs either side of it, once every
+     `Balance.Player.serpent.wavelength` studs: the slope of a sine wave,
+     turned into an angle off the line. Pure, so `tests/NineteenCards.spec`
+     can hold it. ]]
+function ProjectileFlight.weaveHeading(base: Vector3, amplitude: number, travelled: number): Vector3
+	local k = 2 * math.pi / Balance.Player.serpent.wavelength
+	local angle = math.atan(amplitude * k * math.cos(k * travelled))
+	local heading = math.atan2(base.Z, base.X) + angle
+	return Vector3.new(math.cos(heading), 0, math.sin(heading))
+end
+
 --[[
 	Advances a flight by one frame. Returns whether it is still alive.
 
@@ -346,8 +371,18 @@ function ProjectileFlight.advance(
 		math.clamp(math.ceil(total / Balance.Projectile.maxStepTravel), 1, MAX_SUBSTEPS)
 	local each = total / substeps
 
+	local weave = flight.weave or 0
 	for _ = 1, substeps do
+		if weave > 0 then
+			--[[ Steering turns the line; the weave rides on it. ]]
+			flight.direction = flight.weaveBase or flight.direction
+		end
 		steer(flight, deltaTime / substeps, contact)
+		if weave > 0 then
+			flight.weaveBase = flight.direction
+			flight.direction =
+				ProjectileFlight.weaveHeading(flight.direction, weave, flight.weaveTravelled or 0)
+		end
 
 		if not resolveOverlaps(flight, size, overlap, contact) then
 			return false
@@ -355,6 +390,9 @@ function ProjectileFlight.advance(
 
 		if not sweep(flight, size, each, params, contact) then
 			return false
+		end
+		if weave > 0 then
+			flight.weaveTravelled = (flight.weaveTravelled or 0) + each
 		end
 	end
 

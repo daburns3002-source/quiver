@@ -115,6 +115,12 @@ return function(t: TestRunner.Helper)
 					-- stab, and the sword a kill raises
 					or with.melee.guardBreak ~= plain.melee.guardBreak
 					or with.upgrades.vengefulSpirit ~= plain.upgrades.vengefulSpirit
+					-- the nineteen's (2026-11-27): the shout every few blows, the
+					-- slam's chains, the blades while still, a kill's harvest
+					or with.melee.bellow ~= plain.melee.bellow
+					or with.melee.graveChains ~= plain.melee.graveChains
+					or with.melee.bladeCyclone ~= plain.melee.bladeCyclone
+					or with.melee.reapersHarvest ~= plain.melee.reapersHarvest
 				t.isTrue(changed, `{ability.id} does nothing for the Assassin`)
 			end
 		end
@@ -333,7 +339,10 @@ return function(t: TestRunner.Helper)
 	     (owner, 2026-11-26: "As written (B)"), which left the Arcanist 29,
 	     the Warden 28, the Ranger 27 and the Assassin 26: within three. The
 	     owner's eleven (2026-11-27) make them 32, 32, 31 and 29, three of
-	     them shared by both melee classes. ]]
+	     them shared by both melee classes. The nineteen (the same day, "Build
+	     all nineteen") make them Arcanist 39, Warden 38, Ranger 37 and
+	     Assassin 36: five of the Warden's are both melee classes', and
+	     Hunter's Mark and Starfall the Assassin's too. ]]
 	t.test("the class pools are within three cards of each other", function()
 		local sizes: { number } = {}
 		for _, class in ClassList.all() do

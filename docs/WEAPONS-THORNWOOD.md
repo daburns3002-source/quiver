@@ -1,6 +1,6 @@
 # Weapons — Thornwood (Act 1, area 2)
 
-**Modelled 2026-11-18, waiting on the owner's import** (see "Status" at the foot; the Assassin's five daggers are already in the game). What follows is the October design. Ideas written by
+**In the game since 2026-11-26** (see "Status" at the foot): the fifteen bows, staffs and blades below, with the Assassin's five daggers of 2026-11-17, are sold by Thornwood's crate and store. What follows is the October design. Ideas written by
 Codex (2026-10-26) from the owner's ask: "i need codex to create ideas and
 reference sheets for pets and weapons for area 2 now", then reviewed for
 name clashes with the Mossy Glade, class silhouettes and tone (two effect
@@ -243,10 +243,20 @@ Blackspine Staff, Briarbreaker Blade) are **modelled in Tripo**: HD model, 4,000
   `name_tripo_glb.py` names them for the Import Queue in `Downloads\thornwood_weapons_import`, each one
   textured mesh with UVs.
 - Shop and gear pictures: `assets/ui/shop/thornwood_icons.py` (cut, not uploaded yet).
-- **Not done:** the import (the owner's), then `skins_to_luau.py`, `Config/WeaponStats` (area 2),
-  `Config/WeaponFx`, the pictures' upload, and `stocked = true` on Thornwood's crate. No projectiles were
-  modelled, so an Epic and up fires its base's arrow or orb, glowing, as the Drowned Village's and
-  Bogheart's do.
+- **In the game (2026-11-27).** Uploaded as Model assets through Open Cloud (no owner import; the ids
+  are in `write_skin_imports.py`) and read in Studio into
+  `assets/models/weapons/blocky/thornwood/skin_imports.json`; held by `skins_to_luau.py` (`THORNWOOD`) at
+  grips measured from the GLBs (`themed_sets/measure_grips.py`) and turned into the uploaded meshes' axes,
+  which are the GLB's with x and z negated (checked in Studio from the meshes' own vertices): every bow's
+  riser is on +X of its mesh, a quarter turn; staffs 43% up; blades at their handles, the Briarbreaker
+  Blade at the middle of its whole handle. Stats in `Config/WeaponStats` (area 2), pictures uploaded
+  into `Config/ShopAssets`, and Thornwood's crate is stocked (`Config/Shop`; at launch it waits on King
+  Bloblin, as the portal waits on 1-10). The Legendaries glow silk magenta and each Mythic its own colour
+  (an `aura`; none rainbow, owner 2026-11-06): Nightbarb red, Blackspine violet, Briarbreaker amber.
+- **Shots and cleaves.** No projectile was modelled, so each bow and staff flies a `WeaponFx.shots` look
+  drawn from its sheet's words, and each blade cuts a ribbon cleave (`WeaponFx.cleaves`). None has a card
+  of the Projectile Shots or Blade Cleaves pages yet: those pages were drawn before these weapons were.
 - **Effects.** The owner (2026-11-18): "Build the six new". Built as cards (`docs/CLASS-CARDS.md`,
-  "Thornwood's six cards"): Web Snare, Thorn Burst, Root Hold, Burr Blight, Boar Rush, Ruin Cracks, each to
-  be carried by its Legendary or Mythic above once the models are imported.
+  "Thornwood's six cards"), carried as `innate` since 2026-11-26: Silkweaver Bow Web Snare, Nightbarb Bow
+  Thorn Burst, Silk Diadem Staff Root Hold, Blackspine Staff Burr Blight, Silkbound Blade Boar Rush,
+  Briarbreaker Blade Ruin Cracks.

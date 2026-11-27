@@ -157,6 +157,34 @@ DAGGERS = [
     ("PrismStingers", "PRISM STINGERS", "Assassin", "PrismStingers", None, (63, 230, 242), 5),
     ("GoldenDaggers", "GOLDEN DAGGERS", "Assassin", "GoldenDaggers", None, (255, 205, 56), 4),
 ]
+# Area 2, Thornwood (docs/WEAPONS-THORNWOOD.md): the five bows, staffs and
+# blades, Tripo models (4,000 triangles, 8K texture, PR #625) of the Codex
+# front views, one textured mesh each. Uploaded 2026-11-27 through Open
+# Cloud from `Downloads\\thornwood_weapons_import` and read in Studio into
+# blocky/thornwood/skin_imports.json (write_skin_imports.py); grips and the
+# bows' risers measured from the GLBs (themed_sets/measure_grips.py) and
+# turned into the meshes' axes (GLB x and z negated). A
+# Legendary's or Mythic's glow is an `aura`: silk magenta for the three
+# Legendaries, and each Mythic its own (none rainbow).
+THORNWOOD_IMPORTS = HERE / "blocky" / "thornwood" / "skin_imports.json"
+# key, label, class, import, projectile, glow colour, tier
+THORNWOOD = [
+    ("BoarTuskBow", "BOAR TUSK BOW", "Ranger", "BoarTuskBow", None, None, 1),
+    ("PlumBurrBow", "PLUM BURR BOW", "Ranger", "PlumBurrBow", None, None, 2),
+    ("LurkerVineBow", "LURKER VINE BOW", "Ranger", "LurkerVineBow", None, None, 3),
+    ("SilkweaverBow", "SILKWEAVER BOW", "Ranger", "SilkweaverBow", None, (236, 82, 214), 4),
+    ("NightbarbBow", "NIGHTBARB BOW", "Ranger", "NightbarbBow", None, (255, 86, 70), 5),
+    ("HedgeBulbStaff", "HEDGE BULB STAFF", "Arcanist", "HedgeBulbStaff", None, None, 1),
+    ("BurrTotemStaff", "BURR TOTEM STAFF", "Arcanist", "BurrTotemStaff", None, None, 2),
+    ("LurkerCrestStaff", "LURKER CREST STAFF", "Arcanist", "LurkerCrestStaff", None, None, 3),
+    ("SilkDiademStaff", "SILK DIADEM STAFF", "Arcanist", "SilkDiademStaff", None, (236, 70, 198), 4),
+    ("BlackspineStaff", "BLACKSPINE STAFF", "Arcanist", "BlackspineStaff", None, (152, 92, 255), 5),
+    ("BoarbackBlade", "BOARBACK BLADE", "Warden", "BoarbackBlade", None, None, 1),
+    ("PlumguardBlade", "PLUMGUARD BLADE", "Warden", "PlumguardBlade", None, None, 2),
+    ("BurrcrestBlade", "BURRCREST BLADE", "Warden", "BurrcrestBlade", None, None, 3),
+    ("SilkboundBlade", "SILKBOUND BLADE", "Warden", "SilkboundBlade", None, (236, 90, 230), 4),
+    ("BriarbreakerBlade", "BRIARBREAKER BLADE", "Warden", "BriarbreakerBlade", None, (255, 170, 40), 5),
+]
 # Themed sets (docs/WEAPONS-THEMED.md): a weapon for every class, of no area.
 # Neon Circuit (owner, 2026-11-18): Tripo models of the Codex front views in
 # assets/concepts/blocky/weapons/skins/sets/neon_circuit, imported by the
@@ -214,6 +242,13 @@ YAW = {
     "LumenveilBow": "math.pi / 2",
     "GoldenBow": "math.pi / 2",
     "LivewireBow": "-math.pi / 2",
+    # Thornwood's bows, every riser on +X of its uploaded mesh (on -X of its
+    # GLB, whose x and z the upload negates; read in Studio 2026-11-27)
+    "BoarTuskBow": "math.pi / 2",
+    "PlumBurrBow": "math.pi / 2",
+    "LurkerVineBow": "math.pi / 2",
+    "SilkweaverBow": "math.pi / 2",
+    "NightbarbBow": "math.pi / 2",
     # the seven themed sets' bows, every riser on -X (themed_sets/measure_grips.py)
     "WishbrightBow": "-math.pi / 2",
     "SaddlehornBow": "-math.pi / 2",
@@ -282,6 +317,26 @@ GRIPS = {
     "GoldenBow": (0.0806, 0.5, -0.0004),
     "GoldenStaff": (0.0, 0.43, 0.0),
     "GoldenBlade": (0.0, 0.175, 0.0),
+    # Thornwood, measured from its GLBs (themed_sets/measure_grips.py,
+    # 2026-11-26) and turned into its uploaded meshes' axes (x and z negated,
+    # checked in Studio 2026-11-27). The Briarbreaker Blade's narrow handle
+    # runs 12% to 28% up under its guard (a wrap band at 20% split the rule's
+    # run), so it is held at the middle of the whole run.
+    "BoarTuskBow": (0.0674, 0.5, 0.0),
+    "PlumBurrBow": (0.1069, 0.5, -0.0002),
+    "LurkerVineBow": (0.1004, 0.5, -0.0008),
+    "SilkweaverBow": (0.0714, 0.5, 0.0001),
+    "NightbarbBow": (0.049, 0.5, -0.0001),
+    "HedgeBulbStaff": (0.0001, 0.43, 0.0001),
+    "BurrTotemStaff": (0.0002, 0.43, -0.0003),
+    "LurkerCrestStaff": (0.0001, 0.43, -0.0003),
+    "SilkDiademStaff": (-0.0004, 0.43, -0.0005),
+    "BlackspineStaff": (-0.0021, 0.43, -0.003),
+    "BoarbackBlade": (0.0002, 0.18, -0.0007),
+    "PlumguardBlade": (-0.0004, 0.19, 0.0001),
+    "BurrcrestBlade": (0.0002, 0.22, -0.0001),
+    "SilkboundBlade": (-0.0001, 0.18, 0.0001),
+    "BriarbreakerBlade": (0.0003, 0.2, -0.0017),
     # Neon Circuit, measured from its GLBs (neon_circuit/measure_grips.py,
     # 2026-11-18): the bow's riser is on -X; the blade's handle runs 12% to
     # 30% up, the dagger's 12% to 28% (its pommel cube below)
@@ -456,6 +511,10 @@ def main():
         GRIPS.update({k: tuple(v) for k, v in json.loads(DAGGER_GRIPS.read_text(encoding="utf-8")).items()})
         rows += [(daggers, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in DAGGERS]
         listed = listed + DAGGERS
+    if THORNWOOD_IMPORTS.exists():
+        thornwood = json.loads(THORNWOOD_IMPORTS.read_text(encoding="utf-8"))
+        rows += [(thornwood, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in THORNWOOD]
+        listed = listed + THORNWOOD
     if NEON_CIRCUIT_IMPORTS.exists():
         neon = json.loads(NEON_CIRCUIT_IMPORTS.read_text(encoding="utf-8"))
         rows += [(neon, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in NEON_CIRCUIT]

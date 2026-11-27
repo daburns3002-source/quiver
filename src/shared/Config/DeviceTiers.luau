@@ -16,6 +16,9 @@ export type Tier = {
 	maxRenderedProjectiles: number,
 	-- Most damage numbers on screen at once.
 	maxDamageNumbers: number,
+	--[[ Whether the sun casts shadows (`Lighting.GlobalShadows`, the
+	     client's own copy). Off on the lowest tier only: a phone saves the
+	     shadow pass, every other device keeps the look. ]]
 	enableShadows: boolean,
 	enableScreenShake: boolean,
 	-- Projectile mesh detail. Low tier uses blocks.
@@ -114,7 +117,7 @@ local medium: Tier = {
 	name = "Medium",
 	maxRenderedProjectiles = 160,
 	maxDamageNumbers = 16,
-	enableShadows = false,
+	enableShadows = true,
 	enableScreenShake = true,
 	projectileIsRound = true,
 	projectileTrails = true,

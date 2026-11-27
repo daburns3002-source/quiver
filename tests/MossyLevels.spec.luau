@@ -300,16 +300,28 @@ return function(t: TestRunner.Helper)
 	     spawned anything would freeze the run, since `RoomController` opens
 	     the offer instead of a fight and the door waits on the choice. ]]
 	--[[ The breath after a hit (`StageConfig.hitGrace`) is the first
-	     levels' alone: later ones are tuned without it. ]]
-	t.test("only the tutorial and 1-1 to 1-3 give a breath after a hit", function()
-		local early = { ["1-1"] = true, ["1-2"] = true, ["1-3"] = true }
+	     levels' alone: later ones are tuned without it. Since 2026-11-27
+	     it runs on through 1-4 and 1-5 (owner: "Soften 1-4 and 1-5") and
+	     never grows on the way out, so 1-6 is a step, not a wall. ]]
+	t.test("only the tutorial and 1-1 to 1-5 give a breath after a hit", function()
+		local early = { ["1-1"] = 1, ["1-2"] = 2, ["1-3"] = 3, ["1-4"] = 4, ["1-5"] = 5 }
+		local breath: { [number]: number } = {}
 		for index, stage in Balance.Stages do
 			if index == Balance.tutorialStage or (stage.level and early[stage.level]) then
 				t.isTrue((stage.hitGrace or 0) > 0, `{stage.name} gives no breath`)
 				t.isTrue((stage.hitGrace or 0) <= 1, `{stage.name}'s breath is over a second`)
+				if stage.level then
+					breath[early[stage.level]] = stage.hitGrace or 0
+				end
 			else
 				t.isNil(stage.hitGrace, `{stage.name} gives a breath`)
 			end
+		end
+		for n = 4, 5 do
+			t.isTrue(
+				breath[n] ~= nil and breath[n] <= breath[n - 1],
+				`1-{n}'s breath is longer than 1-{n - 1}'s`
+			)
 		end
 	end)
 

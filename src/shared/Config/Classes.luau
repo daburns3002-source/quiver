@@ -175,12 +175,17 @@ local Classes: { [string]: Class } = {
 		},
 		--[[ Shadow Dash, the class's skill (owner, 2026-11-15): the dash
 		     cuts what it passes through, 1.5x a strike, and is back in 2.5 s
-		     where every other class waits 4. ]]
+		     where every other class waits 4.
+
+		     Its guard after landing was 0.2 s: in the release check's bot
+		     the Assassin took the most damage of the four, 9 to 17 would-be
+		     deaths a level from 1-4 on against the Warden's 0 to 7 (owner,
+		     2026-11-27: "Longer dash guard", not more health). ]]
 		dash = {
 			cooldown = 2.5,
 			damage = 1.5,
 			width = 5,
-			guard = 0.2,
+			guard = 0.45,
 		},
 	},
 }

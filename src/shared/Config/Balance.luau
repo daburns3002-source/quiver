@@ -14132,6 +14132,12 @@ local Balance = {
 			rooms = levelRooms(36, 15),
 			enemyDamage = 0.84,
 			enemyHealth = 1.22,
+			--[[ The breath carried on through 1-4 and, shorter, 1-5 (owner,
+			     2026-11-27: "Soften 1-4 and 1-5"): without it the bot's
+			     would-be deaths jumped from 0 to 3 in 1-3 to 5 to 20 here, for
+			     every class (`docs/RELEASE.md`). It tapers out so 1-6 is the
+			     next step of a ramp, not a new wall. ]]
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -14155,6 +14161,7 @@ local Balance = {
 			},
 			enemyDamage = 0.87,
 			enemyHealth = 1.26,
+			hitGrace = 0.4,
 			area = "MossyGlade",
 		},
 		--[[ 1-6..1-9's first fight is one smaller and their last two one bigger

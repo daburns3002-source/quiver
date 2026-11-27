@@ -420,9 +420,9 @@ local function playerStep(player: Player, clock: number, lobby: boolean)
 	-- when it takes a hit
 	local broke = player:GetAttribute("StoneSkinAt")
 	if type(broke) == "number" and broke ~= own.stoneAt then
-		local first = own.stoneAt == nil
 		own.stoneAt = broke
-		if not first and root and Workspace:GetServerTimeNow() - broke < 1 then
+		-- only a fresh break: one from before this client joined is history
+		if root and Workspace:GetServerTimeNow() - broke < 1 then
 			SoundFx.play("fx_stone_skin")
 			Voxel.burst(root.Position, 8, { STONE, Color3.fromRGB(110, 110, 115) }, 8, 0.5, 0.45, 6)
 		end

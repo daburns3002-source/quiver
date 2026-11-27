@@ -412,6 +412,42 @@ local function land(swing: Pending, now: number)
 		)
 	end
 
+	--[[ Echo Slash: what the blow struck is struck again a moment later,
+	     for the card's share of it, as a plain hit (no crit, nothing the
+	     strike carries), as Shockwave's wave lands. The echo is drawn on
+	     every client in the blow's own shape. ]]
+	if melee.echoSlash > 0 and #struck > 0 then
+		local echo = Balance.Player.waveTwo.echo
+		local from = root.Position
+		local echoed = blow * melee.echoSlash
+		local models: { Model } = {}
+		for _, enemy in struck do
+			table.insert(models, enemy.model)
+		end
+		upgradeFx:FireAllClients(
+			"EchoSlash",
+			session.player,
+			from,
+			swing.direction,
+			shape.kind,
+			if shape.kind == "Circle" then shape.radius else shape.reach,
+			if shape.kind == "Circle" then shape.ahead else shape.arc,
+			echo.delay
+		)
+		task.delay(echo.delay, function()
+			if not session.alive then
+				return
+			end
+			for _, model in models do
+				if EnemyManager.healthFraction(model) then
+					local _, xp, fell =
+						EnemyManager.damage(model, echoed, from, "Hit", session.player)
+					RunSession.creditKill(session.player, xp, fell)
+				end
+			end
+		end)
+	end
+
 	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]
 	ClassUpgrades.afterBlow(session, root.Position, swing.direction, now)
 	--[[ Fan of Knives: and every few of the Assassin's, a fan of knives;

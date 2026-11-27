@@ -34,6 +34,39 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
+## Wave 2's last five (2026-11-26)
+
+Wave 2 had ten cards; five were already built under other sessions (Sunder, Shockwave, Whirlwind,
+Frost Orb, Arcane Shield). The last five are built now. Asked whether to keep the pools within a card of
+each other, the owner said **"As written (B)"**: all five as the tables below give them, and the rule
+loosened to within three (`tests/ClassCards.spec`). Pools now: Arcanist 29, Warden 28, Ranger 27,
+Assassin 26. The doc's numbers are at the 2026-10-25 cut (x0.8); the rest are in
+`Balance.Player.waveTwo`.
+
+| Card | Class | Rarity | What it does | How |
+|---|---|---|---|---|
+| **Echo Slash** | Warden | Epic | Every blow strikes what it struck again 0.15 s later, at 32% / 48% | `MeleeSystem.land`, a plain hit as Shockwave's wave |
+| **Riposte** | Warden | Legendary | A shot the swing's guard catches flies back at the enemy nearest where it was fired (straight back when none is), turning after it, at 80% of the Warden's damage | `ProjectileSystem` (`throwBack`), `RunSession.guarding` |
+| **Split Orb** | Arcanist | Epic | An orb's first hit bursts it into 3 / 5 shards fanned 30 degrees apart, 24% each, 12 studs; shards never split | Split Shot's fan (`fireFan`), dressed on the orb |
+| **Gravity Well** | Arcanist | Legendary | Each blast pulls every enemy within 9 studs 3.5 studs in over 0.35 s, harder near the middle; bosses stand | `EnemyManager.pull`, as Black Hole; ticked in `ProjectileSystem.step` |
+| **Orbiting Orb** | Arcanist | Legendary | 1 / 2 orbs circle 5 studs out and strike what they touch for 30%, the same enemy no sooner than every 0.7 s | `ClassUpgrades.orbitCuts`, which the Assassin's Phantom Blades now share |
+
+- **Looks** (`Fx/Upgrades/WaveTwoFx`), voxel cubes: a pale cyan ghost of the blow sweeping through its
+  own shape (a ring for the slam); the thrown-back shot gold with a gold flash; violet shards with a
+  puff of crystal; violet cubes spiralling into a dark core; tumbling violet orbs circling the
+  Arcanist (`OrbitingOrbs` on the player, on the shared clock).
+- **Icons**: Codex in the set's style, the October icons as the idea
+  (`assets/concepts/blocky/ui/cards/wave2_cards_2026_11_26.sh`), composed by `compose_icon.py` and
+  uploaded (`Config/CardAssets`).
+- **Sounds**: this doc gives them none, so four silent hooks wait in `Config/Sounds`
+  (`fx_echo_slash`, `fx_riposte`, `fx_split_orb`, `fx_gravity_well`) for an audition round. Orbiting
+  Orb has no sound of its own.
+- **Seen** (2026-11-26, Studio Play, by probe): each echo lands 0.15 s after its blow at exactly 48%;
+  both shots the guard caught from Spitters came back and struck one for 80%; five shards a hit at
+  24%; the orbs struck for 30%; and the well pulled dummies inside it 2-3 studs in (it pulled nothing
+  until the well was ticked ahead of the step's early return when nothing is flying). **Not seen:** the
+  looks by eye, a phone, co-op.
+
 ## Thornwood's six cards (2026-11-18)
 
 The owner, asked whether Thornwood's three Legendaries and three Mythics should carry existing cards
@@ -219,8 +252,7 @@ seven silent hooks in `Config/Sounds` (`fx_phoenix` ... `fx_counter_strike`).
   Tracking Eye, Dual Bows (its Mythic).
 - **Warden only (13)** and **Arcanist only (12):** below.
 
-**Built so far (wave 1):** the rows not marked *wave 2*. Wave 2 is designed
-and has its icons uploaded, but no code yet.
+**Built:** every row, wave 2's included (the last five on 2026-11-26, above).
 
 So each class drafts from its own set plus the shared twelve: the Ranger 28
 cards, the Warden 25, the Arcanist 24.
@@ -283,11 +315,8 @@ Icons: one per card (all 25, waves 1 and 2), made with Codex in the style of the
 flat glyph with a thick dark outline on a white disc), in
 `assets/concepts/icons/`.
 
-Wave 1's icons are uploaded and their ids are in `Config/CardAssets`.
-**Wave 2's are not** (checked 2026-11-03): `Config/CardAssets` holds no key
-for Sunder, Echo Slash, Riposte, Frost Orb, Arcane Shield, Split Orb,
-Gravity Well or Orbiting Orb, and `assets/ui/glow_toy_cards/icons/` has no
-art for them either, so all eight are blocked on Codex as well as on code.
+Every card's icon is uploaded and its id is in `Config/CardAssets` (wave 2's
+last five since 2026-11-26, redrawn by Codex in the set's style).
 Forty further ideas, and which of wave 2 is now cheap, are in
 [CARD-IDEAS.md](CARD-IDEAS.md). Cleave's and
 Echo Slash's carry a faint grey smudge at the disc's left edge; regenerate

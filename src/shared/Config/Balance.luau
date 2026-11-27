@@ -12636,6 +12636,39 @@ local Balance = {
 		sunder = {
 			duration = 3,
 		},
+		--[[ Wave 2's last five (docs/CLASS-CARDS.md, 2026-11-26). How
+		     strong each is, is its card's level; damage is times the
+		     player's own.
+		     - Echo Slash: each blow strikes what it struck again `echo.delay`
+		       seconds later.
+		     - Riposte: a shot the swing's guard catches flies back at the
+		       enemy nearest where it was fired, within `riposte.seek` studs
+		       of that spot (straight back when none is), at `riposte.speed`
+		       times an arrow's speed.
+		     - Split Orb: an orb's first hit bursts it into shards fanned
+		       `shard.spread` apart about its heading, `shard.damage` each,
+		       flying `shard.range` studs. Shards never split.
+		     - Gravity Well: each blast pulls every enemy within
+		       `well.radius` in over `well.duration` seconds, stopping
+		       `well.stopAt` from the middle (bosses stand).
+		     - Orbiting Orb: orbs circle `orbit.radius` out, `orbit.turn`
+		       radians a second, striking what comes within `orbit.reach` of
+		       one for `orbit.damage`, the same enemy no sooner than every
+		       `orbit.again` seconds, shoving `orbit.knock` of its knockback. ]]
+		waveTwo = {
+			echo = { delay = 0.15 },
+			riposte = { seek = 8, speed = 1.2 },
+			shard = { spread = math.rad(30), damage = 0.24, range = 12 },
+			well = { radius = 9, duration = 0.35, stopAt = 1.5 },
+			orbit = {
+				radius = 5,
+				turn = 2.2,
+				reach = 1.6,
+				again = 0.7,
+				damage = 0.3,
+				knock = 0.35,
+			},
+		},
 		--[[ The Assassin's cards (owner, 2026-11-15; docs/CLASS-CARDS.md).
 		     What each level is worth is the card's (`Config/Abilities`);
 		     these are the rest.

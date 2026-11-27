@@ -23,6 +23,7 @@ local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
+local CliffFalls = require(script.Parent.Parent.Arena.CliffFalls)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
@@ -35,6 +36,7 @@ local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
 local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RocMoves = require(script.Parent.RocMoves)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local TollcrabMoves = require(script.Parent.TollcrabMoves)
@@ -207,6 +209,9 @@ type Enemy = {
 	lungeTravelled: number,
 	lungeMoving: boolean,
 	lungeHit: { [Player]: boolean },
+	--[[ A flyer's dive (`EnemyLunge.spot`): the marked spot it is diving
+	     at, nil for a lunge down a line. ]]
+	lungeSpot: Vector3?,
 	--[[ An imported model that plays its own clips without a boss's moves
 	     (Thornwood's enemies): its clip data, the clip it is showing, and
 	     where it stood last step, to tell walking from standing. ]]
@@ -247,6 +252,16 @@ local function footprint(config: Balance.EnemyConfig, yaw: number?): Vector2
 	local s = math.abs(math.sin(angle))
 
 	return Vector2.new(half.X * c + half.Z * s, half.X * s + half.Z * c)
+end
+
+--[[ Where an enemy that wants to be at `position` can be: pushed out of
+     cover, or, for a flyer (`EnemyConfig.flies`), only kept inside the
+     room's walls, since it hovers over cover and gaps. ]]
+local function settle(config: Balance.EnemyConfig, position: Vector3, yaw: number?): Vector3
+	if config.flies then
+		return Arena.clampToWalls(position, math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2)
+	end
+	return Arena.resolveBox(position, footprint(config, yaw))
 end
 
 local enemies: { [Model]: Enemy } = {}
@@ -1741,7 +1756,7 @@ local function slide(enemy: Enemy, deltaTime: number)
 	local moved = velocity * (1 - decay) / rate
 
 	enemy.knockbackVelocity = velocity * decay
-	enemy.position = Arena.resolveBox(enemy.position + moved, footprint(enemy.config, enemy.yaw))
+	enemy.position = settle(enemy.config, enemy.position + moved, enemy.yaw)
 	positions[enemy.model] = enemy.position
 	placeHitbox(enemy)
 end
@@ -1819,6 +1834,8 @@ local function shove(session: RunSession.Session, direction: Vector3, distance: 
 		return
 	end
 	playerShoved:FireClient(session.player, along.Unit, distance)
+	-- on the Windswept Cliffs a push can carry them over an edge
+	CliffFalls.pushed(session, along.Unit, distance)
 end
 
 --[[ The same push, for the Hollow Fisherman's hook (`Combat/ProjectileSystem`,
@@ -1840,6 +1857,26 @@ end
 
 --[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
 local PLAYER_REACH = 1
+
+--[[ Whether `point` is inside a cone from `at` along `direction`, `reach`
+     long and `angle` degrees across in all. ]]
+local function inCone(
+	point: Vector3,
+	at: Vector3,
+	direction: Vector3,
+	reach: number,
+	angle: number
+): boolean
+	local offset = Vector3.new(point.X - at.X, 0, point.Z - at.Z)
+	local distance = offset.Magnitude
+	if distance > reach then
+		return false
+	end
+	if distance < 1.5 then
+		return true
+	end
+	return offset.Unit:Dot(direction) >= math.cos(math.rad(angle / 2))
+end
 
 --[[ Resolves what a boss's move did this step: draws its warnings, and
      hits, shoves, grabs and releases players. ]]
@@ -2068,6 +2105,68 @@ local function resolveBossEvent(
 		--[[ The Old Tollcrab's (`Fx/TollFx`): a ring's reach and its gap's
 		     width in degrees, or a mark's radius. ]]
 		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.radius, e.width)
+	elseif e.kind == "GustTell" or e.kind == "SwipeTell" or e.kind == "BoltTell" then
+		--[[ The Tempest Roc's warnings (`RocMoves`, `Fx/TelegraphRenderer`):
+		     a cone's reach and full angle, or a bolt's ring. ]]
+		enemyTelegraph:FireAllClients(
+			e.at,
+			e.direction,
+			e.duration,
+			e.kind,
+			e.length + e.radius,
+			e.width
+		)
+	elseif e.kind == "Gust" then
+		--[[ Wing Gust: everyone in the cone is blown straight away from
+		     him. No damage: on the cliffs the edge does that. ]]
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, "GustBlow", e.length, e.width)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if
+				root
+				and session.alive
+				and inCone(root.Position, e.at, e.direction, e.length + PLAYER_REACH, e.width)
+			then
+				local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+				shove(session, if away.Magnitude > 0.1 then away else e.direction, e.radius)
+			end
+		end
+	elseif e.kind == "Swipe" then
+		local swipe = (boss.roc :: Balance.BossRoc).swipe
+		enemyTelegraph:FireAllClients(e.at, e.direction, 0.3, "SwipeHit", e.length, e.width)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if
+				root
+				and session.alive
+				and inCone(root.Position, e.at, e.direction, e.length + PLAYER_REACH, e.width)
+			then
+				local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+				hurt(session, swipe.damage * scale)
+				shove(session, if away.Magnitude > 0.1 then away else e.direction, swipe.shove)
+			end
+		end
+	elseif e.kind == "Bolt" then
+		local storm = (boss.roc :: Balance.BossRoc).storm
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"Bolt",
+			e.radius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius + PLAYER_REACH then
+				hurt(session, storm.damage * scale)
+			end
+		end
+	elseif e.kind == "Scream" then
+		enemyTelegraph:FireAllClients(e.at, Vector3.zAxis, 0.6, "Shake", 0.6)
 	elseif e.kind == "EchoStrike" then
 		local echo = boss.echo :: Balance.BossEcho
 		enemyTelegraph:FireAllClients(
@@ -2157,6 +2256,23 @@ local function sweepCrab(boss: Balance.EnemyBoss, move: BossMoves.Move, now: num
 		end
 		local damage, push, distance =
 			TollcrabMoves.touch(move, boss, now, session.player, root.Position, PLAYER_REACH)
+		if damage then
+			hurt(session, damage * difficulty().damage)
+			shove(session, push, distance)
+		end
+	end
+end
+
+--[[ The Tempest Roc's dive crossing the players (`RocMoves.touch`): each is
+     hit once a dive and thrown out of the lane. ]]
+local function sweepRoc(boss: Balance.EnemyBoss, move: BossMoves.Move, now: number)
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+		local damage, push, distance =
+			RocMoves.touch(move, boss, now, session.player, root.Position, PLAYER_REACH)
 		if damage then
 			hurt(session, damage * difficulty().damage)
 			shove(session, push, distance)
@@ -2319,11 +2435,18 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			state.next = state.next % #loop + 1
 			kind = loop[(state.next - 1) % #loop + 1]
 		end
-		if TollcrabMoves.owns(kind) then
+		--[[ The Tempest Roc's Storm waits until he is enraged. ]]
+		local enrageAt = boss.enrageAt
+		local enraged = enrageAt ~= nil and enemy.health <= enemy.maxHealth * enrageAt
+		if kind == "Storm" and not enraged then
+			state.next = state.next % #loop + 1
+			kind = loop[(state.next - 1) % #loop + 1]
+		end
+		if RocMoves.owns(kind) then
+			move = RocMoves.start(kind, now, feet, enemy.yaw or 0, enraged)
+		elseif TollcrabMoves.owns(kind) then
 			--[[ Enraged from `enrageAt` of his health down (docs/BOSSES.md
 			     §3: the Drowned Rise). ]]
-			local enrageAt = boss.enrageAt
-			local enraged = enrageAt ~= nil and enemy.health <= enemy.maxHealth * enrageAt
 			move = TollcrabMoves.start(kind, now, feet, enemy.yaw or 0, enraged)
 		else
 			move = BossMoves.start(kind, now, feet, enemy.yaw or 0)
@@ -2338,8 +2461,11 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		return Vector3.new(resolved.X, 0, resolved.Z)
 	end
 	local crab = TollcrabMoves.owns(move.kind)
+	local roc = RocMoves.owns(move.kind)
 	local pose: BossMoves.Pose, events: { BossMoves.Event }, done: boolean
-	if crab then
+	if roc then
+		pose, events, done = RocMoves.step(move, boss, now, target, clamp)
+	elseif crab then
 		pose, events, done = TollcrabMoves.step(move, boss, now, target, clamp)
 	else
 		pose, events, done = BossMoves.step(move, boss, now, target, clamp, over)
@@ -2361,6 +2487,8 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		sweepWheel(state, boss, move, now)
 	elseif crab then
 		sweepCrab(boss, move, now)
+	elseif roc then
+		sweepRoc(boss, move, now)
 	end
 	--[[ Belly Slide: her body hurts whoever it touches on the way, once a
 	     slide, and shoves them out to the side. ]]
@@ -2417,7 +2545,12 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	end
 
 	--[[ After the events: a grab switches the clip to the pull. ]]
-	local clip, clipAt, span = BossMoves.clip(move, boss)
+	local clip, clipAt, span
+	if roc then
+		clip, clipAt, span = RocMoves.clip(move)
+	else
+		clip, clipAt, span = BossMoves.clip(move, boss)
+	end
 	showClip(enemy, state, clip, clipAt, now, span)
 	if state.clip and move.kind == "Lash" and move.length > 0 then
 		local stretch = BossMoves.chainScale(move.length, boss.lash)
@@ -2449,6 +2582,65 @@ end
 	end of its distance or against cover. The line it showed is the line it
 	takes, so stepping off it works.
 ]]
+--[[
+	A flyer's dive (`EnemyLunge.spot`), once its wind-up over the marked
+	ring is done: straight to the mark at the lunge's speed, over any cover,
+	touching nobody on the way; landing, it hits everyone inside the ring
+	and, if the lunge says so, throws its archetype's shot from there (the
+	Storm Roc's feathers). Its model's `Charge` clip is the swoop down.
+]]
+local function stepDive(
+	enemy: Enemy,
+	lunge: Balance.EnemyLunge,
+	spot: Vector3,
+	targetRoot: BasePart,
+	deltaTime: number,
+	now: number
+): boolean
+	local config = enemy.config
+	local offset = Vector3.new(spot.X - enemy.position.X, 0, spot.Z - enemy.position.Z)
+	local step = lunge.speed * deltaTime
+	local arrived = offset.Magnitude <= step or enemy.lungeTravelled + step >= lunge.distance
+	if offset.Magnitude > 1e-3 then
+		enemy.yaw = math.atan2(-offset.X, -offset.Z)
+	end
+	enemy.position = settle(
+		config,
+		if arrived and offset.Magnitude <= step
+			then Vector3.new(spot.X, enemy.position.Y, spot.Z)
+			else enemy.position + offset.Unit * math.min(step, offset.Magnitude),
+		enemy.yaw
+	)
+	enemy.lungeTravelled += step
+	positions[enemy.model] = enemy.position
+	placeHitbox(enemy)
+	if not arrived then
+		return true
+	end
+
+	local reach = (lunge.spot or 0) + PLAYER_REACH
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+		local away = Vector3.new(root.Position.X - spot.X, 0, root.Position.Z - spot.Z)
+		if away.Magnitude <= reach then
+			hurt(session, config.attackDamage * lunge.damageScale * difficulty().damage)
+		end
+	end
+	enemy.model:SetAttribute("AttackAt", now)
+	if lunge.volley and config.shot then
+		enemy.volleyDirection = nil
+		queueVolley(enemy, targetRoot, config.shot)
+	end
+	enemy.lungeIndex = nil
+	enemy.lungeSpot = nil
+	enemy.lungeMoving = false
+	enemy.lastAttackAt = now
+	return true
+end
+
 local function stepLunge(
 	enemy: Enemy,
 	targetRoot: BasePart,
@@ -2470,8 +2662,10 @@ local function stepLunge(
 			if distance < lunge.minRange or distance >= lunge.maxRange then
 				continue
 			end
+			--[[ A dive flies over cover, so only a charge needs a clear line. ]]
 			if
-				not Arena.isSegmentClear(
+				not lunge.spot
+				and not Arena.isSegmentClear(
 					enemy.position,
 					targetRoot.Position,
 					config.hitboxSize.X / 2
@@ -2483,6 +2677,14 @@ local function stepLunge(
 			if not aim then
 				continue
 			end
+			--[[ A dive marks the floor under the player, inside the walls,
+			     and comes to that mark whatever the player does next. ]]
+			enemy.lungeSpot = if lunge.spot
+				then Arena.clampToWalls(
+					Vector3.new(targetRoot.Position.X, enemy.position.Y, targetRoot.Position.Z),
+					lunge.spot
+				)
+				else nil
 			enemy.lungeIndex = i
 			enemy.lungeGoesAt = now + lunge.telegraph
 			enemy.lungeDirection = aim
@@ -2507,13 +2709,19 @@ local function stepLunge(
 			enemy.model:SetAttribute("LungeTravel", lunge.distance / lunge.speed)
 			enemy.model:SetAttribute("LungeStopped", nil)
 			enemy.model:SetAttribute(WINDING_UP, true)
-			enemyTelegraph:FireAllClients(
-				enemy.position,
-				aim,
-				lunge.telegraph,
-				lunge.tell,
-				lunge.distance + radius
-			)
+			local spot = enemy.lungeSpot
+			if spot and lunge.spot then
+				-- the ring it will land in, drawn where it will land
+				enemyTelegraph:FireAllClients(spot, aim, lunge.telegraph, "Slam", lunge.spot)
+			else
+				enemyTelegraph:FireAllClients(
+					enemy.position,
+					aim,
+					lunge.telegraph,
+					lunge.tell,
+					lunge.distance + radius
+				)
+			end
 			return true
 		end
 		return false
@@ -2546,9 +2754,14 @@ local function stepLunge(
 		enemy.model:SetAttribute(WINDING_UP, nil)
 	end
 
+	local spot = enemy.lungeSpot
+	if spot and lunge.spot then
+		return stepDive(enemy, lunge, spot, targetRoot, deltaTime, now)
+	end
+
 	local step = math.min(lunge.speed * deltaTime, lunge.distance - enemy.lungeTravelled)
 	local wanted = enemy.position + enemy.lungeDirection * step
-	local reached = Arena.resolveBox(wanted, footprint(config, enemy.yaw))
+	local reached = settle(config, wanted, enemy.yaw)
 	local moved =
 		Vector3.new(reached.X - enemy.position.X, 0, reached.Z - enemy.position.Z).Magnitude
 	enemy.position = reached
@@ -2568,10 +2781,13 @@ local function stepLunge(
 		local at = frame:PointToObjectSpace(root.Position)
 		if math.abs(at.X) <= half.X + PLAYER_REACH and math.abs(at.Z) <= half.Z + PLAYER_REACH then
 			enemy.lungeHit[session.player] = true
-			RunSession.applyDamage(
-				session,
-				config.attackDamage * lunge.damageScale * difficulty().damage
-			)
+			local landed =
+				hurt(session, config.attackDamage * lunge.damageScale * difficulty().damage)
+			--[[ The Cliff Goat's charge throws whoever it hits on down its
+			     line (`EnemyLunge.shove`); a dodge throws nobody. ]]
+			if landed and lunge.shove and session.alive then
+				shove(session, enemy.lungeDirection, lunge.shove)
+			end
 		end
 	end
 
@@ -2580,6 +2796,13 @@ local function stepLunge(
 		     playing it for the bolt's full time (`Fx/EnemyRig`). ]]
 		if enemy.lungeTravelled < lunge.distance - 1e-3 then
 			enemy.model:SetAttribute("LungeStopped", true)
+			--[[ Stopped by cover: it stands there dazed, shaking its head
+			     (`EnemyLunge.dazed`, the Cliff Goat's punish window). Held as
+			     a root holds, without the roots drawn. ]]
+			if lunge.dazed then
+				enemy.rootedUntil = RootHold.extend(enemy.rootedUntil, now, lunge.dazed)
+				enemy.model:SetAttribute("DazedUntil", Workspace:GetServerTimeNow() + lunge.dazed)
+			end
 		end
 		enemy.lungeIndex = nil
 		enemy.lungeMoving = false
@@ -2781,7 +3004,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		     the target moves and cut short whenever a later waypoint comes
 		     into a clear line. Only when closing in: backing away to hold a
 		     lane never needs a route. ]]
-		if not tooClose and not enemy.submerged then
+		if not tooClose and not enemy.submerged and not config.flies then
 			--[[ Room for the body at its widest: the hitbox is a square that
 			     turns to face its target, and turned diagonally it is 1.41
 			     times as wide. Planned for that first, so a big body never
@@ -2847,7 +3070,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		--[[ Not while following a route: its legs are already clear, and a
 		     big body's probe reaches past the corner it is rounding, so the
 		     slide fought the route and stalled it. ]]
-		if desired.Magnitude > 1e-3 and not enemy.submerged and not enemy.route then
+		if
+			desired.Magnitude > 1e-3
+			and not enemy.submerged
+			and not enemy.route
+			and not config.flies
+		then
 			local probe = enemy.position + desired * (radius + OBSTACLE_PROBE)
 			local normal = Arena.deflectionNormal(enemy.position, probe, radius)
 
@@ -2907,7 +3135,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		     whole trip and surface it no closer than it started. ]]
 		enemy.position = if enemy.submerged
 			then Arena.clampToWalls(nextPosition, radius)
-			else Arena.resolveBox(nextPosition, footprint(config, enemy.yaw))
+			else settle(config, nextPosition, enemy.yaw)
 
 		--[[ Not republished while submerged: `positions` is what targeting
 		     iterates, so writing here would put an untargetable enemy straight
@@ -2968,7 +3196,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	     Underground there is nothing to hit, and the walls are the only
 	     limit. ]]
 	if not enemy.submerged then
-		enemy.position = Arena.resolveBox(enemy.position, footprint(config, enemy.yaw))
+		enemy.position = settle(config, enemy.position, enemy.yaw)
 		positions[enemy.model] = enemy.position
 	end
 
@@ -2983,6 +3211,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	--[[ Nothing underground attacks. Its entire turn is the trip and the
 	     marker; the volley belongs to the moment it comes up. ]]
 	if enemy.submerged then
+		return
+	end
+
+	--[[ A flyer's dives are its attacks (`EnemyConfig.flies`): it has no
+	     bite, and its shot only ever leaves as a dive lands. ]]
+	if config.flies then
 		return
 	end
 
@@ -3152,10 +3386,8 @@ local function separate()
 
 			--[[ Back through the arena, or a pair pressed against a wall would
 			     be separated straight through it. ]]
-			a.position =
-				Arena.resolveBox(a.position - direction * push * aShare, footprint(a.config, a.yaw))
-			b.position =
-				Arena.resolveBox(b.position + direction * push * bShare, footprint(b.config, b.yaw))
+			a.position = settle(a.config, a.position - direction * push * aShare, a.yaw)
+			b.position = settle(b.config, b.position + direction * push * bShare, b.yaw)
 
 			placeHitbox(a)
 			placeHitbox(b)
@@ -3295,6 +3527,7 @@ local function stepBogHazards(now: number)
 end
 
 function EnemyManager.step(deltaTime: number, now: number)
+	CliffFalls.step(now)
 	stepClouds(now)
 	stepBogHazards(now)
 	for _, enemy in enemies do

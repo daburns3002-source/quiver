@@ -69,7 +69,7 @@ export type Patch = {
 
 export type Layout = { pieces: { Placement }, patches: { Patch } }
 
-export type Obstacle = { offset: Vector2, size: Vector3 }
+export type Obstacle = { offset: Vector2, size: Vector3, void: boolean? }
 
 export type Room = {
 	size: Vector3,

@@ -87,6 +87,8 @@ local function release(volley: EnemyManager.Volley, specs: { Types.ShotSpec }, n
 			--[[ The Hollow Fisherman's hook drags whoever it catches back
 			     along its own line (`Balance.EnemyShot.reel`). ]]
 			reel = volley.shot.reel,
+			-- the Gust Shaman's gust pushes on along it (`EnemyShot.push`)
+			push = volley.shot.push,
 		})
 	end
 

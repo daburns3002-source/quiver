@@ -122,6 +122,9 @@ type Projectile = {
 	--[[ Studs a struck player is dragged back along this line. 0 for every
 	     shot but the Hollow Fisherman's hook. ]]
 	reel: number,
+	--[[ Studs a struck player is pushed on along this line, away from the
+	     shooter (`Balance.EnemyShot.push`, the Gust Shaman's gust). ]]
+	push: number,
 	--[[ Split Shot: splinters sent on from an enemy this kills (0 none). ]]
 	split: number,
 	--[[ Wind Arrows: extra knockback on a hit, as a share of the hit's own,
@@ -294,6 +297,9 @@ export type SpawnParams = {
 	     line (`Balance.EnemyShot.reel`, the Hollow Fisherman's hook).
 	     Omitted means none, which is every other shot. ]]
 	reel: number?,
+	--[[ Studs a struck player is pushed on along this line
+	     (`Balance.EnemyShot.push`). Omitted means none. ]]
+	push: number?,
 	--[[ Split Shot's splinters and Wind Arrows' gust (`Combat/ClassUpgrades`
 	     `dress`). Omitted means none. ]]
 	split: number?,
@@ -369,6 +375,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		link = params.link or 0,
 		look = params.look,
 		reel = params.reel or 0,
+		push = params.push or 0,
 		split = params.split or 0,
 		gust = params.gust or 0,
 		shards = params.shards or 0,
@@ -929,6 +936,10 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 	     nothing drags. The client does the walking, so cover stops it. ]]
 	if projectile.reel > 0 and session.alive and session.health < before then
 		EnemyManager.shovePlayer(session, -projectile.direction, projectile.reel)
+	end
+	--[[ A gust pushes on along its line instead (`Balance.EnemyShot.push`). ]]
+	if projectile.push > 0 and session.alive and session.health < before then
+		EnemyManager.shovePlayer(session, projectile.direction, projectile.push)
 	end
 	return true
 end

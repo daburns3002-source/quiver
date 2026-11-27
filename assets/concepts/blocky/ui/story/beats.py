@@ -39,6 +39,9 @@ THORN = ARENAS / "area02_thornwood.jpg"
 VILLAGE = ARENAS / "area03_drowned_village_v2.png"
 CAVES = ARENAS / "area04_bogheart_caverns_v2.png"
 CLIFFS = ARENAS / "area05_windswept_cliffs.jpg"
+FROST = ARENAS / "area06_frostpeak_pass.jpg"
+RIME = ASSETS / "concepts" / "blocky" / "boss08_rimeheart.jpg"
+FEATHER = ITEMS / "StormFeather.png"
 
 STYLE = """Style: exactly the 2D blocky pixel-art look of the FIRST attached image (a frame of the game's opening cutscene): chunky pixels, flat 2-3 tone shading, thick near-black ink outlines, bright saturated colours, cube-shaped leaves, blocks and stones. No smooth gradients, no blur, no 3D rendering, no photo look.
 
@@ -148,6 +151,26 @@ STILLS = {
         [BEHIND, ROC, CLIFFS],
         "a frame of the opening cutscene (the style and the three heroes seen from behind), THE TEMPEST ROC's face icon, the Windswept Cliffs.",
         "The three HEROES seen from behind, the Ranger holding up a WANTED POSTER that the wind has just blown into his hands, the other two leaning in to look. The poster shows THE TEMPEST ROC exactly like its attached icon (a huge storm bird). Ahead of them, across the meadow, the tall pale WINDSWEPT CLIFFS under swirling storm clouds, a flash of lightning far off. Capes and hair blowing in the wind.",
+    ),    # 5 Windswept Cliffs: the Tempest Roc beaten (2026-11-26)
+    "b5a": still(
+        [CHEST, ROC, FEATHER],
+        "a frame of the opening cutscene (the style), THE TEMPEST ROC's face icon, the TEMPEST FEATHER icon.",
+        "THE TEMPEST ROC, beaten, crashing down onto a slate cliff top in a burst of cloud: the huge navy-and-cream storm bird with gold crest and gold talons, wings flung wide, its eyes dizzy swirls, the lightning on its wingtips fizzling out. One big glowing gold-and-navy TEMPEST FEATHER (drawn like the attached icon) floats down in front of it, sparkling.",
+    ),
+    "b5b": still(
+        [CHEST, CLIFFS],
+        "a frame of the opening cutscene (the style), the Windswept Cliffs.",
+        "THE STORM CLEARS over the Windswept Cliffs, the same cliff tops as the attached picture: the storm clouds part, sunbeams fall across the slate plateaus and their plank rope bridges, which hang still now; the prayer flags flutter gently in a calm breeze; a sea of white cloud below in the sunshine. Peaceful and bright.",
+    ),
+    "b5c": still(
+        [CHEST, CLIFFS, FROST],
+        "a frame of the opening cutscene (the style), the Windswept Cliffs, Frostpeak Pass.",
+        "THE WIND TURNS COLD: on a sunny cliff top the air suddenly fills with falling snowflakes; frost creeps over the slate stones and the prayer flags stiffen with ice; beyond the cliffs a snowy mountain pass rises under a pale blue sky, as in the attached Frostpeak picture. A single cream parchment poster flutters down with the snow toward the viewer.",
+    ),
+    "b5d": still(
+        [BEHIND, RIME, FROST],
+        "a frame of the opening cutscene (the style and the three heroes seen from behind), RIMEHEART the Yeti King (concept art), Frostpeak Pass.",
+        "The three HEROES seen from behind, standing in the snow at the foot of FROSTPEAK PASS, looking at a WANTED POSTER frozen onto a frosty signpost. The poster shows RIMEHEART's face (a massive white yeti with an ice crown and a glowing frozen heart, as in the attached picture), drawn as a 2D pixel icon. The snowy pass climbs ahead under a pale sky, snowflakes falling. Breath puffs in the cold.",
     ),
 }
 

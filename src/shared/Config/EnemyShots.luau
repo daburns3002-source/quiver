@@ -251,6 +251,65 @@ local looks: { [string]: Look } = {
 			rise = 1.2,
 		},
 	},
+	--[[ The Gust Shaman's gust (Windswept Cliffs): a pale-blue knot of
+	     wind, a wide flat block spinning on its line with two streaks
+	     turning round it, shedding white puffs, a long pale tail; it bursts
+	     in a wide ring, because what it does is shove. ]]
+	Gust = {
+		shape = "Block",
+		scale = Vector3.new(1.3, 0.35, 1.3),
+		colour = rgb(170, 225, 255),
+		material = "Neon",
+		spin = Vector3.new(0, 14, 0),
+		arms = {
+			{ scale = Vector3.new(0.16, 0.16, 1.6), angles = Vector3.zero },
+			{ scale = Vector3.new(0.16, 0.16, 1.6), angles = Vector3.new(0, 90, 0) },
+		},
+		armColour = rgb(240, 250, 255),
+		sparkle = {
+			colour = rgb(245, 252, 255),
+			size = 0.3,
+			speed = 1.2,
+			lifetime = 0.45,
+			rate = 1.3,
+			rise = 0,
+		},
+		trail = 0.45,
+		trailWidth = 0.9,
+		trailColour = rgb(200, 238, 255),
+		impact = {
+			colour = rgb(200, 238, 255),
+			ring = 4.2,
+			rings = 2,
+			chips = 8,
+			chip = Vector3.new(0.12, 0.12, 0.9),
+			neon = true,
+			rise = 0.6,
+		},
+	},
+	--[[ The Storm Roc's feather: a slim steel-blue blade of a feather with a
+	     glowing pale-blue edge trail, rocking as it flies. ]]
+	Feather = {
+		shape = "Wedge",
+		scale = Vector3.new(0.18, 0.5, 1.6),
+		colour = rgb(92, 126, 196),
+		material = "SmoothPlastic",
+		spin = Vector3.zero,
+		outline = rgb(150, 220, 255),
+		wobble = { amount = 0.35, rate = 7 },
+		trail = 0.3,
+		trailWidth = 0.35,
+		trailColour = rgb(150, 220, 255),
+		impact = {
+			colour = rgb(150, 220, 255),
+			ring = 1.8,
+			rings = 1,
+			chips = 5,
+			chip = Vector3.new(0.1, 0.1, 0.6),
+			neon = true,
+			rise = 0,
+		},
+	},
 }
 
 local EnemyShots = {

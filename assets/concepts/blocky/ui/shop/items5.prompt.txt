@@ -1,0 +1,4 @@
+Use case: 2D game UI icon. Generate ONE image, 1024x1024: one icon on a FLAT, PURE MAGENTA background (#FF00FF) everywhere, no borders, no panels, no text, no labels. Chunky blocky voxel style exactly like the first attached reference (small cubes with soft bevels, saturated colours, soft polished render, a dark outline so it reads on any background); the new icon must sit beside that sheet's TOLL BRONZE and BOG PEARL as a matching boss trophy. The icon whole and centred, filling about 80% of the image, seen from a three-quarter view. The second attached picture shows the boss it comes from, the Tempest Roc.
+TEMPEST FEATHER: one big long flight feather of the Tempest Roc, navy blue with a cream stripe down its middle and a gold-yellow tip, a thin jagged glowing yellow lightning bolt crackling along one edge, a soft yellow glow round it.
+No magenta or pink anywhere inside the icon.
+Save the image in the current directory as items5_raw.png

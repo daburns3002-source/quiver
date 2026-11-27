@@ -186,11 +186,13 @@ function EnemyModel.importedDesign(
 		end
 	end
 	local span = high - low
-	local scale = math.min(box.X / span.X, box.Y / span.Y, box.Z / span.Z)
+	--[[ A flyer hovers `lift` above the floor, fitted into the room above. ]]
+	local lift = math.clamp(imported.lift or 0, 0, box.Y * 0.6)
+	local scale = math.min(box.X / span.X, (box.Y - lift) / span.Y, box.Z / span.Z)
 	local centre = (low + high) / 2
 	--[[ Model space to hitbox space: centred across, its floor on the box's. ]]
 	local origin = Vector3.new(centre.X, low.Y, centre.Z)
-	local floor = Vector3.new(0, -box.Y / 2, 0)
+	local floor = Vector3.new(0, -box.Y / 2 + lift, 0)
 
 	local out: { BuiltPart } = {}
 	for _, row in rows do

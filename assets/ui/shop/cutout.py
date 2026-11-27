@@ -29,9 +29,11 @@ SHEETS = {
     "ui": ["CrateMossyGlade", "Coin", "Gem", "RoyalJelly", "BroodSilk", "Lock"],
     # the Drowned Village's and Bogheart's boss items (2026-11-13), two across
     "items34": ["TollBronze", "BogPearl"],
+    # the Windswept Cliffs' boss item (2026-11-26), alone
+    "items5": ["StormFeather"],
 }
 #: Columns and rows of a sheet that is not Codex's usual 3 x 2.
-GRID = {"items34": (2, 1)}
+GRID = {"items34": (2, 1), "items5": (1, 1)}
 
 
 def key_out(img: Image.Image) -> Image.Image:

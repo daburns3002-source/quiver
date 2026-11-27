@@ -56,6 +56,13 @@ EnemySounds.clips = {
 		["Attack wind-up"] = "enemy_boar_gore",
 		Charge = "enemy_boar_charge",
 	},
+	--[[ The Windswept Cliffs (2026-11-26): stand-ins from the sounds already
+	     uploaded, until the area's own sprite (docs/WINDSWEPT-CLIFFS.md,
+	     "Sounds") replaces them. ]]
+	CliffGoat = {
+		["Attack wind-up"] = "enemy_boar_gore",
+		Charge = "enemy_boar_charge",
+	},
 	BrambleLurker = {
 		["Attack wind-up"] = "enemy_lurker_spray",
 		Emerge = "enemy_lurker_emerge",
@@ -75,6 +82,9 @@ EnemySounds.attacks = {
 	BroodSlime = "enemy_brood_slime_bite",
 	SporePuff = "enemy_spore_puff_bite",
 	Shellback = "enemy_shellback_bash",
+	-- the Windswept Cliffs' flyers land their dives (stand-ins)
+	Harpy = "fx_shadow_dash",
+	StormRoc = "fx_shadow_dash",
 } :: { [string]: string }
 
 --[[ A volley leaving (`ShotAt`), timed to the shots: the Burr Thistle's
@@ -86,6 +96,9 @@ EnemySounds.shots = {
 	Lancer = "enemy_lancer_lance",
 	Glowcap = "enemy_glowcap_spores",
 	HollowFisherman = "enemy_fisherman_cast",
+	-- the Windswept Cliffs (stand-ins)
+	GustShaman = "fx_wind_gust",
+	StormRoc = "fx_wind_gust",
 } :: { [string]: string }
 
 --[[ Arriving (Targetable true) and diving (false). ]]
@@ -117,6 +130,9 @@ EnemySounds.tells = {
 	GulpGlob = { boss = "GrandmotherGulp", sound = "boss_gulp_spit" },
 	SlimeTrail = { boss = "GrandmotherGulp", sound = "boss_gulp_slide" },
 	GulpInhale = { boss = "GrandmotherGulp", sound = "boss_gulp_inhale" },
+	-- the Tempest Roc (stand-ins until the area's sprite)
+	GustBlow = { boss = "TempestRoc", sound = "fx_wind_gust" },
+	Bolt = { boss = "TempestRoc", sound = "fx_chain_lightning" },
 } :: { [string]: Tell }
 
 --[[ Seconds after a telegraph of `kind` that its sound plays: 0 but for a

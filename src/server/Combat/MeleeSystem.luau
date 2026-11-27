@@ -371,6 +371,8 @@ local function land(swing: Pending, now: number)
 
 	local rushed = 0
 	local struck: { Aim.Candidate } = {}
+	--[[ Grave Chains: what the slam chained, for every client to draw. ]]
+	local chained: { Model } = {}
 	for _, enemy in candidates() do
 		if
 			not SwingBox.hits(
@@ -423,7 +425,24 @@ local function land(swing: Pending, now: number)
 					os.clock() + Balance.Player.thornwood.ruin.duration
 				)
 			end
+			--[[ Grave Chains: chained to the ground for the card's seconds;
+			     a boss is slowed instead, as a root slows one. ]]
+			if landed and melee.graveChains > 0 then
+				if EnemyManager.isBoss(enemy.model) then
+					EnemyManager.slow(
+						enemy.model,
+						Balance.Player.graveChains.boss,
+						os.clock() + melee.graveChains
+					)
+				else
+					EnemyManager.root(enemy.model, melee.graveChains, "GraveChains")
+				end
+				table.insert(chained, enemy.model)
+			end
 		end
+	end
+	if #chained > 0 then
+		upgradeFx:FireAllClients("GraveChains", session.player, chained, melee.graveChains)
 	end
 	if rushed > 0 then
 		upgradeFx:FireAllClients(

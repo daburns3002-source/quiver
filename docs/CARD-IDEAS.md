@@ -3,8 +3,9 @@
 Owner, 2026-11-03: *"we need to make cooler upgrades so players stay more
 engaged ... i also want 10 new upgrade ideas for each class."*
 
-**Nothing here is built.** This is a menu: say which ones you want and they get
-written. The follow-up to `docs/BALANCE-REPORT.md`, which ranked all 42 live
+**All forty are built** (2026-11-27): the owner's eleven picks first, the
+Assassin's ten with the class, and the last nineteen on the owner's "Build all
+nineteen" (the end of this doc). It was written as a menu. The follow-up to `docs/BALANCE-REPORT.md`, which ranked all 42 live
 cards and found the card pool the least interesting part of a run — nineteen of
 the 42 are a flat percentage on a stat.
 
@@ -181,22 +182,58 @@ with the Assassin ([CLASS-CARDS.md](CLASS-CARDS.md)).
 | Blood Pact | Warden | `MeleeSystem.land`, against the player's live health |
 | Vengeful Spirit | Warden | `ClassUpgrades.onKillAt` -> `raiseSpirit`, struck in `step` |
 
-The three shared pieces the table above promised were built once and are now
+The shared pieces the table above promised were built once and are now
 general: **`RunSession.onKillAt`** (where an enemy fell — Thornfall, Prismatic
-Burst and Vengeful Spirit all hang off it), **`ProjectileSystem.onPlayerHit`**
-(where a player's shot landed) and **`EnemyManager.shove`** (an extra push with
-its own stagger, on the knockback a blow already uses). The remaining four
-shared pieces — an orbiting hitter, a stillness channel, an untargetable window
-and a delayed repeat — are still unbuilt, and still make their cards cheap.
+Burst and Vengeful Spirit all hang off it) and **`EnemyManager.shove`** (an extra
+push with its own stagger, on the knockback a blow already uses). Two of the
+four that were left came with wave 2 on 2026-11-26: the orbiting hitter
+(`ClassUpgrades.orbitCuts`, Orbiting Orb and Phantom Blades) and the delayed
+repeat (Echo Slash, in `MeleeSystem.land`). The other two came with the
+nineteen, below.
 
-**Nineteen ideas are still on the table** (the Assassin's ten are built).
+## Built, 2026-11-27: the last nineteen
 
-## What to say back
+The owner, shown the nineteen still on the table: *"Build all nineteen"*.
+Ranger 6, Arcanist 7, Warden 6, every one as data (`Config/Abilities`, numbers
+in `Balance.Player`, a Codex icon in the set's style, a sound from the live
+set); the full table, with what changed in the building, is in
+[CLASS-CARDS.md](CLASS-CARDS.md), "The nineteen".
 
-1. **Which of the forty** do you want built? Ticking a whole class is fine.
-2. **Any of wave 2's eight** at the same time? Sunder, Frost Orb and Gravity
-   Well are the cheap three now.
-3. **The Assassin** — is it on the table at all this phase? If not, its ten
-   stay on file and the other thirty are the menu.
-4. Icons: one Codex image a card. Say go and they are made in the live set's
-   style when usage allows.
+| Card | Class | Where its rule lives |
+|---|---|---|
+| Hunter's Mark | Ranger, Assassin | `ClassUpgrades.step`, Sunder's mark on the nearest enemy |
+| Pin Down | Ranger | `ClassUpgrades.onShotLanded`, `EnemyManager.root` |
+| Serpent Arrow | Ranger | a `Weave` stage, flown in `Shared/Combat/ProjectileFlight`; its poison in `dress` |
+| Trick Shot | Ranger | a bounce from `AbilityEffects.stages`; the harder hit in `ProjectileSystem`'s `onWall` |
+| Barrage | Ranger | `ClassUpgrades.afterVolley`, on the stillness channel |
+| Skyfall | Ranger | `afterVolley`, `RunSession.untargetable` |
+| Siphon | Arcanist | `onShotLanded` |
+| Overcharge | Arcanist | `ClassUpgrades.castScale`, `RunSession.spendHealth` |
+| Mana Burn | Arcanist | `dress`; resolved in `ProjectileSystem.applyHit` |
+| Rune Circle | Arcanist | `onShotLanded`, an `AreaStrikes` zone |
+| Arcane Tether | Arcanist | `onShotLanded`, `EnemyManager.tether` |
+| Starfall | Arcanist, Assassin | `ClassUpgrades.step`, Meteor's strike |
+| Singularity | Arcanist | `afterVolley` on the stillness channel; the drag in `step` |
+| Bellow | Warden, Assassin | `ClassUpgrades.afterBlow` |
+| Stone Skin | Warden, Assassin | `RunSession.applyDamage`, on the stillness channel |
+| Grave Chains | Warden, Assassin | `MeleeSystem.land`, `EnemyManager.root` |
+| Blade Cyclone | Warden, Assassin | `ClassUpgrades.step`, `orbitCuts` on the stillness channel |
+| Reaper's Harvest | Warden, Assassin | `ClassUpgrades.onKillAt`, `Session.nextAttackHaste` |
+| Colossus | Warden | `RunSession.scaleBody`, `AbilityEffects`, `ClassUpgrades.slammed` |
+
+The two shared pieces built for them:
+
+- **The stillness channel** (`Shared/Combat/Stillness`): a charge that fills
+  while the player stands still and starts again when spent. Barrage,
+  Singularity, Stone Skin and Blade Cyclone ride it, and Sniper Shot was
+  moved onto it.
+- **The untargetable window** (`RunSession.untargetable`): no enemy picks the
+  player out and nothing hurts them. Skyfall's leap.
+
+And two smaller ones: **`ProjectileSystem.onPlayerHit`**, where a shot of the
+player's own volley landed (Pin Down, Serpent Arrow's bite, Siphon, Rune
+Circle, Arcane Tether; the hook #462 described had gone with Time Dilation's
+move to kills), and **`EnemyManager.tether`**, two enemies sharing a share of
+a blow.
+
+**Nothing is left on the table.** New card ideas start a new menu.

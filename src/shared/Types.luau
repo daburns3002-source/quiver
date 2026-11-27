@@ -87,6 +87,10 @@ export type ShotSpec = {
 	--[[ Radians a second the arrow may turn towards the nearest enemy ahead
 	     of it. 0 flies straight. Tracking Eye. ]]
 	homing: number,
+	--[[ Studs either side of its line the arrow weaves as it flies (nil
+	     flies straight). Serpent Arrow; `ProjectileFlight.weaveHeading` on
+	     both sides. ]]
+	weave: number?,
 	--[[ Seconds after the volley that this arrow leaves. 0 for all but
 	     Double Shot's copies, which follow the first volley along the same
 	     aim — a second chance at a target that stepped, not a wider net. ]]

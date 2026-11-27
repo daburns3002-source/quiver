@@ -198,6 +198,12 @@ type Enemy = {
 	     among those of `accordWith` still alive. ]]
 	accordWith: { Model }?,
 	accordUntil: number?,
+	--[[ Arcane Tether (`EnemyManager.tether`): until `tetherUntil`
+	     (os.clock) a player's own blow on this enemy also lands
+	     `tetherShare` of itself on `tetherTo`. ]]
+	tetherTo: Model?,
+	tetherShare: number?,
+	tetherUntil: number?,
 	--[[ The lunge under way (`EnemyConfig.lunges`), by index, or nil. It
 	     winds up until `lungeGoesAt`, then travels `lungeDirection`, locked
 	     when the wind-up began, until it has covered its distance or cover
@@ -634,6 +640,30 @@ function EnemyManager.accord(models: { Model }, seconds: number)
 	end
 end
 
+--[[ Arcane Tether: ties two live enemies together until `untilTime`
+     (os.clock): a blow a player lands on either also lands `share` of
+     itself on the other (`damage`). Both ways, so whichever is struck the
+     other feels it. Returns whether they were tied. ]]
+function EnemyManager.tether(a: Model, b: Model, share: number, untilTime: number): boolean
+	local first, second = enemies[a], enemies[b]
+	if not first or not second or a == b or share <= 0 then
+		return false
+	end
+	first.tetherTo, first.tetherShare, first.tetherUntil = b, share, untilTime
+	second.tetherTo, second.tetherShare, second.tetherUntil = a, share, untilTime
+	return true
+end
+
+--[[ Whether a live enemy is tied to another live one right now. ]]
+function EnemyManager.tethered(model: Model): boolean
+	local enemy = enemies[model]
+	local partner = enemy and enemy.tetherTo
+	return enemy ~= nil
+		and partner ~= nil
+		and enemies[partner] ~= nil
+		and (enemy.tetherUntil or 0) > os.clock()
+end
+
 --[[ Whether a live enemy is a boss (`EnemyConfig.boss`). ]]
 function EnemyManager.isBoss(model: Model): boolean
 	local enemy = enemies[model]
@@ -805,7 +835,8 @@ local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
 
 	for _, session in RunSession.all() do
 		local root = session.root
-		if not root or not session.alive then
+		--[[ The untargetable window (Skyfall's leap): looked past. ]]
+		if not root or not session.alive or RunSession.isUntargetable(session) then
 			continue
 		end
 
@@ -1519,6 +1550,22 @@ function EnemyManager.damage(
 		end
 	end
 
+	--[[ Arcane Tether: a player's own blow lands a share on the enemy this
+	     one is tied to, as a plain hit with no owner, so it never passes
+	     back along the tie; its kill is the striker's. ]]
+	local partner = enemy.tetherTo
+	if
+		by
+		and kind ~= "Burn"
+		and partner
+		and enemies[partner]
+		and (enemy.tetherUntil or 0) > os.clock()
+	then
+		local _, partnerXp, partnerFell =
+			EnemyManager.damage(partner, amount * (enemy.tetherShare or 0), nil, "Hit", nil)
+		RunSession.creditKill(by, partnerXp, partnerFell)
+	end
+
 	if (enemy.markUntil or 0) > os.clock() then
 		amount *= enemy.markScale or 1
 	end
@@ -1830,7 +1877,8 @@ end
      `direction`. The client moves it, as it does a dash. ]]
 local function shove(session: RunSession.Session, direction: Vector3, distance: number)
 	local along = Vector3.new(direction.X, 0, direction.Z)
-	if along.Magnitude < 1e-3 or distance <= 0 then
+	--[[ Colossus: nothing moves him. ]]
+	if along.Magnitude < 1e-3 or distance <= 0 or session.melee.colossus > 0 then
 		return
 	end
 	playerShoved:FireClient(session.player, along.Unit, distance)

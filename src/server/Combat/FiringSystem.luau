@@ -91,8 +91,9 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 	end
 
 	local overdraw = overdrawScale(session, now)
-	--[[ Mana Surge: a kill's charge, spent on this whole cast. ]]
-	local surge, surgeSize = ClassUpgrades.spendSurge(session)
+	--[[ What the cards make of this whole cast: Mana Surge's kill charge,
+	     Overcharge's every-fourth. ]]
+	local surge, surgeSize = ClassUpgrades.castScale(session, origin)
 	overdraw *= surge
 
 	local specs = session.pipeline:build({
@@ -125,6 +126,7 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 			ricochet = spec.ricochet,
 			arcSpeed = spec.arcSpeed,
 			homing = spec.homing,
+			weave = spec.weave,
 			delay = spec.delay,
 			burn = spec.burn,
 			burnDuration = spec.burnDuration,
@@ -135,6 +137,9 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 			     draft even if the arrow outlives their current session. ]]
 			owner = session.player,
 			now = now,
+			--[[ Which volley: what the landing hook hears of
+			     (`ProjectileSystem.onPlayerHit`). ]]
+			volley = now,
 		}
 		--[[ Elemental Orbs: the cast's element on each orb. ]]
 		ClassUpgrades.dress(session, params)
@@ -194,13 +199,14 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 end
 
 --[[ How much faster than its cooldown the player attacks right now: the
-     Ember Wilf's howl (`Combat/PetCombat`) and Battle Cry's kill stacks. ]]
+     Ember Wilf's howl (`Combat/PetCombat`), Battle Cry's kill stacks, and
+     a haste kept for the next attack alone (Reaper's Harvest's kill). ]]
 local function haste(session: Session, now: number): number
 	local pet = if now < session.petHasteUntil then 1 + session.petHaste else 1
 	local cry = if now < session.battleCryUntil
 		then 1 + session.battleCryStacks * session.melee.battleCry
 		else 1
-	return pet * cry
+	return pet * cry * session.nextAttackHaste
 end
 
 --[[ Published on the player as `AttackHaste` (nil for none), so the
@@ -254,12 +260,16 @@ function FiringSystem.step(_deltaTime: number, now: number)
 
 		--[[ A melee class swings instead (`Config/Classes.swing`): the same
 		     rule decides when, and `MeleeSystem` decides what it hits. ]]
+		local before = session.lastFiredAt
 		if Classes[session.loadout.class].swing then
 			MeleeSystem.swing(session, root, now, cooldown)
-			continue
+		else
+			fire(session, root, now, cooldown)
 		end
-
-		fire(session, root, now, cooldown)
+		--[[ An attack went: a haste kept for the next one is spent. ]]
+		if session.lastFiredAt ~= before then
+			session.nextAttackHaste = 1
+		end
 	end
 end
 

@@ -241,6 +241,8 @@ end
 --[[ Thornfall's arrows, Prismatic Burst's shards, Vengeful Spirit's sword and
      Time Dilation's field all rise out of an enemy this player killed. ]]
 RunSession.onKillAt = ClassUpgrades.onKillAt
+-- where a shot of a player's own volley landed (Pin Down, Siphon, Rune Circle ...)
+ProjectileSystem.onPlayerHit = ClassUpgrades.onShotLanded
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]

@@ -24,7 +24,11 @@ cd "$(dirname "$0")/.."
 
 CARDS="windrunner:rare thornfall:epic headhunter:legendary ghostquiver:legendary
 twinelements:epic timedilation:legendary prismaticburst:legendary
-guardbreak:uncommon bullrush:rare bloodpact:epic vengefulspirit:legendary"
+guardbreak:uncommon bullrush:rare bloodpact:epic vengefulspirit:legendary
+huntersmark:uncommon pindown:rare serpentarrow:rare trickshot:epic barrage:epic skyfall:mythic
+siphon:rare overcharge:rare manaburn:rare runecircle:epic arcanetether:epic starfall:legendary
+singularity:mythic bellow:rare stoneskin:rare gravechains:epic bladecyclone:epic
+reapersharvest:legendary colossus:mythic"
 
 RAW="assets/concepts/blocky/ui/cards"
 SET="assets/ui/glow_toy_cards/icons_transparent"

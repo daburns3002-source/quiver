@@ -55,6 +55,28 @@
 	Guard Break and Blood Pact are blows, so they live in
 	`Combat/MeleeSystem` with the rest of the swing.
 
+	And the nineteen left of that doc's forty (2026-11-27, owner: "Build all
+	nineteen"), each on machinery already here or one of the shared pieces
+	the doc asked for: the stillness channel (`Shared/Combat/Stillness`), the
+	untargetable window (`RunSession.untargetable`), the orbiting hitter
+	(`orbitCuts`) and a landing hook (`onShotLanded`, where a shot of the
+	player's own volley struck).
+
+	- Hunter's Mark (Ranger, Assassin): the nearest enemy is marked (`step`).
+	- Pin Down, Serpent Arrow's bite, Siphon, Rune Circle, Arcane Tether: a
+	  shot landed (`onShotLanded`).
+	- Trick Shot and Mana Burn: put on each shot (`dress`), resolved in
+	  `Combat/ProjectileSystem`; Serpent Arrow's weave is a stage.
+	- Barrage, Skyfall, Singularity: after a volley (`afterVolley`).
+	- Overcharge: on the cast going now (`castScale`).
+	- Starfall (Arcanist, Assassin): on a clock while fighting (`step`).
+	- Bellow: every few blows (`afterBlow`). Blade Cyclone: blades while he
+	  stands still (`step`). Reaper's Harvest: a kill (`onKillAt`).
+	  Colossus: every few slams (`slammed`; his size and health are
+	  `RunSession.scaleBody` and `AbilityEffects`). Stone Skin is the hit
+	  (`RunSession.applyDamage`) and Grave Chains the slam
+	  (`Combat/MeleeSystem`); only what they show is published here.
+
 	Each reads its level from the session (`AbilityEffects.ServerStats`), so
 	nothing here asks for a card by name; the counters and timers live here,
 	per session. Server-authoritative like every other hit: damage goes
@@ -77,6 +99,8 @@ local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local Stillness = require(ReplicatedStorage.Shared.Combat.Stillness)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -132,6 +156,40 @@ type State = {
 	--[[ Blood Pact: whether it is paying out, so the client is told the
 	     moment it engages and not every frame it stays engaged. ]]
 	pactOn: boolean,
+	--[[ The nineteen (2026-11-27). Hunter's Mark: the enemy marked last
+	     (nil none) and when the mark is refreshed next. ]]
+	marked: Model?,
+	markAt: number,
+	--[[ Pin Down: when each enemy may be rooted again (os.clock). Serpent
+	     Arrow: when a bite was last shown. ]]
+	pinned: { [Model]: number },
+	bitAt: number,
+	--[[ Barrage and Singularity: when each charge was last spent, for the
+	     stillness channel; what was last published of each. ]]
+	barrageAt: number,
+	barrageShown: boolean,
+	singularAt: number,
+	singularShown: number?,
+	--[[ Siphon: the last volley counted, and casts that landed. ]]
+	siphonVolley: number?,
+	siphonLanded: number,
+	--[[ Overcharge: casts made this run. ]]
+	casts: number,
+	--[[ Rune Circle: no new rune before this. ]]
+	runeAt: number,
+	--[[ Arcane Tether: this player's ties, while they last. ]]
+	tethers: { { a: Model, endsAt: number } },
+	--[[ Starfall: when the next meteors fall; nil before the first fight. ]]
+	starNextAt: number?,
+	--[[ Bellow: blows this run. Colossus: slams this run. ]]
+	bellows: number,
+	slams: number,
+	--[[ Stone Skin's guard as last published. ]]
+	stoneShown: boolean,
+	--[[ Blade Cyclone: when each enemy may be cut again, and how many
+	     blades were last published. ]]
+	cycloneAgain: { [Model]: number },
+	cycloneShown: number,
 }
 
 local states: { [Session]: State } = setmetatable({}, { __mode = "k" }) :: any
@@ -184,6 +242,21 @@ local spirits: { Spirit } = {}
 type Field = { session: Session, at: Vector3, endsAt: number }
 local fields: { Field } = {}
 
+--[[ Singularity: the great orb rolling out, dragging what is near it along
+     its line (the orb itself is an invented shot that pierces all). ]]
+type Roll = {
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	speed: number,
+	length: number,
+	startsAt: number,
+}
+local rolls: { Roll } = {}
+
+--[[ Pin Down roots as Root Hold does, drawn as Stumpy's roots. ]]
+local ROOT_LOOK = "Stumpy"
+
 local lastStep: number? = nil
 
 local function state(session: Session): State
@@ -210,6 +283,25 @@ local function state(session: Session): State
 		rushUntil = 0,
 		rushHit = {},
 		pactOn = false,
+		marked = nil,
+		markAt = 0,
+		pinned = {},
+		bitAt = -math.huge,
+		barrageAt = -math.huge,
+		barrageShown = false,
+		singularAt = -math.huge,
+		singularShown = nil,
+		siphonVolley = nil,
+		siphonLanded = 0,
+		casts = 0,
+		runeAt = 0,
+		tethers = {},
+		starNextAt = nil,
+		bellows = 0,
+		slams = 0,
+		stoneShown = false,
+		cycloneAgain = {},
+		cycloneShown = 0,
 	}
 	states[session] = fresh
 	return fresh
@@ -353,6 +445,56 @@ end
 ClassUpgrades.plainSpec = plainSpec
 ClassUpgrades.invent = invent
 
+--[[ Several invented shots from one point, each `offsets[i]` radians off
+     `direction`, told to every client in one event: Barrage's fan and
+     Skyfall's ring. ]]
+local function inventSpread(
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	offsets: { number },
+	speed: number,
+	lifetime: number,
+	damage: number,
+	now: number
+)
+	local specs: { Types.ShotSpec } = {}
+	for _, offset in offsets do
+		local spec = plainSpec(speed, lifetime, 0)
+		spec.angleOffset = offset
+		table.insert(specs, spec)
+		ProjectileSystem.spawn({
+			faction = "Player" :: Types.Faction,
+			origin = origin,
+			direction = ShotPipeline.aim(direction, spec),
+			speed = speed,
+			lifetime = lifetime,
+			damage = damage,
+			pierce = 0,
+			critChance = 0,
+			critMultiplier = 1,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			ricochet = 0,
+			homing = 0,
+			look = "Arrow",
+			owner = session.player,
+			now = now,
+		})
+	end
+	shotFired:FireAllClients({
+		faction = "Player" :: Types.Faction,
+		shooterId = session.player.UserId,
+		origin = origin,
+		direction = direction,
+		specs = specs,
+		firedAt = now,
+		look = "Arrow",
+		predicted = false,
+	} :: Types.ShotEvent)
+end
+
 --[[ Everything within `radius` of `at` (to the edge of each body) takes
      `damage`, knocked away from `from` when given. ]]
 local function hitWithin(
@@ -429,11 +571,10 @@ end
 --[[ Sniper Shot: ready once the player has stood still `charge` seconds
      and as long again since the last sniper arrow. ]]
 local function sniperReady(session: Session, own: State, now: number): boolean
-	local still = session.stationarySince
-	if session.upgrades.sniper <= 0 or not still then
+	if session.upgrades.sniper <= 0 then
 		return false
 	end
-	return now - math.max(still, own.sniperAt) >= Balance.Player.sniper.charge
+	return Stillness.ready(session.stationarySince, own.sniperAt, Balance.Player.sniper.charge, now)
 end
 
 --[[ Sniper Shot: a fast arrow through every enemy to the wall, always a
@@ -520,6 +661,97 @@ local function blackHole(session: Session, origin: Vector3, target: Vector3, now
 		config.duration,
 		config.pullRadius
 	)
+end
+
+--[[ Barrage: a charged fan of arrows along the volley's aim, evenly across
+     `spread`. ]]
+local function barrage(
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	count: number,
+	now: number
+)
+	local config = Balance.Player.barrage
+	local offsets: { number } = {}
+	for index = 1, count do
+		table.insert(
+			offsets,
+			if count > 1 then -config.spread / 2 + (index - 1) * config.spread / (count - 1) else 0
+		)
+	end
+	inventSpread(
+		session,
+		origin,
+		direction,
+		offsets,
+		session.projectileSpeed,
+		session.projectileLifetime,
+		session.damage * config.damage,
+		now
+	)
+	upgradeFx:FireAllClients("Barrage", session.player, origin)
+end
+
+--[[ Skyfall: the archer leaps, untargetable for the whole leap (the
+     shared untargetable window), and lands in a ring of arrows. Every
+     client draws the leap from one event. ]]
+local function skyfall(session: Session)
+	local config = Balance.Player.skyfall
+	if not session.root then
+		return
+	end
+	RunSession.untargetable(session, config.airborne)
+	upgradeFx:FireAllClients("Skyfall", session.player, config.airborne)
+	task.delay(config.airborne, function()
+		local root = session.root
+		if not (session.alive and root) then
+			return
+		end
+		local offsets: { number } = {}
+		for index = 1, config.arrows do
+			table.insert(offsets, (index - 1) / config.arrows * math.pi * 2)
+		end
+		inventSpread(
+			session,
+			Aim.shotOrigin(root.Position),
+			Vector3.xAxis,
+			offsets,
+			config.speed,
+			config.lifetime,
+			session.damage * config.damage,
+			os.clock()
+		)
+		upgradeFx:FireAllClients(
+			"SkyfallLand",
+			session.player,
+			Vector3.new(root.Position.X, 0, root.Position.Z)
+		)
+	end)
+end
+
+--[[ Singularity: the grown orb rolls out along the aim through everything
+     to the wall, and drags what is near its line along with it (`step`). ]]
+local function singularity(session: Session, origin: Vector3, direction: Vector3, now: number)
+	local config = Balance.Player.singularity
+	local speed = session.projectileSpeed * config.speedScale
+	local length = flightLength(origin, direction, Balance.Player.attackRange * 2)
+	if length < 1 then
+		return
+	end
+	local spec = plainSpec(speed, length / speed, math.huge)
+	--[[ Drawn as a plain orb, inside the great one every client draws from
+	     the event below. ]]
+	invent(session, origin, direction, spec, session.damage * config.damage, "Orb", now)
+	table.insert(rolls, {
+		session = session,
+		origin = origin,
+		direction = direction,
+		speed = speed,
+		length = length,
+		startsAt = now,
+	})
+	upgradeFx:FireAllClients("Singularity", session.player, origin, direction, speed, length)
 end
 
 --[[ Thornfall: the arrows a kill plants in the ground, which fire outward
@@ -619,6 +851,14 @@ function ClassUpgrades.onKillAt(session: Session, at: Vector3)
 	if held.vengefulSpirit > 0 then
 		raiseSpirit(session, now)
 	end
+	--[[ Reaper's Harvest: the next swing comes sooner (spent as it starts,
+	     `FiringSystem`), and a little health comes back. ]]
+	local harvest = session.melee.reapersHarvest
+	if harvest > 0 then
+		session.nextAttackHaste = 1 / (1 - harvest)
+		RunSession.heal(session, session.maxHealth * Balance.Player.reapersHarvest.heal)
+		upgradeFx:FireAllClients("ReapersHarvest", session.player, at)
+	end
 	if held.timeDilation > 0 then
 		table.insert(fields, {
 			session = session,
@@ -676,6 +916,9 @@ function ClassUpgrades.afterVolley(
 		and held.sniper <= 0
 		and held.thornBurst <= 0
 		and held.rootHold <= 0
+		and held.barrage <= 0
+		and held.skyfall <= 0
+		and held.singularity <= 0
 	then
 		return
 	end
@@ -720,6 +963,26 @@ function ClassUpgrades.afterVolley(
 	end
 	if sniperReady(session, own, now) then
 		sniper(session, own, origin, direction, now)
+	end
+	--[[ The stillness channel's two on a volley: Barrage's fan, and
+	     Singularity's grown orb. ]]
+	local still = session.stationarySince
+	if
+		held.barrage > 0
+		and Stillness.ready(still, own.barrageAt, Balance.Player.barrage.charge, now)
+	then
+		own.barrageAt = now
+		barrage(session, origin, direction, math.round(held.barrage), now)
+	end
+	if
+		held.singularity > 0
+		and Stillness.ready(still, own.singularAt, Balance.Player.singularity.charge, now)
+	then
+		own.singularAt = now
+		singularity(session, origin, direction, now)
+	end
+	if held.skyfall > 0 and own.volleys % Balance.Player.skyfall.every == 0 then
+		skyfall(session)
 	end
 	if held.phoenix > 0 and own.volleys % Balance.Player.phoenix.every == 0 then
 		phoenix(session, origin, direction, now)
@@ -797,6 +1060,18 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	if held.burrBlight > 0 then
 		params.blight = held.burrBlight
 	end
+	--[[ The nineteen's on a shot: Serpent Arrow's poison (its weave is a
+	     stage), Trick Shot's harder hit after a bounce, Mana Burn's against
+	     a healthy enemy. ]]
+	if held.serpentArrow > 0 then
+		params.blight = math.max(params.blight or 0, held.serpentArrow)
+	end
+	if held.trickShot > 0 then
+		params.trick = held.trickShot
+	end
+	if held.manaBurn > 0 then
+		params.healthy = held.manaBurn
+	end
 	--[[ Wave 2's two on an orb: Split Orb's shards, Gravity Well's pull. ]]
 	if held.splitOrb > 0 then
 		params.shards = held.splitOrb
@@ -848,6 +1123,144 @@ function ClassUpgrades.spendSurge(session: Session): (number, number)
 	end
 	local config = Balance.Player.manaSurge
 	return config.damage, config.size
+end
+
+--[[ What the cards make of the cast going now (`FiringSystem`): its damage
+     and blast multipliers. Mana Surge's kill charge, and Overcharge's every
+     fourth cast, which costs health first (never the last point; no health
+     to spend, no overcharge). ]]
+function ClassUpgrades.castScale(session: Session, origin: Vector3): (number, number)
+	local damage, size = ClassUpgrades.spendSurge(session)
+	local overcharge = session.upgrades.overcharge
+	if overcharge > 0 then
+		local config = Balance.Player.overcharge
+		local own = state(session)
+		own.casts += 1
+		if
+			own.casts % config.every == 0
+			and RunSession.spendHealth(session, session.maxHealth * config.cost)
+		then
+			damage *= overcharge
+			upgradeFx:FireAllClients("Overcharge", session.player, origin)
+		end
+	end
+	return damage, size
+end
+
+--[[ Arcane Tether: ties `model` to the nearest enemy not already tied,
+     while this player has fewer than `most` ties. ]]
+local function tether(session: Session, own: State, model: Model, at: Vector3, now: number)
+	local config = Balance.Player.arcaneTether
+	for index = #own.tethers, 1, -1 do
+		local tie = own.tethers[index]
+		if tie.endsAt <= now or not EnemyManager.tethered(tie.a) then
+			table.remove(own.tethers, index)
+		end
+	end
+	if #own.tethers >= config.most then
+		return
+	end
+	local candidates: { [Model]: Vector3 } = {}
+	for other, position in EnemyManager.positions() do
+		if other ~= model and not EnemyManager.tethered(other) then
+			candidates[other] = position
+		end
+	end
+	local nearest = Targeting.nearest(at, candidates, config.reach)
+	if not nearest then
+		return
+	end
+	local endsAt = now + config.duration
+	if EnemyManager.tether(model, nearest.model, session.upgrades.arcaneTether, endsAt) then
+		table.insert(own.tethers, { a = model, endsAt = endsAt })
+		upgradeFx:FireAllClients(
+			"ArcaneTether",
+			session.player,
+			model,
+			nearest.model,
+			config.duration
+		)
+	end
+end
+
+--[[
+	A shot of this player's own volley landed on `model` at `at`
+	(`ProjectileSystem.onPlayerHit`; `volley` is when it was fired, which
+	tells one cast from the next). Pin Down, Serpent Arrow's bite, Siphon,
+	Rune Circle and Arcane Tether. As everywhere here, the card held is the
+	question: a Ranger cannot hold Siphon.
+]]
+function ClassUpgrades.onShotLanded(player: Player, model: Model, at: Vector3, volley: number)
+	local session = RunSession.get(player)
+	if not session or not session.alive then
+		return
+	end
+	local held = session.upgrades
+	if
+		held.pinDown <= 0
+		and held.serpentArrow <= 0
+		and held.siphon <= 0
+		and held.runeCircle <= 0
+		and held.arcaneTether <= 0
+	then
+		return
+	end
+	local own = state(session)
+	local now = os.clock()
+
+	--[[ Pin Down: rooted, each enemy no sooner than every `again`. ]]
+	if held.pinDown > 0 and (own.pinned[model] or 0) <= now then
+		local pin = Balance.Player.pinDown
+		own.pinned[model] = now + pin.again
+		if EnemyManager.isBoss(model) then
+			EnemyManager.slow(model, pin.boss, now + held.pinDown)
+		else
+			EnemyManager.root(model, held.pinDown, ROOT_LOOK)
+		end
+		upgradeFx:FireAllClients("PinDown", player, at)
+	end
+
+	--[[ Serpent Arrow: the poison is the shot's own; the bite is shown now
+	     and then, not on every arrow. ]]
+	if held.serpentArrow > 0 and now - own.bitAt >= Balance.Player.serpent.shown then
+		own.bitAt = now
+		upgradeFx:FireAllClients("SerpentBite", player, at)
+	end
+
+	--[[ Siphon: a cast counts once, however many of its orbs land. ]]
+	if held.siphon > 0 and own.siphonVolley ~= volley then
+		own.siphonVolley = volley
+		own.siphonLanded += 1
+		if own.siphonLanded % Balance.Player.siphon.every == 0 then
+			RunSession.heal(session, session.maxHealth * held.siphon)
+			upgradeFx:FireAllClients("Siphon", player, at)
+		end
+	end
+
+	--[[ Rune Circle: a rune burns where the orb burst, no faster than its
+	     duration over the runes the card allows, so no more than that many
+	     ever burn at once. ]]
+	if held.runeCircle > 0 and now >= own.runeAt then
+		local rune = Balance.Player.runeCircle
+		own.runeAt = now + rune.duration / held.runeCircle
+		local floor = Vector3.new(at.X, 0, at.Z)
+		AreaStrikes.zone(
+			player,
+			floor,
+			rune.radius,
+			session.damage * rune.damage,
+			rune.every,
+			rune.duration,
+			now,
+			nil,
+			false
+		)
+		upgradeFx:FireAllClients("RuneCircle", player, floor, rune.radius, rune.duration)
+	end
+
+	if held.arcaneTether > 0 and not EnemyManager.tethered(model) then
+		tether(session, own, model, at, now)
+	end
 end
 
 --[[ Something thrown from `start` that hops between enemies: to the
@@ -933,6 +1346,34 @@ end
 --[[ Blade Storm: a blow landed (`Combat/MeleeSystem`); every `every`th
      throws the sword along the swing and back. ]]
 function ClassUpgrades.afterBlow(session: Session, origin: Vector3, direction: Vector3, now: number)
+	--[[ Bellow: every few blows a shout hurts and shoves everything round
+	     him, away from him. ]]
+	local shout = session.melee.bellow
+	if shout > 0 then
+		local config = Balance.Player.bellow
+		local own = state(session)
+		own.bellows += 1
+		if own.bellows % config.every == 0 then
+			local centre = Vector3.new(origin.X, 0, origin.Z)
+			for model, position in EnemyManager.positions() do
+				local body = model.PrimaryPart
+				local half = if body then math.max(body.Size.X, body.Size.Z) / 2 else 1
+				local away = Vector3.new(position.X - centre.X, 0, position.Z - centre.Z).Magnitude
+				if away <= config.radius + half then
+					local _, xp, fell = EnemyManager.damage(
+						model,
+						session.damage * shout,
+						centre,
+						"Hit",
+						session.player
+					)
+					RunSession.creditKill(session.player, xp, fell)
+					EnemyManager.shove(model, centre, config.shove, config.stagger)
+				end
+			end
+			upgradeFx:FireAllClients("Bellow", session.player, centre, config.radius)
+		end
+	end
 	if session.upgrades.bladeStorm <= 0 then
 		return
 	end
@@ -997,15 +1438,77 @@ end
 --[[ Titan's Grip: a slam landed `radius` wide at `centre`; with the giant
      sword, every client shakes and draws it. ]]
 function ClassUpgrades.slammed(session: Session, centre: Vector3, radius: number)
-	if session.melee.reachScale <= 1 then
+	if session.melee.reachScale > 1 then
+		upgradeFx:FireAllClients(
+			"TitanSlam",
+			session.player,
+			Vector3.new(centre.X, 0, centre.Z),
+			radius
+		)
+	end
+	--[[ Colossus: every few slams the giant quakes the ground all round him,
+	     and every client shakes. ]]
+	local root = session.root
+	if session.melee.colossus > 0 and root then
+		local quake = Balance.Player.colossus
+		local own = state(session)
+		own.slams += 1
+		if own.slams % quake.every == 0 then
+			local at = Vector3.new(root.Position.X, 0, root.Position.Z)
+			hitWithin(session, at, quake.radius, session.damage * quake.damage, at)
+			upgradeFx:FireAllClients("ColossusQuake", session.player, at, quake.radius)
+		end
+	end
+end
+
+--[[ Starfall: on a clock while there is something to fight, meteors on the
+     enemies nearest the player, a moment apart, each warned as Meteor's is. ]]
+local function starfall(session: Session, own: State, now: number)
+	local every = session.upgrades.starfallEvery
+	local root = session.root
+	local fighting = root ~= nil and session.alive and EnemyManager.aliveCount() > 0
+	if every <= 0 or not fighting or not root then
+		own.starNextAt = nil
 		return
 	end
-	upgradeFx:FireAllClients(
-		"TitanSlam",
-		session.player,
-		Vector3.new(centre.X, 0, centre.Z),
-		radius
-	)
+	local nextAt = own.starNextAt
+	if not nextAt then
+		-- the first fall comes a little into a fight
+		own.starNextAt = now + math.min(every, 2)
+		return
+	end
+	if now < nextAt then
+		return
+	end
+	own.starNextAt = now + every
+	local config = Balance.Player.starfall
+	local near: { { at: Vector3, away: number } } = {}
+	for _, position in EnemyManager.positions() do
+		local away =
+			Vector3.new(position.X - root.Position.X, 0, position.Z - root.Position.Z).Magnitude
+		if away <= config.range then
+			table.insert(near, { at = position, away = away })
+		end
+	end
+	table.sort(near, function(a, b)
+		return a.away < b.away
+	end)
+	local count = math.min(config.meteors, #near)
+	for index = 1, count do
+		AreaStrikes.strike({
+			owner = session.player,
+			at = near[index].at,
+			radius = config.radius,
+			damage = session.damage * config.damage,
+			delay = config.delay + (index - 1) * config.stagger,
+			now = now,
+			warning = "Meteor",
+			impact = "MeteorImpact",
+		})
+	end
+	if count > 0 then
+		upgradeFx:FireAllClients("Starfall", session.player, count)
+	end
 end
 
 --[[ Arcane Turret: one session's crystal, appearing, casting, going. Its
@@ -1052,6 +1555,85 @@ local function turret(session: Session, own: State, now: number)
 	invent(session, origin, direction, spec, session.damage * config.damage, "TurretOrb", now)
 end
 
+--[[ The nineteen's per-player clocks and what they show, every step:
+     Hunter's Mark, Starfall, Blade Cyclone, and the stillness channel's
+     charges published for every client to draw (`BarrageReady`,
+     `SingularityFrom`, `StoneSkin`, `CycloneBlades`). Each published only
+     when it changes. ]]
+local function nineteen(session: Session, own: State, now: number, moving: boolean)
+	local held = session.upgrades
+	local player = session.player
+	local still = session.stationarySince
+	local alive = session.alive and session.root ~= nil
+
+	--[[ Hunter's Mark: the nearest enemy in reach takes more, for a moment
+	     at a time, refreshed while it stays the one. ]]
+	local root = session.root
+	if held.huntersMark > 0 and alive and moving and root and now >= own.markAt then
+		local mark = Balance.Player.huntersMark
+		own.markAt = now + mark.refresh
+		local target =
+			Targeting.nearest(root.Position, EnemyManager.positions(), Balance.Player.attackRange)
+		if target then
+			EnemyManager.sunder(target.model, held.huntersMark, now + mark.hold)
+		end
+		local marked = if target then target.model else nil
+		if marked ~= own.marked then
+			own.marked = marked
+			upgradeFx:FireAllClients("HuntersMark", player, marked)
+		end
+	end
+
+	starfall(session, own, now)
+
+	--[[ Blade Cyclone: while he has stood still long enough, the blades
+	     whirl and cut (Orbiting Orb's machinery, closer and faster). ]]
+	local cyclone = Balance.Player.bladeCyclone
+	local cycloneBlades = session.melee.bladeCyclone
+	local whirling = cycloneBlades > 0 and alive and Stillness.heldFor(still, now) >= cyclone.charge
+	local shownBlades = if whirling then math.round(cycloneBlades) else 0
+	if shownBlades ~= own.cycloneShown then
+		own.cycloneShown = shownBlades
+		player:SetAttribute("CycloneBlades", if shownBlades > 0 then shownBlades else nil)
+	end
+	if whirling and moving then
+		ClassUpgrades.orbitCuts(session, shownBlades, cyclone.orbit, own.cycloneAgain, now)
+	end
+
+	--[[ Barrage: a ready fan glints over the bow. ]]
+	local barrageReady = held.barrage > 0
+		and alive
+		and Stillness.ready(still, own.barrageAt, Balance.Player.barrage.charge, now)
+	if barrageReady ~= own.barrageShown then
+		own.barrageShown = barrageReady
+		player:SetAttribute("BarrageReady", barrageReady)
+	end
+
+	--[[ Singularity: when (server time) the orb began to grow, while it
+	     grows; nil while moving. ]]
+	local growing: number? = nil
+	if held.singularity > 0 and alive and still then
+		growing = serverIn(math.max(still, own.singularAt) - now)
+	end
+	local shownGrowth = own.singularShown
+	if
+		(growing == nil) ~= (shownGrowth == nil)
+		or (growing and shownGrowth and math.abs(growing - shownGrowth) > 0.05)
+	then
+		own.singularShown = growing
+		player:SetAttribute("SingularityFrom", growing)
+	end
+
+	--[[ Stone Skin: the guard is up. ]]
+	local stoneUp = session.melee.stoneSkin > 0
+		and alive
+		and Stillness.ready(still, session.stoneSpentAt, Balance.Player.stoneSkin.charge, now)
+	if stoneUp ~= own.stoneShown then
+		own.stoneShown = stoneUp
+		player:SetAttribute("StoneSkin", stoneUp)
+	end
+end
+
 function ClassUpgrades.step(deltaTime: number, now: number)
 	--[[ A card screen held the world: push every clock on by the time it
 	     stood, so nothing fires what it missed at once. ]]
@@ -1082,6 +1664,9 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 		for _, blade in blades do
 			blade.startsAt += stood
 		end
+		for _, roll in rolls do
+			roll.startsAt += stood
+		end
 		for session, own in states do
 			if own.turretUntil > now - stood then
 				own.turretUntil += stood
@@ -1098,6 +1683,11 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 				own.rushUntil += stood
 			end
 			own.sniperAt += stood
+			own.barrageAt += stood
+			own.singularAt += stood
+			if own.starNextAt then
+				own.starNextAt = (own.starNextAt :: number) + stood
+			end
 		end
 	end
 
@@ -1266,6 +1856,25 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 		upgradeFx:FireAllClients("SpiritStrike", session.player, target.position, spirit.slot)
 	end
 
+	--[[ Singularity: the orb rolls on, dragging what is near it in to its
+	     line, where it strikes (a boss stands). ]]
+	local grown = Balance.Player.singularity
+	for index = #rolls, 1, -1 do
+		local roll = rolls[index]
+		local along = (now - roll.startsAt) * roll.speed
+		if along >= roll.length or not roll.session.alive then
+			table.remove(rolls, index)
+			continue
+		end
+		local at = roll.origin + roll.direction * along
+		for model, position in EnemyManager.positions() do
+			local away = Vector3.new(position.X - at.X, 0, position.Z - at.Z).Magnitude
+			if away <= grown.pullRadius then
+				EnemyManager.pull(model, at, grown.pullSpeed * deltaTime, 0.4)
+			end
+		end
+	end
+
 	--[[ The phoenix's fire, patch by patch behind it. ]]
 	local fire = Balance.Player.phoenix
 	for index = #embers, 1, -1 do
@@ -1365,6 +1974,7 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 			own.sniperShown = ready
 			session.player:SetAttribute("SniperReady", ready)
 		end
+		nineteen(session, own, now, moving)
 	end
 end
 
@@ -1376,9 +1986,15 @@ function ClassUpgrades.clear()
 	table.clear(fields)
 	table.clear(hops)
 	table.clear(blades)
+	table.clear(rolls)
 	lastStep = nil
 	for session, own in states do
 		table.clear(own.orbAgain)
+		table.clear(own.pinned)
+		table.clear(own.tethers)
+		table.clear(own.cycloneAgain)
+		own.marked = nil
+		own.starNextAt = nil
 		own.turretNextAt = nil
 		own.rushUntil = 0
 		table.clear(own.rushHit)

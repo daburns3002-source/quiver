@@ -842,6 +842,11 @@ local function launch(
 		pierce = spec.pierce,
 		bounces = spec.bounces,
 		homing = spec.homing,
+		--[[ Serpent Arrow: the same weave the server flies, at the same
+		     phase for the head start. ]]
+		weave = spec.weave,
+		weaveBase = if spec.weave then aim else nil,
+		weaveTravelled = if spec.weave then spec.speed * headStart else nil,
 		hitModels = if from then { [from] = true } else {},
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,

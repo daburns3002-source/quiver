@@ -253,6 +253,28 @@ function Stages.homing(rate: number): ShotStage
 	}
 end
 
+--[[ Serpent Arrow: arrows weave `amplitude` studs either side of their
+     line. Flight, like homing; the weaving happens in ProjectileFlight on
+     both sides. The wider of two weaves holds. ]]
+function Stages.weave(amplitude: number): ShotStage
+	return {
+		name = "Weave",
+		order = ShotPipeline.Stage.Flight,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.weave = math.max(spec.weave or 0, amplitude)
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
 --[[ Sends an arrow on to the nearest other enemy after each hit. OnHit
      rather than Flight: where it goes next is decided by what it struck,
      which is only known at the moment of contact. With `arcSpeed` the

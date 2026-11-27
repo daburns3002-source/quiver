@@ -43,6 +43,7 @@ local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local Stillness = require(ReplicatedStorage.Shared.Combat.Stillness)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
@@ -196,6 +197,17 @@ export type Session = {
 	downedAt: number,
 	reviveProgress: number,
 	invulnerableUntil: number,
+	--[[ The untargetable window (`RunSession.untargetable`): until then
+	     (os.clock) no enemy picks this player out and nothing hurts them.
+	     Skyfall's leap. ]]
+	untargetableUntil: number,
+	--[[ Stone Skin: when its guard last took a hit (os.clock), which its
+	     stillness charge starts again from (`Shared/Combat/Stillness`). ]]
+	stoneSpentAt: number,
+	--[[ How much faster the next attack comes, spent when it starts (1 for
+	     none): Reaper's Harvest's kill. Read in `FiringSystem.haste`, so it
+	     reaches the client as `AttackHaste` like every other haste. ]]
+	nextAttackHaste: number,
 	--[[ A melee class's guard: untouchable from `guardFrom` until
 	     `guardUntil`, while its blade is moving (`Combat/MeleeSystem`). ]]
 	guardFrom: number,
@@ -361,6 +373,19 @@ function RunSession.create(player: Player): Session
 			timeDilation = 0,
 			prismaticBurst = 0,
 			vengefulSpirit = 0,
+			huntersMark = 0,
+			pinDown = 0,
+			serpentArrow = 0,
+			trickShot = 0,
+			barrage = 0,
+			skyfall = 0,
+			siphon = 0,
+			overcharge = 0,
+			manaBurn = 0,
+			runeCircle = 0,
+			arcaneTether = 0,
+			starfallEvery = 0,
+			singularity = 0,
 		},
 		windrunner = 0,
 		surgeReady = false,
@@ -391,6 +416,12 @@ function RunSession.create(player: Player): Session
 			guardBreak = 0,
 			bullRush = 0,
 			bloodPact = 0,
+			bellow = 0,
+			stoneSkin = 0,
+			graveChains = 0,
+			bladeCyclone = 0,
+			reapersHarvest = 0,
+			colossus = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -433,6 +464,9 @@ function RunSession.create(player: Player): Session
 		downedAt = 0,
 		reviveProgress = 0,
 		invulnerableUntil = 0,
+		untargetableUntil = 0,
+		stoneSpentAt = -math.huge,
+		nextAttackHaste = 1,
 		guardFrom = 0,
 		guardUntil = 0,
 		random = Random.new(),
@@ -497,6 +531,9 @@ function RunSession.applyLoadout(session: Session)
 	session.upgrades = stats.upgrades
 	session.windrunner = stats.windrunner
 	session.melee = stats.melee
+	--[[ Colossus: the body grows (or shrinks back once the card is gone,
+	     as at a new run). ]]
+	RunSession.scaleBody(session)
 
 	session.pipeline:clear()
 	for _, stage in AbilityEffects.stages(counts, class, equipped) do
@@ -1444,6 +1481,8 @@ function RunSession.newStage(session: Session)
 	session.stageItem = nil
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
+	session.untargetableUntil = 0
+	session.nextAttackHaste = 1
 	-- no streak rides on a stage until `RoomController` says one does
 	session.streak = 0
 end
@@ -1453,7 +1492,42 @@ end
 function RunSession.isInvulnerable(session: Session): boolean
 	local now = os.clock()
 	return now < session.invulnerableUntil
+		or now < session.untargetableUntil
 		or (now >= session.guardFrom and now < session.guardUntil)
+end
+
+--[[ The untargetable window (docs/CARD-IDEAS.md, "build these once"): for
+     `seconds` no enemy picks this player out (`EnemyManager`'s nearest
+     player skips them) and nothing hurts them. Skyfall's leap. The later of
+     two windows holds. `UntargetableUntil` (server time) on the player, for
+     every client to draw it. ]]
+function RunSession.untargetable(session: Session, seconds: number)
+	if seconds <= 0 then
+		return
+	end
+	local now = os.clock()
+	session.untargetableUntil = math.max(session.untargetableUntil, now + seconds)
+	session.player:SetAttribute(
+		"UntargetableUntil",
+		Workspace:GetServerTimeNow() + (session.untargetableUntil - now)
+	)
+end
+
+--[[ Whether enemies should look past this player right now. ]]
+function RunSession.isUntargetable(session: Session): boolean
+	return os.clock() < session.untargetableUntil
+end
+
+--[[ Health a player spends on purpose (Overcharge's cast): never the last
+     point of it, and never through anything that answers a hit -- no dodge,
+     no shield, no Counter Strike, no pet. Whether it was paid. ]]
+function RunSession.spendHealth(session: Session, amount: number): boolean
+	if not session.alive or amount <= 0 or session.health - amount < 1 then
+		return false
+	end
+	session.health -= amount
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+	return true
 end
 
 --[[ Whether a melee class's guard is what keeps it safe right now (mid-swing,
@@ -1557,8 +1631,26 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.swingIndex = 0
 	session.player:SetAttribute("Combo", nil)
 	session.stationarySince = nil
+	RunSession.scaleBody(session)
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ Colossus (`Config/Abilities`): the body at the card's size while it is
+     held, its own size otherwise. `Model:ScaleTo` grows every part, joint
+     and the weapon in hand together, so the sword stays in the hand; the
+     server's rules never read the body's size (shots leave from
+     `Aim.shotOrigin`, blows from `SwingBox`), so this is how he looks, not
+     what he hits. ]]
+function RunSession.scaleBody(session: Session)
+	local character = session.character
+	if not character or not character.PrimaryPart or not character.Parent then
+		return
+	end
+	local want = if session.melee.colossus > 0 then Balance.Player.colossus.scale else 1
+	if math.abs(character:GetScale() - want) > 0.01 then
+		character:ScaleTo(want)
+	end
 end
 
 --[[ Jumping on in the lobby (owner, 2026-10-26: "let players sprint and
@@ -1685,6 +1777,24 @@ function RunSession.applyDamage(session: Session, amount: number)
 	end
 
 	amount *= session.damageTaken
+	--[[ Stone Skin: stood still long enough, a stone guard takes the sting
+	     out of this hit, then charges again from now
+	     (`Shared/Combat/Stillness`). `StoneSkinAt` (server time) tells every
+	     client it broke. ]]
+	local stone = session.melee.stoneSkin
+	if
+		stone > 0
+		and Stillness.ready(
+			session.stationarySince,
+			session.stoneSpentAt,
+			Balance.Player.stoneSkin.charge,
+			os.clock()
+		)
+	then
+		amount = Shelter.reduce(amount, stone)
+		session.stoneSpentAt = os.clock()
+		session.player:SetAttribute("StoneSkinAt", Workspace:GetServerTimeNow())
+	end
 	--[[ The Slate Turtle is tucked in beside its owner: everything is
 	     smaller while it lasts (`Shared/Util/Shelter`). After every other
 	     reduction, so it cuts what would actually have landed. ]]

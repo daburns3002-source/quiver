@@ -344,6 +344,33 @@ local Lobby = {
 		     between about 8 and 21 studs. ]]
 		stretch = NumberRange.new(0.8, 1.4),
 	},
+	--[[ The owner's blocky tree, a few of them on the lawn past the
+	     balustrade among the built trees (owner, 2026-11-27: the lobby only,
+	     not Mossy Glade's round trees). One textured MeshPart each, from
+	     `assets/models/lobby/imports/blocky_tree/blocky_tree.glb`; these
+	     are its ids from its import of 2026-11-01. `native` is the import's
+	     own size, so a spot's `tall` scales it evenly. The lawn lies
+	     `courtyard.drop` (18) below the floor, so each is tall enough for its
+	     crown to show over the balustrade, like the tallest trees round it.
+	     `turn` is its yaw, radians. ]]
+	blockyTree = {
+		mesh = "rbxassetid://139262265934696",
+		texture = "rbxassetid://93690388231604",
+		native = Vector3.new(2.54, 4.6, 2.49),
+		spots = {
+			{ at = plan(-101, 4), tall = 30, turn = 0.4 },
+			{ at = plan(-99, 46), tall = 28, turn = 2.1 },
+			{ at = plan(101, 22), tall = 33, turn = 4.0 },
+			{ at = plan(99, 58), tall = 29, turn = 5.3 },
+			{ at = plan(-38, 97), tall = 31, turn = 1.2 },
+			{ at = plan(42, 97), tall = 28, turn = 3.1 },
+		},
+	} :: {
+		mesh: string,
+		texture: string,
+		native: Vector3,
+		spots: { { at: Vector2, tall: number, turn: number } },
+	},
 	--[[ An arch's opening, studs across and how high its straight sides go
 	     before the round top, and the height of the stone wall it is set in.
 	     Every arch is built alike, as the sheet draws them: the swirl where

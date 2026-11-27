@@ -141,8 +141,8 @@ local NewEnemies = {
 		     `sheet_windswept_cliffs_a.png`): slate and prayer flags over
 		     the clouds. ]]
 		WindsweptCliffs = {
-			top = "WINDSWEPT_TOP",
-			bottom = "WINDSWEPT_BOTTOM",
+			top = "rbxassetid://104430079136259",
+			bottom = "rbxassetid://129014705332197",
 			picture = { x = 262, y = 440, w = 500, h = 500 },
 			name = { x = 260, y = 1030, w = 504, h = 90 },
 			description = { x = 125, y = 1150, w = 774, h = 128 },
@@ -261,7 +261,7 @@ local NewEnemies = {
 		Harpy = {
 			name = "HARPY",
 			description = "Flies over walls and dives where it marks the ground. Step out of the ring!",
-			picture = "HARPY_PIC",
+			picture = "rbxassetid://113192385408077",
 			area = "WindsweptCliffs",
 			-- until their levels open (the Windswept Cliffs' last stage)
 			benched = true,
@@ -269,7 +269,7 @@ local NewEnemies = {
 		GustShaman = {
 			name = "GUST SHAMAN",
 			description = "Its gust blows you back. Never stand with your back to the edge!",
-			picture = "GUST_SHAMAN_PIC",
+			picture = "rbxassetid://124038757054918",
 			area = "WindsweptCliffs",
 			-- until their levels open (the Windswept Cliffs' last stage)
 			benched = true,
@@ -277,7 +277,7 @@ local NewEnemies = {
 		CliffGoat = {
 			name = "CLIFF GOAT",
 			description = "Charges down a line and throws you. Dodge sideways, then hit it while it's dazed!",
-			picture = "CLIFF_GOAT_PIC",
+			picture = "rbxassetid://80760355520627",
 			area = "WindsweptCliffs",
 			-- until their levels open (the Windswept Cliffs' last stage)
 			benched = true,
@@ -285,7 +285,7 @@ local NewEnemies = {
 		StormRoc = {
 			name = "STORM ROC",
 			description = "A big storm bird. Each dive throws a fan of feathers - keep moving!",
-			picture = "STORM_ROC_PIC",
+			picture = "rbxassetid://111678427402048",
 			area = "WindsweptCliffs",
 			-- until their levels open (the Windswept Cliffs' last stage)
 			benched = true,

@@ -14161,7 +14161,7 @@ local Balance = {
 			},
 			enemyDamage = 0.87,
 			enemyHealth = 1.26,
-			hitGrace = 0.4,
+			hitGrace = 0.5,
 			area = "MossyGlade",
 		},
 		--[[ 1-6..1-9's first fight is one smaller and their last two one bigger

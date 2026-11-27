@@ -85,11 +85,13 @@ return function(t: TestRunner.Helper)
 			local dash = class.dash
 			if dash then
 				t.isTrue(dash.cooldown < plain, `{name}'s dash is no quicker`)
-				--[[ Untouchable for the dash and `guard` after: far less
-				     than the wait, or the class could never be hurt. ]]
+				--[[ Untouchable for the dash and `guard` after: well under
+				     half the wait, or the class could never be hurt. It was
+				     a quarter until the owner asked for a longer Assassin
+				     guard (2026-11-27, "Longer dash guard"). ]]
 				local safe = Balance.Player.dash.duration + dash.guard
 				t.isTrue(
-					safe < dash.cooldown * 0.25,
+					safe < dash.cooldown * 0.4,
 					`{name} is safe {safe} s of every {dash.cooldown}`
 				)
 				t.isTrue(dash.damage > 0 and dash.width > 0, `{name}'s dash cuts nothing`)

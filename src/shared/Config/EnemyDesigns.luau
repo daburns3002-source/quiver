@@ -728,7 +728,7 @@ local EnemyDesigns = {
 		GustShaman = {
 			model = "GustShaman",
 			clips = "GustShaman",
-			eyes = "^Eye",
+			eyes = "^eyes_eye_glow$",
 			eyeColor = EYE_ICE,
 		},
 		CliffGoat = {

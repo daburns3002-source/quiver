@@ -102,6 +102,10 @@ export type ImportedDesign = {
 	eyes: string,
 	eyeColor: Color3,
 	stretch: { joint: string, keep: { string } }?,
+	--[[ Studs it hovers above the floor of its hitbox (a flyer,
+	     `Balance.EnemyConfig.flies`): it is fitted into what is left above
+	     that, so its shadow is on the floor and its body in the air. ]]
+	lift: number?,
 }
 
 --[[ Set on every part `EnemyModel` builds, so the client can find a body to
@@ -120,6 +124,8 @@ local EYE_AMBER = Color3.fromRGB(255, 176, 32)
 local EYE_YELLOW = Color3.fromRGB(255, 226, 64)
 local EYE_ORANGE = Color3.fromRGB(255, 150, 40)
 local EYE_PINK = Color3.fromRGB(255, 96, 196)
+--[[ Act 3's glow: the Windswept Cliffs' pale ice blue. ]]
+local EYE_ICE = Color3.fromRGB(150, 225, 255)
 local SPIKE_CYAN = Color3.fromRGB(90, 236, 255)
 local WOOD = Color3.fromRGB(120, 84, 56)
 
@@ -480,6 +486,13 @@ local boarlet: Design = { shadow(2.15, 3, 2.25) }
 local brambleLurker: Design = { shadow(4.5, 4.5, 3.3) }
 local broodmother: Design = { shadow(10.3, 6.2, 6.2) }
 local thornling: Design = { shadow(2.4, 1.85, 1.8) }
+--[[ The Windswept Cliffs (Claude Design, 2026-11-26): each its own model
+     and clips. The flyers' shadows stay on the floor under them. ]]
+local harpy: Design = { shadow(3.4, 3.2, 3.6) }
+local gustShaman: Design = { shadow(3, 3, 4.4) }
+local cliffGoat: Design = { shadow(3.4, 4.2, 3.4) }
+local stormRoc: Design = { shadow(5.6, 5, 5.6) }
+local tempestRoc: Design = { shadow(10, 9, 10) }
 
 --[[
 	The Baby Slime (the owner's updated slimes, 2026-10-23): a small green
@@ -693,9 +706,50 @@ local EnemyDesigns = {
 	Glowcap = glowcap,
 	Shellback = shellback,
 	GrandmotherGulp = grandmotherGulp,
+	-- Windswept Cliffs
+	Harpy = harpy,
+	GustShaman = gustShaman,
+	CliffGoat = cliffGoat,
+	StormRoc = stormRoc,
+	TempestRoc = tempestRoc,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {
+		--[[ The Windswept Cliffs (Claude Design, 2026-11-26), Act 3's
+		     pale-blue eyes; the flyers hover over their shadows (`lift`),
+		     the Tempest Roc's eyes are his own lightning yellow. ]]
+		Harpy = {
+			model = "Harpy",
+			clips = "Harpy",
+			eyes = "eyeglow",
+			eyeColor = EYE_ICE,
+			lift = 1.2,
+		},
+		GustShaman = {
+			model = "GustShaman",
+			clips = "GustShaman",
+			eyes = "^Eye",
+			eyeColor = EYE_ICE,
+		},
+		CliffGoat = {
+			model = "CliffGoat",
+			clips = "CliffGoat",
+			eyes = "^Eye",
+			eyeColor = EYE_ICE,
+		},
+		StormRoc = {
+			model = "StormRoc",
+			clips = "StormRoc",
+			eyes = "^eye_[LR]_glow$",
+			eyeColor = EYE_ICE,
+			lift = 1.6,
+		},
+		TempestRoc = {
+			model = "TempestRoc",
+			clips = "TempestRoc",
+			eyes = "^Head_bolt$",
+			eyeColor = EYE_YELLOW,
+		},
 		SlimeKing = {
 			model = "KingBloblin",
 			clips = "KingBloblin",

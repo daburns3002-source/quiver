@@ -1,0 +1,7 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as ledgestone_blade.png
+
+Image 1 is a style reference for our game's items like this (a sword): match its blocky voxel style, chunky proportions and finish, but NOT its design or colours. Image 2 is the area this one belongs to: match its palette and materials, not its shapes.
+Draw a sword from our children's blocky voxel game for the Windswept Cliffs: slate cliff tops in a sea of white cloud. Slate grey-blue, cloud white, sky blue, weathered wood, prayer-flag red, yellow, green and blue, and the storm boss's navy, cream, gold and lightning yellow.
+LEDGESTONE BLADE (Uncommon): a slate-grey stepped stone blade, a wooden crossguard and a rope-bound grip.
+View: ONE single sword only, shown flat side-on, upright with the blade pointing up, straight-on camera, no perspective, centred, filling about 85 percent of the image. Simple chunky blocks, no fine filigree. No hands, no character. This image is the item's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

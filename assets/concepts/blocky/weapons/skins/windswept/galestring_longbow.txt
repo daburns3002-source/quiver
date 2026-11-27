@@ -1,0 +1,7 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as galestring_longbow.png
+
+Image 1 is a style reference for our game's items like this (an archery bow): match its blocky voxel style, chunky proportions and finish, but NOT its design or colours. Image 2 is the area this one belongs to: match its palette and materials, not its shapes.
+Draw a toy prop from our children's blocky voxel game, an archery bow for the Windswept Cliffs: slate cliff tops in a sea of white cloud. Slate grey-blue, cloud white, sky blue, weathered wood, prayer-flag red, yellow, green and blue, and the storm boss's navy, cream, gold and lightning yellow.
+GALESTRING LONGBOW (Epic): tall sky-blue limbs ending in glowing pale-cyan wind-swirl tips, a cloud-white grip.
+View: ONE single bow only, shown flat side-on, upright, its limbs up and down and its string on the right, drawn as ONE thick straight bar from tip to tip (as thick as the grip, never a thin line), with no arrow on it, straight-on camera, no perspective, centred, filling about 85 percent of the image. Simple chunky blocks, no fine filigree. No hands, no character. This image is the item's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

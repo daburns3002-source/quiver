@@ -60,3 +60,29 @@ Glowing pale-blue eyes under a heavy brow. A long fanned tail of stepped feather
 No clipping: no part pokes through another, every piece sits flush on what it touches, no two faces share a plane. Low poly, under 10k triangles. Match the attached reference image.
 Show front, side and 3/4 view on a plain background.
 ```
+
+## The Tempest Roc -> `tempest_roc.glb` (done, Fable 5.2, 3 fix rounds, 9 clips)
+Attach: `assets/concepts/blocky/windswept/boss07_tempest_roc_views.png` (Codex, from `boss07_tempest_roc.jpg`).
+
+## Arena kit -> one GLB per piece, `assets/models/arenas/windswept_kit/`
+Attach: `assets/concepts/blocky/arenas/area05_windswept_cliffs.jpg`
+```
+Model a 3D object: Roblox arena kit in blocky voxel style, built from stepped cubes like Steal an Egg / Minecraft, no round shapes.
+
+Windswept Cliffs arena kit: build the pieces of the attached sheet as separate 3D models, matching its shapes and colours one to one: slate grey-blue stone with lighter top edges, short bright green grass on the rims, weathered brown wood, prayer flags in red, yellow, green and blue, glowing pale-blue wind streaks, white clouds. One page with a button per piece; the selected piece is shown alone, so Download GLB exports just that piece.
+
+Every piece: its own root group named as below; 1 unit = 1 metre; front toward +Z; resting on y = 0. Under 1,500 triangles a piece. No clipping: no part pokes through another, every cube sits flush on what it touches, no two faces share a plane.
+
+1 RimWall: a cliff rim section 1.3 wide, 1.2 tall, 0.7 deep: stacked slate blocks of uneven heights with grass tufts on top; its +Z face, toward the room, flat.
+2 CornerPillar: a tall stack of slate blocks 0.8 x 1.8 x 0.8 with a grass top.
+3 Boulder: a chunky slate cube rock 1.4 wide and 1.1 tall, a few small rocks and grass tufts at its foot.
+4 FlagPost: two wooden posts 1.6 tall and 1.8 apart, a sagging rope between their tops hung with five square prayer flags (red, yellow, green, blue, red).
+5 Bridge: a plank rope bridge 1.6 wide and 2.6 long along Z: brown planks, rope rails on four corner posts.
+6 FloorTile: a flat slate floor tile 1.35 x 0.12 x 1.35, four stepped squares with thin darker seams.
+7 WindStreak: a flat glowing pale-blue wind swirl 1.6 long, made of stepped curved bands, lying flat at y = 0.01.
+8 CloudGap: a flat field of fluffy white cloud cubes 1.35 x 0.5 x 1.35, the drop between two cliffs, its top at y = -0.1.
+9 GrassTuft: a small clump of bright green grass blades 0.4 wide and 0.3 tall.
+10 StoneGate: a slate archway 2.4 wide and 2.2 tall with a 1.2-wide opening and a prayer-flag string across its top; two wooden doors filling the opening, each its own part (Door_L, Door_R) so they can swing.
+
+Show the selected piece in front, side and 3/4 view on a plain background.
+```

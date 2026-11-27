@@ -137,6 +137,18 @@ local NewEnemies = {
 			button = { x = 200, y = 1320, w = 630, h = 150 },
 			text = WHITE,
 		},
+		--[[ The Windswept Cliffs (Codex, 2026-11-26,
+		     `sheet_windswept_cliffs_a.png`): slate and prayer flags over
+		     the clouds. ]]
+		WindsweptCliffs = {
+			top = "WINDSWEPT_TOP",
+			bottom = "WINDSWEPT_BOTTOM",
+			picture = { x = 262, y = 440, w = 500, h = 500 },
+			name = { x = 260, y = 1030, w = 504, h = 90 },
+			description = { x = 125, y = 1150, w = 774, h = 128 },
+			button = { x = 215, y = 1320, w = 595, h = 130 },
+			text = WHITE,
+		},
 	} :: { [string]: Sheet },
 
 	enemies = {
@@ -244,6 +256,39 @@ local NewEnemies = {
 			description = "Slow, heavy and tough. A walking wall - shoot past it at the turrets!",
 			picture = "rbxassetid://127886942453836",
 			area = "BogheartCaverns",
+		},
+		-- Windswept Cliffs
+		Harpy = {
+			name = "HARPY",
+			description = "Flies over walls and dives where it marks the ground. Step out of the ring!",
+			picture = "HARPY_PIC",
+			area = "WindsweptCliffs",
+			-- until their levels open (the Windswept Cliffs' last stage)
+			benched = true,
+		},
+		GustShaman = {
+			name = "GUST SHAMAN",
+			description = "Its gust blows you back. Never stand with your back to the edge!",
+			picture = "GUST_SHAMAN_PIC",
+			area = "WindsweptCliffs",
+			-- until their levels open (the Windswept Cliffs' last stage)
+			benched = true,
+		},
+		CliffGoat = {
+			name = "CLIFF GOAT",
+			description = "Charges down a line and throws you. Dodge sideways, then hit it while it's dazed!",
+			picture = "CLIFF_GOAT_PIC",
+			area = "WindsweptCliffs",
+			-- until their levels open (the Windswept Cliffs' last stage)
+			benched = true,
+		},
+		StormRoc = {
+			name = "STORM ROC",
+			description = "A big storm bird. Each dive throws a fan of feathers - keep moving!",
+			picture = "STORM_ROC_PIC",
+			area = "WindsweptCliffs",
+			-- until their levels open (the Windswept Cliffs' last stage)
+			benched = true,
 		},
 	} :: { [string]: Enemy },
 }

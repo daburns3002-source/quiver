@@ -548,5 +548,30 @@
  "FxPetPrismShards": {
   "glb": "assets/models/effects/fx_pet_prism_shards.glb",
   "loops": []
+ },
+ "TempestRoc": {
+  "glb": "assets/models/enemies/windswept/tempest_roc.glb",
+  "loops": [
+   "Idle",
+   "Dive",
+   "Fly"
+  ],
+  "moving": []
+ },
+ "Harpy": {
+  "glb": "assets/models/enemies/windswept/harpy.glb",
+  "loops": [
+   "Idle",
+   "Move"
+  ],
+  "moving": []
+ },
+ "StormRoc": {
+  "glb": "assets/models/enemies/windswept/storm_roc.glb",
+  "loops": [
+   "Idle",
+   "Move"
+  ],
+  "moving": []
  }
 }

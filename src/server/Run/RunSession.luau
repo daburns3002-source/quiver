@@ -96,6 +96,10 @@ export type Session = {
 	--[[ The class upgrades beside the shot (`Combat/ClassUpgrades`, which
 	     keeps their counters and timers). ]]
 	upgrades: AbilityEffects.UpgradeStats,
+	--[[ Windrunner: move speed per stack, as a fraction. The stacks
+	     themselves live in `Combat/ClassUpgrades` and are published on the
+	     player's `Windrunner` attribute, which the client reads. ]]
+	windrunner: number,
 	--[[ Mana Surge: a kill has charged the next cast (spent by
 	     `ClassUpgrades.spendSurge`). Arcane Shield: when the shield is up
 	     again (os.clock); up now when it is past. ]]
@@ -258,6 +262,13 @@ RunSession.onShellBlock = nil :: ((Session, string) -> ())?
      (`Combat/ClassUpgrades`). A hook for the same reason as `onDeath`. ]]
 RunSession.onHurt = nil :: ((Session) -> ())?
 
+--[[ Called when an enemy this player killed fell at that spot: Thornfall's
+     arrows, Prismatic Burst's shards and Vengeful Spirit's sword all rise
+     out of the body (`Combat/ClassUpgrades`). A hook for the same reason as
+     `onHurt`: acting on a kill means inventing shots, which means the
+     projectile system, which requires this module. ]]
+RunSession.onKillAt = nil :: ((Session, Vector3) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local newEnemy = Remotes.event(Remotes.NewEnemy)
@@ -343,7 +354,15 @@ function RunSession.create(player: Player): Session
 			splitOrb = 0,
 			gravityWell = 0,
 			orbitingOrb = 0,
+			thornfall = 0,
+			headhunterEvery = 0,
+			ghostQuiver = 0,
+			twinElements = 0,
+			timeDilation = 0,
+			prismaticBurst = 0,
+			vengefulSpirit = 0,
 		},
+		windrunner = 0,
 		surgeReady = false,
 		shieldUpAt = 0,
 		casts = 0,
@@ -369,6 +388,9 @@ function RunSession.create(player: Player): Session
 			bleed = 0,
 			echoSlash = 0,
 			riposte = 0,
+			guardBreak = 0,
+			bullRush = 0,
+			bloodPact = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -473,6 +495,7 @@ function RunSession.applyLoadout(session: Session)
 	session.meteor = stats.meteor
 	session.earthbreaker = stats.earthbreaker
 	session.upgrades = stats.upgrades
+	session.windrunner = stats.windrunner
 	session.melee = stats.melee
 
 	session.pipeline:clear()
@@ -891,6 +914,12 @@ function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 			"DashRefunds",
 			(if type(refunds) == "number" then refunds else 0) + 1
 		)
+	end
+	--[[ The cards that raise something out of the body want to know where
+	     it fell, so this runs before the heal's early return. ]]
+	local onKillAt = RunSession.onKillAt
+	if session.alive and position and onKillAt then
+		onKillAt(session, position)
 	end
 	if not session.alive or session.healPerKill <= 0 then
 		return

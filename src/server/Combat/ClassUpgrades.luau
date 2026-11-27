@@ -39,6 +39,21 @@
 	(`Combat/MeleeSystem`, `Combat/ProjectileSystem`).
 	Arcane Shield and Sunder live where they act (`RunSession.applyDamage`,
 	`EnemyManager.sunder`).
+	And the owner's picks of 2026-11-03 (`docs/CARD-IDEAS.md`):
+
+	- Windrunner (Ranger, Rare): volleys bank move speed, which lapses.
+	- Thornfall (Ranger, Epic): a kill plants arrows that fire outward.
+	- Headhunter (Ranger, Legendary): every Nth shot is a guaranteed crit.
+	- Ghost Quiver (Ranger, Legendary): an archer behind copies the volley.
+	- Twin Elements (Arcanist, Epic): the cast's orbs alternate fire and ice
+	  (the extra orb itself is a lane in `AbilityEffects.stages`).
+	- Time Dilation (Arcanist, Legendary): a hit leaves a crawling field.
+	- Prismatic Burst (Arcanist, Legendary): a kill bursts into shards.
+	- Bull Rush (Warden, Rare): the dash runs enemies down.
+	- Vengeful Spirit (Warden, Legendary): a kill raises a sword.
+
+	Guard Break and Blood Pact are blows, so they live in
+	`Combat/MeleeSystem` with the rest of the swing.
 
 	Each reads its level from the session (`AbilityEffects.ServerStats`), so
 	nothing here asks for a card by name; the counters and timers live here,
@@ -57,6 +72,7 @@ local AreaStrikes = require(script.Parent.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local AssassinRules = require(ReplicatedStorage.Shared.Combat.AssassinRules)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -102,6 +118,20 @@ type State = {
 	     how many orbs were last published on the player. ]]
 	orbAgain: { [Model]: number },
 	shownOrbs: number,
+	--[[ Windrunner: stacks banked, and when they all lapse (os.clock). ]]
+	windStacks: number,
+	windUntil: number,
+	--[[ Headhunter and Twin Elements: shots dressed this run. One counter
+	     serves both — "every Nth shot" and "alternate fire and ice" are
+	     both questions about which shot this is. ]]
+	shots: number,
+	--[[ Bull Rush: while the dash is running, and what it has already run
+	     through, so one dash hits an enemy once. ]]
+	rushUntil: number,
+	rushHit: { [Model]: true },
+	--[[ Blood Pact: whether it is paying out, so the client is told the
+	     moment it engages and not every frame it stays engaged. ]]
+	pactOn: boolean,
 }
 
 local states: { [Session]: State } = setmetatable({}, { __mode = "k" }) :: any
@@ -144,6 +174,15 @@ type Blade = {
 	struckBack: { [Model]: boolean },
 }
 local blades: { Blade } = {}
+--[[ Vengeful Spirit: a sword risen from a kill, hovering by its Warden
+     until `endsAt` and striking at `strikeAt` (os.clock). `slot` is which
+     side of him it hangs on, so two do not sit in the same place. ]]
+type Spirit = { session: Session, endsAt: number, strikeAt: number, slot: number }
+local spirits: { Spirit } = {}
+
+--[[ Time Dilation: a patch of crawling ground, left where a shot landed. ]]
+type Field = { session: Session, at: Vector3, endsAt: number }
+local fields: { Field } = {}
 
 local lastStep: number? = nil
 
@@ -165,6 +204,12 @@ local function state(session: Session): State
 		blows = 0,
 		orbAgain = {},
 		shownOrbs = 0,
+		windStacks = 0,
+		windUntil = 0,
+		shots = 0,
+		rushUntil = 0,
+		rushHit = {},
+		pactOn = false,
 	}
 	states[session] = fresh
 	return fresh
@@ -315,14 +360,15 @@ local function hitWithin(
 	at: Vector3,
 	radius: number,
 	damage: number,
-	from: Vector3?
+	from: Vector3?,
+	knock: number?
 )
 	for model, position in EnemyManager.positions() do
 		local body = model.PrimaryPart
 		local half = if body then math.max(body.Size.X, body.Size.Z) / 2 else 1
 		local away = Vector3.new(position.X - at.X, 0, position.Z - at.Z).Magnitude
 		if away <= radius + half then
-			local _, xp, fell = EnemyManager.damage(model, damage, from)
+			local _, xp, fell = EnemyManager.damage(model, damage, from, nil, nil, knock)
 			RunSession.creditKill(session.player, xp, fell)
 		end
 	end
@@ -476,6 +522,136 @@ local function blackHole(session: Session, origin: Vector3, target: Vector3, now
 	)
 end
 
+--[[ Thornfall: the arrows a kill plants in the ground, which fire outward
+     a moment later, spread evenly round the circle. ]]
+local function thornfall(session: Session, at: Vector3, count: number)
+	local config = Balance.Player.thornfall
+	local damage = session.damage * config.damage
+	local spec = plainSpec(config.speed, config.lifetime, 0)
+	local origin = Vector3.new(at.X, Balance.Projectile.height, at.Z)
+	upgradeFx:FireAllClients("Thornfall", session.player, origin, count)
+	task.delay(config.delay, function()
+		if not session.alive then
+			return
+		end
+		local fired = os.clock()
+		for index = 1, count do
+			local angle = (index - 1) / count * math.pi * 2
+			invent(
+				session,
+				origin,
+				Vector3.new(math.cos(angle), 0, math.sin(angle)),
+				spec,
+				damage,
+				"Arrow",
+				fired
+			)
+		end
+	end)
+end
+
+--[[ Prismatic Burst: the shards an orb's kill throws out, each seeking
+     whatever is nearest from where the body fell. ]]
+local function prismatic(session: Session, at: Vector3, count: number, now: number)
+	local config = Balance.Player.prismaticBurst
+	local damage = session.damage * config.damage
+	local spec = plainSpec(config.speed, config.lifetime, 0)
+	spec.homing = math.rad(config.homing)
+	local origin = Vector3.new(at.X, Balance.Projectile.height, at.Z)
+	upgradeFx:FireAllClients("PrismaticBurst", session.player, origin, count)
+	for index = 1, count do
+		local angle = (index - 1) / count * math.pi * 2
+		invent(
+			session,
+			origin,
+			Vector3.new(math.cos(angle), 0, math.sin(angle)),
+			spec,
+			damage,
+			"Orb",
+			now
+		)
+	end
+end
+
+--[[ Vengeful Spirit: a kill raises a sword, or refreshes the oldest when
+     the Warden already has all he may have at once. ]]
+local function raiseSpirit(session: Session, now: number)
+	local config = Balance.Player.vengefulSpirit
+	local mine, oldest = 0, nil :: Spirit?
+	for _, spirit in spirits do
+		if spirit.session == session then
+			mine += 1
+			if not oldest or spirit.endsAt < oldest.endsAt then
+				oldest = spirit
+			end
+		end
+	end
+	if mine >= config.most and oldest then
+		oldest.endsAt = now + config.duration
+		return
+	end
+	table.insert(spirits, {
+		session = session,
+		endsAt = now + config.duration,
+		strikeAt = now + config.strikeEvery,
+		slot = mine,
+	})
+	session.player:SetAttribute("SpiritsUntil", serverIn(config.duration))
+	session.player:SetAttribute("Spirits", mine + 1)
+end
+
+--[[
+	An enemy this player killed fell here (`RunSession.onKillAt`).
+
+	Each card is its own class's, so what killed the enemy never has to be
+	asked: a Warden cannot hold Thornfall and a Ranger cannot raise a
+	spirit. The card held is the question, as everywhere else here.
+]]
+function ClassUpgrades.onKillAt(session: Session, at: Vector3)
+	local held = session.upgrades
+	local now = os.clock()
+	if held.thornfall > 0 then
+		thornfall(session, at, math.round(held.thornfall))
+	end
+	if held.prismaticBurst > 0 then
+		prismatic(session, at, math.round(held.prismaticBurst), now)
+	end
+	if held.vengefulSpirit > 0 then
+		raiseSpirit(session, now)
+	end
+	if held.timeDilation > 0 then
+		table.insert(fields, {
+			session = session,
+			at = Vector3.new(at.X, 0, at.Z),
+			endsAt = now + held.timeDilation,
+		})
+		upgradeFx:FireAllClients(
+			"TimeField",
+			session.player,
+			Vector3.new(at.X, 0, at.Z),
+			Balance.Player.timeDilation.radius,
+			held.timeDilation
+		)
+	end
+end
+
+--[[ Bull Rush: the dash has begun, so for its length the Warden runs down
+     whatever he passes through (`Remotes.DashStarted`, `Main.server`), and
+     nothing can hurt him until `immune` has passed (owner, 2026-11-04: "there
+     needs to be immunity frames in the bull rush"). The later of the two, so
+     a charge can never cut a revive's longer shield short. ]]
+function ClassUpgrades.beginRush(session: Session, now: number)
+	if session.melee.bullRush <= 0 then
+		return
+	end
+	local own = state(session)
+	own.rushUntil = now + Balance.Player.dash.duration
+	own.rushHit = {}
+	session.invulnerableUntil =
+		math.max(session.invulnerableUntil, now + Balance.Player.bullRush.immune)
+	session.player:SetAttribute("BullRushAt", Workspace:GetServerTimeNow())
+end
+
 --[[
 	After a ranged volley (`FiringSystem`): counts it, and fires whichever
 	every-nth upgrades it completes. `origin` is where the shot left from,
@@ -486,7 +662,8 @@ function ClassUpgrades.afterVolley(
 	origin: Vector3,
 	direction: Vector3,
 	target: Vector3,
-	now: number
+	now: number,
+	specs: { Types.ShotSpec }?
 )
 	local held = session.upgrades
 	if
@@ -494,6 +671,8 @@ function ClassUpgrades.afterVolley(
 		and held.arrowRain <= 0
 		and held.blackHole <= 0
 		and held.elemental <= 0
+		and held.ghostQuiver <= 0
+		and session.windrunner <= 0
 		and held.sniper <= 0
 		and held.thornBurst <= 0
 		and held.rootHold <= 0
@@ -502,6 +681,43 @@ function ClassUpgrades.afterVolley(
 	end
 	local own = state(session)
 	own.volleys += 1
+
+	--[[ Windrunner: a stack a volley, up to the cap, all of them lapsing
+	     together a moment after the last one. Published on the player
+	     because move speed is the client's to apply
+	     (`AbilityEffects.moveSpeedAt`). ]]
+	if session.windrunner > 0 then
+		local wind = Balance.Player.windrunner
+		if now > own.windUntil then
+			own.windStacks = 0
+		end
+		own.windStacks = math.min(own.windStacks + 1, wind.maxStacks)
+		own.windUntil = now + wind.duration
+		session.player:SetAttribute("Windrunner", own.windStacks)
+	end
+
+	--[[ Ghost Quiver: the same volley again from behind the player, at a
+	     share of its damage. The specs the pipeline just built are passed
+	     in, so this is the volley the player fired and not an invention of
+	     its own: every card that shaped it shapes the ghost's too. ]]
+	if held.ghostQuiver > 0 and specs then
+		local ghost = Balance.Player.ghostQuiver
+		local behind = origin - direction * ghost.behind
+		upgradeFx:FireAllClients("GhostQuiver", session.player, behind, ghost.behind)
+		for _, spec in specs do
+			local copy = table.clone(spec)
+			copy.delay = (copy.delay or 0) + ghost.delay
+			invent(
+				session,
+				behind,
+				direction,
+				copy,
+				session.damage * copy.damageScale * ghost.damage,
+				"Arrow",
+				now
+			)
+		end
+	end
 	if sniperReady(session, own, now) then
 		sniper(session, own, origin, direction, now)
 	end
@@ -542,8 +758,11 @@ end
 
 --[[ What the cards put on each projectile of a volley before it is
      spawned: Split Shot's splinters, Wind Arrows' gust, Frost Orb's chill,
-     Thornwood's Web Snare, Thorn Burst, Root Hold and Burr Blight, then
-     Elemental Orbs' element. Nothing without the cards. ]]
+     Thornwood's Web Snare, Thorn Burst, Root Hold and Burr Blight,
+     Headhunter's marked shot, Twin Elements' pair, then Elemental Orbs'
+     element. Nothing without the cards. This is the per-projectile hook,
+     so `FiringSystem` calls it for every shot and never asks which card
+     did what (CLAUDE.md non-negotiable 1). ]]
 function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnParams)
 	local held = session.upgrades
 	if held.splitShot > 0 then
@@ -584,6 +803,32 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	end
 	if held.gravityWell > 0 then
 		params.well = held.gravityWell
+	end
+	--[[ Headhunter: every Nth shot crits for certain, and for more than a
+	     crit would have been — it multiplies whatever Deadly Strike and the
+	     weapon have already built up rather than replacing it. Twin
+	     Elements: the orbs alternate fire and ice. One count of shots
+	     serves both, across casts rather than reset each one, which comes
+	     to the same thing while the card's own lane makes the pair. ]]
+	if held.headhunterEvery > 0 or held.twinElements > 0 then
+		local own = state(session)
+		own.shots += 1
+		if held.headhunterEvery > 0 and own.shots % held.headhunterEvery == 0 then
+			params.critChance = 1
+			params.critMultiplier = params.critMultiplier * Balance.Player.headhunter.multiplier
+			--[[ Which shot was marked, so the clients can mark it too. Only
+			     on the one shot in ten, so this is not chatter. ]]
+			upgradeFx:FireAllClients("Headhunter", session.player, params.origin)
+		end
+		if held.twinElements > 0 then
+			if own.shots % 2 == 1 then
+				ClassUpgrades.dressAs("Fire", params)
+			else
+				local twin = Balance.Player.twinElements
+				params.slow = math.min(params.slow or 1, twin.slow)
+				params.slowDuration = math.max(params.slowDuration or 0, twin.slowDuration)
+			end
+		end
 	end
 	if held.elemental > 0 then
 		ClassUpgrades.dressAs(ELEMENTS[state(session).element], params)
@@ -719,8 +964,16 @@ function ClassUpgrades.afterBlow(session: Session, origin: Vector3, direction: V
 	upgradeFx:FireAllClients("BladeStorm", session.player, start, flat, length, config.duration)
 end
 
---[[ Counter Strike: a hit really landed on the player (`RunSession.onHurt`). ]]
+--[[ Counter Strike and Blood Pact: a hit really landed on the player
+     (`RunSession.onHurt`). ]]
 function ClassUpgrades.onHurt(session: Session)
+	--[[ Blood Pact is watched in `step`, which walks the states: a hit
+	     taken is the only way under the threshold, so the state is made
+	     here, or a player holding nothing else of this module never sees
+	     the pact engage (seen in Studio, 2026-11-27). ]]
+	if session.melee.bloodPact > 0 then
+		state(session)
+	end
 	if session.melee.counterStrike <= 0 then
 		return
 	end
@@ -816,6 +1069,13 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 		for _, ember in embers do
 			ember.dropAt += stood
 		end
+		for _, spirit in spirits do
+			spirit.endsAt += stood
+			spirit.strikeAt += stood
+		end
+		for _, field in fields do
+			field.endsAt += stood
+		end
 		for _, hop in hops do
 			hop.hitAt += stood
 		end
@@ -830,6 +1090,12 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 			end
 			if own.turretNextAt then
 				own.turretNextAt = (own.turretNextAt :: number) + stood
+			end
+			if own.windUntil > now - stood then
+				own.windUntil += stood
+			end
+			if own.rushUntil > now - stood then
+				own.rushUntil += stood
 			end
 			own.sniperAt += stood
 		end
@@ -882,6 +1148,122 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 				RunSession.creditKill(session.player, xp, fell)
 			end
 		end
+	end
+
+	--[[ Windrunner: the stacks lapse together, and the player is told once
+	     rather than every frame. ]]
+	for session, own in states do
+		if own.windStacks > 0 and now > own.windUntil then
+			own.windStacks = 0
+			session.player:SetAttribute("Windrunner", 0)
+		end
+	end
+
+	--[[ Bull Rush: while the dash runs, everything the Warden passes
+	     through is run down, once each. Measured against the root as it
+	     moves, so it needs no direction from the client. ]]
+	local rush = Balance.Player.bullRush
+	for session, own in states do
+		if own.rushUntil <= now then
+			continue
+		end
+		local root = session.root
+		if not (root and session.alive) then
+			own.rushUntil = 0
+			continue
+		end
+		local centre = root.Position
+		for model, position in EnemyManager.positions() do
+			if own.rushHit[model] then
+				continue
+			end
+			local body = model.PrimaryPart
+			local half = if body then math.max(body.Size.X, body.Size.Z) / 2 else 1
+			local away = Vector3.new(position.X - centre.X, 0, position.Z - centre.Z).Magnitude
+			if away > rush.width + half then
+				continue
+			end
+			own.rushHit[model] = true
+			local _, xp, fell = EnemyManager.damage(
+				model,
+				session.damage * session.melee.bullRush,
+				centre,
+				"Hit",
+				session.player
+			)
+			RunSession.creditKill(session.player, xp, fell)
+			EnemyManager.shove(model, centre, rush.shove, rush.stagger)
+		end
+	end
+
+	--[[ Blood Pact: on while he is under the threshold, off above it. Pushed
+	     to the player as a boolean rather than a time, because the client
+	     holds an aura for as long as it is true, and the moment it turns on
+	     is when the sound plays. ]]
+	local pact = Balance.Player.bloodPact
+	for session, own in states do
+		local wants = session.melee.bloodPact > 0
+			and session.alive
+			and session.health < session.maxHealth * pact.below
+		if wants ~= own.pactOn then
+			own.pactOn = wants
+			session.player:SetAttribute("BloodPact", wants)
+		end
+	end
+
+	--[[ Time Dilation: everything standing in a field crawls, and so do the
+	     shots crossing it. Re-applied every step rather than set once, so an
+	     enemy that walks in afterwards is caught too. ]]
+	local dilation = Balance.Player.timeDilation
+	for index = #fields, 1, -1 do
+		local field = fields[index]
+		if now >= field.endsAt then
+			table.remove(fields, index)
+			continue
+		end
+		for model, position in EnemyManager.positions() do
+			local away = Vector3.new(position.X - field.at.X, 0, position.Z - field.at.Z).Magnitude
+			if away <= dilation.radius then
+				EnemyManager.slow(model, dilation.slow, now + 0.2)
+			end
+		end
+	end
+
+	--[[ Vengeful Spirit: each sword strikes what is nearest it, then goes
+	     when its time is up. ]]
+	local sword = Balance.Player.vengefulSpirit
+	for index = #spirits, 1, -1 do
+		local spirit = spirits[index]
+		local session = spirit.session
+		local root = session.root
+		if now >= spirit.endsAt or not (root and session.alive) then
+			table.remove(spirits, index)
+			local left = 0
+			for _, other in spirits do
+				if other.session == session then
+					left += 1
+				end
+			end
+			session.player:SetAttribute("Spirits", left)
+			continue
+		end
+		if now < spirit.strikeAt then
+			continue
+		end
+		spirit.strikeAt = now + sword.strikeEvery
+		local at = root.Position
+		local target = Targeting.nearest(at, EnemyManager.positions(), sword.reach)
+		if not target then
+			continue
+		end
+		--[[ It shoves as its owner's own first blow does: all the way for
+		     the Warden, a third for the Assassin, whose daggers would
+		     otherwise lose what the sword pushed off (`Classes.swing.knock`). ]]
+		local class = Classes[session.loadout.class]
+		local swing = class and class.swing
+		local knock = if swing and swing.knock then swing.knock[1] else nil
+		hitWithin(session, target.position, 1.2, session.damage * sword.damage, at, knock)
+		upgradeFx:FireAllClients("SpiritStrike", session.player, target.position, spirit.slot)
 	end
 
 	--[[ The phoenix's fire, patch by patch behind it. ]]
@@ -990,12 +1372,26 @@ end
 function ClassUpgrades.clear()
 	table.clear(holes)
 	table.clear(embers)
+	table.clear(spirits)
+	table.clear(fields)
 	table.clear(hops)
 	table.clear(blades)
 	lastStep = nil
 	for session, own in states do
 		table.clear(own.orbAgain)
 		own.turretNextAt = nil
+		own.rushUntil = 0
+		table.clear(own.rushHit)
+		if own.windStacks > 0 then
+			own.windStacks = 0
+			own.windUntil = 0
+			session.player:SetAttribute("Windrunner", 0)
+		end
+		session.player:SetAttribute("Spirits", 0)
+		if own.pactOn then
+			own.pactOn = false
+			session.player:SetAttribute("BloodPact", false)
+		end
 		if own.turretUntil > 0 then
 			own.turretUntil = 0
 			session.player:SetAttribute("TurretUntil", 0)

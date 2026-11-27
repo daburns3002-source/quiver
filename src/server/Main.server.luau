@@ -238,6 +238,9 @@ RunSession.onHurt = function(session)
 	ClassUpgrades.onHurt(session)
 	AssassinUpgrades.onHurt(session)
 end
+--[[ Thornfall's arrows, Prismatic Burst's shards, Vengeful Spirit's sword and
+     Time Dilation's field all rise out of an enemy this player killed. ]]
+RunSession.onKillAt = ClassUpgrades.onKillAt
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]
@@ -677,7 +680,14 @@ Inbound.on(Remotes.DashStarted, function(player, heading)
 	end
 	local class = Classes[session.loadout.class]
 	local cuts = class ~= nil and class.dash ~= nil
-	if session.earthbreaker <= 0 and session.upgrades.shieldThrow <= 0 and not cuts then
+	--[[ Bull Rush rides the same dash, and the same gate: any of these is
+	     reason enough to accept this, none is reason to accept two. ]]
+	if
+		session.earthbreaker <= 0
+		and session.upgrades.shieldThrow <= 0
+		and session.melee.bullRush <= 0
+		and not cuts
+	then
 		return
 	end
 	local now = os.clock()
@@ -687,6 +697,9 @@ Inbound.on(Remotes.DashStarted, function(player, heading)
 	end
 	session.lastDashAt = now
 	ClassUpgrades.onDash(session, root, now)
+	--[[ Bull Rush: for the dash's length he runs down what he passes
+	     through (`Combat/ClassUpgrades`). ]]
+	ClassUpgrades.beginRush(session, now)
 	--[[ A class whose dash cuts (the Assassin's Shadow Dash). ]]
 	MeleeSystem.dash(session, root, now, DashCut.heading(heading))
 	if session.earthbreaker <= 0 then

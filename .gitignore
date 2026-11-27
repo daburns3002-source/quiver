@@ -37,3 +37,8 @@ __pycache__/
 
 # Approved Studio UI model snapshots, preserved for reproducible Rojo builds.
 !/assets/studio-codex/*.rbxm
+
+# Codex writes its own copies into the worktree; the raws beside the
+# prompts are the kept ones. prev*/ are hand-kept earlier takes.
+assets/ui/glow_toy_cards/*magenta*.png
+assets/concepts/blocky/ui/cards/prev*/

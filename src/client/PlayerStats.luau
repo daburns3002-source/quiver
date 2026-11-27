@@ -36,6 +36,9 @@ export type Stats = {
 	widthScale: number,
 	--[[ Titan's Grip: the whole swing grown by this. ]]
 	reachScale: number,
+	--[[ Windrunner: move speed per stack. The live stack count is the
+	     player's `Windrunner` attribute, which the server owns. ]]
+	windrunner: number,
 	class: string,
 	--[[ The weapon in hand when not the class's own, for its built-in
 	     effect (`Config/WeaponStats`). ]]
@@ -58,6 +61,7 @@ local function defaults(): Stats
 		reachBonus = 0,
 		widthScale = 1,
 		reachScale = 1,
+		windrunner = 0,
 		class = "Ranger",
 		abilities = {},
 	}
@@ -97,6 +101,7 @@ function PlayerStats.set(stats: Stats)
 		projectileSpeed = tonumber(stats.projectileSpeed) or Balance.Projectile.speed,
 		projectileLifetime = tonumber(stats.projectileLifetime) or Balance.Projectile.lifetime,
 		reachBonus = math.max(tonumber(stats.reachBonus) or 0, 0),
+		windrunner = math.max(tonumber(stats.windrunner) or 0, 0),
 		widthScale = math.max(tonumber(stats.widthScale) or 1, 0),
 		reachScale = math.max(tonumber(stats.reachScale) or 1, 1),
 		class = if typeof(stats.class) == "string" then stats.class else "Ranger",

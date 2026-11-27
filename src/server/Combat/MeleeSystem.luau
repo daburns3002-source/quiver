@@ -171,7 +171,7 @@ end
      Serrated Edge and Bleed, as the player's draft has them. A swing's blow
      and a dash's cut land the same way. `standing` is where the striker is,
      when not `from` (a dash is pushed out from its line, but struck from
-     where it ended). ]]
+     where it ended). Whether the blow landed. ]]
 local function strike(
 	session: Session,
 	lead: Types.ShotSpec?,
@@ -181,7 +181,7 @@ local function strike(
 	now: number,
 	standing: Vector3?,
 	knock: number?
-)
+): boolean
 	local melee = session.melee
 	local assassin = Balance.Player.assassin
 	local damage = blow
@@ -244,6 +244,7 @@ local function strike(
 		     an arrow's. ]]
 		SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage, now)
 	end
+	return landed
 end
 
 --[[ Lands one blow: everything in the box takes it. ]]
@@ -293,6 +294,16 @@ local function land(swing: Pending, now: number)
 	--[[ Counter Strike: the first blow after being hit, charged
 	     (`Combat/ClassUpgrades`). ]]
 	blow *= ClassUpgrades.spendCounter(session)
+	--[[ Blood Pact: harder the worse off he is. Read here rather than in
+	     `AbilityEffects.serverStats`, because it depends on health *now* —
+	     the same reason Execute is read against the enemy's health below,
+	     and stats are rebuilt only on a level-up. ]]
+	if
+		melee.bloodPact > 0
+		and session.health < session.maxHealth * Balance.Player.bloodPact.below
+	then
+		blow *= 1 + melee.bloodPact
+	end
 	--[[ Combo Counter (the Token Daggers): every strike landed since the
 	     last hit taken adds a little (`Combat/AssassinUpgrades`). ]]
 	blow *= AssassinUpgrades.comboScale(session)
@@ -373,7 +384,7 @@ local function land(swing: Pending, now: number)
 			continue
 		end
 
-		strike(
+		local landed = strike(
 			session,
 			lead,
 			enemy,
@@ -385,6 +396,17 @@ local function land(swing: Pending, now: number)
 			if config.knock and not swing.spin then config.knock[swing.index] else nil
 		)
 		table.insert(struck, enemy)
+		--[[ Guard Break: the slam throws what it hits well past the blow's
+		     own knockback and holds it there. The slam only, and never the
+		     spin, which already hits all round. ]]
+		if landed and slam and not swing.spin and melee.guardBreak > 0 then
+			EnemyManager.shove(
+				enemy.model,
+				root.Position,
+				melee.guardBreak,
+				Balance.Player.guardBreak.stagger
+			)
+		end
 		--[[ Thornwood's two, on the slam alone. Boar Rush: what it hit is
 		     shoved much further (a boss takes no shove at all). Ruin
 		     Cracks: and takes more from everything for a while, as Sunder's

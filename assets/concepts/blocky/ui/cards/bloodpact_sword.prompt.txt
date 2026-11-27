@@ -1,0 +1,7 @@
+Use case: a 2D game upgrade-card icon part. Generate ONE square 1024x1024 image: a single object centred on a FLAT, PURE MAGENTA background (#FF00FF) everywhere, no tile, no frame, no border, no text or letters, no shadow on the background. Copy EXACTLY the style of the attached reference icons: chunky pixel-voxel 3D built from small cubes, soft top-left light, a thick dark navy outline round every piece.
+
+Subject: ONE COMPLETE SWORD, whole and unobstructed, nothing else in the image at all. It lies on a straight 45-degree diagonal with the point at the TOP RIGHT corner and the pommel at the BOTTOM LEFT corner, and it is LONG: the sword runs corner to corner and fills about 95% of that diagonal. It must be perfectly straight along its whole length, the same width from guard to tip, with no bend, no kink and no change of angle anywhere.
+
+From the top right down to the bottom left: a light grey steel BLADE of cubes, two cubes wide, tapering to a point at the very tip; then a straight narrow CROSSGUARD exactly one cube thick, set square across the blade and centred on it so it sticks out the same distance on both sides; then a GRIP three cubes long in dark brown leather; then a single dark red POMMEL cube at the very end.
+
+No heart, no blood, no droplets, no other object. Just the sword on flat magenta.

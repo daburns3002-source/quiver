@@ -87,8 +87,9 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ What rides a shot. A session here is only its upgrades: `dress`
-	     and `afterVolley` read nothing else without the other cards. ]]
+	--[[ What rides a shot. A session here is only its upgrades (and
+	     Windrunner's speed, which `afterVolley` banks): `dress` and
+	     `afterVolley` read nothing else without the other cards. ]]
 	t.test("Web Snare and Burr Blight dress every shot", function()
 		local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
 		local function session(upgrades: { [string]: number }): any
@@ -121,7 +122,7 @@ return function(t: TestRunner.Helper)
 		local held = AbilityEffects.serverStats({}, "Ranger").upgrades :: any
 		held.thornBurst = 0.6
 		held.rootHold = 1
-		local session: any = { upgrades = held }
+		local session: any = { upgrades = held, windrunner = 0 }
 		local thorns: { boolean } = {}
 		local roots: { boolean } = {}
 		for volley = 1, 12 do
@@ -163,7 +164,7 @@ return function(t: TestRunner.Helper)
 		local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
 		local held = AbilityEffects.serverStats({}, "Ranger").upgrades :: any
 		held.thornBurst = 0.6
-		local session: any = { upgrades = held }
+		local session: any = { upgrades = held, windrunner = 0 }
 		for _ = 1, Balance.Player.thornwood.thorn.every - 1 do
 			ClassUpgrades.afterVolley(session, Vector3.zero, Vector3.zAxis, Vector3.zAxis, 0)
 		end

@@ -121,6 +121,19 @@ local CardAssets = {
 		["comet-crash"] = "rbxassetid://72842362613678",
 		["bell-chime"] = "rbxassetid://115195188335152",
 		["lava-burst"] = "rbxassetid://107430460320723",
+
+		-- the owner's eleven, drawn 2026-11-03 (docs/CARD-IDEAS.md)
+		["windrunner"] = "rbxassetid://79973616699349",
+		["thornfall"] = "rbxassetid://110460699301461",
+		["headhunter"] = "rbxassetid://84012714062141",
+		["ghost-quiver"] = "rbxassetid://129878854334035",
+		["twin-elements"] = "rbxassetid://92374170888120",
+		["time-dilation"] = "rbxassetid://113564540290624",
+		["prismatic-burst"] = "rbxassetid://88824475558780",
+		["guard-break"] = "rbxassetid://125263799778322",
+		["bull-rush"] = "rbxassetid://133058979425527",
+		["blood-pact"] = "rbxassetid://106452127241851",
+		["vengeful-spirit"] = "rbxassetid://139604690499282",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

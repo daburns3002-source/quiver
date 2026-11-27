@@ -27,6 +27,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local AssassinFx = require(script.Parent.Parent.Fx.Upgrades.AssassinFx)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
@@ -315,7 +316,16 @@ local function step()
 	if lobby and sprinting() then
 		rush = LobbyConfig.sprint
 	end
-	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
+	--[[ Windrunner: the stacks the server has banked for recent volleys.
+	     Through `AbilityEffects.moveSpeedAt`, which the server reads too, so
+	     the speed the player feels is the speed the server believes. ]]
+	local stats = PlayerStats.get()
+	local stacks = player:GetAttribute("Windrunner")
+	humanoid.WalkSpeed = AbilityEffects.moveSpeedAt(
+		stats.moveSpeed,
+		stats.windrunner,
+		if type(stacks) == "number" then stacks else 0
+	) * rush
 
 	--[[ Big Gulp's drag is added to walking, not put in its place: walking
 	     straight away is slowed, walking sideways out of the cone works. ]]

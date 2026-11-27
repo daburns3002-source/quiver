@@ -359,11 +359,11 @@ local Lobby = {
 		native = Vector3.new(2.54, 4.6, 2.49),
 		spots = {
 			{ at = plan(-101, 4), tall = 30, turn = 0.4 },
-			{ at = plan(-99, 46), tall = 26, turn = 2.1 },
-			{ at = plan(101, 22), tall = 31, turn = 4.0 },
-			{ at = plan(99, 58), tall = 27, turn = 5.3 },
-			{ at = plan(-38, 97), tall = 28, turn = 1.2 },
-			{ at = plan(42, 97), tall = 25, turn = 3.1 },
+			{ at = plan(-99, 46), tall = 28, turn = 2.1 },
+			{ at = plan(101, 22), tall = 33, turn = 4.0 },
+			{ at = plan(99, 58), tall = 29, turn = 5.3 },
+			{ at = plan(-38, 97), tall = 31, turn = 1.2 },
+			{ at = plan(42, 97), tall = 28, turn = 3.1 },
 		},
 	} :: {
 		mesh: string,

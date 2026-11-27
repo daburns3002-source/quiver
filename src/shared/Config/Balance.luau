@@ -1598,7 +1598,7 @@ local shellback: EnemyConfig = {
 ]]
 local harpy: EnemyConfig = {
 	displayName = "Harpy",
-	turnRate = 360,
+	turnRate = 200,
 	health = 280,
 	moveSpeed = 6.2,
 	--[[ It hovers about this far off between dives. ]]
@@ -1634,7 +1634,7 @@ local harpy: EnemyConfig = {
      line -- toward an edge, if you were standing with your back to one. ]]
 local gustShaman: EnemyConfig = {
 	displayName = "GustShaman",
-	turnRate = 240,
+	turnRate = 360,
 	health = 380,
 	moveSpeed = 3.9,
 	attackRange = 18,
@@ -1664,7 +1664,7 @@ local gustShaman: EnemyConfig = {
      a second: hit it then. ]]
 local cliffGoat: EnemyConfig = {
 	displayName = "CliffGoat",
-	turnRate = 220,
+	turnRate = 240,
 	health = 700,
 	moveSpeed = 5.2,
 	attackRange = 5,
@@ -1706,8 +1706,8 @@ local cliffGoat: EnemyConfig = {
      of five feathers out from where it lands. ]]
 local stormRoc: EnemyConfig = {
 	displayName = "StormRoc",
-	turnRate = 200,
-	health = 2400,
+	turnRate = 90,
+	health = 1500,
 	moveSpeed = 5,
 	attackRange = 9,
 	attackDamage = 70,
@@ -1758,7 +1758,7 @@ local stormRoc: EnemyConfig = {
 ]]
 local tempestRoc: EnemyConfig = {
 	displayName = "TempestRoc",
-	turnRate = 120,
+	turnRate = 90,
 	health = 8200,
 	moveSpeed = 0,
 	attackRange = 0,

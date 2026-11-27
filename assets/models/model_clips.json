@@ -573,5 +573,13 @@
    "Move"
   ],
   "moving": []
+ },
+ "CliffGoat": {
+  "glb": "assets/models/enemies/windswept/cliff_goat.glb",
+  "loops": [
+   "Idle",
+   "Move"
+  ],
+  "moving": []
  }
 }

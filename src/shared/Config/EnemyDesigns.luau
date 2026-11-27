@@ -734,7 +734,7 @@ local EnemyDesigns = {
 		CliffGoat = {
 			model = "CliffGoat",
 			clips = "CliffGoat",
-			eyes = "^Eye",
+			eyes = "^Head_eye$",
 			eyeColor = EYE_ICE,
 		},
 		StormRoc = {

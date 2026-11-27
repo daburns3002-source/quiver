@@ -59,7 +59,7 @@ Area 5's numbers sit a step past Bogheart's. Stage multipliers climb from
 | **Harpy** | New: flyer | 280 | 60 | A purple-and-navy owl-faced harpy with a bone-white mask. Hovers over its shadow, **over walls and gaps**, so cover does not stop it. Every 2.6 s it marks a ring (3 studs) on the player's spot, hangs 0.7 s, then dives on it and climbs back. Hittable all the time (arrows and orbs aim at its body). |
 | **Gust Shaman** | Lancer, twist | 380 | 50 | A hooded ram-horned shaman with a crook topped by a pale-blue wind spiral. Draws a line (0.8 s), then fires one fast gust down it; the gust **pushes the player 7 studs** along the line as well as hurting. Keeps 18 studs off. |
 | **Cliff Goat** | Charger, twist | 700 | 78 | A cream woolly goat with big curled dark-brown horns. Paws the ground (0.6 s, a lane drawn ahead), then charges down the lane; a hit **knocks the player 10 studs**. Stops at cover and shakes its head (1 s, its punish window). |
-| *Elite:* **Storm Roc** | Harpy, big | 2,400 | 70 | A navy storm bird with glowing blue wing edges. Dives as the Harpy does, and as it climbs drops a **fan of five feathers** (spread 70°) that fly outward. The last room of every fifth level (5-5, 5-10) and the boss's summons. |
+| *Elite:* **Storm Roc** | Harpy, big | 1,500 (the most any non-boss may have: 15 plain arrows) | 70 | A navy storm bird with glowing blue wing edges. Dives as the Harpy does, and as it climbs drops a **fan of five feathers** (spread 70°) that fly outward. The last room of every fifth level (5-5, 5-10) and the boss's summons. |
 
 All four flash white and are knocked back when hit (the flyers drift back
 in the air). Each gets its NEW ENEMY! card and Dex entry.

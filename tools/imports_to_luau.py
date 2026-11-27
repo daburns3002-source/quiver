@@ -4,7 +4,8 @@ or src/shared/Config/ImportedModels/<Name>.luau (any other: a boss, an
 enemy), so the game can rebuild each from its mesh ids (the way enemy
 meshes are built) and play its clips.
 
-    python -I tools/imports_to_luau.py
+    python -I tools/imports_to_luau.py           # writes; keeps modules it did not write
+    python -I tools/imports_to_luau.py --prune   # and deletes those
 
 Reads assets/models/model_imports.json, the output of
 tools/studio/dump_models.luau, and the GLBs named in
@@ -328,10 +329,16 @@ def main():
         path.write_text(render(key, scene, mode, rows, not pet), encoding="utf-8", newline="\n")
         written.add(path)
         print(f"{key}: {len(rows)} parts from {scene}, {mode}, matched within {worst:.5f}")
-    for old in [*OUT_PETS.glob("*.luau"), *OUT_OTHERS.glob("*.luau")]:
-        if old not in written:
+    # Only on request: a module this run did not write may come from another
+    # tool (the Tripo pets) or from an import no longer in the place
+    # (ServerStorage.Imports was moved out on 2026-11-27, assets/imports/).
+    stale = [old for old in [*OUT_PETS.glob("*.luau"), *OUT_OTHERS.glob("*.luau")] if old not in written]
+    for old in stale:
+        if "--prune" in sys.argv:
             old.unlink()
             print(f"removed {old.name}")
+    if stale and "--prune" not in sys.argv:
+        print(f"{len(stale)} module(s) not written this run, kept. Run with --prune to delete them.")
 
 
 if __name__ == "__main__":

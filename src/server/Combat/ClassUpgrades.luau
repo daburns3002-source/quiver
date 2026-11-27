@@ -740,7 +740,9 @@ local function singularity(session: Session, origin: Vector3, direction: Vector3
 		return
 	end
 	local spec = plainSpec(speed, length / speed, math.huge)
-	invent(session, origin, direction, spec, session.damage * config.damage, "Singularity", now)
+	--[[ Drawn as a plain orb, inside the great one every client draws from
+	     the event below. ]]
+	invent(session, origin, direction, spec, session.damage * config.damage, "Orb", now)
 	table.insert(rolls, {
 		session = session,
 		origin = origin,
@@ -749,7 +751,7 @@ local function singularity(session: Session, origin: Vector3, direction: Vector3
 		length = length,
 		startsAt = now,
 	})
-	upgradeFx:FireAllClients("Singularity", session.player, origin)
+	upgradeFx:FireAllClients("Singularity", session.player, origin, direction, speed, length)
 end
 
 --[[ Thornfall: the arrows a kill plants in the ground, which fire outward

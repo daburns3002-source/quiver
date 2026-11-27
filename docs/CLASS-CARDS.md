@@ -34,6 +34,64 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
+## The nineteen (2026-11-27)
+
+The owner, shown the nineteen ideas left in [CARD-IDEAS.md](CARD-IDEAS.md): **"Build all nineteen"**.
+Numbers in `Balance.Player` (each card's level is its own), rules in `tests/NineteenCards.spec`. Every
+number sits at or under the live card beside it (PR #342: power is the pets' and the weapons'), and
+the spec holds each to that peer.
+
+**Pools, within three as the owner's rule wants:** Arcanist 39, Warden 38, Ranger 37, Assassin 36. Five
+of the Warden's six are both melee classes' (as Guard Break, Blood Pact and Vengeful Spirit are), and
+Hunter's Mark and Starfall are the Assassin's too. Colossus is the Warden's alone: a class Mythic is
+one class's.
+
+| Card | Class | Rarity | What it does | How |
+|---|---|---|---|---|
+| **Hunter's Mark** | Ranger, Assassin | Uncommon | The nearest enemy in reach takes +10 / 15 / 20% from everything | Sunder's mark, refreshed every 0.2 s (`ClassUpgrades.step`) |
+| **Pin Down** | Ranger | Rare | Arrows root what they hit for 0.5 / 0.8 s, each enemy once every 3 s; a boss is slowed | `EnemyManager.root`, from the landing hook |
+| **Serpent Arrow** | Ranger | Rare | Arrows weave 1 stud either side of their line and poison what they bite, 15 / 25% of the hit | a `Weave` stage in the shared flight; Burr Blight's stack |
+| **Trick Shot** | Ranger | Epic | Arrows bounce off a wall once more, and hit +50 / 80% harder after it | a bounce from the stages; `onWall` on the server |
+| **Barrage** | Ranger | Epic | 2 s still (and 2 s since the last) and the next volley also fires a fan of 3 / 5 arrows, 50 degrees, 0.4x each | the stillness channel |
+| **Skyfall** | Ranger | Mythic | Every 12th volley the archer leaps for 0.8 s, untargetable, and lands in a ring of 16 arrows, 0.5x each | the untargetable window |
+| **Siphon** | Arcanist | Rare | Every third cast that hits heals 1 / 1.5 / 2% of max health | the landing hook, a cast counted once |
+| **Overcharge** | Arcanist | Rare | Every fourth cast costs 3% of max health (never the last point) and hits x1.6 / x2 | `castScale`, `RunSession.spendHealth` |
+| **Mana Burn** | Arcanist | Rare | Orbs hit up to +25 / 40% harder, the more health the enemy has left | `ProjectileSystem.applyHit`, as Long Shot's range |
+| **Rune Circle** | Arcanist | Epic | Where an orb bursts a rune burns 3 s, 2.5 studs wide, 0.12x every 0.5 s; 2 / 3 burn at once | an `AreaStrikes` zone |
+| **Arcane Tether** | Arcanist | Epic | An orb ties its enemy to the nearest other within 12 studs for 4 s: a blow on either lands 30 / 45% on the other; two ties at a time | `EnemyManager.tether` |
+| **Starfall** | Arcanist, Assassin | Legendary | Every 9 / 7 s of fighting, meteors on the 3 nearest enemies within 30 studs, 1.1x in 4 studs | Meteor's warning and strike |
+| **Singularity** | Arcanist | Mythic | 4.5 s still grows an orb at the staff; the next cast rolls it through everything at 0.55x an orb's speed for 2x, dragging what is within 3.5 studs in to its line | the stillness channel; `EnemyManager.pull` |
+| **Bellow** | Warden, Assassin | Rare | Every fifth blow is a shout 8 studs round him, 40 / 60% of a blow, shoving 5 studs | `afterBlow`, `EnemyManager.shove` |
+| **Stone Skin** | Warden, Assassin | Rare | 1.2 s still raises a stone guard that takes 25 / 40 / 55% off the next hit | `RunSession.applyDamage`, `Util/Shelter` |
+| **Grave Chains** | Warden, Assassin | Epic | The combo's last blow holds what it hits 1 / 1.5 s; a boss is slowed | `EnemyManager.root` |
+| **Blade Cyclone** | Warden, Assassin | Epic | 1 s still and 2 / 3 ruby blades whirl 3.6 studs out, 0.2x a cut, the same enemy every 0.6 s | `orbitCuts` on the stillness channel |
+| **Reaper's Harvest** | Warden, Assassin | Legendary | A kill brings the next swing 35 / 55% sooner and heals 1.5% of max health | `Session.nextAttackHaste` (it reaches the client as `AttackHaste`) |
+| **Colossus** | Warden | Mythic | He grows 1.35x, takes +40% max health, nothing can push him, and every third slam quakes 12 studs round him for 1.2x | `RunSession.scaleBody` (`Model:ScaleTo`); `ClassUpgrades.slammed` |
+
+- **Changed from the doc's words**, to fit how the game plays: Serpent Arrow poisons as well (a weave
+  alone pays nothing without pierce, and pierce is Piercing Shot's, an Epic); Trick Shot brings its own
+  bounce (alone it needed Bouncy Wall); Mana Burn is a share of the hit scaled by the health left, so
+  it needs no cap on bosses; Siphon counts casts, not orbs, and heals a share of max health; Blade
+  Cyclone whirls blades round him while he stands still rather than stopping his swing (the client
+  predicts every swing); Reaper's Harvest is a haste on the next swing, which the client already
+  follows, rather than a cooldown refund it could not; Hunter's Mark marks the nearest enemy, Sunder's
+  way, so it never clears Death Mark's.
+- **Shared pieces:** the stillness channel (`Shared/Combat/Stillness`) and the untargetable window
+  (`RunSession.untargetable`), both from CARD-IDEAS.md's list; the landing hook
+  (`ProjectileSystem.onPlayerHit`) and the tether (`EnemyManager.tether`).
+- **Looks** (`Fx/Upgrades/CardIdeasFx`), voxel cubes: a red diamond over the marked enemy, earth and
+  green puffs at a pin and a bite, an orange flash off a wall, gold sparks over a ready Barrage, the
+  archer lifted off the ground with a shadow and a rainbow ring as they land, red cubes flying home
+  for Siphon, a crackle for Overcharge, blue flame off a healthy enemy, a violet rune with flames, a
+  violet chain between tethered enemies, the singularity growing at the staff and rolling huge, white
+  rings for Bellow, stone plates round a guarded player, iron links round a chained enemy, ruby
+  blades whirling, green wisps for a harvest, and rocks and a shake for the quake.
+- **Icons**: Codex in the set's style (`assets/concepts/blocky/ui/cards/<icon>.prompt.txt`, drawn by
+  `tools/card_icons.sh`), composed by `compose_icon.py` (gold halo on the Legendaries, rainbow on
+  the Mythics) and uploaded (`Config/CardAssets`).
+- **Sounds**: each an existing card's clip, no upload (`Config/Sounds`, `fx_hunters_mark` ...
+  `fx_colossus`; each entry says whose).
+
 ## Wave 2's last five (2026-11-26)
 
 Wave 2 had ten cards; five were already built under other sessions (Sunder, Shockwave, Whirlwind,

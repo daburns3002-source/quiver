@@ -20,7 +20,8 @@
 	- Rune Circle: a violet ring on the floor with flames, while it burns.
 	- Arcane Tether: a violet chain between two enemies, while it holds.
 	- Starfall: its sound (the meteors are Meteor's own warnings).
-	- Singularity: the rolling orb drawn huge, white and violet.
+	- Singularity: the great orb drawn rolling, white and violet, round the
+	  plain orb the server flies.
 	- Bellow: white rings of sound rolling out.
 	- Grave Chains: iron chain links round each held enemy's feet.
 	- Reaper's Harvest: green wisps from the body to the Warden.
@@ -40,7 +41,6 @@ local Workspace = game:GetService("Workspace")
 
 local AssassinRules = require(ReplicatedStorage.Shared.Combat.AssassinRules)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
-local FxEvents = require(script.Parent.FxEvents)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SoundFx = require(script.Parent.Parent.SoundFx)
 local TopDownCamera = require(script.Parent.Parent.Parent.Camera.TopDownCamera)
@@ -308,22 +308,39 @@ local function onGraveChains(models: { Model }, seconds: number)
 	end
 end
 
---[[ A drawn shot left: Singularity's orb is drawn huge, with a dark core
-     and a glow, as it rolls. ]]
-local function onLaunched(
-	part: BasePart,
-	_pool: string,
-	_aim: Vector3,
-	_from: Model?,
-	look: string?
-)
-	if look ~= "Singularity" then
-		return
+--[[ Singularity: the great orb rolling out along the line the server's
+     shot flies, at its speed, to the wall. ]]
+local function onSingularity(origin: Vector3, direction: Vector3, speed: number, length: number)
+	SoundFx.play("fx_singularity")
+	local orb = Voxel.cube(2.6, ORB_CORE, true)
+	Voxel.light(orb, VIOLET[1], 12, 3)
+	local ring: { Part } = {}
+	for index = 1, Voxel.share(8) do
+		table.insert(ring, Voxel.cube(0.5, VIOLET[index % 2 + 1], true))
 	end
-	part.Color = ORB_CORE
-	part.Size = Vector3.one * 2.6
-	Voxel.light(part, VIOLET[1], 12, 3)
-	Voxel.burst(part.Position, 8, VIOLET, 8, 0.4, 0.5, 4)
+	local life = length / math.max(speed, 1)
+	Voxel.run(life, function(t)
+		local at = origin + direction * (length * t)
+		local spin = t * life * 6
+		orb.CFrame = CFrame.new(at) * CFrame.Angles(spin, spin * 0.7, 0)
+		orb.Color = ORB_CORE:Lerp(VIOLET[1], 0.5 + 0.5 * math.sin(spin))
+		for index, part in ring do
+			local angle = index / #ring * math.pi * 2 - spin * 1.5
+			part.Position = at
+				+ Vector3.new(
+					math.cos(angle) * 2.2,
+					math.sin(angle * 2) * 0.4,
+					math.sin(angle) * 2.2
+				)
+		end
+		return nil
+	end, function()
+		Voxel.burst(orb.Position, 8, VIOLET, 8, 0.4, 0.5, 4)
+		orb:Destroy()
+		for _, part in ring do
+			part:Destroy()
+		end
+	end)
 end
 
 --[[ The attribute-driven pieces, per player. ]]
@@ -544,8 +561,14 @@ local function onEvent(kind: string, owner: Player, ...)
 		end
 	elseif kind == "Starfall" then
 		SoundFx.play("fx_starfall")
-	elseif kind == "Singularity" then
-		SoundFx.play("fx_singularity")
+	elseif
+		kind == "Singularity"
+		and typeof(a) == "Vector3"
+		and typeof(b) == "Vector3"
+		and type(c) == "number"
+		and type(args[4]) == "number"
+	then
+		onSingularity(a, b, c, args[4])
 	elseif kind == "Bellow" and typeof(a) == "Vector3" and type(b) == "number" then
 		onBellow(a, b)
 	elseif kind == "GraveChains" and type(a) == "table" and type(b) == "number" then
@@ -571,7 +594,6 @@ local function onEvent(kind: string, owner: Player, ...)
 end
 
 function CardIdeasFx.start()
-	FxEvents.launched:connect(onLaunched)
 	Remotes.event(Remotes.UpgradeFx).OnClientEvent:Connect(onEvent)
 	RunService.RenderStepped:Connect(step)
 end

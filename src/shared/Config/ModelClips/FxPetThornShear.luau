@@ -17,7 +17,11 @@ return table.freeze({
 		{ name = "Thorn Shear", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_thorn_shear_Thorn Shear_Mesh1"] = { joint = "Thorn Shear", cframe = { 0, 0, -0.03, 0, 0, 0, 1 }, size = { 1.6, 0.17, 0.58 } },
+		["pet_thorn_shear_Thorn Shear_Mesh1"] = {
+			joint = "Thorn Shear",
+			cframe = { 0, 0, -0.03, 0, 0, 0, 1 },
+			size = { 1.6, 0.17, 0.58 },
+		},
 	},
 	clips = {
 		["Fly"] = {
@@ -25,7 +29,39 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["Thorn Shear"] = {
-					rot = { times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 }, values = { 0, 0, 0, 1, 0, 0.5, 0, 0.866, 0, 0.866, 0, 0.5, 0, 1, 0, 0, 0, 0.866, 0, -0.5, 0, 0.5, 0, -0.866, 0, 0, 0, -1 } },
+					rot = {
+						times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 },
+						values = {
+							0,
+							0,
+							0,
+							1,
+							0,
+							0.5,
+							0,
+							0.866,
+							0,
+							0.866,
+							0,
+							0.5,
+							0,
+							1,
+							0,
+							0,
+							0,
+							0.866,
+							0,
+							-0.5,
+							0,
+							0.5,
+							0,
+							-0.866,
+							0,
+							0,
+							0,
+							-1,
+						},
+					},
 				},
 			},
 		},

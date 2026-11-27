@@ -18,8 +18,16 @@ return table.freeze({
 		{ name = "mote_spin", parent = "Glow Mote", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_glow_mote_mote_spin_Glow1"] = { joint = "mote_spin", cframe = { 0, 0, 0, 0, 0, 0, 1 }, size = { 0.6, 0.6, 0.6 } },
-		["pet_glow_mote_mote_spin_Mesh2"] = { joint = "mote_spin", cframe = { 0, -0.33, 0, 0, 0, 0, 1 }, size = { 1.2, 0.06, 1.2 } },
+		["pet_glow_mote_mote_spin_Glow1"] = {
+			joint = "mote_spin",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 0.6, 0.6, 0.6 },
+		},
+		["pet_glow_mote_mote_spin_Mesh2"] = {
+			joint = "mote_spin",
+			cframe = { 0, -0.33, 0, 0, 0, 0, 1 },
+			size = { 1.2, 0.06, 1.2 },
+		},
 	},
 	clips = {
 		["Spin"] = {
@@ -27,8 +35,14 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["mote_spin"] = {
-					rot = { times = { 0, 0.5, 1 }, values = { 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, -1 } },
-					scale = { times = { 0, 0.25, 0.5, 0.75, 1 }, values = { 1, 1, 1, 1.12, 1.12, 1.12, 1, 1, 1, 1.12, 1.12, 1.12, 1, 1, 1 } },
+					rot = {
+						times = { 0, 0.5, 1 },
+						values = { 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, -1 },
+					},
+					scale = {
+						times = { 0, 0.25, 0.5, 0.75, 1 },
+						values = { 1, 1, 1, 1.12, 1.12, 1.12, 1, 1, 1, 1.12, 1.12, 1.12, 1, 1, 1 },
+					},
 				},
 			},
 		},

@@ -22,10 +22,26 @@ return table.freeze({
 		{ name = "ripple_glow", parent = "ripple_body", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_tremor_ripple_ripple_center_Mesh1"] = { joint = "ripple_center", cframe = { 0, 0.25, 0, 0, 0, 0, 1 }, size = { 1.4, 0.5, 1.4 } },
-		["pet_tremor_ripple_ripple_glow_Glow1"] = { joint = "ripple_glow", cframe = { 0, 0.085, 0, 0, 0, 0, 1 }, size = { 4.92, 0.17, 4.92 } },
-		["pet_tremor_ripple_ripple_ring_1_Mesh1"] = { joint = "ripple_ring_1", cframe = { 0, 0.24, 0, 0, 0, 0, 1 }, size = { 4.6, 0.48, 4.6 } },
-		["pet_tremor_ripple_ripple_ring_2_Mesh1"] = { joint = "ripple_ring_2", cframe = { 0, 0.24, 0, 0, 0, 0, 1 }, size = { 8, 0.48, 8 } },
+		["pet_tremor_ripple_ripple_center_Mesh1"] = {
+			joint = "ripple_center",
+			cframe = { 0, 0.25, 0, 0, 0, 0, 1 },
+			size = { 1.4, 0.5, 1.4 },
+		},
+		["pet_tremor_ripple_ripple_glow_Glow1"] = {
+			joint = "ripple_glow",
+			cframe = { 0, 0.085, 0, 0, 0, 0, 1 },
+			size = { 4.92, 0.17, 4.92 },
+		},
+		["pet_tremor_ripple_ripple_ring_1_Mesh1"] = {
+			joint = "ripple_ring_1",
+			cframe = { 0, 0.24, 0, 0, 0, 0, 1 },
+			size = { 4.6, 0.48, 4.6 },
+		},
+		["pet_tremor_ripple_ripple_ring_2_Mesh1"] = {
+			joint = "ripple_ring_2",
+			cframe = { 0, 0.24, 0, 0, 0, 0, 1 },
+			size = { 8, 0.48, 8 },
+		},
 	},
 	clips = {
 		["Play"] = {
@@ -36,19 +52,34 @@ return table.freeze({
 					scale = { times = { 0, 0.66, 0.7 }, values = { 1, 1, 1, 1, 1, 1, 0, 0, 0 } },
 				},
 				["ripple_body"] = {
-					scale = { times = { 0, 0.12, 0.3, 0.4 }, values = { 0.2, 1, 0.2, 0.6, 1, 0.6, 0.95, 1, 0.95, 1, 1, 1 } },
+					scale = {
+						times = { 0, 0.12, 0.3, 0.4 },
+						values = { 0.2, 1, 0.2, 0.6, 1, 0.6, 0.95, 1, 0.95, 1, 1, 1 },
+					},
 				},
 				["ripple_center"] = {
-					scale = { times = { 0, 0.08, 0.18, 0.28, 0.36 }, values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 } },
+					scale = {
+						times = { 0, 0.08, 0.18, 0.28, 0.36 },
+						values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 },
+					},
 				},
 				["ripple_glow"] = {
-					scale = { times = { 0, 0.2, 0.34, 0.5, 0.62 }, values = { 1, 0.2, 1, 1, 2.5, 1, 1, 2, 1, 1, 1, 1, 1, 0.3, 1 } },
+					scale = {
+						times = { 0, 0.2, 0.34, 0.5, 0.62 },
+						values = { 1, 0.2, 1, 1, 2.5, 1, 1, 2, 1, 1, 1, 1, 1, 0.3, 1 },
+					},
 				},
 				["ripple_ring_1"] = {
-					scale = { times = { 0.12, 0.2, 0.3, 0.4, 0.48 }, values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 } },
+					scale = {
+						times = { 0.12, 0.2, 0.3, 0.4, 0.48 },
+						values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 },
+					},
 				},
 				["ripple_ring_2"] = {
-					scale = { times = { 0.24, 0.32, 0.42, 0.52, 0.6 }, values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 } },
+					scale = {
+						times = { 0.24, 0.32, 0.42, 0.52, 0.6 },
+						values = { 1, 0.3, 1, 1, 1.9, 1, 1, 0.8, 1, 1, 1.1, 1, 1, 1, 1 },
+					},
 				},
 			},
 		},

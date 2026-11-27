@@ -75,21 +75,31 @@ and the Leviathan float and swim off the ground, the olm slithers and rears,
 the Wilf trots and sneezes (two sniffs, then the throw), the Gulpling hops and
 belly-flops. Each Attack's peak is timed to its piece's `at`.
 
-### Effect pieces still to make
+### Effect pieces
 
-Every piece is an earlier area's standing in, as the Drowned Village's were.
-These replace them (Claude Design, one GLB per piece into
-`assets/models/effects/fx_pet_*.glb`, then the name swap in `Config/PetAttacks`):
+**Built 2026-11-26** (checklist item `bd-petfx`). Until then every piece was
+an earlier area's standing in. Codex drew the sheet
+`assets/concepts/pets/attacks/bogheart_pieces.png` (prompt `_prompt_bogheart.txt`,
+from the eight pets' pictures). Claude Design then built all ten as one page with
+a button per piece (project "Bogheart Caverns Pet Attack Pieces",
+`claude.ai/design/p/a45e0d8a-f70b-4d22-8eb5-c7ae87994aa0`, prompt `_design_bogheart.txt`).
+Each was exported as a GLB at game size (1 unit = 1 stud, front toward +Z), kept
+in `assets/models/effects/source/` and slimmed by `optimise_effect.py` into
+`assets/models/effects/fx_pet_*.glb`. Its clip went into `Config/ModelClips`,
+its import into `Config/ImportedModels`, and its name into `Config/PetAttacks`.
 
-| Piece | Pet | Stands in now | What it is |
-|---|---|---|---|
-| **Chirp Ring** | Cave Cricket | `FxPetFeatherDart` | a small flat lime ring of sound, flung in an arc |
-| **Lichen Lick** | Lichen Gecko | `FxPetTongueLash` | a short moss-green tongue with a lime tip |
-| **Mud Coat** | Bog Beaver | `FxPetHowlAura` | brown mud slabs round the owner's feet with reed bits, crumbling as it is spent |
-| **Glow Mote** | Lanternfin | `FxPetLureMark` | a cyan mote with a soft halo riding above the enemy |
-| **Mote Burst** | Lanternfin | `FxPetCrownShockwave` | a cyan flash ring, 6 studs |
-| **Tremor Ripple** | Olm | `FxPetCrownShockwave` | concentric pale stone ripples cracking the floor |
-| **Spore Sneeze** | Glowcap Wilf | `FxPetLeafSlash` | a wedge of pink and cyan spore cubes |
-| **Flop Splash** | Gulpling | `FxPetCrownShockwave` | a purple-and-lime bog splash ring, 7 studs |
-| **Prism Bolt** | Prism Leviathan | `FxPetEmberBolt` | a dark-teal crystal shard with a cyan core |
-| **Prism Shards** | Prism Leviathan | `FxPetCrownShockwave` (impact) | the bolt breaking into small cyan crystal cubes |
+| Piece | Pet | Model, clip | What it is | Replaced |
+|---|---|---|---|---|
+| **Chirp Ring** | Cave Cricket | `FxPetChirpRing`, Fly (loop) | a 1.2-stud ring of lime cubes round a stone-grey rim, spinning in flight | `FxPetFeatherDart` |
+| **Lichen Lick** | Lichen Gecko | `FxPetLichenLick`, Lash | a moss-green tongue out to 4 studs with a fat lime tip | `FxPetTongueLash` (no `flip` now) |
+| **Mud Coat** | Bog Beaver | `FxPetMudCoat`, Play (6 s) | brown mud slabs round the owner's feet, open in the middle, reed stalks, crumbling in its last second | `FxPetHowlAura` |
+| **Glow Mote** | Lanternfin | `FxPetGlowMote`, Spin (loop) | a glowing cyan cube in four halo slabs, riding the enemy | `FxPetLureMark` |
+| **Mote Burst** | Lanternfin | `FxPetMoteBurst`, Play | a flash and a ring of cyan tiles to 6 studs out | `FxPetCrownShockwave` |
+| **Tremor Ripple** | Olm | `FxPetTremorRipple`, Play | square ripples of pale stone tiles with cyan cracks, 8 studs across | `FxPetCrownShockwave` |
+| **Spore Sneeze** | Glowcap Wilf | `FxPetSporeSneeze`, Sneeze | the whole 60-degree, 16-stud wedge of pink and glowing cyan spore cubes with gold sparkles (so no `sweep`) | `FxPetLeafSlash` |
+| **Flop Splash** | Gulpling | `FxPetFlopSplash`, Play | a ring of purple bog-water blocks with lime tips, 7 studs out | `FxPetCrownShockwave` |
+| **Prism Bolt** | Prism Leviathan | `FxPetPrismBolt`, Fly (loop) | a 2.4-stud dark-teal crystal shard with a glowing cyan core and trail | `FxPetEmberBolt` |
+| **Prism Shards** | Prism Leviathan | `FxPetPrismShards`, Play | the bolt's impact: a flash and teal and cyan crystal cubes flying out | `FxPetCrownShockwave` |
+
+The Spore Sneeze is the heaviest piece in the game's pet set (86 parts, each
+spore moving on its own). It lives for 0.45 s every 4 s and is drawn by one pet.

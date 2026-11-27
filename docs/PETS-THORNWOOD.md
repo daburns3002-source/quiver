@@ -187,10 +187,45 @@ The egg has **no healer**: the Berry Mouse is benched, and so is the Mossy
 Egg's Toadstool Tot, so no hatchable pet in the game heals its owner on a
 patch.
 
-Still outstanding: every effect piece is a Mossy Glade `FxPet` model
-standing in, so the attacks read as the forest's until Thornwood has art of
-its own. The Attack clips are all exactly 1.0 s, which is why nothing
-trails after the swing — Thornwake's revive shows no piece.
+### Effect pieces (2026-11-26)
+
+Until 2026-11-26 every Thornwood effect piece was a Mossy Glade `FxPet` model
+standing in, so the attacks read as the forest's. Each attack now has its own
+piece (checklist item `bd-petfx`). Codex drew two sheets from the pets'
+pictures: `assets/concepts/pets/attacks/thornwood_pieces_a.png` for Common to
+Epic and `thornwood_pieces_b.png` for Legendary and Mythic, whose pieces all
+glow (prompts `_prompt_thornwood_*.txt`). Claude Design built each sheet as one
+page with a button per piece (prompts `_design_thornwood_*.txt`):
+
+- "Thornwood Pet Attack Pieces": `claude.ai/design/p/4c11df32-56ab-4425-9ad3-404bb2d4462d`
+- "Thornwood pet attack pieces" (Legendary/Mythic): `claude.ai/design/p/21057511-ca10-4b4d-bce3-004bdf3bd022`
+
+Bark, bramble, ivory thorns, berries and magenta silk, never the Glade's
+leaves, acorns, slime or spores. Each piece was exported at game size (1 unit
+= 1 stud, front toward +Z), slimmed by `optimise_effect.py` into
+`assets/models/effects/fx_pet_*.glb` (sources in `source/`), with its clip in
+`Config/ModelClips`, its import in `Config/ImportedModels` and its name in
+`Config/PetAttacks`.
+
+| Pet | Piece (model, clip) | What it is | Replaced |
+|---|---|---|---|
+| Bark Hoglet | **Tusk Gouge** (`FxPetTuskGouge`, Slash) | two ivory tusk streaks torn in the floor, bark chips kicked up | `FxPetLeafSlash` |
+| Burrball | **Cling Burr** (`FxPetClingBurr`, Spin loop) | a brown-and-green burr with hooked ivory spikes | `FxPetAcornPellet` |
+| Budbulb | **Thorn Pop** (`FxPetThornPop`, Fly loop) | a green needle with an ivory point and a bud cap; no impact now (the slime puddle is gone) | `FxPetSlimeGlob` |
+| Berry Mouse, Berry Bat | **Berry Heal** (`FxPetBerryHeal`, Play) | a red berry bursting at the owner's feet, pink plus sparkles rising | `FxPetSporePatch`, `FxPetHealSparkles` |
+| Thistle Mole | **Thistle Burst** (`FxPetThistleBurst`, Play) | purple thistle spikes flung flat out to the 10 studs they hurt | `FxPetCrownShockwave` |
+| Briar Beetle | **Briar Vine** (`FxPetBriarVine`, Slash) and **Briar Snare** (`FxPetBriarSnare`, Snare, the Hold piece) | a thorny vine lashing across the floor; bramble coils round the held enemies' feet | `FxPetLeafSlash`, `FxPetRootSnare` |
+| Berry Bat | **Blood Berry** (`FxPetBloodBerry`, Fly loop) with **Berry Splat** (`FxPetBerrySplat`, Splat) | a dark red berry, and its juice splash | `FxPetSlimeGlob` |
+| Bramble Bear | **Bramble Slam** (`FxPetBrambleSlam`, Play) | bramble spikes up out of cracked ground (life 0.6 s, was 0.35) | `FxPetLeafSlash` |
+| Briar Lynx | **Thorn Shear** (`FxPetThornShear`, Fly loop) | a curved ivory thorn blade spinning flat | `FxPetFeatherDart` |
+| Bramble Wilf | **Gold Thorn** (`FxPetGoldThorn`, Fly loop), **Thorn Bleed** (`FxPetThornBleed`, Bleed) and **Bramble Howl** (`FxPetBrambleHowl`, Play) | a green needle with glowing gold edges; three gold-edged thorns stuck in the floor, dripping; gold and bramble rings round the owner | `FxPetEmberBolt`, `FxPetBurningMark`, `FxPetHowlAura` |
+| Thorn Princess | **Briar Spirit** (`FxPetBriarSpirit`, Bounce loop) and **Briar Cage** (`FxPetBriarCage`, Snare, the Hold piece) | a plum spirit cube with a glowing pink face and ivory horns; eight bramble posts wound with glowing magenta silk | `FxPetMiniSlime`, `FxPetCrownShockwave`, `FxPetRootSnare` |
+| Thornwake | **Thorn Wake** (`FxPetThornWake`, Play) | a 24-stud flat ring of ivory thorns on plum and smoky-teal segments with a teal glow, turning (life 3.3 s so each raise overlaps the last) | `FxPetCrownShockwave`, `FxPetHowlAura` |
+
+Two pieces were dropped rather than replaced: the Princess's ground flash (the
+cage, drawn for as long as the hold lasts, marks where it lands) and Thornwake's
+howl (its ring rises out of the floor each time it is raised). The Attack clips
+are all exactly 1.0 s, so Thornwake's revive still shows no piece.
 
 Thornwood's flavours are thorns, burrs that slow, web strands, bramble
 walls and boar charges, so none repeats an area-1 attack. Two notes for

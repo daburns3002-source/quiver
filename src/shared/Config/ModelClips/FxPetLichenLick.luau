@@ -18,7 +18,11 @@ return table.freeze({
 		{ name = "lick_tongue", parent = "Lichen Lick", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_lichen_lick_lick_tongue_Mesh1"] = { joint = "lick_tongue", cframe = { 0, 0.03, 2, 0, 0, 0, 1 }, size = { 1.32, 1.26, 4 } },
+		["pet_lichen_lick_lick_tongue_Mesh1"] = {
+			joint = "lick_tongue",
+			cframe = { 0, 0.03, 2, 0, 0, 0, 1 },
+			size = { 1.32, 1.26, 4 },
+		},
 	},
 	clips = {
 		["Lash"] = {
@@ -29,7 +33,10 @@ return table.freeze({
 					scale = { times = { 0, 0.27, 0.3 }, values = { 1, 1, 1, 1, 1, 1, 0, 0, 0 } },
 				},
 				["lick_tongue"] = {
-					scale = { times = { 0, 0.07, 0.2, 0.27 }, values = { 0.6, 0.6, 0.02, 1, 1, 1, 1, 1, 1, 0.6, 0.6, 0.04 } },
+					scale = {
+						times = { 0, 0.07, 0.2, 0.27 },
+						values = { 0.6, 0.6, 0.02, 1, 1, 1, 1, 1, 1, 0.6, 0.6, 0.04 },
+					},
 				},
 			},
 		},

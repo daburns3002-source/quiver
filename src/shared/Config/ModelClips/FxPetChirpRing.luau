@@ -18,7 +18,11 @@ return table.freeze({
 		{ name = "chirp_spin", parent = "Chirp Ring", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_chirp_ring_chirp_spin_Mesh1"] = { joint = "chirp_spin", cframe = { 0, 0, 0, 0, 0, 0, 1 }, size = { 1.2, 1.2, 0.3 } },
+		["pet_chirp_ring_chirp_spin_Mesh1"] = {
+			joint = "chirp_spin",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 1.2, 1.2, 0.3 },
+		},
 	},
 	clips = {
 		["Fly"] = {
@@ -26,7 +30,10 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["chirp_spin"] = {
-					rot = { times = { 0, 0.15, 0.3 }, values = { 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, -1 } },
+					rot = {
+						times = { 0, 0.15, 0.3 },
+						values = { 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, -1 },
+					},
 				},
 			},
 		},

@@ -17,7 +17,11 @@ return table.freeze({
 		{ name = "Blood Berry", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_blood_berry_Blood Berry_Mesh1"] = { joint = "Blood Berry", cframe = { 0, 0.0875, 0, 0, 0, 0, 1 }, size = { 0.7, 0.875, 0.7 } },
+		["pet_blood_berry_Blood Berry_Mesh1"] = {
+			joint = "Blood Berry",
+			cframe = { 0, 0.0875, 0, 0, 0, 0, 1 },
+			size = { 0.7, 0.875, 0.7 },
+		},
 	},
 	clips = {
 		["Fly"] = {
@@ -25,7 +29,39 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["Blood Berry"] = {
-					rot = { times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 }, values = { 0, 0, 0, 1, 0.5, 0, 0, 0.866, 0.866, 0, 0, 0.5, 1, 0, 0, 0, 0.866, 0, 0, -0.5, 0.5, 0, 0, -0.866, 0, 0, 0, -1 } },
+					rot = {
+						times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 },
+						values = {
+							0,
+							0,
+							0,
+							1,
+							0.5,
+							0,
+							0,
+							0.866,
+							0.866,
+							0,
+							0,
+							0.5,
+							1,
+							0,
+							0,
+							0,
+							0.866,
+							0,
+							0,
+							-0.5,
+							0.5,
+							0,
+							0,
+							-0.866,
+							0,
+							0,
+							0,
+							-1,
+						},
+					},
 				},
 			},
 		},

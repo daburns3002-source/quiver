@@ -17,7 +17,11 @@ return table.freeze({
 		{ name = "Cling Burr", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["pet_cling_burr_Cling Burr_Mesh1"] = { joint = "Cling Burr", cframe = { 0, 0, 0, 0, 0, 0, 1 }, size = { 0.8, 0.8, 0.8 } },
+		["pet_cling_burr_Cling Burr_Mesh1"] = {
+			joint = "Cling Burr",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 0.8, 0.8, 0.8 },
+		},
 	},
 	clips = {
 		["Spin"] = {
@@ -25,7 +29,39 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["Cling Burr"] = {
-					rot = { times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 }, values = { 0, 0, 0, 1, 0, 0.5, 0, 0.866, 0, 0.866, 0, 0.5, 0, 1, 0, 0, 0, 0.866, 0, -0.5, 0, 0.5, 0, -0.866, 0, 0, 0, -1 } },
+					rot = {
+						times = { 0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3 },
+						values = {
+							0,
+							0,
+							0,
+							1,
+							0,
+							0.5,
+							0,
+							0.866,
+							0,
+							0.866,
+							0,
+							0.5,
+							0,
+							1,
+							0,
+							0,
+							0,
+							0.866,
+							0,
+							-0.5,
+							0,
+							0.5,
+							0,
+							-0.866,
+							0,
+							0,
+							0,
+							-1,
+						},
+					},
 				},
 			},
 		},

@@ -16,18 +16,50 @@ return table.freeze({
 	joints = {
 		{ name = "Prism Bolt", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "bolt_spin", parent = "Prism Bolt", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "bolt_trail_0", parent = "bolt_spin", rest = { 0, 0, -1.55, 0, 0, 0, 1, 1, 1, 1 } },
+		{
+			name = "bolt_trail_0",
+			parent = "bolt_spin",
+			rest = { 0, 0, -1.55, 0, 0, 0, 1, 1, 1, 1 },
+		},
 		{ name = "bolt_trail_1", parent = "bolt_spin", rest = { 0, 0, -1.7, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "bolt_trail_2", parent = "bolt_spin", rest = { 0, 0, -2, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "bolt_trail_3", parent = "bolt_spin", rest = { 0, 0, -2.275, 0, 0, 0, 1, 1, 1, 1 } },
+		{
+			name = "bolt_trail_3",
+			parent = "bolt_spin",
+			rest = { 0, 0, -2.275, 0, 0, 0, 1, 1, 1, 1 },
+		},
 	},
 	parts = {
-		["pet_prism_bolt_bolt_spin_Glow2"] = { joint = "bolt_spin", cframe = { 0, 0, -1.175, 0, 0, 0, 1 }, size = { 0.6, 0.6, 0.35 } },
-		["pet_prism_bolt_bolt_spin_Mesh1"] = { joint = "bolt_spin", cframe = { 0, 0, -0.775, 0, 0, 0, 1 }, size = { 0.76, 0.76, 1.55 } },
-		["pet_prism_bolt_bolt_trail_0_Glow1"] = { joint = "bolt_trail_0", cframe = { 0, 0, -1.55, 0, 0, 0, 1 }, size = { 0.4, 0.4, 0.3 } },
-		["pet_prism_bolt_bolt_trail_1_Glow1"] = { joint = "bolt_trail_1", cframe = { 0, 0, -1.7, 0, 0, 0, 1 }, size = { 0.4, 0.4, 0.3 } },
-		["pet_prism_bolt_bolt_trail_2_Glow1"] = { joint = "bolt_trail_2", cframe = { 0, 0, -2, 0, 0, 0, 1 }, size = { 0.28, 0.28, 0.3 } },
-		["pet_prism_bolt_bolt_trail_3_Glow1"] = { joint = "bolt_trail_3", cframe = { 0, 0, -2.275, 0, 0, 0, 1 }, size = { 0.16, 0.16, 0.25 } },
+		["pet_prism_bolt_bolt_spin_Glow2"] = {
+			joint = "bolt_spin",
+			cframe = { 0, 0, -1.175, 0, 0, 0, 1 },
+			size = { 0.6, 0.6, 0.35 },
+		},
+		["pet_prism_bolt_bolt_spin_Mesh1"] = {
+			joint = "bolt_spin",
+			cframe = { 0, 0, -0.775, 0, 0, 0, 1 },
+			size = { 0.76, 0.76, 1.55 },
+		},
+		["pet_prism_bolt_bolt_trail_0_Glow1"] = {
+			joint = "bolt_trail_0",
+			cframe = { 0, 0, -1.55, 0, 0, 0, 1 },
+			size = { 0.4, 0.4, 0.3 },
+		},
+		["pet_prism_bolt_bolt_trail_1_Glow1"] = {
+			joint = "bolt_trail_1",
+			cframe = { 0, 0, -1.7, 0, 0, 0, 1 },
+			size = { 0.4, 0.4, 0.3 },
+		},
+		["pet_prism_bolt_bolt_trail_2_Glow1"] = {
+			joint = "bolt_trail_2",
+			cframe = { 0, 0, -2, 0, 0, 0, 1 },
+			size = { 0.28, 0.28, 0.3 },
+		},
+		["pet_prism_bolt_bolt_trail_3_Glow1"] = {
+			joint = "bolt_trail_3",
+			cframe = { 0, 0, -2.275, 0, 0, 0, 1 },
+			size = { 0.16, 0.16, 0.25 },
+		},
 	},
 	clips = {
 		["Fly"] = {
@@ -35,7 +67,10 @@ return table.freeze({
 			loops = true,
 			joints = {
 				["bolt_spin"] = {
-					rot = { times = { 0, 0.2, 0.4 }, values = { 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, -1 } },
+					rot = {
+						times = { 0, 0.2, 0.4 },
+						values = { 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, -1 },
+					},
 				},
 				["bolt_trail_0"] = {
 					pos = { times = { 0, 0.4 }, values = { 0, 0, -1.55, 0, 0, -1.7 } },

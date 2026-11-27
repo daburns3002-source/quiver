@@ -1607,7 +1607,9 @@ local harpy: EnemyConfig = {
 	attackCooldown = 2.6,
 	--[[ Light, so a hit throws it back a long way through the air. ]]
 	knockback = 3,
-	hitboxSize = Vector3.new(3.4, 3.6, 3.2),
+	--[[ Its model (2.59 x 1.17 x 0.62) x2.31: wings 6 across, hovering
+	     1.2 over its shadow (`EnemyDesigns` lift). ]]
+	hitboxSize = Vector3.new(6, 3.9, 3),
 	color = Color3.fromRGB(70, 64, 150),
 	xpReward = 16,
 	shot = nil,
@@ -1711,7 +1713,9 @@ local stormRoc: EnemyConfig = {
 	attackDamage = 70,
 	attackCooldown = 3.2,
 	knockback = 1,
-	hitboxSize = Vector3.new(5.6, 5.6, 5),
+	--[[ Its model (3.68 x 2.4 x 1.24) x2.45: wings 9 across, hovering 1.6
+	     over its shadow. ]]
+	hitboxSize = Vector3.new(9, 7.5, 4.5),
 	color = Color3.fromRGB(80, 110, 180),
 	xpReward = 60,
 	flies = true,
@@ -1761,7 +1765,9 @@ local tempestRoc: EnemyConfig = {
 	attackDamage = 0,
 	attackCooldown = 0,
 	knockback = 0,
-	hitboxSize = Vector3.new(10, 10, 9),
+	--[[ His model (16.2 x 9.2 x 4.84) x0.99: wings 16 across, 9 tall,
+	     Grandmother Gulp's height. ]]
+	hitboxSize = Vector3.new(16, 10, 8),
 	color = Color3.fromRGB(40, 60, 150),
 	xpReward = 130,
 	boss = {
@@ -1806,7 +1812,7 @@ local tempestRoc: EnemyConfig = {
 		roc = {
 			dive = {
 				windup = 1.1,
-				width = 7,
+				width = 9,
 				speed = 40,
 				damage = 56,
 				shove = 6,

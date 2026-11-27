@@ -488,11 +488,11 @@ local broodmother: Design = { shadow(10.3, 6.2, 6.2) }
 local thornling: Design = { shadow(2.4, 1.85, 1.8) }
 --[[ The Windswept Cliffs (Claude Design, 2026-11-26): each its own model
      and clips. The flyers' shadows stay on the floor under them. ]]
-local harpy: Design = { shadow(3.4, 3.2, 3.6) }
+local harpy: Design = { shadow(4, 2.5, 3.9) }
 local gustShaman: Design = { shadow(3, 3, 4.4) }
 local cliffGoat: Design = { shadow(3.4, 4.2, 3.4) }
-local stormRoc: Design = { shadow(5.6, 5, 5.6) }
-local tempestRoc: Design = { shadow(10, 9, 10) }
+local stormRoc: Design = { shadow(6, 4, 7.5) }
+local tempestRoc: Design = { shadow(12, 7, 10) }
 
 --[[
 	The Baby Slime (the owner's updated slimes, 2026-10-23): a small green

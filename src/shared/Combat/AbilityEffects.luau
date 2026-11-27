@@ -87,6 +87,10 @@ export type MeleeStats = {
 	--[[ A strike's share dealt each second by every cut an enemy carries
 	     (0 none). Bleed. ]]
 	bleed: number,
+	--[[ Wave 2's (2026-11-26): Echo Slash, the echo's share of each blow;
+	     Riposte, a thrown-back shot's damage times the Warden's. 0 none. ]]
+	echoSlash: number,
+	riposte: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -142,6 +146,12 @@ export type UpgradeStats = {
 	cometCrash: number,
 	bellChime: number,
 	lavaBurst: number,
+	--[[ Wave 2's (2026-11-26), 0 without the card: Split Orb, how many
+	     shards an orb bursts into; Gravity Well, studs a blast pulls in;
+	     Orbiting Orb, how many orbs circle. ]]
+	splitOrb: number,
+	gravityWell: number,
+	orbitingOrb: number,
 }
 
 --[[ What the server applies. ]]
@@ -513,6 +523,9 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			cometCrash = at(counts, "CometCrash"),
 			bellChime = at(counts, "BellChime"),
 			lavaBurst = at(counts, "LavaBurst"),
+			splitOrb = at(counts, "SplitOrb"),
+			gravityWell = at(counts, "GravityWell"),
+			orbitingOrb = at(counts, "OrbitingOrb"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
@@ -537,6 +550,8 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			backstab = at(counts, "Backstab"),
 			serrated = at(counts, "SerratedEdge"),
 			bleed = at(counts, "Bleed"),
+			echoSlash = at(counts, "EchoSlash"),
+			riposte = at(counts, "Riposte"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

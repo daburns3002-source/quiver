@@ -983,6 +983,75 @@ local abilities: { Ability } = {
 		icon = "sunder",
 		classes = MELEE,
 	},
+	--[[ Wave 2's last five (docs/CLASS-CARDS.md; owner, 2026-11-26: "As
+	     written (B)"): the Warden's Echo Slash and Riposte, the Arcanist's
+	     Split Orb, Gravity Well and Orbiting Orb. The doc's numbers, at
+	     the 2026-10-25 cut (x0.8). The rest in `Balance.Player.waveTwo`. ]]
+	{
+		id = "EchoSlash",
+		name = "Echo Slash",
+		description = "Every blow strikes again a moment later.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Epic",
+		--[[ The echo's share of the blow. ]]
+		levels = { 0.32, 0.48 },
+		stats = { "Echo at 32%", "Echo at 48%" },
+		icon = "echo-slash",
+		classes = WARDEN,
+	},
+	{
+		id = "Riposte",
+		name = "Riposte",
+		description = "Shots that hit you mid-swing fly back at their shooter.",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Legendary",
+		--[[ The thrown-back shot's damage, times the Warden's. ]]
+		levels = { 0.8 },
+		stats = { "Shots back at 80%" },
+		icon = "riposte",
+		classes = WARDEN,
+	},
+	{
+		id = "SplitOrb",
+		name = "Split Orb",
+		description = "Orbs burst into shards on hit. Shards deal 24% damage.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Epic",
+		--[[ How many shards. ]]
+		levels = { 3, 5 },
+		stats = { "3 shards", "5 shards" },
+		icon = "split-orb",
+		classes = ARCANIST,
+	},
+	{
+		id = "GravityWell",
+		name = "Gravity Well",
+		description = "Your orbs' blasts pull nearby enemies in.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Legendary",
+		--[[ Studs a blast pulls an enemy in. ]]
+		levels = { 3.5 },
+		stats = { "Blasts pull enemies in" },
+		icon = "gravity-well",
+		classes = ARCANIST,
+	},
+	{
+		id = "OrbitingOrb",
+		name = "Orbiting Orb",
+		description = "Orbs circle you and strike what they touch (30%).",
+		category = "Pattern",
+		group = "spell",
+		rarity = "Legendary",
+		--[[ How many orbs circle. ]]
+		levels = { 1, 2 },
+		stats = { "1 orb", "2 orbs" },
+		icon = "orbiting-orb",
+		classes = ARCANIST,
+	},
 	--[[ Thornwood's six (owner, 2026-11-18: "Build the six new"; the effects
 	     Codex wrote for Thornwood's Legendaries and Mythics in October,
 	     docs/WEAPONS-THORNWOOD.md). Cards like any other: drafted by their

@@ -532,41 +532,7 @@ local function phantomBlades(session: Session, own: State, now: number, moving: 
 	if count <= 0 or not root or not moving then
 		return
 	end
-	local config = Balance.Player.assassin.phantom
-	local clock = Workspace:GetServerTimeNow()
-	for model, position in EnemyManager.positions() do
-		if (own.cutAgain[model] or 0) > now then
-			continue
-		end
-		local half = halfWidth(model)
-		for index = 1, count do
-			local blade =
-				AssassinRules.orbit(root.Position, config.radius, config.turn, clock, index, count)
-			local away = Vector3.new(position.X - blade.X, 0, position.Z - blade.Z).Magnitude
-			if away <= config.reach + half then
-				own.cutAgain[model] = now + config.again
-				--[[ Pushed away from the blade that cut it, not from the
-				     Assassin: a ring of blades must not sweep the room clear
-				     of everything the daggers are trying to reach. ]]
-				local _, xp, fell = EnemyManager.damage(
-					model,
-					session.damage * config.damage,
-					blade,
-					"Hit",
-					session.player,
-					config.knock
-				)
-				RunSession.creditKill(session.player, xp, fell)
-				break
-			end
-		end
-	end
-	--[[ Forget the fallen, so the table never outgrows the room. ]]
-	for model, again in own.cutAgain do
-		if again <= now and not model.Parent then
-			own.cutAgain[model] = nil
-		end
-	end
+	ClassUpgrades.orbitCuts(session, count, Balance.Player.assassin.phantom, own.cutAgain, now)
 end
 
 --[[ Thousand Cuts: a round every `every` seconds of fighting. ]]

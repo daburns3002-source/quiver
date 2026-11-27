@@ -253,8 +253,10 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ "A fuller, even set" (owner's pick C): no class drafts from a pool
-	     more than one card smaller than another's. ]]
-	t.test("the class pools are within a card of each other", function()
+	     much smaller than another's. Within a card until wave 2's last five
+	     (owner, 2026-11-26: "As written (B)"), which left the Arcanist 29,
+	     the Warden 28, the Ranger 27 and the Assassin 26: within three. ]]
+	t.test("the class pools are within three cards of each other", function()
 		local sizes: { number } = {}
 		for _, class in ClassList.all() do
 			local dealt = 0
@@ -266,9 +268,50 @@ return function(t: TestRunner.Helper)
 			table.insert(sizes, dealt)
 		end
 		t.isTrue(
-			math.max(table.unpack(sizes)) - math.min(table.unpack(sizes)) <= 1,
+			math.max(table.unpack(sizes)) - math.min(table.unpack(sizes)) <= 3,
 			`pools of {table.concat(sizes, ", ")}`
 		)
+	end)
+
+	--[[ Wave 2's last five (docs/CLASS-CARDS.md, 2026-11-26): each off
+	     without its card and on with it, for its own class only, and no
+	     stronger than the doc's numbers at the 2026-10-25 cut. ]]
+	t.test("wave 2's last five switch on with their cards", function()
+		local melee = {
+			{ "EchoSlash", "echoSlash" },
+			{ "Riposte", "riposte" },
+		}
+		for _, case in melee do
+			local id, field = case[1], case[2]
+			t.equal((AbilityEffects.serverStats({}, "Warden").melee :: any)[field], 0, id)
+			t.isTrue((AbilityEffects.serverStats(max(id), "Warden").melee :: any)[field] > 0, id)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, "Warden") ~= nil, id)
+		end
+		local spells = {
+			{ "SplitOrb", "splitOrb" },
+			{ "GravityWell", "gravityWell" },
+			{ "OrbitingOrb", "orbitingOrb" },
+		}
+		for _, case in spells do
+			local id, field = case[1], case[2]
+			t.equal((AbilityEffects.serverStats({}, "Arcanist").upgrades :: any)[field], 0, id)
+			t.isTrue(
+				(AbilityEffects.serverStats(max(id), "Arcanist").upgrades :: any)[field] > 0,
+				id
+			)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, "Arcanist") ~= nil, id)
+		end
+		-- the doc's 40% / 60% echo, 30% shards, full-damage riposte, at x0.8
+		t.isTrue(Abilities.byId.EchoSlash.levels[2] <= 0.6 * 0.8 + 1e-9, "Echo Slash")
+		t.isTrue(Balance.Player.waveTwo.shard.damage <= 0.3 * 0.8 + 1e-9, "Split Orb")
+		t.isTrue(Abilities.byId.Riposte.levels[1] <= 0.8 + 1e-9, "Riposte")
+		-- the doc's counts: 3 / 5 shards, one then two orbs
+		t.equal(Abilities.byId.SplitOrb.levels[1], 3)
+		t.equal(Abilities.byId.SplitOrb.levels[2], 5)
+		t.equal(Abilities.byId.OrbitingOrb.levels[1], 1)
+		t.equal(Abilities.byId.OrbitingOrb.levels[2], 2)
 	end)
 
 	--[[ What `ClassUpgrades.dress` puts on a projectile: Split Shot's

@@ -833,6 +833,35 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.04,
 		minGap = 0.2,
 	},
+	--[[ Wave 2's last class cards (2026-11-26, `Fx/Upgrades/WaveTwoFx`):
+	     silent hooks until their sounds are auditioned, picked and
+	     uploaded as one sprite (docs/CLASS-CARDS.md gives them none). The
+	     echo of a blow; a shot knocked back; an orb bursting into shards;
+	     a blast's pull. ]]
+	fx_echo_slash = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_riposte = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_split_orb = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	fx_gravity_well = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
 	--[[ The themed daggers' own effects (2026-11-18, `Fx/Upgrades/DaggerFx`),
 	     the owner's picks of round 34. Wishing Star: two soft pings, then a
 	     magic "pom" as the star lands (0.35 s in). Spur Rowel: three bright

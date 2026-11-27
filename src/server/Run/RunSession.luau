@@ -340,6 +340,9 @@ function RunSession.create(player: Player): Session
 			cometCrash = 0,
 			bellChime = 0,
 			lavaBurst = 0,
+			splitOrb = 0,
+			gravityWell = 0,
+			orbitingOrb = 0,
 		},
 		surgeReady = false,
 		shieldUpAt = 0,
@@ -364,6 +367,8 @@ function RunSession.create(player: Player): Session
 			backstab = 0,
 			serrated = 0,
 			bleed = 0,
+			echoSlash = 0,
+			riposte = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -1422,6 +1427,16 @@ function RunSession.isInvulnerable(session: Session): boolean
 		or (now >= session.guardFrom and now < session.guardUntil)
 end
 
+--[[ Whether a melee class's guard is what keeps it safe right now (mid-swing,
+     not a revive's grace): Steadfast's plates flash on it, and Riposte
+     throws a shot it caught back (`Combat/ProjectileSystem`). ]]
+function RunSession.guarding(session: Session): boolean
+	local now = os.clock()
+	return now >= session.invulnerableUntil
+		and now >= session.guardFrom
+		and now < session.guardUntil
+end
+
 function RunSession.get(player: Player): Session?
 	return sessions[player]
 end
@@ -1593,12 +1608,7 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if RunSession.isInvulnerable(session) then
 		--[[ A swing's guard caught it (Steadfast's plates flash); a revive's
 		     grace says nothing. ]]
-		local now = os.clock()
-		if
-			now >= session.invulnerableUntil
-			and now >= session.guardFrom
-			and now < session.guardUntil
-		then
+		if RunSession.guarding(session) then
 			playerDodged:FireClient(session.player, "Guard")
 		end
 		return

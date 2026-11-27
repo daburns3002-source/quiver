@@ -89,6 +89,12 @@ local CardAssets = {
 		["shield-throw"] = "rbxassetid://111019992395887",
 		["blade-storm"] = "rbxassetid://106023560509222",
 		["sunder"] = "rbxassetid://129654171015164",
+		-- wave 2's last five (Codex, 2026-11-26; wave2_cards_2026_11_26.sh)
+		["echo-slash"] = "rbxassetid://135708320442545",
+		["riposte"] = "rbxassetid://104830533216722",
+		["split-orb"] = "rbxassetid://104805629607464",
+		["gravity-well"] = "rbxassetid://120200992574842",
+		["orbiting-orb"] = "rbxassetid://70402106324323",
 		-- the Assassin's ten (Codex, 2026-11-15; assassin_cards_2026_11_15.sh)
 		["twin-fangs"] = "rbxassetid://81377613756035",
 		["backstab"] = "rbxassetid://108203732763760",

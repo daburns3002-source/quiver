@@ -44,6 +44,10 @@ local ROOT_LOOK = "Stumpy"
      inside the hit path, which has no reason to be handed the time. ]]
 local currentNow = 0
 
+--[[ Gravity Well: each blast's pull, ticked in `step` until it ends. ]]
+type Well = { at: Vector3, radius: number, speed: number, endsAt: number }
+local wells: { Well } = {}
+
 type Projectile = {
 	--[[ Decides both what this can damage and what stops it. See
 	     Types.Faction — the blocking asymmetry is load-bearing. ]]
@@ -123,6 +127,11 @@ type Projectile = {
 	--[[ Wind Arrows: extra knockback on a hit, as a share of the hit's own,
 	     and enemy shots near it blown away (0 none). ]]
 	gust: number,
+	--[[ Split Orb: shards its first hit bursts it into (0 none, and spent
+	     on that hit). Gravity Well: studs its blast pulls enemies in (0
+	     none). ]]
+	shards: number,
+	well: number,
 }
 
 local ProjectileSystem = {}
@@ -215,6 +224,7 @@ end
 ]]
 function ProjectileSystem.clear()
 	table.clear(active)
+	table.clear(wells)
 	droppedSinceWarning = 0
 	lastWarnedAt = -math.huge
 end
@@ -296,6 +306,10 @@ export type SpawnParams = {
 	thorn: boolean?,
 	root: number?,
 	blight: number?,
+	--[[ Split Orb's shards and Gravity Well's pull (`dress` again). Omitted
+	     means none. ]]
+	shards: number?,
+	well: number?,
 }
 
 --[[
@@ -357,6 +371,8 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		reel = params.reel or 0,
 		split = params.split or 0,
 		gust = params.gust or 0,
+		shards = params.shards or 0,
+		well = params.well or 0,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -395,6 +411,24 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 	--[[ Thorn Burst: the same blast, drawn as thorns. ]]
 	if projectile.thorn then
 		upgradeFx:FireAllClients("ThornBurst", projectile.owner, centre, projectile.splashRadius)
+	end
+	--[[ Gravity Well: the blast pulls what is near it in, over a moment
+	     (`step`), the card's studs in all. ]]
+	if projectile.well > 0 then
+		local well = Balance.Player.waveTwo.well
+		table.insert(wells, {
+			at = Vector3.new(centre.X, 0, centre.Z),
+			radius = well.radius,
+			speed = projectile.well / well.duration,
+			endsAt = currentNow + well.duration,
+		})
+		upgradeFx:FireAllClients(
+			"GravityWell",
+			projectile.owner,
+			centre,
+			well.radius,
+			well.duration
+		)
 	end
 
 	local nearby: { { model: Model, position: Vector3 } } = {}
@@ -475,6 +509,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			ignore = onward.from,
 			split = projectile.split,
 			gust = projectile.gust,
+			well = projectile.well,
 		})
 
 		table.insert(specs, {
@@ -574,11 +609,18 @@ end
 --[[
 	Split Shot: the arrow that killed sends splinters on from the kill, fanned
 	about its heading, short and weak, and never splitting again. Announced as
-	invented shots, so every client draws them (the "Splinter" look).
+	invented shots, so every client draws them (the "Splinter" look). Split
+	Orb's shards are the same fan, from an orb's first hit ("Shard").
 ]]
-local function fireSplinters(projectile: Projectile, from: Model)
-	local config = Balance.Player.splitShot
-	local count = projectile.split
+type Fan = { spread: number, damage: number, range: number }
+
+local function fireFan(
+	projectile: Projectile,
+	from: Model,
+	count: number,
+	config: Fan,
+	look: string
+)
 	local direction = Vector3.new(projectile.direction.X, 0, projectile.direction.Z)
 	if count <= 0 or direction.Magnitude < 1e-3 then
 		return
@@ -625,7 +667,7 @@ local function fireSplinters(projectile: Projectile, from: Model)
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
-			look = "Splinter",
+			look = look,
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = from,
@@ -641,7 +683,99 @@ local function fireSplinters(projectile: Projectile, from: Model)
 		firedAt = currentNow,
 		predicted = false,
 		from = from,
-		look = "Splinter",
+		look = look,
+	} :: Types.ShotEvent)
+end
+
+local function fireSplinters(projectile: Projectile, from: Model)
+	fireFan(projectile, from, projectile.split, Balance.Player.splitShot, "Splinter")
+end
+
+--[[
+	Riposte: a shot the Warden's swing guard caught flies back at whoever
+	fired it -- the enemy nearest where it was fired, turning after it as
+	Tracking Eye's arrows turn -- or straight back the way it came when none
+	is near there. The Warden's own damage, at the card's share.
+]]
+local RIPOSTE_TURN = math.rad(240)
+
+local function throwBack(projectile: Projectile, session: RunSession.Session)
+	local config = Balance.Player.waveTwo.riposte
+	local root = session.root
+	local origin = if root
+		then Vector3.new(root.Position.X, Balance.Projectile.height, root.Position.Z)
+		else projectile.position
+	local shooter: Vector3? = nil
+	local nearest = config.seek
+	for _, position in EnemyManager.positions() do
+		local away = Vector3.new(
+			position.X - projectile.origin.X,
+			0,
+			position.Z - projectile.origin.Z
+		).Magnitude
+		if away <= nearest then
+			nearest = away
+			shooter = position
+		end
+	end
+	local heading = if shooter
+		then Vector3.new(shooter.X - origin.X, 0, shooter.Z - origin.Z)
+		else Vector3.new(-projectile.direction.X, 0, -projectile.direction.Z)
+	if heading.Magnitude < 1e-3 then
+		return
+	end
+	local direction = heading.Unit
+	local speed = session.projectileSpeed * config.speed
+	local lifetime = session.projectileLifetime
+	local damage = session.damage * session.melee.riposte
+	local spec: Types.ShotSpec = {
+		angleOffset = 0,
+		lateralOffset = 0,
+		damageScale = 1,
+		speed = speed,
+		lifetime = lifetime,
+		pierce = 0,
+		critChance = 0,
+		critMultiplier = 1,
+		splashRadius = 0,
+		splashScale = 0,
+		bounces = 0,
+		ricochet = 0,
+		homing = RIPOSTE_TURN,
+		delay = 0,
+		burn = 0,
+		burnDuration = 0,
+		farBonus = 0,
+		link = 0,
+	}
+	ProjectileSystem.spawn({
+		faction = "Player" :: Faction,
+		origin = origin,
+		direction = direction,
+		speed = speed,
+		lifetime = lifetime,
+		damage = damage,
+		pierce = 0,
+		critChance = 0,
+		critMultiplier = 1,
+		splashRadius = 0,
+		splashScale = 0,
+		bounces = 0,
+		ricochet = 0,
+		homing = RIPOSTE_TURN,
+		look = "Riposte",
+		owner = session.player,
+		now = currentNow,
+	})
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = session.player.UserId,
+		origin = origin,
+		direction = direction,
+		specs = { spec },
+		firedAt = currentNow,
+		predicted = false,
+		look = "Riposte",
 	} :: Types.ShotEvent)
 end
 
@@ -688,6 +822,14 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
+			--[[ Split Orb: its first hit bursts it into shards, fanned on
+			     past what it hit; spent, so a piercing or chained orb
+			     bursts once. ]]
+			if projectile.shards > 0 then
+				local shards = projectile.shards
+				projectile.shards = 0
+				fireFan(projectile, model, shards, Balance.Player.waveTwo.shard, "Shard")
+			end
 			SoulLink.apply(
 				projectile.owner,
 				projectile.link,
@@ -775,7 +917,12 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 	end
 
 	local before = session.health
+	--[[ Riposte: a shot the swing's guard catches is thrown back. ]]
+	local caught = session.melee.riposte > 0 and session.alive and RunSession.guarding(session)
 	RunSession.applyDamage(session, projectile.damage)
+	if caught then
+		throwBack(projectile, session)
+	end
 	--[[ A hook reels whoever it caught back along the line it flew, toward
 	     the rod that cast it (`Balance.EnemyShot.reel`). Only on a hit that
 	     landed: a dodge or a shield that took nothing was not caught, so
@@ -797,8 +944,32 @@ local contact: ProjectileFlight.Contact = {
 	end,
 }
 
+--[[ Gravity Well: each blast's pull, harder the nearer the middle as Black
+     Hole's, until it ends. Ticked before anything else in `step`, which
+     stops early when nothing is flying: the orb that opened a well has
+     usually gone by then. ]]
+local function pullWells(deltaTime: number, now: number)
+	local well = Balance.Player.waveTwo.well
+	for index = #wells, 1, -1 do
+		local pulling = wells[index]
+		if now >= pulling.endsAt then
+			table.remove(wells, index)
+			continue
+		end
+		for model, position in EnemyManager.positions() do
+			local away =
+				Vector3.new(position.X - pulling.at.X, 0, position.Z - pulling.at.Z).Magnitude
+			if away <= pulling.radius then
+				local pull = pulling.speed * (0.5 + 0.5 * (1 - away / pulling.radius))
+				EnemyManager.pull(model, pulling.at, pull * deltaTime, well.stopAt)
+			end
+		end
+	end
+end
+
 function ProjectileSystem.step(deltaTime: number, now: number)
 	currentNow = now
+	pullWells(deltaTime, now)
 
 	if #active == 0 then
 		return

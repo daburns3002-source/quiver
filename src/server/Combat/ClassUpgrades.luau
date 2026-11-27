@@ -29,6 +29,14 @@
 	  enemy to enemy (`onDash`).
 	- Blade Storm (Warden, Legendary): every 5th blow that lands throws the
 	  sword out and back (`afterBlow`).
+	Wave 2's last five (2026-11-26):
+	- Split Orb and Gravity Well (Arcanist, Epic and Legendary): put on each
+	  orb here (`dress`), resolved in `Combat/ProjectileSystem`.
+	- Orbiting Orb (Arcanist, Legendary): orbs circle the Arcanist and
+	  strike what they touch (`step`, through `orbitCuts`, which the
+	  Assassin's Phantom Blades share).
+	Echo Slash and Riposte (Warden) live where they act
+	(`Combat/MeleeSystem`, `Combat/ProjectileSystem`).
 	Arcane Shield and Sunder live where they act (`RunSession.applyDamage`,
 	`EnemyManager.sunder`).
 
@@ -47,6 +55,7 @@ local Workspace = game:GetService("Workspace")
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local AreaStrikes = require(script.Parent.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
+local AssassinRules = require(ReplicatedStorage.Shared.Combat.AssassinRules)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
@@ -89,6 +98,10 @@ type State = {
 	sniperShown: boolean,
 	--[[ Blade Storm: blows landed this run. ]]
 	blows: number,
+	--[[ Orbiting Orb: when each enemy may be struck again (os.clock), and
+	     how many orbs were last published on the player. ]]
+	orbAgain: { [Model]: number },
+	shownOrbs: number,
 }
 
 local states: { [Session]: State } = setmetatable({}, { __mode = "k" }) :: any
@@ -150,9 +163,74 @@ local function state(session: Session): State
 		sniperAt = -math.huge,
 		sniperShown = false,
 		blows = 0,
+		orbAgain = {},
+		shownOrbs = 0,
 	}
 	states[session] = fresh
 	return fresh
+end
+
+--[[ What circles a player and strikes as it passes, on the clock every
+     client shares (`Shared/Combat/AssassinRules.orbit`), so each draws them
+     where the server strikes: the Assassin's Phantom Blades, the Arcanist's
+     Orbiting Orb. ]]
+export type Orbit = {
+	radius: number,
+	turn: number,
+	reach: number,
+	again: number,
+	damage: number,
+	knock: number,
+}
+
+--[[ `count` of them round `session`'s player, each striking what comes
+     within `reach` of it, the same enemy no sooner than `again` seconds
+     (`cutAgain`, os.clock, kept by the caller). An enemy is pushed away
+     from the one that struck it, not from the player: a ring must not
+     sweep the room clear of what the player is trying to reach. ]]
+function ClassUpgrades.orbitCuts(
+	session: Session,
+	count: number,
+	config: Orbit,
+	cutAgain: { [Model]: number },
+	now: number
+)
+	local root = session.root
+	if count <= 0 or not root then
+		return
+	end
+	local clock = Workspace:GetServerTimeNow()
+	for model, position in EnemyManager.positions() do
+		if (cutAgain[model] or 0) > now then
+			continue
+		end
+		local body = model.PrimaryPart
+		local half = if body then math.max(body.Size.X, body.Size.Z) / 2 else 1
+		for index = 1, count do
+			local at =
+				AssassinRules.orbit(root.Position, config.radius, config.turn, clock, index, count)
+			local away = Vector3.new(position.X - at.X, 0, position.Z - at.Z).Magnitude
+			if away <= config.reach + half then
+				cutAgain[model] = now + config.again
+				local _, xp, fell = EnemyManager.damage(
+					model,
+					session.damage * config.damage,
+					at,
+					"Hit",
+					session.player,
+					config.knock
+				)
+				RunSession.creditKill(session.player, xp, fell)
+				break
+			end
+		end
+	end
+	--[[ Forget the fallen, so the table never outgrows the room. ]]
+	for model, again in cutAgain do
+		if again <= now and not model.Parent then
+			cutAgain[model] = nil
+		end
+	end
 end
 
 local function serverIn(seconds: number): number
@@ -500,6 +578,13 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	if held.burrBlight > 0 then
 		params.blight = held.burrBlight
 	end
+	--[[ Wave 2's two on an orb: Split Orb's shards, Gravity Well's pull. ]]
+	if held.splitOrb > 0 then
+		params.shards = held.splitOrb
+	end
+	if held.gravityWell > 0 then
+		params.well = held.gravityWell
+	end
 	if held.elemental > 0 then
 		ClassUpgrades.dressAs(ELEMENTS[state(session).element], params)
 	end
@@ -719,7 +804,9 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 	     stood, so nothing fires what it missed at once. ]]
 	local last = lastStep
 	lastStep = now
+	local moving = true
 	if last and now - last > PAUSE then
+		moving = false
 		local stood = now - last
 		for _, hole in holes do
 			hole.opensAt += stood
@@ -871,6 +958,17 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 	for _, session in RunSession.all() do
 		local own = state(session)
 		turret(session, own, now)
+		--[[ Orbiting Orb: how many circle is on the player
+		     (`OrbitingOrbs`) for every client to draw; they strike only
+		     while the world moves. ]]
+		local orbs = session.upgrades.orbitingOrb
+		if orbs ~= own.shownOrbs then
+			own.shownOrbs = orbs
+			session.player:SetAttribute("OrbitingOrbs", if orbs > 0 then orbs else nil)
+		end
+		if orbs > 0 and moving and session.alive then
+			ClassUpgrades.orbitCuts(session, orbs, Balance.Player.waveTwo.orbit, own.orbAgain, now)
+		end
 		--[[ Elemental Orbs: the next cast's element is always on the player,
 		     for their client to colour the orb it predicts. ]]
 		local element = if session.upgrades.elemental > 0 then ELEMENTS[own.element] else nil
@@ -896,6 +994,7 @@ function ClassUpgrades.clear()
 	table.clear(blades)
 	lastStep = nil
 	for session, own in states do
+		table.clear(own.orbAgain)
 		own.turretNextAt = nil
 		if own.turretUntil > 0 then
 			own.turretUntil = 0

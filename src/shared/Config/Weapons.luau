@@ -2383,6 +2383,347 @@ local skins: { [string]: any } = {
 		aura = Color3.fromRGB(255, 200, 60),
 		trailGlow = Color3.fromRGB(255, 200, 60),
 	},
+	SlatewoodBow = {
+		-- `SlatewoodBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.248,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://89854310443080",
+				size = Vector3.new(0.286, 1, 0.16),
+				offset = Vector3.new(-0.0004, 0, -0.0582),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://82005319060235",
+			},
+		} :: { WeaponPart },
+	},
+	HarpyBow = {
+		-- `HarpyBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.248,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://103815366818129",
+				size = Vector3.new(0.403, 1, 0.166),
+				offset = Vector3.new(-0.0074, 0, -0.0849),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://78645224612776",
+			},
+		} :: { WeaponPart },
+	},
+	GalestringLongbow = {
+		-- `GalestringLongbow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.248,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://139909053188181",
+				size = Vector3.new(0.412, 1, 0.115),
+				offset = Vector3.new(0, 0, -0.1392),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://107634910385772",
+			},
+		} :: { WeaponPart },
+	},
+	RocsWingBow = {
+		-- `RocsWingBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.248,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://73418688514052",
+				size = Vector3.new(0.361, 1, 0.125),
+				offset = Vector3.new(-0.0004, 0, -0.0411),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://84985864008422",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		shotGlow = Color3.fromRGB(255, 205, 56),
+	},
+	SkyrenderBow = {
+		-- `SkyrenderBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.248,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://129452055607135",
+				size = Vector3.new(0.412, 1, 0.142),
+				offset = Vector3.new(-0.0006, 0, -0.0905),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://84022400858599",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 236, 96),
+		shotGlow = Color3.fromRGB(255, 236, 96),
+	},
+	CloudspunStaff = {
+		-- `CloudspunStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.488,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://89245983149262",
+				size = Vector3.new(0.319, 1, 0.237),
+				offset = Vector3.new(0.003, 0.07, 0.0063),
+				turned = true,
+				textureId = "rbxassetid://77209342524933",
+			},
+		} :: { WeaponPart },
+	},
+	GustcallerStaff = {
+		-- `GustcallerStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.488,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://85007589009423",
+				size = Vector3.new(0.319, 1, 0.118),
+				offset = Vector3.new(-0.0126, 0.07, -0.0081),
+				turned = true,
+				textureId = "rbxassetid://132237593541027",
+			},
+		} :: { WeaponPart },
+	},
+	PrayerflagStaff = {
+		-- `PrayerflagStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.488,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://111783427255677",
+				size = Vector3.new(0.366, 1, 0.234),
+				offset = Vector3.new(0.0001, 0.07, -0.0003),
+				turned = true,
+				textureId = "rbxassetid://131184722243168",
+			},
+		} :: { WeaponPart },
+	},
+	TempestStaff = {
+		-- `TempestStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.488,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://76146921862482",
+				size = Vector3.new(0.343, 1, 0.292),
+				offset = Vector3.new(-0.0004, 0.07, 0.0004),
+				turned = true,
+				textureId = "rbxassetid://101717268122681",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		shotGlow = Color3.fromRGB(255, 205, 56),
+	},
+	EyeOfTheStorm = {
+		-- `EyeOfTheStorm`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.488,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://133014682317723",
+				size = Vector3.new(0.423, 1, 0.118),
+				offset = Vector3.new(-0.0003, 0.07, -0.0001),
+				turned = true,
+				textureId = "rbxassetid://131394371472238",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(150, 230, 255),
+		shotGlow = Color3.fromRGB(150, 230, 255),
+	},
+	LedgestoneBlade = {
+		-- `LedgestoneBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.788,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://123591809179128",
+				size = Vector3.new(0.392, 1, 0.142),
+				offset = Vector3.new(0.0007, 0.36, -0.0005),
+				turned = true,
+				textureId = "rbxassetid://104989465950215",
+			},
+		} :: { WeaponPart },
+	},
+	RamhornCleaver = {
+		-- `RamhornCleaver`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.788,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://92373805899193",
+				size = Vector3.new(0.442, 1, 0.159),
+				offset = Vector3.new(0.0009, 0.29, -0.0004),
+				turned = true,
+				textureId = "rbxassetid://121781816910353",
+			},
+		} :: { WeaponPart },
+	},
+	WindcutterBlade = {
+		-- `WindcutterBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.788,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://114553962328632",
+				size = Vector3.new(0.421, 1, 0.183),
+				offset = Vector3.new(0.0003, 0.3, -0.0005),
+				turned = true,
+				textureId = "rbxassetid://74908872676716",
+			},
+		} :: { WeaponPart },
+	},
+	StormtalonBlade = {
+		-- `StormtalonBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.788,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://104637055735429",
+				size = Vector3.new(0.408, 1, 0.141),
+				offset = Vector3.new(-0.0002, 0.3, 0.0008),
+				turned = true,
+				textureId = "rbxassetid://70624235610798",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		trailGlow = Color3.fromRGB(255, 205, 56),
+	},
+	ThunderheadBlade = {
+		-- `ThunderheadBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.788,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://91592641979662",
+				size = Vector3.new(0.458, 1, 0.173),
+				offset = Vector3.new(-0.0006, 0.31, 0.0004),
+				turned = true,
+				textureId = "rbxassetid://100079319268126",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 236, 96),
+		trailGlow = Color3.fromRGB(255, 236, 96),
+	},
+	FlintTalon = {
+		-- `FlintTalon`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9054,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://115049908674742",
+				size = Vector3.new(0.308, 1, 0.16),
+				offset = Vector3.new(0, 0.3, 0),
+				turned = true,
+				textureId = "rbxassetid://118395629228051",
+			},
+		} :: { WeaponPart },
+	},
+	HarpyClaw = {
+		-- `HarpyClaw`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9054,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://99796438938228",
+				size = Vector3.new(0.365, 1, 0.228),
+				offset = Vector3.new(-0.002, 0.27, -0.0004),
+				turned = true,
+				textureId = "rbxassetid://109561488045068",
+			},
+		} :: { WeaponPart },
+	},
+	StormQuill = {
+		-- `StormQuill`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9054,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://129437255507240",
+				size = Vector3.new(0.284, 1, 0.19),
+				offset = Vector3.new(-0.0011, 0.28, -0.0009),
+				turned = true,
+				textureId = "rbxassetid://122729625340355",
+			},
+		} :: { WeaponPart },
+	},
+	ThunderbeakDagger = {
+		-- `ThunderbeakDagger`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9054,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://104870899807217",
+				size = Vector3.new(0.311, 1, 0.178),
+				offset = Vector3.new(-0.0176, 0.26, 0.0006),
+				turned = true,
+				textureId = "rbxassetid://112300647800121",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		trailGlow = Color3.fromRGB(255, 205, 56),
+	},
+	ZephyrFang = {
+		-- `ZephyrFang`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9054,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://86789466234240",
+				size = Vector3.new(0.348, 1, 0.222),
+				offset = Vector3.new(-0.0012, 0.28, 0),
+				turned = true,
+				textureId = "rbxassetid://109591652072907",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(150, 240, 255),
+		trailGlow = Color3.fromRGB(150, 240, 255),
+	},
 	-- SKINS END
 }
 for key, skin in skins do

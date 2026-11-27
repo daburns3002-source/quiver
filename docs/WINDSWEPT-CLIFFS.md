@@ -164,7 +164,7 @@ Tempest Feather. Stats are `WeaponStats.areaScale[5] = 1.5`.
 | Stormtalon Blade | Shield Throw | Stormtalon: your dash flings a talon that bounces between three enemies. |
 | Thunderhead Blade | Blade Storm | Thunderhead: every fifth swing throws a thundercloud sword out and back. |
 | Thunderbeak Dagger | Quickstep | Tailwind: a kill brings your dash back sooner. |
-| Zephyr Fang | Fan of Knives | Zephyr: a fan of feathers flies with your strikes. |
+| Zephyr Fang | Vengeful Spirit | Zephyr: the wind strikes back for you (Fan of Knives is the Lurker Claws'; no two daggers carry one card). |
 
 Wind Arrows, Phoenix Arrow, Arcane Shield, Shield Throw and Quickstep are no
 weapon's innate yet. Each dagger is drawn and modelled as **one** dagger.

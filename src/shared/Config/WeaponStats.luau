@@ -480,7 +480,7 @@ local WeaponStats = {
 		ZephyrFang = {
 			rarity = "Mythic",
 			area = 5,
-			innate = { FanOfKnives = 1 },
+			innate = { VengefulSpirit = 1 },
 			effect = "Zephyr: a fan of feathers flies with your strikes.",
 		},
 

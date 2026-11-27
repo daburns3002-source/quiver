@@ -493,6 +493,38 @@ return function(t: TestRunner.Helper)
 		t.isTrue(LobbyCourtyard.inside(LobbyConfig.endlessLeaderboard.at, 2), "a board is outside")
 	end)
 
+	--[[ Owner, 2026-11-27: the blocky tree goes in the lobby. A few of them
+	     on the lawn past the balustrade: none reaching over it, onto the
+	     south stairs or into a waterfall, and each tall enough to show its
+	     crown over the balustrade from the floor. ]]
+	t.test("the blocky trees stand on the lawn, clear of the courtyard", function()
+		local spec = LobbyConfig.blockyTree
+		t.isTrue(#spec.spots >= 3 and #spec.spots <= 8, "not a few")
+		local court = LobbyConfig.courtyard
+		for k, spot in spec.spots do
+			local crown = spot.tall * spec.native.X / spec.native.Y / 2
+			t.isFalse(
+				LobbyCourtyard.inside(spot.at, -crown),
+				`blocky tree {k} reaches over the balustrade`
+			)
+			t.isTrue(
+				math.abs(spot.at.X) > court.southGap + crown or spot.at.Y < 0,
+				`blocky tree {k} stands on the south stairs`
+			)
+			for _, fall in LobbyConfig.waterfalls do
+				t.isTrue(
+					(spot.at - fall).Magnitude > crown + 12,
+					`blocky tree {k} stands in a waterfall`
+				)
+			end
+			t.isTrue(
+				LobbyCourtyard.OUTSIDE + spot.tall
+					> LobbyCourtyard.FLOOR + court.balustrade.tall + 4,
+				`blocky tree {k} hides below the balustrade`
+			)
+		end
+	end)
+
 	t.test("the fountain, the arrival circle and the walkway read down the middle", function()
 		local court = LobbyConfig.courtyard
 		t.equal(LobbyConfig.middle.X, 0, "the fountain")

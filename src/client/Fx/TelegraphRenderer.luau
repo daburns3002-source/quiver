@@ -24,6 +24,7 @@ local Device = require(script.Parent.Parent.Device)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local GulpFx = require(script.Parent.GulpFx)
 local MythicFx = require(script.Parent.MythicFx)
+local RocFx = require(script.Parent.RocFx)
 local SplitFx = require(script.Parent.SplitFx)
 local TollFx = require(script.Parent.TollFx)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
@@ -418,7 +419,8 @@ function TelegraphRenderer.onTelegraph(
 	--[[ A boss's moves (King Bloblin's), drawn in cubes by `BossFx`. ]]
 	local parent = folder
 	if parent then
-		if tell == "Slam" then
+		-- a bolt's ring (the Tempest Roc's storm) warns as a slam does
+		if tell == "Slam" or tell == "BoltTell" then
 			BossFx.slamWarning(parent, origin, duration, reach)
 			return
 		elseif tell == "SlamImpact" then
@@ -472,6 +474,25 @@ function TelegraphRenderer.onTelegraph(
 		elseif tell == "GulpCone" then
 			-- `reach` the cone's length, `width` its half angle
 			GulpFx.cone(parent, origin, direction, duration, reach, width or 0.5)
+			return
+		elseif tell == "GustTell" then
+			-- the Tempest Roc (`RocFx`): `reach` the cone's length, `width`
+			-- its full angle in degrees
+			RocFx.cone(parent, origin, direction, duration, reach, width or 70, RocFx.WIND)
+			return
+		elseif tell == "SwipeTell" then
+			RocFx.cone(parent, origin, direction, duration, reach, width or 120, RocFx.WARN)
+			return
+		elseif tell == "GustBlow" then
+			RocFx.gust(parent, origin, direction, duration, reach, width or 70)
+			return
+		elseif tell == "SwipeHit" then
+			RocFx.swipe(parent, origin, direction, reach, width or 120)
+			return
+		elseif tell == "Bolt" then
+			RocFx.bolt(parent, origin, reach)
+			drawShockwave(origin, duration, reach, RocFx.BOLT)
+			TopDownCamera.shake(0.35, 0.2)
 			return
 		elseif tell == "GulpInhale" then
 			GulpFx.inhale(parent, origin, direction, duration, reach, width or 0.5)

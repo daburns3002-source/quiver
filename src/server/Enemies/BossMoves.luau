@@ -64,6 +64,10 @@ export type Kind =
 	| "Toll"
 	| "Echo"
 	| "Scuttle"
+	| "Dive"
+	| "Gust"
+	| "Swipe"
+	| "Storm"
 
 --[[ The order the moves loop in, unless the boss names its own. ]]
 BossMoves.LOOP = { "Bounce", "Lash" } :: { Kind }

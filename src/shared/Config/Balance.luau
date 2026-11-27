@@ -131,6 +131,17 @@ export type EnemyShot = {
 	]]
 	reel: number?,
 	--[[
+		Studs a shot that lands pushes whoever it hit ON along its own line,
+		away from whoever fired it: the Gust Shaman's gust (docs/
+		WINDSWEPT-CLIFFS.md), whose danger is where it leaves you -- on the
+		Windswept Cliffs, over an edge. The reel's opposite, through the same
+		client shove, so cover stops it as it stops walking. Like a reel it
+		must lock its aim and draw a `Line` (`tests/Balance.spec`).
+
+		Nil pushes nobody, which is every other shot in the game.
+	]]
+	push: number?,
+	--[[
 		Radians the volley's aim turns by each time it fires, in place of
 		aiming at anyone: the Glowcap's spiral (docs/ENEMIES-AND-ARENAS.md,
 		"a mushroom turret that sprays spores in a spiral"). With `count`
@@ -359,6 +370,70 @@ export type BossChase = {
 	clip: string,
 }
 
+--[[
+	The Tempest Roc's moves (`Enemies/RocMoves`; docs/WINDSWEPT-CLIFFS.md).
+	Distances in studs, times in seconds, damage before the stage's own
+	multiplier, as every boss's.
+]]
+export type BossRocDive = {
+	--[[ Rising behind a lane drawn through the player to the wall. ]]
+	windup: number,
+	width: number,
+	speed: number,
+	damage: number,
+	--[[ Whoever it crosses is thrown this far out of the lane, sideways. ]]
+	shove: number,
+	--[[ Standing where it lands: the punish window. ]]
+	landed: number,
+}
+export type BossRocGust = {
+	windup: number,
+	--[[ The cone's length, and its full angle in degrees. ]]
+	reach: number,
+	angle: number,
+	--[[ Everyone in it is blown this far away from it. No damage: on the
+	     cliffs the edge does the damage. ]]
+	push: number,
+	blow: number,
+	recover: number,
+}
+export type BossRocSwipe = {
+	windup: number,
+	reach: number,
+	angle: number,
+	damage: number,
+	shove: number,
+	recover: number,
+}
+export type BossRocStorm = {
+	--[[ Climbing out of reach; the drop back down. ]]
+	rise: number,
+	drop: number,
+	--[[ Studs up while circling, where nothing can hit it. ]]
+	height: number,
+	--[[ Each bolt's ring is drawn this long before it strikes. ]]
+	warn: number,
+	radius: number,
+	damage: number,
+	--[[ The pattern: a line of `line` through the player, then a ring of
+	     `ring` round them, then `chase` bolts each on where they stand,
+	     `every` apart. ]]
+	line: number,
+	spacing: number,
+	ring: number,
+	ringRadius: number,
+	chase: number,
+	every: number,
+	--[[ Landed after the storm, out of breath: the phase's punish window. ]]
+	recover: number,
+}
+export type BossRoc = {
+	dive: BossRocDive,
+	gust: BossRocGust,
+	swipe: BossRocSwipe,
+	storm: BossRocStorm,
+}
+
 export type EnemyBoss = {
 	--[[ What the boss bar calls it. ]]
 	title: string,
@@ -412,6 +487,10 @@ export type EnemyBoss = {
 	echo: BossEcho?,
 	scuttle: BossScuttle?,
 	enrageAt: number?,
+	--[[ The Tempest Roc's own fight (`Enemies/RocMoves`, docs/
+	     WINDSWEPT-CLIFFS.md): Dive Line, Wing Gust, Talon Swipe and, from
+	     `enrageAt` down, the Storm. ]]
+	roc: BossRoc?,
 }
 
 --[[ Spore Spit: her throat swells for `swell` seconds while `globs`
@@ -535,6 +614,22 @@ export type EnemyLunge = {
 	speed: number,
 	--[[ Multiplier on `attackDamage` for a hit during this lunge. ]]
 	damageScale: number,
+	--[[ Studs a player it hits is knocked on along its line (the Cliff
+	     Goat's charge). Nil knocks nobody. ]]
+	shove: number?,
+	--[[ Seconds it stands dazed, shaking its head, when cover stops it
+	     short: the Cliff Goat's punish window. Nil walks straight on. ]]
+	dazed: number?,
+	--[[ A dive at a marked spot, for a flyer (the Harpy, the Storm Roc):
+	     the spot under the player is marked with a ring this many studs
+	     round for the wind-up, then it flies straight there over any cover,
+	     touching nobody on the way, and hits everyone inside the ring as it
+	     lands. `distance` is then only the most it will cover. Nil is a
+	     charge down a line, which is every other lunge. ]]
+	spot: number?,
+	--[[ It fires its archetype's `shot` from where the dive lands (the
+	     Storm Roc's fan of feathers). ]]
+	volley: boolean?,
 }
 
 export type EnemyConfig = {
@@ -570,6 +665,12 @@ export type EnemyConfig = {
 	boss: EnemyBoss?,
 	--[[ Lunging attacks, in place of the plain melee hit. ]]
 	lunges: { EnemyLunge }?,
+	--[[ A flyer (the Windswept Cliffs' Harpy and Storm Roc): it crosses
+	     cover and gaps in a straight line, held only by the room's walls,
+	     and has no bite of its own -- its lunges, dives at a marked spot,
+	     are its attacks. Its hitbox stays on the floor, so every arrow still
+	     meets it; its model draws it hovering over its own shadow. ]]
+	flies: boolean?,
 	--[[ A training dummy (the Studio sandbox, `Config/Sandbox`): it stands
 	     still, never attacks, and every hit refills its health, so it is
 	     struck for as long as anyone likes and never dies. ]]
@@ -1480,6 +1581,289 @@ local shellback: EnemyConfig = {
 	color = Color3.fromRGB(40, 110, 110),
 	xpReward = 26,
 	shot = nil,
+}
+
+--[[
+	Act 3, area 5: the Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md; their
+	Claude Design models from the blocky sheets in
+	`assets/concepts/blocky/enemies/act3/`). The area is about where a hit
+	leaves you: the Shaman's gust and the Goat's charge push, and on the
+	cliffs a push can take you over an edge. A step past Bogheart's numbers,
+	against the area's own stage multipliers. PLACEHOLDER NUMBERS until the
+	owner plays them.
+
+	The Harpy: the first flyer. It hovers over cover and gaps, keeps a few
+	steps off, and every so often marks the ground under you and dives on
+	the mark: step off the ring.
+]]
+local harpy: EnemyConfig = {
+	displayName = "Harpy",
+	turnRate = 360,
+	health = 280,
+	moveSpeed = 6.2,
+	--[[ It hovers about this far off between dives. ]]
+	attackRange = 7,
+	attackDamage = 60,
+	attackCooldown = 2.6,
+	--[[ Light, so a hit throws it back a long way through the air. ]]
+	knockback = 3,
+	hitboxSize = Vector3.new(3.4, 3.6, 3.2),
+	color = Color3.fromRGB(70, 64, 150),
+	xpReward = 16,
+	shot = nil,
+	flies = true,
+	lunges = {
+		{
+			minRange = 0,
+			maxRange = 22,
+			--[[ The ring is down 0.7 s before it comes: about two strides. ]]
+			telegraph = 0.7,
+			tell = "Flash" :: EnemyTell,
+			distance = 26,
+			speed = 38,
+			damageScale = 1,
+			spot = 3,
+		},
+	},
+}
+
+--[[ The Gust Shaman: the Lancer, robed. It draws its line, then fires one
+     fast gust down it that pushes whoever it hits seven studs on along the
+     line -- toward an edge, if you were standing with your back to one. ]]
+local gustShaman: EnemyConfig = {
+	displayName = "GustShaman",
+	turnRate = 240,
+	health = 380,
+	moveSpeed = 3.9,
+	attackRange = 18,
+	attackDamage = 50,
+	attackCooldown = 3,
+	knockback = 2.5,
+	hitboxSize = Vector3.new(3, 4.4, 3),
+	color = Color3.fromRGB(40, 120, 130),
+	xpReward = 18,
+	shot = {
+		look = "Gust",
+		count = 1,
+		spread = 0,
+		speed = 36,
+		lifetime = 26 / 36,
+		--[[ The Lancer's read-the-line window, a little shorter. ]]
+		telegraph = 0.8,
+		tell = "Line",
+		locksAim = true,
+		push = 7,
+	},
+}
+
+--[[ The Cliff Goat: the charger whose charge throws you. It paws the
+     ground behind a drawn lane, then charges down it; a hit knocks you ten
+     studs on. Cover stops it dead and it stands there shaking its head for
+     a second: hit it then. ]]
+local cliffGoat: EnemyConfig = {
+	displayName = "CliffGoat",
+	turnRate = 220,
+	health = 700,
+	moveSpeed = 5.2,
+	attackRange = 5,
+	attackDamage = 78,
+	attackCooldown = 2.4,
+	knockback = 1.6,
+	hitboxSize = Vector3.new(3.4, 3.4, 4.2),
+	color = Color3.fromRGB(236, 226, 206),
+	xpReward = 24,
+	shot = nil,
+	lunges = {
+		--[[ Up close, a short butt of the horns. ]]
+		{
+			minRange = 0,
+			maxRange = 6,
+			telegraph = 0.45,
+			tell = "Flash" :: EnemyTell,
+			distance = 5,
+			speed = 26,
+			damageScale = 0.8,
+			shove = 5,
+		},
+		--[[ The charge, down a drawn lane. ]]
+		{
+			minRange = 6,
+			maxRange = 22,
+			telegraph = 0.6,
+			tell = "Line" :: EnemyTell,
+			distance = 18,
+			speed = 26,
+			damageScale = 1,
+			shove = 10,
+			dazed = 1,
+		},
+	},
+}
+
+--[[ The Storm Roc, the area's elite: a big Harpy whose dive throws a fan
+     of five feathers out from where it lands. ]]
+local stormRoc: EnemyConfig = {
+	displayName = "StormRoc",
+	turnRate = 200,
+	health = 2400,
+	moveSpeed = 5,
+	attackRange = 9,
+	attackDamage = 70,
+	attackCooldown = 3.2,
+	knockback = 1,
+	hitboxSize = Vector3.new(5.6, 5.6, 5),
+	color = Color3.fromRGB(80, 110, 180),
+	xpReward = 60,
+	flies = true,
+	--[[ Fired only as a dive lands (`EnemyLunge.volley`), never on its own
+	     cooldown: the ring is its warning. ]]
+	shot = {
+		look = "Feather",
+		count = 5,
+		spread = math.rad(70),
+		speed = 20,
+		lifetime = 24 / 20,
+		telegraph = 0.2,
+		tell = "Flash",
+		locksAim = false,
+	},
+	lunges = {
+		{
+			minRange = 0,
+			maxRange = 26,
+			telegraph = 0.9,
+			tell = "Flash" :: EnemyTell,
+			distance = 30,
+			speed = 34,
+			damageScale = 1.2,
+			spot = 4.5,
+			volley = true,
+		},
+	},
+}
+
+--[[
+	The Tempest Roc, the Windswept Cliffs' boss (docs/BOSSES.md §5, docs/
+	WINDSWEPT-CLIFFS.md; his sheet `assets/concepts/blocky/windswept/
+	boss07_tempest_roc_views.png`, a Claude Design model playing its own
+	clips). His fight is his own (`Enemies/RocMoves`): the Dive Line, the
+	Wing Gust that blows you toward an edge, the Talon Swipe, and below
+	half his health the Storm, circling out of reach while lightning falls
+	in a pattern. Harpies come at half and at a quarter. PLACEHOLDER
+	NUMBERS until the owner plays him: a step up on Grandmother Gulp.
+]]
+local tempestRoc: EnemyConfig = {
+	displayName = "TempestRoc",
+	turnRate = 120,
+	health = 8200,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	hitboxSize = Vector3.new(10, 10, 9),
+	color = Color3.fromRGB(40, 60, 150),
+	xpReward = 130,
+	boss = {
+		title = "The Tempest Roc",
+		--[[ Never in his loop: every boss carries a bounce and a lash
+		     (`EnemyBoss`). ]]
+		bounce = {
+			bounces = 1,
+			windup = 1,
+			launch = 0.2,
+			air = 1,
+			recover = 0.5,
+			winded = 1,
+			height = 8,
+			maxRange = 15,
+			radius = 6,
+			damage = 50,
+			shove = 8,
+			shockRadius = 10,
+		},
+		lash = {
+			arms = {},
+			wind = 0.8,
+			track = 0.4,
+			strike = 0.16,
+			hold = 0.35,
+			retract = 0.4,
+			reach = 16,
+			minReach = 5,
+			width = 3.6,
+			damage = 46,
+			shove = 4,
+			pull = 0.35,
+			bump = 0.2,
+			bumpDamage = 34,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+		},
+		restAfterBounce = 1.5,
+		restAfterLash = 1.1,
+		roc = {
+			dive = {
+				windup = 1.1,
+				width = 7,
+				speed = 40,
+				damage = 56,
+				shove = 6,
+				--[[ Two seconds where he lands: the Ranger's and the Warden's
+				     moment (docs/BOSSES.md §5, class notes). ]]
+				landed = 2,
+			},
+			gust = {
+				windup = 0.9,
+				reach = 22,
+				angle = 70,
+				push = 12,
+				blow = 1.2,
+				recover = 0.6,
+			},
+			swipe = {
+				windup = 0.6,
+				reach = 9,
+				angle = 120,
+				damage = 46,
+				shove = 5,
+				recover = 0.5,
+			},
+			storm = {
+				rise = 1.2,
+				drop = 0.9,
+				height = 16,
+				warn = 1,
+				radius = 4,
+				damage = 50,
+				line = 5,
+				spacing = 4.5,
+				ring = 6,
+				ringRadius = 6,
+				chase = 3,
+				every = 0.7,
+				--[[ Out of breath after the storm: three seconds to hit him. ]]
+				recover = 3,
+			},
+		},
+		restAfter = { Dive = 0.6, Gust = 0.8, Swipe = 0.6, Storm = 0.6 },
+		loop = { "Dive", "Gust", "Swipe", "Dive", "Storm" },
+		enrageAt = 0.5,
+		opening = 1.5,
+		clips = {
+			idle = "Idle",
+			Bounce = {},
+			Lash = {},
+		},
+		summon = {
+			into = harpy,
+			count = 2,
+			atFractions = { 1 / 2, 1 / 4 },
+			clip = "",
+			windup = 1.2,
+		},
+	},
 }
 
 --[[
@@ -13145,6 +13529,12 @@ local Balance = {
 	]]
 	Benched = {
 		Lancer = _lineSniper,
+		-- the Windswept Cliffs (2026-11-26), until their rooms are built
+		Harpy = harpy,
+		GustShaman = gustShaman,
+		CliffGoat = cliffGoat,
+		StormRoc = stormRoc,
+		TempestRoc = tempestRoc,
 	} :: { [string]: EnemyConfig },
 
 	--[[

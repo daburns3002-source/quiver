@@ -244,6 +244,70 @@ return function(t: TestRunner.Helper)
 		t.isTrue(reeled > 0, "something reels")
 	end)
 
+	--[[ A gust that pushes is read the same way a hook is: a locked line,
+	     drawn before it leaves. It may push no further than the room's
+	     tile or two, so it moves a player rather than sends them across the
+	     room (docs/WINDSWEPT-CLIFFS.md). ]]
+	t.test("a shot that pushes draws a locked line, and pushes a few steps", function()
+		local pushed = 0
+		for _, config in Balance.Benched do
+			local shot = config.shot
+			local push = if shot then shot.push else nil
+			if not shot or not push then
+				continue
+			end
+			pushed += 1
+			t.equal(shot.tell, "Line", config.displayName)
+			t.isTrue(shot.locksAim, config.displayName)
+			t.isTrue(shot.telegraph > 0, config.displayName)
+			t.isTrue(push > 0 and push <= 10, config.displayName)
+		end
+		for _, config in (Balance.Enemies :: any) :: { [string]: Balance.EnemyConfig } do
+			local shot = config.shot
+			if shot and shot.push then
+				pushed += 1
+				t.equal(shot.tell, "Line", config.displayName)
+				t.isTrue(shot.locksAim, config.displayName)
+			end
+		end
+		t.isTrue(pushed > 0, "something pushes")
+	end)
+
+	--[[ A flyer's attacks are its dives: it has no bite, so every lunge it
+	     has marks a spot, and the ring it marks is one a player can step out
+	     of in its wind-up (`Balance.EnemyLunge.spot`). ]]
+	t.test("a flyer only dives, at a ring it marks first", function()
+		local flyers = 0
+		local all: { Balance.EnemyConfig } = {}
+		for _, config in (Balance.Enemies :: any) :: { [string]: Balance.EnemyConfig } do
+			table.insert(all, config)
+		end
+		for _, config in Balance.Benched do
+			table.insert(all, config)
+		end
+		for _, config in all do
+			if not config.flies then
+				for _, lunge in config.lunges or {} :: { Balance.EnemyLunge } do
+					t.isNil(lunge.spot, `{config.displayName} dives but does not fly`)
+				end
+				continue
+			end
+			flyers += 1
+			local lunges = config.lunges
+			t.notNil(lunges, `{config.displayName} flies but never dives`)
+			for _, lunge in lunges or {} :: { Balance.EnemyLunge } do
+				local spot = lunge.spot
+				t.notNil(spot, config.displayName)
+				t.isTrue(lunge.telegraph >= 0.6, config.displayName)
+				t.isTrue(spot ~= nil and spot > 0 and spot <= 5, config.displayName)
+				if lunge.volley then
+					t.notNil(config.shot, `{config.displayName} has no shot to throw`)
+				end
+			end
+		end
+		t.isTrue(flyers > 0, "something flies")
+	end)
+
 	t.test("every archetype is introduced somewhere in the game", function()
 		local used: { [string]: boolean } = {}
 

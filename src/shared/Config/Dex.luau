@@ -163,17 +163,6 @@ local Dex = {
 			accent = Color3.fromRGB(124, 243, 255),
 			scene = { x = 150, y = 372, w = 730, h = 388 },
 		},
-		--[[ The Windswept Cliffs (2026-11-27): its sheet's sky and cliffs,
-		     the slate of its sign and the pale wind of its streaks. ]]
-		WindsweptCliffs = {
-			name = "WINDSWEPT CLIFFS",
-			groundTop = Color3.fromRGB(96, 170, 226),
-			groundBottom = Color3.fromRGB(34, 62, 104),
-			trim = Color3.fromRGB(150, 96, 52),
-			plate = Color3.fromRGB(92, 104, 132),
-			accent = Color3.fromRGB(190, 236, 255),
-			scene = { x = 150, y = 380, w = 730, h = 388 },
-		},
 		--[[ A themed weapon set's page in the weapon book (`Config/Shop.sets`,
 		     docs/WEAPONS-THEMED.md), keyed by its set: its own colours, and
 		     no scenery, since a set belongs to no area and has no NEW

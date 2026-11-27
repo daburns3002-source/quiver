@@ -85,7 +85,7 @@ function PetPower.dps(spec: PetCombat.Spec): number
 	if spec.beam then
 		targets = LINE
 	end
-	if spec.cone or spec.flop or spec.burst then
+	if spec.cone or spec.flop or spec.burst or spec.gust then
 		targets = CROWD
 	end
 

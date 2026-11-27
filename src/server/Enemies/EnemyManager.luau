@@ -670,6 +670,59 @@ function EnemyManager.isBoss(model: Model): boolean
 	return enemy ~= nil and enemy.config.boss ~= nil
 end
 
+--[[ The Whistle Marmot's Alarm Whistle (`Config/PetCombat` `interrupt`):
+     an enemy winding up a shot or a lunge has it cut short, its cooldown
+     starting again from now. Whether it was. A boss's moves are timelines,
+     never cut. ]]
+function EnemyManager.interrupt(model: Model): boolean
+	local enemy = enemies[model]
+	if not enemy or enemy.boss then
+		return false
+	end
+	local winding = enemy.volleyAt ~= nil or (enemy.lungeIndex ~= nil and not enemy.lungeMoving)
+	if not winding then
+		return false
+	end
+	enemy.volleyAt = nil
+	enemy.volleyDirection = nil
+	enemy.lungeIndex = nil
+	enemy.lungeSpot = nil
+	enemy.lungeMoving = false
+	enemy.lastAttackAt = os.clock()
+	EnemyModel.restore(enemy.skin, enemy.config)
+	enemy.model:SetAttribute(WINDING_UP, nil)
+	return true
+end
+
+--[[ Whether an enemy is in the air (the Cliff Puffin's Pebble Drop,
+     `aloft`): a flyer, or one still sliding from a knockback. ]]
+function EnemyManager.aloft(model: Model): boolean
+	local enemy = enemies[model]
+	if not enemy then
+		return false
+	end
+	return enemy.config.flies == true or enemy.knockbackVelocity.Magnitude > 2
+end
+
+--[[ The Gale Glider's Updraft (`lift`): lifted off its feet for `seconds`,
+     no moving and no attacking, held as a root holds it but without the
+     roots (`LiftedUntil`, server time, for the client). Bosses stand. ]]
+function EnemyManager.lift(model: Model, seconds: number)
+	local enemy = enemies[model]
+	if not enemy or enemy.boss or seconds <= 0 then
+		return
+	end
+	local now = os.clock()
+	enemy.rootedUntil = RootHold.extend(enemy.rootedUntil, now, seconds)
+	model:SetAttribute("LiftedUntil", Workspace:GetServerTimeNow() + seconds)
+end
+
+--[[ An enemy's health now (the Rocling picks the most). ]]
+function EnemyManager.healthOf(model: Model): number
+	local enemy = enemies[model]
+	return if enemy then enemy.health else 0
+end
+
 function EnemyManager.healthFraction(model: Model): number?
 	local enemy = enemies[model]
 	if not enemy or enemy.maxHealth <= 0 then

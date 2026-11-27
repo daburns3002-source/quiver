@@ -77340,5 +77340,6561 @@
     ]
    }
   ]
+ },
+ "fx_pet_mote_burst": {
+  "parts": [
+   {
+    "name": "pet_mote_burst_burst_core_Glow1",
+    "meshId": "rbxassetid://133066392431942",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.9,
+     0.9
+    ],
+    "cframe": [
+     0,
+     0.45,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_1_Mesh1",
+    "meshId": "rbxassetid://80081138397339",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_2_Mesh1",
+    "meshId": "rbxassetid://102737221677779",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_3_Mesh1",
+    "meshId": "rbxassetid://111913001690563",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_4_Mesh1",
+    "meshId": "rbxassetid://129665141981775",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_5_Mesh1",
+    "meshId": "rbxassetid://84377810207210",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_6_Mesh1",
+    "meshId": "rbxassetid://89055072513008",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_7_Mesh1",
+    "meshId": "rbxassetid://98241762789212",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_8_Mesh1",
+    "meshId": "rbxassetid://91202934642067",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_9_Mesh1",
+    "meshId": "rbxassetid://86466268109686",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_10_Mesh1",
+    "meshId": "rbxassetid://130518872188074",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_11_Mesh1",
+    "meshId": "rbxassetid://95518904107425",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.3,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mote_burst_burst_tile_12_Mesh1",
+    "meshId": "rbxassetid://74512123120459",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.26,
+     1
+    ],
+    "cframe": [
+     -2.55,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_bramble_howl": {
+  "parts": [
+   {
+    "name": "pet_bramble_howl_flash_Glow1",
+    "meshId": "rbxassetid://107253097972717",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     0.2,
+     0.9
+    ],
+    "cframe": [
+     0,
+     0.1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_howl_ring_outer_Mesh1",
+    "meshId": "rbxassetid://91931251996276",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     8,
+     0.82,
+     8
+    ],
+    "cframe": [
+     0,
+     0.41,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_howl_ring_outer_Glow2",
+    "meshId": "rbxassetid://136483785326299",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     7.34,
+     0.38,
+     7.34
+    ],
+    "cframe": [
+     0,
+     0.67,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_howl_ring_inner_Glow1",
+    "meshId": "rbxassetid://78764808551102",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4.4,
+     0.2,
+     4.4
+    ],
+    "cframe": [
+     0,
+     0.1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_howl_ring_inner_Mesh2",
+    "meshId": "rbxassetid://134763156941841",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4.11,
+     0.28,
+     4.11
+    ],
+    "cframe": [
+     0,
+     0.34,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_tusk_gouge": {
+  "parts": [
+   {
+    "name": "pet_tusk_gouge_Dirt_Mesh1",
+    "meshId": "rbxassetid://79424648179661",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.5,
+     0.33,
+     3
+    ],
+    "cframe": [
+     0,
+     0.165,
+     -1.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_TuskA_Mesh1",
+    "meshId": "rbxassetid://102784464256879",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.52,
+     1.2,
+     1
+    ],
+    "cframe": [
+     0.15,
+     0.6,
+     -1.02,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_TuskB_Mesh1",
+    "meshId": "rbxassetid://76875561611210",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.86,
+     0.81
+    ],
+    "cframe": [
+     -0.2,
+     0.43,
+     -2.155,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip1_Mesh1",
+    "meshId": "rbxassetid://82332996432282",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     0.6,
+     0.62,
+     -0.35,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip2_Mesh1",
+    "meshId": "rbxassetid://81549144813294",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.14,
+     0.14,
+     0.14
+    ],
+    "cframe": [
+     -0.6,
+     0.55,
+     -0.85,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip3_Mesh1",
+    "meshId": "rbxassetid://91872027773923",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.18,
+     0.18,
+     0.18
+    ],
+    "cframe": [
+     0.62,
+     0.7,
+     -1.45,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip4_Mesh1",
+    "meshId": "rbxassetid://119956369238482",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.14,
+     0.14,
+     0.14
+    ],
+    "cframe": [
+     -0.62,
+     0.8,
+     -1.6,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip5_Mesh1",
+    "meshId": "rbxassetid://81088435064540",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.14,
+     0.14,
+     0.14
+    ],
+    "cframe": [
+     0.5,
+     0.5,
+     -2.75,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tusk_gouge_Chip6_Mesh1",
+    "meshId": "rbxassetid://128558937232104",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     -0.6,
+     0.5,
+     -2.8,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_tremor_ripple": {
+  "parts": [
+   {
+    "name": "pet_tremor_ripple_ripple_center_Mesh1",
+    "meshId": "rbxassetid://98263951711966",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.4,
+     0.5,
+     1.4
+    ],
+    "cframe": [
+     0,
+     0.25,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tremor_ripple_ripple_ring_1_Mesh1",
+    "meshId": "rbxassetid://136997983127399",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4.6,
+     0.48,
+     4.6
+    ],
+    "cframe": [
+     0,
+     0.24,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tremor_ripple_ripple_ring_2_Mesh1",
+    "meshId": "rbxassetid://85359191733270",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     8,
+     0.48,
+     8
+    ],
+    "cframe": [
+     0,
+     0.24,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_tremor_ripple_ripple_glow_Glow1",
+    "meshId": "rbxassetid://71879231236608",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4.92,
+     0.17,
+     4.92
+    ],
+    "cframe": [
+     0,
+     0.085,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_chirp_ring": {
+  "parts": [
+   {
+    "name": "pet_chirp_ring_chirp_spin_Mesh1",
+    "meshId": "rbxassetid://132745274622621",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.2,
+     1.2,
+     0.3
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_bramble_slam": {
+  "parts": [
+   {
+    "name": "pet_bramble_slam_Dirt_Mesh1",
+    "meshId": "rbxassetid://120979061463717",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4,
+     0.36,
+     4
+    ],
+    "cframe": [
+     0,
+     0.18,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Core_Mesh1",
+    "meshId": "rbxassetid://105061650458129",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.6,
+     2,
+     0.6
+    ],
+    "cframe": [
+     0,
+     1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_SpikeE_Mesh1",
+    "meshId": "rbxassetid://84987928686663",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.58,
+     1.45,
+     0.4
+    ],
+    "cframe": [
+     -0.59,
+     0.725,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_SpikeW_Mesh1",
+    "meshId": "rbxassetid://122656509924500",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.58,
+     1.305,
+     0.4
+    ],
+    "cframe": [
+     0.59,
+     0.6525,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_SpikeN_Mesh1",
+    "meshId": "rbxassetid://124341373472201",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     1.2325,
+     0.58
+    ],
+    "cframe": [
+     0,
+     0.6163,
+     -0.59,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_SpikeS_Mesh1",
+    "meshId": "rbxassetid://129998152479582",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     1.5225,
+     0.58
+    ],
+    "cframe": [
+     0,
+     0.7612,
+     0.59,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Thorns_Mesh1",
+    "meshId": "rbxassetid://92629558989859",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.04,
+     0.36,
+     1.04
+    ],
+    "cframe": [
+     0,
+     0.18,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Chip1_Mesh1",
+    "meshId": "rbxassetid://112578985220499",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     -1.75,
+     0.85,
+     -0.9,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Chip2_Mesh1",
+    "meshId": "rbxassetid://79569382061923",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.14,
+     0.14,
+     0.14
+    ],
+    "cframe": [
+     1.7,
+     1,
+     0.75,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Chip3_Mesh1",
+    "meshId": "rbxassetid://73849607894092",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     1.3,
+     0.75,
+     -1.45,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Chip4_Mesh1",
+    "meshId": "rbxassetid://124696249830031",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.14,
+     0.14,
+     0.14
+    ],
+    "cframe": [
+     -1.2,
+     0.9,
+     1.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_bramble_slam_Chip5_Mesh1",
+    "meshId": "rbxassetid://94413324582897",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.12,
+     0.12,
+     0.12
+    ],
+    "cframe": [
+     -0.2,
+     0.7,
+     -1.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_glow_mote": {
+  "parts": [
+   {
+    "name": "pet_glow_mote_mote_spin_Glow1",
+    "meshId": "rbxassetid://131192970941901",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_glow_mote_mote_spin_Mesh2",
+    "meshId": "rbxassetid://108307622556323",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.2,
+     0.06,
+     1.2
+    ],
+    "cframe": [
+     0,
+     -0.33,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_mud_coat": {
+  "parts": [
+   {
+    "name": "pet_mud_coat_mud_chunk_n_Mesh1",
+    "meshId": "rbxassetid://127383770180645",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.2,
+     1.16,
+     0.72
+    ],
+    "cframe": [
+     0,
+     0.58,
+     1.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_s_Mesh1",
+    "meshId": "rbxassetid://108252439307601",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.2,
+     0.74,
+     0.66
+    ],
+    "cframe": [
+     0,
+     0.37,
+     -1.33,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_e_Mesh1",
+    "meshId": "rbxassetid://119719914140277",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.72,
+     1.18,
+     1.2
+    ],
+    "cframe": [
+     -1.3,
+     0.59,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_w_Mesh1",
+    "meshId": "rbxassetid://85321229234608",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.72,
+     1.14,
+     1.2
+    ],
+    "cframe": [
+     1.3,
+     0.57,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_ne_Mesh1",
+    "meshId": "rbxassetid://139110229996577",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.76,
+     0.62,
+     0.7
+    ],
+    "cframe": [
+     -0.98,
+     0.31,
+     0.95,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_se_Mesh1",
+    "meshId": "rbxassetid://114410243261709",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.7,
+     1.1,
+     0.76
+    ],
+    "cframe": [
+     -0.95,
+     0.55,
+     -0.98,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_sw_Mesh1",
+    "meshId": "rbxassetid://86978650265297",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.76,
+     0.6,
+     0.76
+    ],
+    "cframe": [
+     0.98,
+     0.3,
+     -0.98,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_chunk_nw_Mesh1",
+    "meshId": "rbxassetid://117716209087340",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.7,
+     1.2,
+     0.7
+    ],
+    "cframe": [
+     0.95,
+     0.6,
+     0.95,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_1_Mesh1",
+    "meshId": "rbxassetid://100258329605132",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.7,
+     0.1,
+     0.2
+    ],
+    "cframe": [
+     -0.15,
+     0.05,
+     -1.7,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_2_Mesh1",
+    "meshId": "rbxassetid://107213546418635",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.2,
+     0.12,
+     0.7
+    ],
+    "cframe": [
+     -1.7,
+     0.06,
+     -0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_3_Mesh1",
+    "meshId": "rbxassetid://101201665948864",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.09,
+     0.46
+    ],
+    "cframe": [
+     1.5,
+     0.045,
+     -0.87,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_4_Mesh1",
+    "meshId": "rbxassetid://101155836930565",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.45,
+     0.11,
+     0.56
+    ],
+    "cframe": [
+     -1.525,
+     0.055,
+     -0.92,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_5_Mesh1",
+    "meshId": "rbxassetid://75035377800867",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.56,
+     0.07,
+     0.42
+    ],
+    "cframe": [
+     -0.92,
+     0.035,
+     -1.51,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_6_Mesh1",
+    "meshId": "rbxassetid://126401996159634",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.2,
+     0.08,
+     0.6
+    ],
+    "cframe": [
+     1.7,
+     0.04,
+     0.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_mud_coat_mud_puddle_7_Mesh1",
+    "meshId": "rbxassetid://77047194894032",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.6,
+     0.06,
+     0.2
+    ],
+    "cframe": [
+     0.2,
+     0.03,
+     1.7,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_spore_sneeze": {
+  "parts": [
+   {
+    "name": "pet_spore_sneeze_spore_near_Mesh1",
+    "meshId": "rbxassetid://80410448063042",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     4.09,
+     1.31,
+     4.82
+    ],
+    "cframe": [
+     -0.06,
+     0.39,
+     -2.41,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_near_Glow2",
+    "meshId": "rbxassetid://72963514341586",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     2.84,
+     0.64,
+     4.35
+    ],
+    "cframe": [
+     -0.32,
+     0.17,
+     -2.425,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_near_Glow3",
+    "meshId": "rbxassetid://83410093665645",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.785,
+     0.695,
+     1.095
+    ],
+    "cframe": [
+     -0.2125,
+     0.1975,
+     -1.7775,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_mid_Mesh1",
+    "meshId": "rbxassetid://92631955250846",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     8.745,
+     1.905,
+     4.5
+    ],
+    "cframe": [
+     0.1425,
+     0.4675,
+     -7.525,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_mid_Glow2",
+    "meshId": "rbxassetid://123194184024680",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.965,
+     1.475,
+     3.835
+    ],
+    "cframe": [
+     1.9475,
+     0.2875,
+     -7.7775,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_mid_Glow3",
+    "meshId": "rbxassetid://97498344464819",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     6.58,
+     1,
+     3.18
+    ],
+    "cframe": [
+     0.22,
+     1.04,
+     -8.32,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_far_Glow1",
+    "meshId": "rbxassetid://74288737473256",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     13.34,
+     2.66,
+     5.305
+    ],
+    "cframe": [
+     0.965,
+     0.42,
+     -13.3475,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_far_Mesh2",
+    "meshId": "rbxassetid://95664722644917",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     16.4,
+     3.81,
+     5.75
+    ],
+    "cframe": [
+     0,
+     0.99,
+     -13.125,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_spore_sneeze_spore_far_Glow3",
+    "meshId": "rbxassetid://129692554355456",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     2.09,
+     0.6,
+     4.65
+    ],
+    "cframe": [
+     -5.405,
+     0.01,
+     -13.675,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_prism_shards": {
+  "parts": [
+   {
+    "name": "pet_prism_shards_shards_flash_Glow1",
+    "meshId": "rbxassetid://127466175342433",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.7,
+     0.7,
+     0.7
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_1_Mesh1",
+    "meshId": "rbxassetid://85002382314573",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.5,
+     0.5,
+     0.5
+    ],
+    "cframe": [
+     -1.75,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_2_Mesh1",
+    "meshId": "rbxassetid://134684024351528",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.44,
+     0.44,
+     0.44
+    ],
+    "cframe": [
+     1.78,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_3_Mesh1",
+    "meshId": "rbxassetid://87624554985399",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     0,
+     1.8,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_4_Mesh1",
+    "meshId": "rbxassetid://97384401777339",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.46,
+     0.46,
+     0.46
+    ],
+    "cframe": [
+     0,
+     -1.77,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_5_Mesh1",
+    "meshId": "rbxassetid://83178921674443",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.52,
+     0.52,
+     0.52
+    ],
+    "cframe": [
+     0,
+     0,
+     -1.74,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_axis_6_Mesh1",
+    "meshId": "rbxassetid://97374795958869",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.42,
+     0.42,
+     0.42
+    ],
+    "cframe": [
+     0,
+     0,
+     1.79,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_1_Mesh1",
+    "meshId": "rbxassetid://116554514772653",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.46,
+     0.46,
+     0.46
+    ],
+    "cframe": [
+     -0.7506,
+     0.7505,
+     -0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_2_Mesh1",
+    "meshId": "rbxassetid://129156485075446",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.38,
+     0.38,
+     0.38
+    ],
+    "cframe": [
+     0.7506,
+     0.7505,
+     -0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_3_Mesh1",
+    "meshId": "rbxassetid://110983188857983",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.42,
+     0.42,
+     0.42
+    ],
+    "cframe": [
+     -0.7506,
+     -0.7505,
+     -0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_4_Mesh1",
+    "meshId": "rbxassetid://118205774937668",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.36,
+     0.36,
+     0.36
+    ],
+    "cframe": [
+     0.7506,
+     -0.7505,
+     -0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_5_Mesh1",
+    "meshId": "rbxassetid://114909705640464",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.44,
+     0.44,
+     0.44
+    ],
+    "cframe": [
+     -0.7506,
+     0.7505,
+     0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_6_Mesh1",
+    "meshId": "rbxassetid://80239023469709",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     0.7506,
+     0.7505,
+     0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_7_Mesh1",
+    "meshId": "rbxassetid://105526193620357",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.48,
+     0.48,
+     0.48
+    ],
+    "cframe": [
+     -0.7506,
+     -0.7505,
+     0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_diag_8_Mesh1",
+    "meshId": "rbxassetid://135040460682258",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.37,
+     0.37,
+     0.37
+    ],
+    "cframe": [
+     0.7506,
+     -0.7505,
+     0.7506,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_1_Glow1",
+    "meshId": "rbxassetid://122235565042013",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.2,
+     0.2,
+     0.2
+    ],
+    "cframe": [
+     -1.06,
+     1.06,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_2_Glow1",
+    "meshId": "rbxassetid://96407258843597",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.23,
+     0.23,
+     0.23
+    ],
+    "cframe": [
+     1.06,
+     0,
+     -1.06,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_3_Glow1",
+    "meshId": "rbxassetid://111613917576754",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.26,
+     0.26,
+     0.26
+    ],
+    "cframe": [
+     0,
+     -1.06,
+     -1.06,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_4_Glow1",
+    "meshId": "rbxassetid://98871146796319",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.2,
+     0.2,
+     0.2
+    ],
+    "cframe": [
+     -1.06,
+     0,
+     1.06,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_5_Glow1",
+    "meshId": "rbxassetid://84313627430521",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.23,
+     0.23,
+     0.23
+    ],
+    "cframe": [
+     1.06,
+     -1.06,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_shards_shard_glint_6_Glow1",
+    "meshId": "rbxassetid://78365203736860",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.26,
+     0.26,
+     0.26
+    ],
+    "cframe": [
+     0,
+     1.06,
+     1.06,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_flop_splash": {
+  "parts": [
+   {
+    "name": "pet_flop_splash_splash_ring_Mesh1",
+    "meshId": "rbxassetid://78929703455951",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     7,
+     2,
+     7
+    ],
+    "cframe": [
+     0,
+     1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_flop_splash_splash_sparks_Glow1",
+    "meshId": "rbxassetid://126475593026822",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     6.2699,
+     1.38,
+     5.9166
+    ],
+    "cframe": [
+     0.1226,
+     1.23,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_briar_cage": {
+  "parts": [
+   {
+    "name": "pet_briar_cage_post_1_Mesh1",
+    "meshId": "rbxassetid://84481750303838",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_1_Glow2",
+    "meshId": "rbxassetid://73474575370106",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_2_Mesh1",
+    "meshId": "rbxassetid://71464862689080",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.82,
+     3.5,
+     0.79
+    ],
+    "cframe": [
+     0.13,
+     1.75,
+     1.565,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_2_Glow2",
+    "meshId": "rbxassetid://91614568834128",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     0,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_3_Mesh1",
+    "meshId": "rbxassetid://134826488903081",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_3_Glow2",
+    "meshId": "rbxassetid://87559982686494",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_4_Mesh1",
+    "meshId": "rbxassetid://93623075994809",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     -0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_4_Glow2",
+    "meshId": "rbxassetid://132716215602215",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_5_Mesh1",
+    "meshId": "rbxassetid://104709609079134",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_5_Glow2",
+    "meshId": "rbxassetid://100827784782455",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_6_Mesh1",
+    "meshId": "rbxassetid://79859629559422",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     -1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_6_Glow2",
+    "meshId": "rbxassetid://112395551892053",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_7_Mesh1",
+    "meshId": "rbxassetid://125678039610705",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.82,
+     3.5,
+     0.79
+    ],
+    "cframe": [
+     -0.13,
+     1.75,
+     -1.565,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_7_Glow2",
+    "meshId": "rbxassetid://113271253720968",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     0,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_8_Mesh1",
+    "meshId": "rbxassetid://81521655541111",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     -1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_8_Glow2",
+    "meshId": "rbxassetid://110420628813369",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_1_Glow1",
+    "meshId": "rbxassetid://76622237908454",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.12,
+     0.06,
+     0.12
+    ],
+    "cframe": [
+     0.84,
+     0.03,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_2_Glow1",
+    "meshId": "rbxassetid://94558163731590",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.12,
+     0.06,
+     1.12
+    ],
+    "cframe": [
+     1.68,
+     0.03,
+     0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_3_Glow1",
+    "meshId": "rbxassetid://76622237908454",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.12,
+     0.06,
+     0.12
+    ],
+    "cframe": [
+     0.84,
+     0.03,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_4_Glow1",
+    "meshId": "rbxassetid://94558163731590",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.12,
+     0.06,
+     1.12
+    ],
+    "cframe": [
+     -1.68,
+     0.03,
+     0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_5_Glow1",
+    "meshId": "rbxassetid://76622237908454",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.12,
+     0.06,
+     0.12
+    ],
+    "cframe": [
+     -0.84,
+     0.03,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_6_Glow1",
+    "meshId": "rbxassetid://94558163731590",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.12,
+     0.06,
+     1.12
+    ],
+    "cframe": [
+     1.68,
+     0.03,
+     -0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_7_Glow1",
+    "meshId": "rbxassetid://76622237908454",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.12,
+     0.06,
+     0.12
+    ],
+    "cframe": [
+     -0.84,
+     0.03,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_ground_glow_8_Glow1",
+    "meshId": "rbxassetid://94558163731590",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.12,
+     0.06,
+     1.12
+    ],
+    "cframe": [
+     -1.68,
+     0.03,
+     -0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_1_Glow1",
+    "meshId": "rbxassetid://106556793622867",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -0.84,
+     0.5,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_2_Glow1",
+    "meshId": "rbxassetid://99811059718871",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     0.84,
+     1.4,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_3_Glow1",
+    "meshId": "rbxassetid://75842995915806",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -1.68,
+     0.9,
+     -0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_4_Glow1",
+    "meshId": "rbxassetid://113784162667679",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -1.68,
+     2,
+     0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_5_Glow1",
+    "meshId": "rbxassetid://75842995915806",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     1.68,
+     0.6,
+     0.84,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_spark_6_Glow1",
+    "meshId": "rbxassetid://99811059718871",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     0.84,
+     2.4,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_briar_vine": {
+  "parts": [
+   {
+    "name": "pet_briar_vine_Vine_Mesh1",
+    "meshId": "rbxassetid://108147639647253",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.52,
+     0.58,
+     5
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_berry_heal": {
+  "parts": [
+   {
+    "name": "pet_berry_heal_Berry_Mesh1",
+    "meshId": "rbxassetid://99827148402317",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.6,
+     0.63,
+     0.6
+    ],
+    "cframe": [
+     0,
+     0.315,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk1_Mesh1",
+    "meshId": "rbxassetid://122790720290737",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.5,
+     0.3,
+     0.46
+    ],
+    "cframe": [
+     -0.2188,
+     0.15,
+     -1.2409,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk2_Mesh1",
+    "meshId": "rbxassetid://102104143036900",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.42,
+     0.22,
+     0.4
+    ],
+    "cframe": [
+     -0.9652,
+     0.11,
+     -0.8099,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk3_Mesh1",
+    "meshId": "rbxassetid://134056435938990",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.52,
+     0.26,
+     0.5
+    ],
+    "cframe": [
+     -1.26,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk4_Mesh1",
+    "meshId": "rbxassetid://122551995666841",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.36,
+     0.18,
+     0.38
+    ],
+    "cframe": [
+     -0.9652,
+     0.09,
+     0.8099,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk5_Mesh1",
+    "meshId": "rbxassetid://99098056369363",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.48,
+     0.32,
+     0.44
+    ],
+    "cframe": [
+     -0.2188,
+     0.16,
+     1.2409,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk6_Mesh1",
+    "meshId": "rbxassetid://95877572897231",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.44,
+     0.24,
+     0.5
+    ],
+    "cframe": [
+     0.63,
+     0.12,
+     1.0912,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk7_Mesh1",
+    "meshId": "rbxassetid://76140659330228",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.5,
+     0.28,
+     0.42
+    ],
+    "cframe": [
+     1.184,
+     0.14,
+     0.4309,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk8_Mesh1",
+    "meshId": "rbxassetid://129933450929471",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.2,
+     0.36
+    ],
+    "cframe": [
+     1.184,
+     0.1,
+     -0.4309,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Chunk9_Mesh1",
+    "meshId": "rbxassetid://82906446696629",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.46,
+     0.25,
+     0.48
+    ],
+    "cframe": [
+     0.63,
+     0.125,
+     -1.0912,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Sparkle1_Mesh1",
+    "meshId": "rbxassetid://99902129544631",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.28,
+     0.28,
+     0.0672
+    ],
+    "cframe": [
+     0.7,
+     2,
+     -0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Sparkle2_Mesh1",
+    "meshId": "rbxassetid://80389017003723",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.096
+    ],
+    "cframe": [
+     -0.1,
+     2.8,
+     0.45,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Sparkle3_Mesh1",
+    "meshId": "rbxassetid://70788651288080",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.32,
+     0.32,
+     0.0768
+    ],
+    "cframe": [
+     -0.8,
+     2.3,
+     -0.1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Sparkle4_Mesh1",
+    "meshId": "rbxassetid://76864145333318",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.26,
+     0.26,
+     0.0624
+    ],
+    "cframe": [
+     0.35,
+     1.5,
+     -0.75,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_heal_Sparkle5_Mesh1",
+    "meshId": "rbxassetid://100052549064231",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.26,
+     0.26,
+     0.0624
+    ],
+    "cframe": [
+     -0.55,
+     1.7,
+     0.7,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_thistle_burst": {
+  "parts": [
+   {
+    "name": "pet_thistle_burst_Spike1_Mesh1",
+    "meshId": "rbxassetid://105759964191214",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0,
+     0.17,
+     -0.725,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike2_Mesh1",
+    "meshId": "rbxassetid://80979727335598",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     -0.4232,
+     0.17,
+     -0.5875,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike3_Mesh1",
+    "meshId": "rbxassetid://88552087956543",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     -0.6848,
+     0.17,
+     -0.2275,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike4_Mesh1",
+    "meshId": "rbxassetid://117366511443946",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     -0.6848,
+     0.17,
+     0.2175,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike5_Mesh1",
+    "meshId": "rbxassetid://102338410091822",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     -0.4232,
+     0.17,
+     0.5775,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike6_Mesh1",
+    "meshId": "rbxassetid://109815738914937",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0,
+     0.17,
+     0.715,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike7_Mesh1",
+    "meshId": "rbxassetid://128947965813585",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0.4232,
+     0.17,
+     0.5775,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike8_Mesh1",
+    "meshId": "rbxassetid://90415081844103",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0.6848,
+     0.17,
+     0.2175,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike9_Mesh1",
+    "meshId": "rbxassetid://120254440306810",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0.6848,
+     0.17,
+     -0.2275,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thistle_burst_Spike10_Mesh1",
+    "meshId": "rbxassetid://97418386274482",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.34,
+     0.34,
+     0.55
+    ],
+    "cframe": [
+     0.4232,
+     0.17,
+     -0.5875,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_thorn_bleed": {
+  "parts": [
+   {
+    "name": "pet_thorn_bleed_Thorn Bleed_Mesh1",
+    "meshId": "rbxassetid://87410221160029",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.6,
+     0.34,
+     1.6
+    ],
+    "cframe": [
+     0,
+     0.17,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_mid_Mesh1",
+    "meshId": "rbxassetid://106698589915061",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.5,
+     0.54,
+     0.45
+    ],
+    "cframe": [
+     0.07,
+     0.61,
+     -0.045,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_mid_Glow2",
+    "meshId": "rbxassetid://101097288591793",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.12,
+     0.08
+    ],
+    "cframe": [
+     -0.09,
+     0.94,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_west_Mesh1",
+    "meshId": "rbxassetid://94108552603883",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.26,
+     0.34,
+     0.33
+    ],
+    "cframe": [
+     0.6,
+     0.49,
+     -0.085,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_west_Glow2",
+    "meshId": "rbxassetid://73518668471426",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.12,
+     0.08
+    ],
+    "cframe": [
+     0.66,
+     0.72,
+     -0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_east_Mesh1",
+    "meshId": "rbxassetid://82611734645319",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.28,
+     0.38,
+     0.35
+    ],
+    "cframe": [
+     -0.6,
+     0.49,
+     0.085,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_thorn_east_Glow2",
+    "meshId": "rbxassetid://125638337842828",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.09,
+     0.14,
+     0.09
+    ],
+    "cframe": [
+     -0.66,
+     0.75,
+     0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_drip_1_Mesh1",
+    "meshId": "rbxassetid://135125074661460",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -0.65,
+     0.13,
+     -0.15,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_drip_2_Mesh1",
+    "meshId": "rbxassetid://124590343035209",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     0.65,
+     0.13,
+     0.1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_drip_3_Mesh1",
+    "meshId": "rbxassetid://121052756196429",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -0.1,
+     0.13,
+     -0.65,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_spark_1_Glow1",
+    "meshId": "rbxassetid://114165138298925",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     0.3,
+     0.75,
+     -0.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_spark_2_Glow1",
+    "meshId": "rbxassetid://88369690014022",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     -0.35,
+     0.85,
+     0.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_spark_3_Glow1",
+    "meshId": "rbxassetid://108118531117588",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     0.62,
+     0.9,
+     0.25,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_spark_4_Glow1",
+    "meshId": "rbxassetid://106878705810968",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     -0.25,
+     0.6,
+     -0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_bleed_spark_5_Glow1",
+    "meshId": "rbxassetid://138422940024246",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     -0.7,
+     0.9,
+     -0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_briar_spirit": {
+  "parts": [
+   {
+    "name": "pet_briar_spirit_Hop_Mesh1",
+    "meshId": "rbxassetid://115328235519984",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.9,
+     1.29,
+     0.9
+    ],
+    "cframe": [
+     0,
+     0.195,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_Hop_Glow2",
+    "meshId": "rbxassetid://138477672002523",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.36,
+     0.36,
+     0.04
+    ],
+    "cframe": [
+     0,
+     0,
+     -0.47,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_trail_1_Glow1",
+    "meshId": "rbxassetid://86936886966193",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     -0.08,
+     -0.1,
+     0.7,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_trail_2_Glow1",
+    "meshId": "rbxassetid://98438593526810",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.13,
+     0.13,
+     0.13
+    ],
+    "cframe": [
+     0.1,
+     -0.18,
+     0.95,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_trail_3_Glow1",
+    "meshId": "rbxassetid://78682248909028",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "cframe": [
+     -0.06,
+     -0.24,
+     1.15,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_trail_4_Glow1",
+    "meshId": "rbxassetid://93630987626008",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     0.05,
+     -0.28,
+     1.32,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_spirit_trail_5_Glow1",
+    "meshId": "rbxassetid://72953755225621",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.06,
+     0.06,
+     0.06
+    ],
+    "cframe": [
+     -0.03,
+     -0.31,
+     1.46,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_thorn_wake": {
+  "parts": [
+   {
+    "name": "pet_thorn_wake_ring_blocks_Mesh1",
+    "meshId": "rbxassetid://119795150754236",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     24,
+     0.8,
+     24
+    ],
+    "cframe": [
+     0,
+     0.4,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_ring_glow_Mesh1",
+    "meshId": "rbxassetid://125638348996506",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     13,
+     0.2,
+     13
+    ],
+    "cframe": [
+     0,
+     0.1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_2_Mesh1",
+    "meshId": "rbxassetid://82754638954217",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "cframe": [
+     3.2,
+     0.4,
+     3.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_4_Mesh1",
+    "meshId": "rbxassetid://81850775283352",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "cframe": [
+     3.2,
+     0.4,
+     -3.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_6_Mesh1",
+    "meshId": "rbxassetid://79967450451489",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "cframe": [
+     -3.2,
+     0.4,
+     3.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_8_Mesh1",
+    "meshId": "rbxassetid://78164048273675",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.3,
+     0.3,
+     0.3
+    ],
+    "cframe": [
+     -3.2,
+     0.4,
+     -3.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_1_Mesh1",
+    "meshId": "rbxassetid://140629981343583",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     7.8,
+     0.45,
+     7.8,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_3_Mesh1",
+    "meshId": "rbxassetid://112951928117203",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     7.8,
+     0.45,
+     -7.8,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_5_Mesh1",
+    "meshId": "rbxassetid://125474709510242",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     -7.8,
+     0.45,
+     7.8,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_thorn_wake_spark_7_Mesh1",
+    "meshId": "rbxassetid://124920882454186",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.4
+    ],
+    "cframe": [
+     -7.8,
+     0.45,
+     -7.8,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_lichen_lick": {
+  "parts": [
+   {
+    "name": "pet_lichen_lick_lick_tongue_Mesh1",
+    "meshId": "rbxassetid://70401711580769",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.32,
+     1.26,
+     4
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_thorn_pop": {
+  "parts": [
+   {
+    "name": "pet_thorn_pop_Thorn Pop_Mesh1",
+    "meshId": "rbxassetid://109185559293342",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.32,
+     0.32,
+     1.6
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_prism_bolt": {
+  "parts": [
+   {
+    "name": "pet_prism_bolt_bolt_spin_Mesh1",
+    "meshId": "rbxassetid://125578446025947",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.76,
+     0.76,
+     1.55
+    ],
+    "cframe": [
+     0,
+     0,
+     0.775,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_bolt_bolt_spin_Glow2",
+    "meshId": "rbxassetid://135870010726368",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.6,
+     0.6,
+     0.35
+    ],
+    "cframe": [
+     0,
+     0,
+     1.175,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_bolt_bolt_trail_0_Glow1",
+    "meshId": "rbxassetid://126004201860084",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.3
+    ],
+    "cframe": [
+     0,
+     0,
+     1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_bolt_bolt_trail_1_Glow1",
+    "meshId": "rbxassetid://94433258674045",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.4,
+     0.4,
+     0.3
+    ],
+    "cframe": [
+     0,
+     0,
+     1.7,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_bolt_bolt_trail_2_Glow1",
+    "meshId": "rbxassetid://86212567375241",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.28,
+     0.28,
+     0.3
+    ],
+    "cframe": [
+     0,
+     0,
+     2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_prism_bolt_bolt_trail_3_Glow1",
+    "meshId": "rbxassetid://131743922202765",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.25
+    ],
+    "cframe": [
+     0,
+     0,
+     2.275,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_blood_berry": {
+  "parts": [
+   {
+    "name": "pet_blood_berry_Blood Berry_Mesh1",
+    "meshId": "rbxassetid://89077574858874",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.7,
+     0.875,
+     0.7
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_gold_thorn": {
+  "parts": [
+   {
+    "name": "pet_gold_thorn_Spin_Glow1",
+    "meshId": "rbxassetid://135640971967863",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.38,
+     0.16,
+     1.8
+    ],
+    "cframe": [
+     0,
+     0,
+     0.9,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_Spin_Mesh2",
+    "meshId": "rbxassetid://78781000379321",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.66,
+     0.72,
+     1.35
+    ],
+    "cframe": [
+     -0.03,
+     0,
+     1.125,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_1_Glow1",
+    "meshId": "rbxassetid://140555507298509",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     -0.45,
+     0.3,
+     0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_2_Glow1",
+    "meshId": "rbxassetid://74015422712273",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     0.5,
+     0.15,
+     0.9,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_3_Glow1",
+    "meshId": "rbxassetid://126913074382219",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     -0.35,
+     -0.42,
+     1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_4_Glow1",
+    "meshId": "rbxassetid://125929626065093",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     0.3,
+     0.45,
+     1.2,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_5_Glow1",
+    "meshId": "rbxassetid://70491959844912",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     -0.5,
+     -0.2,
+     0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_gold_thorn_spark_6_Glow1",
+    "meshId": "rbxassetid://76106817926462",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.08,
+     0.08,
+     0.08
+    ],
+    "cframe": [
+     0.42,
+     -0.35,
+     0.65,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_cling_burr": {
+  "parts": [
+   {
+    "name": "pet_cling_burr_Cling Burr_Mesh1",
+    "meshId": "rbxassetid://76269335134478",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.8,
+     0.8,
+     0.8
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_thorn_shear": {
+  "parts": [
+   {
+    "name": "pet_thorn_shear_Thorn Shear_Mesh1",
+    "meshId": "rbxassetid://75841448308381",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     1.6,
+     0.17,
+     0.58
+    ],
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_briar_snare": {
+  "parts": [
+   {
+    "name": "pet_briar_snare_Briar Snare_Mesh1",
+    "meshId": "rbxassetid://139861324406182",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     3.5,
+     0.6,
+     3.5
+    ],
+    "cframe": [
+     0,
+     0.3,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_snare_RingHigh_Mesh1",
+    "meshId": "rbxassetid://110657911147382",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     3.3,
+     0.65,
+     3.3
+    ],
+    "cframe": [
+     0,
+     1.275,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "fx_pet_berry_splat": {
+  "parts": [
+   {
+    "name": "pet_berry_splat_Splat_Mesh1",
+    "meshId": "rbxassetid://131322720354053",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     2.5,
+     0.26,
+     2.5
+    ],
+    "cframe": [
+     0,
+     0.13,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_splat_Drop1_Mesh1",
+    "meshId": "rbxassetid://126507287811375",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.18,
+     0.18,
+     0.18
+    ],
+    "cframe": [
+     1.11,
+     0.09,
+     0.41,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_splat_Drop2_Mesh1",
+    "meshId": "rbxassetid://114779971069137",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.18,
+     0.18,
+     0.18
+    ],
+    "cframe": [
+     -1.07,
+     0.09,
+     -0.69,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_splat_Drop3_Mesh1",
+    "meshId": "rbxassetid://102335587282446",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     -0.96,
+     0.08,
+     0.54,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_splat_Drop4_Mesh1",
+    "meshId": "rbxassetid://123404950418129",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.18,
+     0.18,
+     0.18
+    ],
+    "cframe": [
+     0.46,
+     0.09,
+     -1.09,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_berry_splat_Drop5_Mesh1",
+    "meshId": "rbxassetid://102547211420672",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.16,
+     0.16,
+     0.16
+    ],
+    "cframe": [
+     0.58,
+     0.08,
+     1.12,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   }
+  ]
  }
 }

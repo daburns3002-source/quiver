@@ -52,6 +52,9 @@ EFFECTS = {
     "soulchain": {"split": ["cap_start", "cap_end"]},
     "strength": {"voxel": ["ArmBandLeft_Cuff", "ArmBandRight_Cuff"], "step": 0.4 / 3},
     "overdraw": {"split": ["shockwave", "ring_large", "ring_medium", "ring_small"]},
+    # phones cap an effect at 40 parts (Balance.UpgradeFx.maxParts)
+    "pet_briar_cage": {"still_children": ["post_"]},
+    "pet_spore_sneeze": {"still_children": ["spore_"]},
     "chainlightning": {
         "keep": {
             "Node": ["Node_2T_01_"],
@@ -258,6 +261,16 @@ def optimise(src, out, effect):
     roots = list(gltf["scenes"][gltf.get("scene", 0)]["nodes"])
 
     animated = {ch["target"]["node"] for a in gltf.get("animations", []) for ch in a["channels"]}
+    # children of a node named in `still_children` lose their own tracks and
+    # ride that node instead, merged with it (a cage post's six crumbling
+    # pieces, one spore band's thirty puffs), at full size if they rested hidden
+    still = {
+        i
+        for i in animated
+        if i in parent and any(name[parent[i]].startswith(p) for p in config.get("still_children", []))
+    }
+    animated -= still
+    flat = {i for i in still if max(abs(v) for v in nodes[i].get("scale", [1, 1, 1])) < TINY}
     scaled = {}  # node -> animations that carry a scale channel for it
     for ai, a in enumerate(gltf.get("animations", [])):
         for ch in a["channels"]:
@@ -275,7 +288,7 @@ def optimise(src, out, effect):
 
     def world_of(i):
         if i not in world:
-            m = local(nodes[i], [1, 1, 1] if i in unhidden else None)
+            m = local(nodes[i], [1, 1, 1] if i in unhidden or i in flat else None)
             world[i] = world_of(parent[i]) @ m if i in parent else m
         return world[i]
 

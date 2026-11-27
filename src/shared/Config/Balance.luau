@@ -2165,6 +2165,10 @@ local broodmother: EnemyConfig = {
 export type Obstacle = {
 	offset: Vector2,
 	size: Vector3,
+	--[[ A drop, not cover (the Windswept Cliffs' gap a bridge crosses):
+	     nobody walks into it, arrows fly over it, and a push that carries a
+	     player into it is a fall (`Shared/Util/CliffEdges`). ]]
+	void: boolean?,
 }
 
 --[[

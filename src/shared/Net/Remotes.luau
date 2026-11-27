@@ -527,6 +527,10 @@ Remotes.PlayerDodged = "PlayerDodged"
      there over `Balance.Shove.duration`, as it does a dash, so walls stop it. ]]
 Remotes.PlayerShoved = "PlayerShoved"
 
+--[[ Server → all clients. A push carried this player over a cliff edge
+     (`Arena/CliffFalls`): who, and where they landed back on the floor. ]]
+Remotes.PlayerFell = "PlayerFell"
+
 --[[ Server → one client. A boss holds this player still for the given
      seconds (the Slime Lash's grab); 0 lets go. Time-limited, so a boss
      that dies mid-grab cannot leave anyone stuck. ]]

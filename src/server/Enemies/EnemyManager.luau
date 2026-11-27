@@ -23,6 +23,7 @@ local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
+local CliffFalls = require(script.Parent.Parent.Arena.CliffFalls)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
@@ -1833,6 +1834,8 @@ local function shove(session: RunSession.Session, direction: Vector3, distance: 
 		return
 	end
 	playerShoved:FireClient(session.player, along.Unit, distance)
+	-- on the Windswept Cliffs a push can carry them over an edge
+	CliffFalls.pushed(session, along.Unit, distance)
 end
 
 --[[ The same push, for the Hollow Fisherman's hook (`Combat/ProjectileSystem`,
@@ -3524,6 +3527,7 @@ local function stepBogHazards(now: number)
 end
 
 function EnemyManager.step(deltaTime: number, now: number)
+	CliffFalls.step(now)
 	stepClouds(now)
 	stepBogHazards(now)
 	for _, enemy in enemies do

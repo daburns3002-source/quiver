@@ -17,7 +17,7 @@ local TestRunner = require(script.Parent.TestRunner)
 local RADIUS = 1.5
 local CELL = 0.5
 
-type Box = { offset: Vector2, size: Vector3 }
+type Box = { offset: Vector2, size: Vector3, void: boolean? }
 
 local function walkable(obstacles: { Box }): boolean
 	local hx, hz = Balance.Arena.size.X / 2, Balance.Arena.size.Z / 2

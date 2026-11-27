@@ -80,6 +80,10 @@ export type ArenaModel = {
 	     (`Fx/WaterSteps`; owner, 2026-11-05: "the footsteps in the shallow
 	     water need to be emphasized"). ]]
 	shallowWater: boolean?,
+	--[[ The room is a cliff top: its walls and void strips are drops, and a
+	     push over one is a fall (`Shared/Util/CliffEdges`; the Windswept
+	     Cliffs, owner 2026-11-26). ]]
+	edges: boolean?,
 }
 
 --[[

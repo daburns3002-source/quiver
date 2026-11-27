@@ -32,6 +32,7 @@ local CardPreload = require(script.Parent.UI.Cards.CardPreload)
 local ClassCardFx = require(script.Parent.Fx.Upgrades.ClassCardFx)
 local ClassScreen = require(script.Parent.UI.ClassScreen)
 local Classes = require(Shared.Config.Classes)
+local CliffFallFx = require(script.Parent.Fx.CliffFallFx)
 local CoinDrops = require(script.Parent.Fx.CoinDrops)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local ControlMenu = require(script.Parent.UI.ControlMenu)
@@ -535,6 +536,12 @@ Remotes.event(Remotes.PlayerDodged).OnClientEvent:Connect(HitFeedback.onPlayerDo
 Remotes.event(Remotes.PlayerShoved).OnClientEvent:Connect(function(direction, distance)
 	if typeof(direction) == "Vector3" and type(distance) == "number" then
 		Shove.push(os.clock(), direction, distance)
+	end
+end)
+--[[ Pushed over a Windswept Cliffs edge (`Arena/CliffFalls`). ]]
+Remotes.event(Remotes.PlayerFell).OnClientEvent:Connect(function(who, landing)
+	if typeof(who) == "Instance" and who:IsA("Player") and typeof(landing) == "Vector3" then
+		CliffFallFx.onFell(who, landing)
 	end
 end)
 Remotes.event(Remotes.PlayerGrabbed).OnClientEvent:Connect(function(seconds)

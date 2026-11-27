@@ -15,6 +15,7 @@ local ArenaKits = require(ReplicatedStorage.Shared.Config.ArenaKits)
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Atmosphere = require(script.Parent.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CliffEdges = require(ReplicatedStorage.Shared.Util.CliffEdges)
 local ExitGate = require(script.Parent.ExitGate)
 local KitLayout = require(ReplicatedStorage.Shared.Util.KitLayout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -39,6 +40,10 @@ local Arena = {}
 local blockersFolder: Folder? = nil
 local exitGate: ExitGate.Gate? = nil
 local boxes: { Box } = {}
+--[[ The room's cliff edges (`ArenaModels.edges`) and its void strips
+     (`Balance.Obstacle.void`), for `Arena.edges`. ]]
+local edgesOn = false
+local voids: { CliffEdges.Void } = {}
 local halfSize = Vector2.zero
 --[[ Bumped every time a room is built, so anything cached against the
      layout (`Enemies/Pathing`'s grids) knows to rebuild. ]]
@@ -798,6 +803,16 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	halfSize = Vector2.new(config.size.X / 2, config.size.Z / 2)
 	boxes = made.boxes
 	layoutVersion += 1
+	edgesOn = made.model ~= nil and made.model.edges == true
+	voids = {}
+	for _, obstacle in obstacles do
+		if obstacle.void then
+			table.insert(voids, {
+				centre = obstacle.offset,
+				halfExtents = Vector2.new(obstacle.size.X / 2, obstacle.size.Z / 2),
+			})
+		end
+	end
 
 	--[[ The area's own light, or the game's (`ArenaModels.lighting`). ]]
 	Atmosphere.apply(if made.model then made.model.lighting else nil)
@@ -1015,6 +1030,29 @@ function Arena.deflectionNormal(from: Vector3, probe: Vector3, radius: number): 
 	end
 
 	return nil
+end
+
+--[[ Whether this room is a cliff top (`ArenaModels.edges`), its half size
+     and its void strips: what `Arena/CliffFalls` reads a push against. ]]
+function Arena.edges(): (boolean, Vector2, { CliffEdges.Void })
+	return edgesOn, halfSize, voids
+end
+
+--[[ Whether `point` (floor X, Z) stands in cover: a box that is not a void
+     strip. A push stops there. ]]
+function Arena.coverAt(point: Vector2): boolean
+	for _, box in boxes do
+		local d = point - box.centre
+		if math.abs(d.X) < box.halfExtents.X and math.abs(d.Y) < box.halfExtents.Y then
+			for _, void in voids do
+				if void.centre == box.centre then
+					return false
+				end
+			end
+			return true
+		end
+	end
+	return false
 end
 
 return Arena

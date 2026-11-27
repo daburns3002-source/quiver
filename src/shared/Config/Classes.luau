@@ -185,7 +185,7 @@ local Classes: { [string]: Class } = {
 			cooldown = 2.5,
 			damage = 1.5,
 			width = 5,
-			guard = 0.75,
+			guard = 1.1,
 		},
 	},
 }

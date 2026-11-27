@@ -13255,6 +13255,97 @@ local Balance = {
 			below = 0.5,
 		},
 
+		--[[ The nineteen of 2026-11-27 (docs/CARD-IDEAS.md, owner: "Build all
+		     nineteen"). What each level is worth is its card's
+		     (`Config/Abilities`); these are the rest. Damage is times the
+		     player's own; every one aimed at the band its peers sit in.
+		     - Hunter's Mark: the enemy nearest within the attack's range is
+		       marked (Sunder's mark), refreshed every `refresh` seconds for
+		       `hold`.
+		     - Pin Down: an enemy is rooted no sooner than every `again`
+		       seconds; a boss is slowed to `boss` instead.
+		     - Serpent Arrow: arrows weave `amplitude` studs either side of
+		       their line, once every `wavelength` studs; a bite is shown no
+		       more than every `shown` seconds.
+		     - Trick Shot brings `bounces` of its own.
+		     - Barrage: `charge` seconds still (and as long since the last)
+		       readies a fan `spread` wide, each arrow `damage`.
+		     - Skyfall: every `every`th volley a leap `airborne` seconds
+		       long, untargetable, landing in a ring of `arrows`, each
+		       `damage`, flying `speed` studs a second for `lifetime`.
+		     - Siphon heals every `every`th cast that lands.
+		     - Overcharge: every `every`th cast costs `cost` of max health
+		       (never the last point; no charge without it).
+		     - Rune Circle: a rune `radius` wide burns every `every` seconds
+		       for `damage`, for `duration`.
+		     - Arcane Tether: a tie to the nearest enemy within `reach`, for
+		       `duration`; at most `most` ties a player at once.
+		     - Starfall: `meteors` on the nearest enemies within `range`,
+		       `stagger` apart, each warned for `delay`, `radius` wide, for
+		       `damage`.
+		     - Singularity: `charge` seconds still grows the orb; the next
+		       cast rolls it through everything at `speedScale` of an orb's
+		       speed for `damage`, dragging what is within `pullRadius` at
+		       `pullSpeed` studs a second.
+		     - Bellow: every `every`th blow shouts `radius` round him,
+		       shoving `shove` studs with `stagger`.
+		     - Stone Skin: `charge` seconds still raises the guard.
+		     - Grave Chains: a boss is slowed to `boss` instead.
+		     - Blade Cyclone: `charge` seconds still and the blades whirl,
+		       on Orbiting Orb's machinery (`orbit`).
+		     - Reaper's Harvest: a kill heals `heal` of max health.
+		     - Colossus: the body `scale` times its size, `health` more max
+		       health, and every `every`th slam quakes `radius` round him
+		       for `damage`. ]]
+		huntersMark = { refresh = 0.2, hold = 0.45 },
+		pinDown = { again = 3, boss = 0.6 },
+		serpent = { amplitude = 1, wavelength = 9, shown = 1.2 },
+		trickShot = { bounces = 1 },
+		barrage = { charge = 2, spread = math.rad(50), damage = 0.4 },
+		skyfall = {
+			every = 12,
+			airborne = 0.8,
+			arrows = 16,
+			damage = 0.5,
+			speed = 55,
+			lifetime = 0.8,
+		},
+		siphon = { every = 3 },
+		overcharge = { every = 4, cost = 0.03 },
+		runeCircle = { radius = 2.5, damage = 0.12, every = 0.5, duration = 3 },
+		arcaneTether = { reach = 12, duration = 4, most = 2 },
+		starfall = {
+			meteors = 3,
+			range = 30,
+			stagger = 0.15,
+			delay = 0.9,
+			radius = 4,
+			damage = 1.1,
+		},
+		singularity = {
+			charge = 4.5,
+			damage = 2,
+			speedScale = 0.55,
+			pullRadius = 3.5,
+			pullSpeed = 10,
+		},
+		bellow = { every = 5, radius = 8, shove = 5, stagger = 0.3 },
+		stoneSkin = { charge = 1.2 },
+		graveChains = { boss = 0.6 },
+		bladeCyclone = {
+			charge = 1,
+			orbit = {
+				radius = 3.6,
+				turn = 5,
+				reach = 1.6,
+				again = 0.6,
+				damage = 0.2,
+				knock = 0.35,
+			},
+		},
+		reapersHarvest = { heal = 0.015 },
+		colossus = { scale = 1.35, health = 0.4, every = 3, radius = 12, damage = 1.2 },
+
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
 			move here, so the speed is banked by moving and spent after:

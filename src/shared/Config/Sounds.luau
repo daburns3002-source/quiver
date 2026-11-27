@@ -1017,6 +1017,154 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.2,
 	},
+	--[[ The nineteen cards of 2026-11-27 (docs/CARD-IDEAS.md, owner: "Build all nineteen"):
+	     each one an existing card's clip, quieter or sparser where it fires often. ]]
+	-- the mark landing on a new target (Death Mark's)
+	fx_hunters_mark = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.853, 0.86 },
+		volume = 0.45,
+		pitchJitter = 0.03,
+		minGap = 1.0,
+	},
+	-- an arrow pinning an enemy in place (Thorn Burst's)
+	fx_pin_down = {
+		id = DAGGER_SPRITE,
+		region = { 10.2, 0.28 },
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.4,
+	},
+	-- a weaving arrow's poison biting (Poison Trail's)
+	fx_serpent_bite = {
+		id = ASSASSIN_SPRITE,
+		region = { 3.193, 0.56 },
+		volume = 0.4,
+		pitchJitter = 0.04,
+		minGap = 1.2,
+	},
+	-- an arrow coming off a wall harder (Headhunter's)
+	fx_trick_shot = {
+		id = CARD_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+		region = { 1.571, 0.56 },
+	},
+	-- the charged fan of arrows leaving (Fan of Knives')
+	fx_barrage = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.193, 0.22 },
+		volume = 0.65,
+		pitchJitter = 0.05,
+		minGap = 0.5,
+	},
+	-- the landing ring of arrows (Rain of Arrows')
+	fx_skyfall = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.91, 1.078 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 1.0,
+	},
+	-- a cast's hit coming back as health (Bloodletting's)
+	fx_siphon = {
+		id = "rbxassetid://108155913281096",
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.6,
+	},
+	-- the overcharged cast (Chain Lightning's)
+	fx_overcharge = {
+		id = "rbxassetid://126506552291541",
+		volume = 0.7,
+		pitchJitter = 0.12,
+		minGap = 0.5,
+	},
+	-- an orb burning a healthy enemy (Blaze's)
+	fx_mana_burn = {
+		id = "rbxassetid://119600535751276",
+		volume = 0.4,
+		pitchJitter = 0.08,
+		minGap = 0.5,
+	},
+	-- a rune settling where an orb burst (Arcane Turret's)
+	fx_rune_circle = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 14.144, 0.871 },
+		volume = 0.45,
+		pitchJitter = 0.05,
+		minGap = 0.6,
+	},
+	-- two enemies tied together (Soul Chain's)
+	fx_arcane_tether = {
+		id = "rbxassetid://110377398425919",
+		volume = 0.55,
+		pitchJitter = 0.08,
+		minGap = 0.5,
+	},
+	-- the meteors' fall (Meteor's)
+	fx_starfall = {
+		id = "rbxassetid://70958519805781",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.8,
+	},
+	-- the great orb rolling out (Black Hole's)
+	fx_singularity = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 2.428, 1.313 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 1.0,
+	},
+	-- the shout (Battle Cry's)
+	fx_bellow = {
+		id = WARDEN_SPRITE,
+		region = { 1.925, 0.759 },
+		volume = 0.8,
+		pitchJitter = 0.08,
+		minGap = 0.8,
+	},
+	-- the stone guard breaking on a hit (Arcane Shield's)
+	fx_stone_skin = {
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.0, 0.47 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.4,
+	},
+	-- the slam chaining what it hit (Bell Chime's)
+	fx_grave_chains = {
+		id = DAGGER_SPRITE,
+		region = { 7.687, 0.923 },
+		volume = 0.6,
+		pitchJitter = 0.03,
+		minGap = 0.4,
+	},
+	-- the blades starting to whirl (Whirlwind's)
+	fx_blade_cyclone = {
+		id = WARDEN_SPRITE,
+		region = { 0.0, 0.475 },
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.9,
+	},
+	-- a kill's harvest (Vengeful Spirit's)
+	fx_reapers_harvest = {
+		id = CARD_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.04,
+		minGap = 0.4,
+		region = { 8.683, 0.754 },
+	},
+	-- the giant's quake (Earthbreaker's)
+	fx_colossus = {
+		id = "rbxassetid://94234601764209",
+		volume = 0.85,
+		pitchJitter = 0,
+		minGap = 0.8,
+	},
 	--[[ Round 35 (2026-11-26): an attack sound for every pet and enemy that
 	     had none, `assets/audio/attack_synth.py`. Pets cue from
 	     `Config/PetSounds`, enemies and the two new bosses from

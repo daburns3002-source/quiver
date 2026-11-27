@@ -135,9 +135,32 @@ type Projectile = {
 	     none). ]]
 	shards: number,
 	well: number,
+	--[[ Serpent Arrow's weave (`ProjectileFlight`). ]]
+	weave: number?,
+	weaveBase: Vector3?,
+	weaveTravelled: number?,
+	--[[ Trick Shot: extra damage, as a fraction, from its first bounce off
+	     a wall on (0 none), and whether that bounce has come. ]]
+	trick: number,
+	tricked: boolean,
+	--[[ Mana Burn: extra damage, as a fraction, against an enemy at full
+	     health, less as its health falls (0 none). ]]
+	healthy: number,
+	--[[ The volley it is part of (when it was fired, os.clock), for a shot
+	     of the player's own volley; nil for one the server invented. What
+	     `onPlayerHit` hears of. ]]
+	volley: number?,
 }
 
 local ProjectileSystem = {}
+
+--[[ Called when a shot of a player's own volley lands on an enemy, with the
+     shooter, what it hit, where, and which volley it was (its fire time):
+     Pin Down, Serpent Arrow's bite, Siphon, Rune Circle and Arcane Tether
+     act on it (`Combat/ClassUpgrades`). A hook rather than a require,
+     because that module requires this one. Shots the server invented
+     (splinters, shards, a ghost's copy) never call it. ]]
+ProjectileSystem.onPlayerHit = nil :: ((Player, Model, Vector3, number) -> ())?
 
 local active: { Projectile } = {}
 
@@ -316,6 +339,14 @@ export type SpawnParams = {
 	     means none. ]]
 	shards: number?,
 	well: number?,
+	--[[ Serpent Arrow's weave, Trick Shot's bonus after a bounce and Mana
+	     Burn's against a healthy enemy. Omitted means none. ]]
+	weave: number?,
+	trick: number?,
+	healthy: number?,
+	--[[ The volley this shot belongs to (its fire time), for a shot of the
+	     player's own volley (`FiringSystem`). Omitted for an invented one. ]]
+	volley: number?,
 }
 
 --[[
@@ -380,6 +411,13 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		gust = params.gust or 0,
 		shards = params.shards or 0,
 		well = params.well or 0,
+		weave = if params.weave and params.weave > 0 then params.weave else nil,
+		weaveBase = if params.weave and params.weave > 0 then params.direction else nil,
+		weaveTravelled = if params.weave and params.weave > 0 then 0 else nil,
+		trick = params.trick or 0,
+		tricked = false,
+		healthy = params.healthy or 0,
+		volley = params.volley,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -809,6 +847,17 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			damage *= 1 + projectile.farBonus * reach
 		end
 
+		--[[ Mana Burn: more the more health the enemy has left. ]]
+		if projectile.healthy > 0 then
+			local left = EnemyManager.healthFraction(model)
+			if left then
+				damage *= 1 + projectile.healthy * left
+				if left >= 0.5 then
+					upgradeFx:FireAllClients("ManaBurn", projectile.owner, projectile.position)
+				end
+			end
+		end
+
 		local kind: Types.HitKind = "Hit"
 		if projectile.critChance > 0 and math.random() < projectile.critChance then
 			damage *= projectile.critMultiplier
@@ -908,6 +957,13 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 				model:SetAttribute("BlightedUntil", workspace:GetServerTimeNow() + blight.duration)
 			end
 			fireRicochet(projectile, model)
+			--[[ The cards that act where the player's own shot landed. ]]
+			local hook = ProjectileSystem.onPlayerHit
+			local owner = projectile.owner
+			local volley = projectile.volley
+			if hook and owner and volley then
+				hook(owner, model, projectile.position, volley)
+			end
 		end
 
 		return landed
@@ -952,6 +1008,20 @@ local contact: ProjectileFlight.Contact = {
 	end,
 	seek = function(flight: ProjectileFlight.Flight): Vector3?
 		return ProjectileFlight.seekAhead(flight, EnemyManager.positions())
+	end,
+	--[[ Trick Shot: the first bounce off a wall makes the shot hit harder. ]]
+	onWall = function(
+		flight: ProjectileFlight.Flight,
+		position: Vector3,
+		_normal: Vector3,
+		bounced: boolean
+	)
+		local projectile = flight :: any
+		if bounced and projectile.trick > 0 and not projectile.tricked then
+			projectile.tricked = true
+			projectile.damage *= 1 + projectile.trick
+			upgradeFx:FireAllClients("TrickShot", projectile.owner, position)
+		end
 	end,
 }
 

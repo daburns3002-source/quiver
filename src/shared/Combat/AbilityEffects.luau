@@ -100,6 +100,23 @@ export type MeleeStats = {
 	--[[ Extra damage as a fraction while under
 	     `Balance.Player.bloodPact.below` of health (0 none). Blood Pact. ]]
 	bloodPact: number,
+	--[[ The nineteen of 2026-11-27 (docs/CARD-IDEAS.md), both melee
+	     classes'. Each 0 without its card. ]]
+	--[[ A shout's share of a blow, every `Balance.Player.bellow.every`th
+	     blow. Bellow. ]]
+	bellow: number,
+	--[[ The share of the next hit a stone guard takes off once he has
+	     stood still long enough. Stone Skin. ]]
+	stoneSkin: number,
+	--[[ Seconds the combo's last blow holds what it hits. Grave Chains. ]]
+	graveChains: number,
+	--[[ Blades whirling round him while he stands still. Blade Cyclone. ]]
+	bladeCyclone: number,
+	--[[ How much sooner a kill brings the next swing, as a share of its
+	     wait. Reaper's Harvest. ]]
+	reapersHarvest: number,
+	--[[ 1 while he is a giant. Colossus. ]]
+	colossus: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -181,6 +198,36 @@ export type UpgradeStats = {
 	--[[ 1 when a kill raises a sword that fights for the player.
 	     Vengeful Spirit. ]]
 	vengefulSpirit: number,
+	--[[ The nineteen of 2026-11-27 (docs/CARD-IDEAS.md). Each 0 without
+	     its card; with it, its level's own number. ]]
+	--[[ Extra damage the enemy being aimed at takes. Hunter's Mark. ]]
+	huntersMark: number,
+	--[[ Seconds a hit roots an enemy (once in a while each). Pin Down. ]]
+	pinDown: number,
+	--[[ A poison stack's share of the hit, on a weaving arrow. Serpent
+	     Arrow (its weave is a stage). ]]
+	serpentArrow: number,
+	--[[ Extra damage after a bounce off a wall. Trick Shot. ]]
+	trickShot: number,
+	--[[ Arrows in a charged fan. Barrage. ]]
+	barrage: number,
+	--[[ 1 when held. Skyfall. ]]
+	skyfall: number,
+	--[[ Share of max health a third landed cast heals. Siphon. ]]
+	siphon: number,
+	--[[ The every-fourth cast's damage multiplier. Overcharge. ]]
+	overcharge: number,
+	--[[ Extra damage against a full-health enemy. Mana Burn. ]]
+	manaBurn: number,
+	--[[ Runes burning at once. Rune Circle. ]]
+	runeCircle: number,
+	--[[ Share of a blow passed along a tether. Arcane Tether. ]]
+	arcaneTether: number,
+	--[[ Seconds between falls of meteors (0 never), inverted from the
+	     card's falls a second as Headhunter's is. Starfall. ]]
+	starfallEvery: number,
+	--[[ 1 when held. Singularity. ]]
+	singularity: number,
 }
 
 --[[ What the server applies. ]]
@@ -473,7 +520,17 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 		table.insert(out, Stages.homing(math.rad(homing)))
 	end
 
+	--[[ Serpent Arrow: the arrows weave (its poison is put on each shot
+	     by `ClassUpgrades.dress`). ]]
+	if at(counts, "SerpentArrow") > 0 then
+		table.insert(out, Stages.weave(player.serpent.amplitude))
+	end
+
+	--[[ Trick Shot brings a bounce of its own, so the card pays without
+	     Bouncy Wall; its harder hit after the bounce is put on each shot by
+	     `ClassUpgrades.dress`. ]]
 	local bouncyWall = at(counts, "BouncyWall")
+		+ (if at(counts, "TrickShot") > 0 then player.trickShot.bounces else 0)
 	if bouncyWall > 0 then
 		table.insert(out, Stages.bounce(bouncyWall))
 	end
@@ -521,7 +578,11 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			counts,
 			"Intellect"
 		)) * AbilityEffects.weaponDamage(weapon),
-		maxHealth = player.maxHealth * kind.healthScale * (1 + at(counts, "Vitality")),
+		--[[ Colossus: the giant's health on top, a share of the whole. ]]
+		maxHealth = player.maxHealth
+			* kind.healthScale
+			* (1 + at(counts, "Vitality"))
+			* (1 + (if at(counts, "Colossus") > 0 then player.colossus.health else 0)),
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
 		     on a different beat from the shots that count. ]]
@@ -576,6 +637,21 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			timeDilation = at(counts, "TimeDilation"),
 			prismaticBurst = at(counts, "PrismaticBurst"),
 			vengefulSpirit = at(counts, "VengefulSpirit"),
+			huntersMark = at(counts, "HuntersMark"),
+			pinDown = at(counts, "PinDown"),
+			serpentArrow = at(counts, "SerpentArrow"),
+			trickShot = at(counts, "TrickShot"),
+			barrage = at(counts, "Barrage"),
+			skyfall = at(counts, "Skyfall"),
+			siphon = at(counts, "Siphon"),
+			overcharge = at(counts, "Overcharge"),
+			manaBurn = at(counts, "ManaBurn"),
+			runeCircle = at(counts, "RuneCircle"),
+			arcaneTether = at(counts, "ArcaneTether"),
+			starfallEvery = if at(counts, "Starfall") > 0
+				then math.round(1 / at(counts, "Starfall"))
+				else 0,
+			singularity = at(counts, "Singularity"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
@@ -605,6 +681,12 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			guardBreak = at(counts, "GuardBreak"),
 			bullRush = at(counts, "BullRush"),
 			bloodPact = at(counts, "BloodPact"),
+			bellow = at(counts, "Bellow"),
+			stoneSkin = at(counts, "StoneSkin"),
+			graveChains = at(counts, "GraveChains"),
+			bladeCyclone = at(counts, "BladeCyclone"),
+			reapersHarvest = at(counts, "ReapersHarvest"),
+			colossus = at(counts, "Colossus"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

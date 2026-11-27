@@ -180,6 +180,32 @@ local function dexPiece(name: string, spec: DexPiece, foot: CFrame, parent: Inst
 	return p
 end
 
+--[[ One of the owner's blocky trees (`LobbyConfig.blockyTree`) on the lawn,
+     `tall` studs high, turned `turn`. Seen but never met, like the built
+     trees round it; left out if its mesh did not load. ]]
+local function blockyTree(spot: { at: Vector2, tall: number, turn: number }, parent: Instance)
+	local spec = LobbyConfig.blockyTree
+	local template = dexTemplates[spec.mesh]
+	if not template then
+		return
+	end
+	local p = template:Clone()
+	p.Name = "BlockyTree"
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Material = Enum.Material.SmoothPlastic
+	p.Size = spec.native * (spot.tall / spec.native.Y)
+	p.TextureID = spec.texture
+	--[[ Its colours are its own texture's, so the part must not tint them. ]]
+	p.Color = Color3.new(1, 1, 1)
+	p.CFrame = CFrame.new(world(spot.at, LobbyCourtyard.OUTSIDE) + Vector3.new(0, p.Size.Y / 2, 0))
+		* CFrame.Angles(0, spot.turn, 0)
+	p.Parent = parent
+end
+
 --[[ An upright cylinder, its foot at `foot`. ]]
 local function pillar(
 	name: string,
@@ -1122,7 +1148,11 @@ function Lobby.build(parent: Instance)
 	     Dex Hall's two books and the four buildings. One wait for the lot, which is what `MeshTemplates` is
 	     for -- asked one at a time they cost about a second each. ]]
 	do
-		local ids = { LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh }
+		local ids = {
+			LobbyConfig.dex.roofBook.mesh,
+			LobbyConfig.dex.standBook.mesh,
+			LobbyConfig.blockyTree.mesh,
+		}
 		for _, design in PalaceBuildings do
 			for _, piece in design.pieces do
 				table.insert(ids, piece.mesh)
@@ -1509,6 +1539,15 @@ function Lobby.build(parent: Instance)
 			end
 		end
 		return false
+	end
+	-- the owner's blocky trees first, so the scatter keeps clear of them
+	do
+		local spec = LobbyConfig.blockyTree
+		for _, spot in spec.spots do
+			blockyTree(spot, root)
+			local crown = spot.tall * spec.native.X / spec.native.Y / 2
+			table.insert(scattered, { at = spot.at, reach = crown })
+		end
 	end
 	for x = -half.X + cell / 2, half.X - cell / 2, cell do
 		for z = -half.Y + cell / 2, half.Y - cell / 2, cell do

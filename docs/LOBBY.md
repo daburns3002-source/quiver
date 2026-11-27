@@ -257,3 +257,12 @@ mushrooms move out by what the clearing grew (33 studs), so the wood keeps its d
 box and rate grow with the floor. The walk from the spawn to the portal steps is about 140 studs (110
 before). About 6,750 parts (5,350 before), most of the new ones trees in the wider wood; not measured
 on a phone. To make it bigger or smaller again, change `spread` alone.
+
+**The blocky tree back, a few of them (2026-11-27).** The owner: the blocky tree goes in the lobby
+only, not in place of Mossy Glade's round trees. Six stand on the lawn past the balustrade among the
+built trees (`Config/Lobby.blockyTree`): two off the west wall, two off the east, one either side of
+the south stairs. They are the import of 2026-11-01 again (`blocky_tree.glb`, one textured MeshPart
+each, its own lime-green texture, which cannot be tinted), 28 to 33 studs tall so each crown shows
+over the balustrade from the floor 18 studs above, like the tallest trees of the ring round them.
+They are placed before the scatter, which keeps its bushes and trees clear of them; `Lobby.spec`
+holds them off the courtyard, the stairs and the waterfalls.

@@ -1,0 +1,47 @@
+Generate ONE image and save it in the current directory as thornwood_pieces_b.png
+
+A clean game-art reference sheet, 16:9, light grey background, titled "Thornwood
+pet attack pieces: Legendary and Mythic". It shows the effects for three rare
+thorny-forest pets' attacks in Arrow Legends, a Roblox top-down archer game. The
+attached images are the pets themselves (Bramble Wilf, Thorn Princess,
+Thornwake), and every piece below takes its colours from the pet it belongs to.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built
+from a few chunky bevelled cubes and slabs, flat colours, no outlines. These
+are Legendary and Mythic pieces, so each one GLOWS: glowing cubes and a soft
+glow round them. Simple and readable from a top-down camera. No part pokes
+through another; every cube sits flush on what it touches.
+
+These are bramble pieces and must not read as the soft mossy glade next door.
+No leaves, no acorns, no mushrooms, no slime, no feathers, no fire. Their
+language is dark bark brown, bramble green, ivory thorns, gold, magenta silk,
+smoky teal and plum.
+
+Lay out six panels, three across and two down. Each panel: the piece large in
+three-quarter view, a small side view, and a strip of three small frames
+showing its motion. Label each panel with its name in plain blocky letters.
+
+1. Gold Thorn (Bramble Wilf, Legendary): a long dark bramble-green thorn
+   needle with a glowing gold edge along both sides and a bright gold tip.
+   Frames: fired, flying, striking.
+2. Thorn Bleed (Bramble Wilf, Legendary): three gold-edged thorns stuck at
+   angles in a small patch of ground with dark red drip cubes beneath and a
+   faint gold glow. Frames: stuck in, dripping, fading.
+3. Bramble Howl (Bramble Wilf, Legendary): two flat chevron rings of glowing
+   gold and bramble-green cubes spreading low along the ground round the
+   player, with a few ivory thorn cubes on their rims. Flat, never tall.
+   Frames: centre flash, rings spreading, fading.
+4. Briar Spirit (Thorn Princess, Legendary): a small floating magenta spirit
+   cube with a glowing pink core, two tiny ivory thorn horns and a short
+   trail of sparkling magenta silk cubes. Frames: hopping off, bouncing,
+   landing.
+5. Briar Cage (Thorn Princess, Legendary): a square cage round an enemy:
+   six upright bars of dark bramble wound with glowing magenta silk, thorns
+   pointing inward, a ring of magenta light on the ground. Frames: bars
+   slamming down, holding, crumbling.
+6. Thorn Wake (Thornwake, Mythic): a wide flat ring of ivory thorns on
+   smoky-teal and plum bramble segments lying round the player at a
+   distance, turning, with a glowing teal light along it. Flat, never
+   tall. Frames: rising out of the ground, turning, sinking away.
+
+No UI, no characters, no background scenery beyond the plain grey backdrop.

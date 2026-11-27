@@ -1,0 +1,18 @@
+Roblox game effects in blocky voxel style, built from stepped cubes like Steal an Egg / Minecraft, no round shapes.
+
+Bogheart Caverns pet attack pieces: build the ten pieces on the attached sheet as animated 3D models, matching its shapes and colours one to one. One page with a button per piece; the selected piece is shown alone, so Download GLB exports just that piece with its clip.
+
+Every piece: its own root group named as on the sheet; 1 unit = 1 Roblox stud; front toward +Z; ground pieces rest on y = 0. ONE baked animation clip per piece (keyframe tracks on the root's animations), named and timed as below; a clip that does not loop ends with the piece gone (scaled to nothing). Glowing cubes use emissive materials. Under 2,000 triangles a piece. No clipping: no part pokes through another, every cube sits flush on what it touches, no two faces share a plane.
+
+1 Chirp Ring: 1.2 wide upright ring facing +Z. Clip "Fly", 0.3 s loop, spinning.
+2 Lichen Lick: tongue from the origin along +Z. Clip "Lash", 0.3 s: out to 4 units, held, snapped back.
+3 Mud Coat: ring round the player's feet, 3.6 wide, 1.2 high, open middle 2 wide. Clip "Play", 6 s: slapped on, holding with a slow wobble, crumbling in the last second.
+4 Glow Mote: 0.6 cube, halo 1.2, centred on the origin. Clip "Spin", 1 s loop, pulsing.
+5 Mote Burst: flat. Clip "Play", 0.8 s: flash, ring spreading to 12 wide, gone.
+6 Tremor Ripple: flat. Clip "Play", 0.7 s: ripples spreading to 8 wide, settling.
+7 Spore Sneeze: wedge from the origin along +Z, 16 long, 60 degrees wide. Clip "Sneeze", 0.45 s: puff, wedge thrown out, drifting off.
+8 Flop Splash: Clip "Play", 0.9 s: splash ring 14 wide, blocks up to 2 high, falling back.
+9 Prism Bolt: 2.4 long, its point at the origin facing +Z, the trail behind it. Clip "Fly", 0.4 s loop.
+10 Prism Shards: Clip "Play", 0.6 s: flash, shards flying out to 4 wide, fading.
+
+Show front, side and 3/4 view on a plain background.

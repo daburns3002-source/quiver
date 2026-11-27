@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# The Bogheart and Thornwood pet attack sheets (2026-11-26), one Codex draw each.
+cd "$(dirname "$0")" || exit 1
+(cat _prompt_bogheart.txt | timeout 1200 codex exec -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/01_cave_cricket.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/02_lichen_gecko.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/03_bog_beaver.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/04_lanternfin.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/05_olm.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/06_glowcap_wilf.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/07_gulpling.png -i /c/Dev/ArcheroRoblox/assets/concepts/blocky/pets/bogheart/08_prism_leviathan.png --skip-git-repo-check > bogheart.log 2>&1) &
+(cat _prompt_thornwood_a.txt | timeout 1200 codex exec -i ../../blocky/pets/thornwood/01_bark_hoglet_views.png -i ../../blocky/pets/thornwood/02_burrball_views.png -i ../../blocky/pets/thornwood/03_budbulb_views.png -i ../../blocky/pets/thornwood/04_berry_mouse_views.png -i ../../blocky/pets/thornwood/05_thistle_mole_views.png -i ../../blocky/pets/thornwood/06_briar_beetle_views.png -i ../../blocky/pets/thornwood/07_berry_bat_views.png -i ../../blocky/pets/thornwood/08_bramble_bear_views.png -i ../../blocky/pets/thornwood/09_briar_lynx_views.png --skip-git-repo-check > thornwood_a.log 2>&1) &
+(cat _prompt_thornwood_b.txt | timeout 1200 codex exec -i ../../blocky/pets/thornwood/10_bramble_wilf_views.png -i ../../blocky/pets/thornwood/11_thorn_princess_views.png -i ../../blocky/pets/thornwood/12_thornwake_views.png --skip-git-repo-check > thornwood_b.log 2>&1) &
+wait
+ls -la *.png

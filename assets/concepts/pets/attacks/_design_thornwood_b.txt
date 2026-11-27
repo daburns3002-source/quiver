@@ -1,0 +1,14 @@
+Roblox game effects in blocky voxel style, built from stepped cubes like Steal an Egg / Minecraft, no round shapes.
+
+Thornwood pet attack pieces, Legendary and Mythic: build the six pieces on the attached sheet as animated 3D models, matching its shapes and colours one to one. These are Legendary and Mythic, so every piece glows: its glowing cubes use emissive materials. One page with a button per piece; the selected piece is shown alone, so Download GLB exports just that piece with its clip.
+
+Every piece: its own root group named as on the sheet; 1 unit = 1 Roblox stud; front toward +Z; ground pieces rest on y = 0. ONE baked animation clip per piece (keyframe tracks on the root's animations), named and timed as below; a clip that does not loop ends with the piece gone (scaled to nothing). Under 2,000 triangles a piece. No clipping: no part pokes through another, every cube sits flush on what it touches, no two faces share a plane.
+
+1 Gold Thorn: needle 1.8 long, its point at the origin facing +Z. Clip "Fly", 0.3 s loop.
+2 Thorn Bleed: patch 1.6 wide on the ground, thorns up to 1 high. Clip "Bleed", 2 s: stuck in, dripping, fading in the last 0.4 s.
+3 Bramble Howl: flat, round the player. Clip "Play", 2 s: flash, two rings spreading to 8 wide, fading.
+4 Briar Spirit: 0.9 wide, centred on the origin. Clip "Bounce", 0.5 s loop, hopping.
+5 Briar Cage: round an enemy, 4 wide, bars 3.5 high. Clip "Snare", 2 s: slamming down in 0.25 s, holding, crumbling in the last 0.3 s.
+6 Thorn Wake: flat ring round the player, 24 wide, 0.8 high. Clip "Play", 3.3 s: rising in 0.3 s, holding with a slow teal pulse, sinking in the last 0.2 s.
+
+Show front, side and 3/4 view on a plain background.

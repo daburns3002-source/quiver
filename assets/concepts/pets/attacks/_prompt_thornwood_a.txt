@@ -1,0 +1,59 @@
+Generate ONE image and save it in the current directory as thornwood_pieces_a.png
+
+A clean game-art reference sheet, 16:9, light grey background, titled "Thornwood
+pet attack pieces: Common to Epic". It shows the projectiles and small effects
+for nine thorny-forest pets' attacks in Arrow Legends, a Roblox top-down archer
+game. The attached images are the pets themselves (Bark Hoglet, Burrball,
+Budbulb, Berry Mouse, Thistle Mole, Briar Beetle, Berry Bat, Bramble Bear,
+Briar Lynx), and every piece below takes its colours from the pet it belongs
+to.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built
+from a few chunky bevelled cubes and slabs, flat colours, no outlines, no
+gradients. Simple and readable from a top-down camera. No part pokes through
+another; every cube sits flush on what it touches.
+
+These are bramble pieces and must not read as the soft mossy glade next door.
+No leaves, no acorns, no mushrooms, no slime, no feathers, no fire. Their
+language is dark bark brown, bramble green, ivory thorns, berry red and plum,
+burrs and sap.
+
+Lay out eleven panels, four across and three down, the last cell left empty.
+Each panel: the piece large in three-quarter view, a small side view, and a
+strip of three small frames showing its motion. Label each panel with its name
+in plain blocky letters.
+
+1. Tusk Gouge (Bark Hoglet): a short curved gouge torn in the ground: two
+   ivory tusk-shaped streaks side by side with dark bark-brown chips and dirt
+   cubes kicked up. Frames: impact, chips flying, settling.
+2. Cling Burr (Burrball): a round-ish burr of brown and dull-green stepped
+   cubes covered in short hooked ivory spikes, spinning. Frames: thrown,
+   spinning, stuck.
+3. Thorn Pop (Budbulb): a long thin bramble-green thorn needle with an ivory
+   point and a little leaf-green bud cap at the back. Frames: fired, flying,
+   piercing.
+4. Berry Heal (Berry Mouse and Berry Bat): a red berry cube bursting at the
+   player's feet into a low ring of small red and pink cubes and soft pink
+   plus-shaped sparkles rising. Frames: berry lands, burst, sparkles rising.
+5. Thistle Burst (Thistle Mole): a ring of short purple thistle spikes with
+   ivory tips flung flat outward from the player along the ground, wide.
+   Frames: spikes drawn in tight, bursting out, flying far.
+6. Briar Vine (Briar Beetle): a thick thorny bramble vine lashing across the
+   floor in a short zigzag from one enemy to the next, dark green with ivory
+   thorns. Frames: whipping out, full length, sinking.
+7. Briar Snare (Briar Beetle): three thick thorny bramble vines coiling up
+   out of the ground round an enemy's feet, knee high, dark green with ivory
+   thorns and a ring of torn earth. Frames: bursting up, holding, sinking.
+8. Blood Berry (Berry Bat): one dark blood-red berry of stepped cubes with a
+   small plum stalk. Frames: thrown, flying, bursting.
+9. Berry Splat (Berry Bat): where the berry hits: a flat splash of dark red
+   juice tiles with a few red seed cubes flung out. Frames: burst, spread,
+   fading.
+10. Bramble Slam (Bramble Bear): a clump of thick bramble spikes bursting up
+   out of cracked ground, dark green and bark brown with ivory thorn tips.
+   Frames: ground cracking, spikes up, spikes sinking.
+11. Thorn Shear (Briar Lynx): a curved blade of one big ivory thorn on a
+   short dark bramble stem, spinning edge-first like a thrown claw. Frames:
+   thrown, spinning, slicing.
+
+No UI, no characters, no background scenery beyond the plain grey backdrop.

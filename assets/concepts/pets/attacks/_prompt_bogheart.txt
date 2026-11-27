@@ -1,0 +1,62 @@
+Generate ONE image and save it in the current directory as bogheart_pieces.png
+
+A clean game-art reference sheet, 16:9, light grey background, titled "Bogheart
+Caverns pet attack pieces". It shows the projectiles and small effects for eight
+cavern pets' attacks in Arrow Legends, a Roblox top-down archer game. The
+attached images are the pets themselves (Cave Cricket, Lichen Gecko, Bog Beaver,
+Lanternfin, Olm, Glowcap Wilf, Gulpling, Prism Leviathan), and every piece below
+takes its colours from the pet it belongs to.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built
+from a few chunky bevelled cubes and slabs, flat colours, no outlines, no
+gradients except a soft glow where noted. Simple and readable from a top-down
+camera. No part pokes through another; every cube sits flush on what it
+touches.
+
+These are cavern and bog pieces and must not read as forest, fire or sea ones.
+No leaves, no wood, no fire, no feathers. Their language is dark cave stone,
+deep purple bog mud, moss and lime lichen, glowing cyan and teal cave light,
+pink spore puffs and dark-teal crystal.
+
+Lay out ten panels, four across and three down, the last two cells left empty.
+Each panel: the piece large in three-quarter view, a small side view, and a
+strip of three small frames showing its motion. Label each panel with its name
+in plain blocky letters.
+
+1. Chirp Ring (Cave Cricket): a small flat ring of sound, eight lime-green
+   cubes in a square-stepped loop with a pale stone-grey inner rim, flying
+   upright and spinning. Frames: leaving, flying, fading. NOT a dart.
+2. Lichen Lick (Lichen Gecko): a short sticky tongue of four moss-green cube
+   segments, a fat lime-green tip cube with lichen flecks. Frames: shooting
+   out straight, stuck at full length, snapping back. NOT pink.
+3. Mud Coat (Bog Beaver): a low ring of thick brown mud slabs standing round
+   the player's feet, waist high at most, with a few green reed stalks stuck
+   in it and wet dark-brown drips. Open in the middle. Frames: slapped on,
+   holding, crumbling into chunks.
+4. Glow Mote (Lanternfin): one small glowing cyan cube with a soft square
+   halo of four pale cyan slabs round it, hovering above an enemy. Frames:
+   lit, pulsing, about to burst.
+5. Mote Burst (Lanternfin): the mote going off: a flat ring of glowing cyan
+   tiles on the ground, 6 studs wide each side of the centre, with a short
+   bright flash cube at the middle. Frames: flash, ring spreading, gone.
+6. Tremor Ripple (Olm): three concentric square-stepped ripples of pale
+   pink-white stone tiles on the floor, with short jagged dark cracks
+   between them and a little cyan light in the cracks. Frames: centre crack,
+   ripples spreading, settling.
+7. Spore Sneeze (Glowcap Wilf, Legendary): a 60-degree wedge of small pink
+   and glowing cyan spore cubes thrown forward from one point, denser near
+   the point, thinning at the wide end, golden sparkles mixed in. Frames:
+   the puff, the full wedge, drifting away.
+8. Flop Splash (Gulpling, Legendary): a ring of purple bog-water splash
+   blocks with lime-green tips thrown up and out around a landing point,
+   7 studs from the centre, a few gold sparkles. Frames: impact, splash
+   ring at full height, falling back.
+9. Prism Bolt (Prism Leviathan, Mythic): a long dark-teal crystal shard,
+   pointed at the front, with a bright glowing cyan core showing through
+   its faceted cube sides and a short cyan glow trail. Frames: fired,
+   flying, hitting.
+10. Prism Shards (Prism Leviathan, Mythic): the bolt shattering: small
+   dark-teal and glowing cyan crystal cubes flying outward from a bright
+   flash. Frames: flash, shards flying, shards fading.
+
+No UI, no characters, no background scenery beyond the plain grey backdrop.

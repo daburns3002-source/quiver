@@ -263,32 +263,24 @@ local NewEnemies = {
 			description = "Flies over walls and dives where it marks the ground. Step out of the ring!",
 			picture = "rbxassetid://113192385408077",
 			area = "WindsweptCliffs",
-			-- until their levels open (the Windswept Cliffs' last stage)
-			benched = true,
 		},
 		GustShaman = {
 			name = "GUST SHAMAN",
 			description = "Its gust blows you back. Never stand with your back to the edge!",
 			picture = "rbxassetid://124038757054918",
 			area = "WindsweptCliffs",
-			-- until their levels open (the Windswept Cliffs' last stage)
-			benched = true,
 		},
 		CliffGoat = {
 			name = "CLIFF GOAT",
 			description = "Charges down a line and throws you. Dodge sideways, then hit it while it's dazed!",
 			picture = "rbxassetid://80760355520627",
 			area = "WindsweptCliffs",
-			-- until their levels open (the Windswept Cliffs' last stage)
-			benched = true,
 		},
 		StormRoc = {
 			name = "STORM ROC",
 			description = "A big storm bird. Each dive throws a fan of feathers - keep moving!",
 			picture = "rbxassetid://111678427402048",
 			area = "WindsweptCliffs",
-			-- until their levels open (the Windswept Cliffs' last stage)
-			benched = true,
 		},
 	} :: { [string]: Enemy },
 }

@@ -6,6 +6,10 @@ Reads assets/concepts/blocky/ui/badges/badges_a_faces_raw.png (Codex's 2x2
 sheet, kept as made; the owner picked version A, faces, 2026-11-12) and writes
 one 512 px badge per boss to assets/ui/badges/<area>.png, in the sheet's
 order. The keying is the boss banner's (assets/ui/boss_banner/cutout.py).
+
+An area built later has its own one-badge sheet (`SINGLES`), drawn by Codex
+with the 2x2 sheet attached so it matches the set: the Tempest Roc's,
+badge5_roc_raw.png (2026-11-27).
 """
 
 import importlib.util
@@ -17,6 +21,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 RAW = ROOT / "assets/concepts/blocky/ui/badges/badges_a_faces_raw.png"
 AREAS = ["MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns"]
+SINGLES = {"WindsweptCliffs": ROOT / "assets/concepts/blocky/ui/badges/badge5_roc_raw.png"}
 
 spec = importlib.util.spec_from_file_location("banner", ROOT / "assets/ui/boss_banner/cutout.py")
 banner = importlib.util.module_from_spec(spec)
@@ -29,6 +34,11 @@ def main() -> None:
     for i, area in enumerate(AREAS):
         x, y = (i % 2) * half, (i // 2) * half
         cell = banner.drop_strays(banner.key_out(whole.crop((x, y, x + half, y + half))))
+        made = banner.fit(cell, cell.getbbox())
+        made.save(HERE / f"{area}.png", optimize=True)
+        print("wrote", (HERE / f"{area}.png").relative_to(ROOT))
+    for area, raw in SINGLES.items():
+        cell = banner.drop_strays(banner.key_out(Image.open(raw)))
         made = banner.fit(cell, cell.getbbox())
         made.save(HERE / f"{area}.png", optimize=True)
         print("wrote", (HERE / f"{area}.png").relative_to(ROOT))

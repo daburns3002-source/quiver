@@ -1,5 +1,5 @@
 """Generate Thornwood 2-1..2-10, the Drowned Village 3-1..3-15 and Bogheart
-Caverns 4-1..4-15 into src/shared/Config/Balance.luau: their rooms between
+Caverns 4-1..4-15 (and the Windswept Cliffs 5-1..5-15) into src/shared/Config/Balance.luau: their rooms between
 the `BEGIN areaLevelRooms` and `END areaLevelRooms` marks, and their stages
 between `BEGIN areaLevelStages` and `END areaLevelStages`.
 
@@ -49,6 +49,7 @@ def _load(name):
 
 thorn = _load("thornwood_rooms")
 a34 = _load("area34_rooms")
+a5 = _load("area5_rooms")
 
 SEED = 2026_11_13
 ROOMS_BEGIN = "--[[ BEGIN areaLevelRooms"
@@ -153,6 +154,32 @@ AREAS = [
         "damage": (1.11, 1.15),
         "counts": ((3, 5), (5, 8)),
     },
+    #: The Windswept Cliffs 5-1..5-15 (docs/WINDSWEPT-CLIFFS.md, 2026-11-26):
+    #: Bogheart's level shape, its own layouts (`tools/area5_rooms.py`), the
+    #: Storm Roc leading the heart of 5-5 and 5-10, and the Tempest Roc alone
+    #: in 5-15's last room. A step past Bogheart's stage numbers.
+    {
+        "key": "windswept",
+        "area": "WindsweptCliffs",
+        "title": "Windswept Cliffs",
+        "prefix": "5",
+        "rooms": [10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 25],
+        "layout": lambda rng, n: a5.LAYOUTS[n % len(a5.LAYOUTS)],
+        "angel": lambda rng: a5.ANGEL,
+        "heart": ("Peak Clearing", a5.HEART[0], a5.HEART[1]),
+        "boss": ("Tempest Peak", "tempestRoc"),
+        "elite": {4: "stormRoc, harpy, harpy", 9: "stormRoc, cliffGoat, gustShaman, cliffGoat"},
+        "mixes": [
+            ("harpy", "harpy, gustShaman"),
+            ("gustShaman, harpy", "cliffGoat, harpy"),
+            ("cliffGoat, gustShaman", "harpy, cliffGoat, gustShaman"),
+            ("gustShaman, cliffGoat, harpy, harpy", "cliffGoat, cliffGoat, gustShaman, harpy"),
+            ("harpy, gustShaman, cliffGoat, gustShaman", "cliffGoat, harpy, gustShaman, cliffGoat"),
+        ],
+        "health": (2.12, 2.35),
+        "damage": (1.16, 1.2),
+        "counts": ((3, 5), (5, 8)),
+    },
 ]
 
 
@@ -160,13 +187,31 @@ def lerp(a, b, t):
     return a + (b - a) * t
 
 
+def obstacles(arena, pieces):
+    """A room's obstacles; on the Windswept Cliffs a drop is marked `void`
+    (`Balance.Obstacle.void`: a fall to be pushed into, not cover)."""
+    if not arena.startswith("Cliffs") or not pieces:
+        return a34.obstacles_lua(pieces)
+    rows = []
+    for piece in pieces:
+        x, z, w, h, d = piece
+        void = ", void = true" if a5.is_void(piece) else ""
+        rows.append(
+            f"\t\t\t{{ offset = Vector2.new({a34.num(x)}, {a34.num(z)}), "
+            f"size = Vector3.new({a34.num(w)}, {a34.num(h)}, {a34.num(d)}){void} }},"
+        )
+    return "\t\tobstacles = {\n" + "\n".join(rows) + "\n\t\t},\n"
+
+
 def row(name, arena, pieces, count, who, encounter=None):
-    assert a34.walkable(pieces) if arena.startswith(("Drowned", "Bogheart")) else thorn.walkable(pieces), name
+    assert (
+        a34.walkable(pieces) if arena.startswith(("Drowned", "Bogheart", "Cliffs")) else thorn.walkable(pieces)
+    ), name
     return (
         "\t{\n"
         f'\t\tname = "{name}",\n'
         f'\t\tarena = "{arena}",\n'
-        + a34.obstacles_lua(pieces)
+        + obstacles(arena, pieces)
         + f"\t\tenemyCount = {count},\n"
         f"\t\troster = {{ {who} }},\n"
         + (f'\t\tencounter = "{encounter}",\n' if encounter else "")
@@ -203,7 +248,11 @@ def area_rooms(rng, spec):
                 rows.append(row(name, arena, pieces, 1, boss))
             else:
                 name, arena, pieces = spec["heart"]
-                rows.append(row(f"{name} {level}", arena, pieces, count + 1, who))
+                elite = spec.get("elite", {}).get(li)
+                if elite:
+                    rows.append(row(f"{name} {level}", arena, pieces, len(elite.split(",")), elite))
+                else:
+                    rows.append(row(f"{name} {level}", arena, pieces, count + 1, who))
         out.append(rows)
         health = round(lerp(*spec["health"], t), 2)
         damage = round(lerp(*spec["damage"], t), 2)
@@ -219,7 +268,8 @@ def main():
     rng = random.Random(SEED)
     rooms_block = [
         ROOMS_BEGIN + " (2026-11-13): Thornwood 2-1..2-10's, the Drowned\n"
-        "     Village 3-1..3-15's and Bogheart Caverns 4-1..4-15's rooms, generated\n"
+        "     Village 3-1..3-15's, Bogheart Caverns 4-1..4-15's and the Windswept\n"
+        "     Cliffs 5-1..5-15's rooms, generated\n"
         "     by `tools/area_levels.py` (owner: \"10 for area 2, 15 for 3, 15 for 4\",\n"
         "     \"bosses should be in the last room of the last level\"). Each area's\n"
         "     levels in order; every level ends in its boss's arena, and only its\n"
@@ -228,7 +278,8 @@ def main():
     ]
     stages = [
         STAGES_BEGIN + " (2026-11-13): Thornwood 2-1..2-10, the Drowned\n"
-        "\t\t     Village 3-1..3-15 and Bogheart Caverns 4-1..4-15, from\n"
+        "\t\t     Village 3-1..3-15, Bogheart Caverns 4-1..4-15 and the Windswept\n"
+        "\t\t     Cliffs 5-1..5-15, from\n"
         "\t\t     `tools/area_levels.py`. Each behind its area's portal\n"
         "\t\t     (`Config/Lobby`), opened by beating the one before; the boss only\n"
         "\t\t     in the last room of the last. Edit the script, not these. ]]\n"

@@ -8,14 +8,14 @@
 	roars; the heroes react and run into the forest; black; then the lobby (no
 	tutorial yet).
 
-	One frame at a time (owner, 2026-10-25: "stop changing the frames and adding
-	effects. it should be one frame at a time"): each frame shows once, whole,
-	for its `hold`, then cuts to the next. No zoom, pan, shake, fade or looping.
 	Every picture is a Codex frame drawn from the owner's approved storyboard
 	(`assets/concepts/blocky/ui/story/storyboard_b1.png`, `_b2.png`) by
 	`assets/concepts/blocky/ui/story/frames.py`, its middle 16:9 band cut into
 	two halves under Roblox's 1024 px limit by `assets/ui/story/cut.py` and
-	uploaded through Studio's MCP.
+	uploaded through Studio's MCP. Each frame comes in for its `hold`; how it
+	moves (pan, zoom, shake, dissolves, pixel overlays) is the owner's approved
+	Claude Design animation (owner, 2026-11-10), `Config/StoryMotion`, which
+	draws a phone held upright from these same frames.
 
 	The run holds until the black at the end has held: the server keeps the
 	player on the title (`RunSession.anyAtTitle`) until `Remotes.IntroBegin`,
@@ -26,7 +26,7 @@ local StoryTimeline = require(script.Parent.Parent.Util.StoryTimeline)
 
 local Story = {
 	--[[ The longest the black waits before the clock starts anyway (seconds).
-	     It waits for the first `leadShots` shots only — not for all forty
+	     It waits for the first `leadShots` shots only — not for all thirty-eight
 	     frames, which is what made this slow (owner, 2026-10-27: "the King
 	     Bloblin story cutscene loads very slowly"). The rest come down while
 	     the cutscene plays, which gives them the twenty-odd seconds of
@@ -34,8 +34,8 @@ local Story = {
 	     in by its turn never shows, so the frame before it stays up and the
 	     clock and music run on. ]]
 	loadWait = 5,
-	--[[ How many shots' frames the black waits for. Four is nine frames —
-	     about seven seconds of cutscene, far longer than the rest take to
+	--[[ How many shots' frames the black waits for. Four is five frames —
+	     about eight seconds of cutscene, far longer than the rest take to
 	     arrive behind it, so the picture never catches up with the loading
 	     (`StoryCutscene.preload`). ]]
 	leadShots = 4,
@@ -51,56 +51,6 @@ local Story = {
 	--[[ Every frame's source size (the 16:9 band) and its halves: each half
 	     `half` px wide, the right one from `rightFrom`. ]]
 	picture = { width = 1536, height = 864, half = 772, rightFrom = 764 },
-
-	--[[ The portrait frames (owner, 2026-10-26: "make it mobile vertical
-	     resolution"), shown while the screen is taller than wide: the same art
-	     reframed by Codex (`assets/concepts/blocky/ui/story/portrait.py`),
-	     1024 x 1536, cut into a top and a bottom half, the bottom from
-	     `bottomFrom`, by `assets/ui/story/cut_portrait.py`. ]]
-	portrait = { width = 1024, height = 1536, half = 772, bottomFrom = 764 },
-	--[[ Their uploaded halves, by frame: every frame or none. ]]
-	portraits = {
-		f01 = { top = "rbxassetid://132826732996083", bottom = "rbxassetid://117063062234215" },
-		f02a = { top = "rbxassetid://101268508257438", bottom = "rbxassetid://133941862753852" },
-		f02b = { top = "rbxassetid://109328275108966", bottom = "rbxassetid://78365149488527" },
-		f02c = { top = "rbxassetid://83761583730690", bottom = "rbxassetid://79013040459468" },
-		f02d = { top = "rbxassetid://81205326337720", bottom = "rbxassetid://99161742976390" },
-		f03b = { top = "rbxassetid://95082384819417", bottom = "rbxassetid://101383510895968" },
-		f04a = { top = "rbxassetid://123579498845364", bottom = "rbxassetid://95148870832512" },
-		f04b = { top = "rbxassetid://101441282069458", bottom = "rbxassetid://81369798406334" },
-		f05a = { top = "rbxassetid://78748483578747", bottom = "rbxassetid://139245014331564" },
-		f05b = { top = "rbxassetid://119524110870037", bottom = "rbxassetid://92302287295110" },
-		f06a = { top = "rbxassetid://139755387155479", bottom = "rbxassetid://88706865068804" },
-		f06b = { top = "rbxassetid://82345204204160", bottom = "rbxassetid://118462072009906" },
-		f06c = { top = "rbxassetid://101719991081367", bottom = "rbxassetid://99186974746467" },
-		f07a = { top = "rbxassetid://103529080375839", bottom = "rbxassetid://116216033036010" },
-		f07b = { top = "rbxassetid://128483197005596", bottom = "rbxassetid://100379033094740" },
-		f08a = { top = "rbxassetid://79199120519344", bottom = "rbxassetid://127418698135186" },
-		f08b = { top = "rbxassetid://121276186452909", bottom = "rbxassetid://131734565832507" },
-		f09 = { top = "rbxassetid://93949072850276", bottom = "rbxassetid://108683870764281" },
-		f10a = { top = "rbxassetid://120626805426199", bottom = "rbxassetid://107316136789565" },
-		f10b = { top = "rbxassetid://112486960951454", bottom = "rbxassetid://123607697806821" },
-		f12a = { top = "rbxassetid://136398549398227", bottom = "rbxassetid://133341723369959" },
-		f12b = { top = "rbxassetid://88851833180297", bottom = "rbxassetid://122022244852061" },
-		f13a = { top = "rbxassetid://88927811723849", bottom = "rbxassetid://86822773890658" },
-		f13b = { top = "rbxassetid://92891202903852", bottom = "rbxassetid://71422745834758" },
-		f14a = { top = "rbxassetid://87804189535277", bottom = "rbxassetid://77670123258982" },
-		f14b = { top = "rbxassetid://131269207075316", bottom = "rbxassetid://123844825671070" },
-		f15a = { top = "rbxassetid://116614179050056", bottom = "rbxassetid://104227758174820" },
-		f15b = { top = "rbxassetid://96946311376636", bottom = "rbxassetid://77138147550943" },
-		f16a = { top = "rbxassetid://137774527825488", bottom = "rbxassetid://119747727623775" },
-		f16b = { top = "rbxassetid://128260275576307", bottom = "rbxassetid://82127583907807" },
-		f17a = { top = "rbxassetid://137657414429034", bottom = "rbxassetid://79499698371763" },
-		f17b = { top = "rbxassetid://112476381105027", bottom = "rbxassetid://130715302251255" },
-		f18a = { top = "rbxassetid://126290855165812", bottom = "rbxassetid://134621772921097" },
-		f18b = { top = "rbxassetid://130547911902005", bottom = "rbxassetid://113971503281826" },
-		f19 = { top = "rbxassetid://129219132254966", bottom = "rbxassetid://115315553633726" },
-		f21a = { top = "rbxassetid://100823347085166", bottom = "rbxassetid://83618904886416" },
-		f21b = { top = "rbxassetid://132200046609984", bottom = "rbxassetid://89619526239053" },
-		f22b = { top = "rbxassetid://91335693090305", bottom = "rbxassetid://92103275517632" },
-		f23a = { top = "rbxassetid://84030034214582", bottom = "rbxassetid://107518376125202" },
-		f23c = { top = "rbxassetid://112309278207874", bottom = "rbxassetid://101686934765748" },
-	} :: { [string]: { top: string, bottom: string } },
 
 	--[[ Uploaded halves, by frame. ]]
 	pictures = {
@@ -149,12 +99,26 @@ local Story = {
 	--[[ Game sounds (`Config/Sounds`), at seconds into a shot. ]]
 	sounds = {
 		{ shot = "Skid", at = 0, sound = "boss_king_goo" },
-		{ shot = "Rise", at = 0.8, sound = "boss_king_chest_bump" },
+		-- as the Rise's second picture comes in
+		{ shot = "Rise", at = 0.5, sound = "boss_king_chest_bump" },
 		{ shot = "Roar", at = 0, sound = "boss_king_bounce_slam" },
 		{ shot = "Shockwave", at = 0, sound = "boss_king_bounce_launch" },
 	},
 
-	--[[ The shots in order, each its frames in order, each frame shown once. ]]
+	--[[ The shots in order, each its frames in order, each frame shown once.
+
+	     **The holds keep every shot on the music's own cue** (`Music.story.cues`;
+	     owner, 2026-11-12: the ding as the King's eyes go small "doesnt match
+	     the visual ... just have the timing similar ... so it lines up like it
+	     did before", and no new upload). The music was scored before two
+	     pictures were cut and Steam was held longer (2026-11-06), which left
+	     it up to 1.9 s behind the pictures: its ding, at 22.7 s, rang well
+	     after the small eyes had come in at 20.8 s. So the two shots that lost
+	     a picture hold their one picture for the whole of their time (Chest,
+	     Yawn), and the three quiet shots after Steam (Crumple, Rise, Breath:
+	     held strings, nothing to land on) give back what Steam's longer hold
+	     takes, so the roar is on its swell again. `tests/StoryTimeline.spec`
+	     holds every shot to its cue; change a hold and it says which. ]]
 	shots = {
 		{ name = "Sky", frames = { { picture = "f01", hold = 2.0 } } },
 		{
@@ -163,12 +127,14 @@ local Story = {
 		},
 		{
 			name = "Chest",
-			frames = { { picture = "f02c", hold = 1.3 }, { picture = "f02d", hold = 1.3 } },
+			-- f02c cut (owner, 2026-11-06); f02d holds for both, to the music's cue
+			frames = { { picture = "f02d", hold = 2.6 } },
 		},
 		{ name = "Lounge", frames = { { picture = "f03b", hold = 1.7 } } },
 		{
 			name = "Yawn",
-			frames = { { picture = "f04b", hold = 0.6 }, { picture = "f04a", hold = 1.2 } },
+			-- f04b cut (owner, 2026-11-06); f04a holds for both, to the music's cue
+			frames = { { picture = "f04a", hold = 1.8 } },
 		},
 		{
 			name = "Bushes",
@@ -201,19 +167,23 @@ local Story = {
 		},
 		{
 			name = "Steam",
-			frames = { { picture = "f13a", hold = 1.2 }, { picture = "f13b", hold = 1.2 } },
+			-- longer (owner, 2026-11-06: "panels 23 and 24 need to be longer"; were 1.2 each)
+			frames = { { picture = "f13a", hold = 2.0 }, { picture = "f13b", hold = 2.0 } },
 		},
 		{
 			name = "Crumple",
-			frames = { { picture = "f14a", hold = 0.7 }, { picture = "f14b", hold = 1.0 } },
+			-- quicker (were 0.7 and 1.0): see the note above
+			frames = { { picture = "f14a", hold = 0.5 }, { picture = "f14b", hold = 0.7 } },
 		},
 		{
 			name = "Rise",
-			frames = { { picture = "f15a", hold = 0.8 }, { picture = "f15b", hold = 1.0 } },
+			-- quicker (were 0.8 and 1.0)
+			frames = { { picture = "f15a", hold = 0.5 }, { picture = "f15b", hold = 0.7 } },
 		},
 		{
 			name = "Breath",
-			frames = { { picture = "f16a", hold = 0.7 }, { picture = "f16b", hold = 0.9 } },
+			-- quicker (were 0.7 and 0.9)
+			frames = { { picture = "f16a", hold = 0.5 }, { picture = "f16b", hold = 0.6 } },
 		},
 		{
 			name = "Roar",

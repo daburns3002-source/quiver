@@ -33,6 +33,14 @@
 	move: a web spun round her where she stands (`Shared/Util/WebWheel`).
 	Its phases only warn, spin and break; who it touches each step is
 	asked of `BossMoves.wheelHit` by `EnemyManager`.
+
+	Grandmother Gulp has three of her own (`EnemyBoss.spit`, `slide`,
+	`gulp`; owner, 2026-11-07): Spore Spit (globs lobbed onto marked
+	circles, each landing in a spore cloud), Belly Slide (down a marked
+	lane to the wall, leaving a slime trail) and Big Gulp (a marked cone
+	she inhales through, dragging whoever is in it to her mouth). Each
+	ends in a pose she cannot attack from: the punish window. What their
+	events do to the players is `EnemyManager`'s, as for the rest.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,7 +52,18 @@ type EnemyBoss = Balance.EnemyBoss
 
 local BossMoves = {}
 
-export type Kind = "Bounce" | "Lash" | "Spin"
+--[[ "Toll", "Echo" and "Scuttle" are the Old Tollcrab's, run by
+     `TollcrabMoves`. ]]
+export type Kind =
+	"Bounce"
+	| "Lash"
+	| "Spin"
+	| "Spit"
+	| "Slide"
+	| "Gulp"
+	| "Toll"
+	| "Echo"
+	| "Scuttle"
 
 --[[ The order the moves loop in, unless the boss names its own. ]]
 BossMoves.LOOP = { "Bounce", "Lash" } :: { Kind }
@@ -70,6 +89,9 @@ export type Pose = {
 	--[[ Radians the body is twisted round from `yaw`, as a lash winds up
 	     and whips through; never part of the way it faces. ]]
 	twist: number,
+	--[[ Radians the body rocks over sideways, top toward -X: a static
+	     mesh's whole-body stand-in for the limbs it does not have. ]]
+	roll: number,
 	--[[ Studs both arms are raised (a bounce's wind-up and flight). ]]
 	armsLift: number,
 	--[[ The arm a lash is throwing; where it is balled up behind the
@@ -119,6 +141,18 @@ export type Pose = {
 	- `BumpShock` — the chest bump's shock, out from `at` (the belly).
 	- `Shake` — shake the camera by `radius` for `duration`.
 	- `Goo` — droplets flung off a fist that splatted at `at`.
+- `Glob` — Spore Spit: a glob leaves her mouth for `at`, landing
+  `duration` later (`direction` is the way she faces).
+- `GlobLand` — it landed: hit everyone within `radius` of `at`, and a
+  spore cloud hangs there.
+- `Trail` — Belly Slide: a slime trail from `at` along `direction`,
+  `length` long and `width` across, laid over `duration` seconds as she
+  slides.
+- `SlideEnd` — she has stopped at `at`.
+- `ConeTell` — Big Gulp: the cone (`at` her feet, along `direction`,
+  `length` its reach, `width` its half angle) for `duration` seconds.
+- `Inhale` — the inhale has begun over that cone, for `duration`.
+- `InhaleEnd` — it is over: let go of everyone it was dragging.
 ]]
 export type Event = {
 	kind: string,
@@ -160,6 +194,8 @@ export type Move = {
 	--[[ A spin: the angle spoke one starts at (`WebWheel`), set as the
 	     web is raised. ]]
 	angle: number,
+	--[[ Spore Spit: where each glob lands, locked as her throat swells. ]]
+	spots: { Vector3 },
 }
 
 --[[ Every room is built centred on the origin (`Arena.build`): where a
@@ -197,6 +233,13 @@ local SHAKE_SLAP = 0.3
 local SHAKE_BUMP = 0.5
 local SHAKE_TIME = 0.3
 
+--[[ Studs in front of her feet that Grandmother Gulp's mouth is: her
+     tongue ball sits 4 in front of her middle (`EnemyDesigns`). ]]
+local MOUTH_FORWARD = 4.5
+
+--[[ How far apart a slide's lane is tested for cover as it is laid. ]]
+local SLIDE_STEP = 0.5
+
 local function ease(t: number): number
 	return t * t * (3 - 2 * t)
 end
@@ -211,6 +254,15 @@ local function yawOf(direction: Vector3, fallback: number): number
 		return fallback
 	end
 	return math.atan2(-direction.X, -direction.Z)
+end
+
+--[[ How far `t` is through the stretch from `from` to `to`, 0 to 1. ]]
+local function window(t: number, from: number, to: number): number
+	return math.clamp((t - from) / (to - from), 0, 1)
+end
+
+local function mix(a: number, b: number, t: number): number
+	return a + (b - a) * t
 end
 
 local function lerpAngle(a: number, b: number, t: number): number
@@ -254,6 +306,7 @@ local function rest(move: Move): Pose
 		lean = 0,
 		pitch = 0,
 		twist = 0,
+		roll = 0,
 		armsLift = 0,
 		arm = nil,
 		armOffset = Vector3.zero,
@@ -286,6 +339,23 @@ local function duration(move: Move, boss: EnemyBoss): number
 			elseif phase == "spin" then s.spin
 			elseif phase == "broken" then s.broken
 			else s.recover
+	end
+	if move.kind == "Spit" then
+		local s = boss.spit :: Balance.BossSpit
+		return if phase == "swell" then s.swell elseif phase == "spit" then s.flight else s.pant
+	elseif move.kind == "Slide" then
+		local s = boss.slide :: Balance.BossSlide
+		return if phase == "brace"
+			then s.brace
+			elseif phase == "slide" then math.max(
+				0.05,
+				(move.land - move.from).Magnitude / s.speed
+			)
+			elseif phase == "stuck" then s.stuck
+			else s.rise
+	elseif move.kind == "Gulp" then
+		local g = boss.gulp :: Balance.BossGulp
+		return if phase == "open" then g.open elseif phase == "inhale" then g.inhale else g.burp
 	end
 	if move.kind == "Bounce" then
 		return if phase == "windup"
@@ -328,6 +398,7 @@ function BossMoves.start(kind: Kind, now: number, feet: Vector3, yaw: number): M
 		clip = "",
 		clipAt = now,
 		angle = 0,
+		spots = {},
 	}
 end
 
@@ -335,7 +406,7 @@ end
      `index`th (which bounce, or which arm), or "" when it plays none. ]]
 function BossMoves.clipName(boss: EnemyBoss, kind: Kind, phase: string, index: number): string
 	local clips = boss.clips
-	if not clips then
+	if not clips or kind == "Spit" or kind == "Slide" or kind == "Gulp" then
 		return ""
 	end
 	if kind == "Bounce" then
@@ -395,7 +466,8 @@ local function enter(
 	phase: string,
 	at: number,
 	target: Vector3,
-	clamp: (Vector3) -> Vector3
+	clamp: (Vector3) -> Vector3,
+	over: (Vector3) -> Vector3
 ): { Event }
 	move.phase = phase
 	move.phaseAt = at
@@ -442,6 +514,130 @@ local function enter(
 		elseif phase == "broken" then
 			local stopped = WebWheel.angle(move.angle, s.period, s.spin)
 			table.insert(events, wheel("WheelBreak", stopped, s.broken))
+			table.insert(events, shake(SHAKE_SLAP))
+		end
+		return events
+	end
+
+	if move.kind == "Spit" then
+		local s = boss.spit :: Balance.BossSpit
+		if phase == "swell" then
+			--[[ Locked as the throat swells: one where the target stands,
+			     the rest either side of it, across the line to her, so the
+			     dodge is toward her or away. ]]
+			local toward = flat(target) - move.feet
+			if toward.Magnitude > 0.1 then
+				move.direction = toward.Unit
+			end
+			move.fromYaw = move.yaw
+			move.toYaw = yawOf(move.direction, move.yaw)
+			local side = Vector3.new(-move.direction.Z, 0, move.direction.X)
+			move.spots = {}
+			for i = 1, s.globs do
+				local k = math.floor(i / 2) * (if i % 2 == 0 then 1 else -1)
+				table.insert(move.spots, flat(target) + side * (k * s.spread))
+			end
+			for _, spot in move.spots do
+				local tell = event("SlamTell")
+				tell.at = spot
+				tell.radius = s.radius
+				tell.duration = s.swell + s.flight
+				table.insert(events, tell)
+			end
+		elseif phase == "spit" then
+			move.yaw = move.toYaw
+			for _, spot in move.spots do
+				local glob = event("Glob")
+				glob.at = spot
+				glob.direction = move.direction
+				glob.duration = s.flight
+				table.insert(events, glob)
+			end
+		elseif phase == "pant" then
+			for _, spot in move.spots do
+				local land = event("GlobLand")
+				land.at = spot
+				land.radius = s.radius
+				table.insert(events, land)
+			end
+			table.insert(events, shake(SHAKE_SLAP))
+		end
+		return events
+	end
+
+	if move.kind == "Slide" then
+		local s = boss.slide :: Balance.BossSlide
+		if phase == "brace" then
+			--[[ Locked at once, at the target, and laid to the first cover
+			     or wall past them (over low cover: `over`): the lane she
+			     shows is all of the slide. ]]
+			local toward = flat(target) - move.feet
+			if toward.Magnitude > 0.1 then
+				move.direction = toward.Unit
+			end
+			move.fromYaw = move.yaw
+			move.toYaw = yawOf(move.direction, move.yaw)
+			move.from = move.feet
+			local reach = 0
+			while reach + SLIDE_STEP <= s.maxLength do
+				local point = move.feet + move.direction * (reach + SLIDE_STEP)
+				if (flat(over(point)) - point).Magnitude > 0.05 then
+					break
+				end
+				reach += SLIDE_STEP
+			end
+			move.length = reach
+			move.land = move.feet + move.direction * reach
+			local lane = event("Lane")
+			lane.at = move.feet
+			lane.direction = move.direction
+			lane.length = math.max(reach, 1)
+			lane.width = s.width
+			lane.duration = s.brace
+			table.insert(events, lane)
+		elseif phase == "slide" then
+			move.yaw = move.toYaw
+			local trail = event("Trail")
+			trail.at = move.from
+			trail.direction = move.direction
+			trail.length = move.length
+			trail.width = s.trailWidth
+			trail.duration = duration(move, boss)
+			table.insert(events, trail)
+		elseif phase == "stuck" then
+			move.feet = move.land
+			local stop = event("SlideEnd")
+			stop.at = move.land
+			table.insert(events, stop)
+			table.insert(events, shake(SHAKE_SLAM))
+		end
+		return events
+	end
+
+	if move.kind == "Gulp" then
+		local g = boss.gulp :: Balance.BossGulp
+		local function cone(kind: string, seconds: number): Event
+			local e = event(kind)
+			e.at = move.feet
+			e.direction = move.direction
+			e.length = g.reach
+			e.width = g.halfAngle
+			e.duration = seconds
+			return e
+		end
+		if phase == "open" then
+			local toward = flat(target) - move.feet
+			if toward.Magnitude > 0.1 then
+				move.direction = toward.Unit
+			end
+			move.fromYaw = move.yaw
+			move.toYaw = yawOf(move.direction, move.yaw)
+			table.insert(events, cone("ConeTell", g.open + g.inhale))
+		elseif phase == "inhale" then
+			move.yaw = move.toYaw
+			table.insert(events, cone("Inhale", g.inhale))
+		elseif phase == "burp" then
+			table.insert(events, cone("InhaleEnd", 0))
 			table.insert(events, shake(SHAKE_SLAP))
 		end
 		return events
@@ -526,6 +722,17 @@ local function nextPhase(move: Move, boss: EnemyBoss): string
 			elseif phase == "broken" then "recover"
 			else ""
 	end
+	if move.kind == "Spit" then
+		return if phase == "swell" then "spit" elseif phase == "spit" then "pant" else ""
+	elseif move.kind == "Slide" then
+		return if phase == "brace"
+			then "slide"
+			elseif phase == "slide" then "stuck"
+			elseif phase == "stuck" then "rise"
+			else ""
+	elseif move.kind == "Gulp" then
+		return if phase == "open" then "inhale" elseif phase == "inhale" then "burp" else ""
+	end
 	if move.kind == "Bounce" then
 		if phase == "windup" then
 			return "launch"
@@ -580,7 +787,7 @@ function BossMoves.grab(
 end
 
 --[[ The pose partway (`t`, 0 to 1) through the current phase. ]]
-local function pose(move: Move, boss: EnemyBoss, t: number): Pose
+local function pose(move: Move, boss: EnemyBoss, t: number, now: number): Pose
 	local p = rest(move)
 	local phase = move.phase
 
@@ -591,6 +798,133 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 			local e = ease(t)
 			p.feet = move.from:Lerp(move.land, e)
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
+		end
+		return p
+	end
+
+	--[[ Grandmother Gulp's: her whole body tips, squashes and swells, and
+	     her tongue ball (her lash's arm) swells in her mouth as her throat
+	     fills and as she gapes. ]]
+	if move.kind == "Spit" or move.kind == "Slide" or move.kind == "Gulp" then
+		p.arm = boss.lash.arms[1]
+	end
+	if move.kind == "Spit" then
+		local side = if move.index % 2 == 0 then 1 else -1
+		if phase == "swell" then
+			--[[ Three swallows fill her throat as she rears back. ]]
+			local e = ease(t)
+			local swallow = math.abs(math.sin(t * math.pi * 3))
+			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
+			p.pitch = -0.32 * e
+			p.lift = 0.25 * e
+			p.squash = 1 + 0.12 * e
+			p.spread = 1 + 0.1 * e + 0.06 * swallow * (1 - e)
+			p.roll = 0.03 * e * math.sin(now * 26)
+			p.armSwell = Vector3.one * (1 + 0.9 * e + 0.25 * swallow * (1 - e))
+		elseif phase == "spit" then
+			--[[ Whipped forward on each glob, then hauled back for the next,
+			     rocking to alternate sides. ]]
+			local hit = ease(window(t, 0, 0.16)) * (1 - ease(window(t, 0.3, 1)))
+			p.pitch = -0.32 + 0.76 * hit
+			p.lean = 1.9 * hit
+			p.lift = 0.25 * (1 - hit)
+			p.squash = 1.12 - 0.3 * hit
+			p.spread = 1.1 + 0.1 * hit
+			p.roll = side * 0.08 * hit
+			p.armSwell = Vector3.one * (1.9 - 0.7 * hit)
+		else
+			--[[ Slumps, panting, tongue lolling, her head swaying: the punish
+			     window. ]]
+			local blend = ease(window(t, 0, 0.2))
+			local breath = 0.05 * math.sin(t * math.pi * 6)
+			p.pitch = mix(-0.32, 0.12, blend) + 0.04 * math.sin(t * math.pi * 4)
+			p.lift = 0.25 * (1 - blend)
+			p.squash = mix(1.12, 0.92, blend) + breath
+			p.spread = mix(1.1, 1.05, blend) - breath * 0.5
+			p.roll = 0.05 * math.sin(t * math.pi * 3) * blend
+			p.armOffset = Vector3.new(0, -0.3, -0.9)
+			p.armSwell = Vector3.one * (1.15 + breath * 2)
+		end
+		return p
+	end
+	if move.kind == "Slide" then
+		if phase == "brace" then
+			--[[ Rocks back on her haunches, jiggling, gathering herself. ]]
+			local e = ease(t)
+			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 4))
+			p.squash = 1 - 0.28 * e
+			p.spread = 1 + 0.16 * e
+			p.lean = -0.9 * e
+			p.pitch = -0.2 * e
+			p.twist = math.sin(t * 30) * 0.07 * e
+			p.roll = 0.05 * e * math.sin(now * 22)
+		elseif phase == "slide" then
+			--[[ A hop forward onto her belly, then flat and rippling. ]]
+			local flop = math.min(1, t * 6)
+			local ripple = math.sin(now * 24)
+			p.feet = move.from:Lerp(move.land, t)
+			p.lift = 0.9 * math.sin(math.pi * math.min(1, t * 5))
+			p.lean = -0.9 * (1 - flop)
+			p.pitch = -0.2 + 0.75 * ease(flop)
+			p.squash = 0.72 - 0.12 * flop + 0.05 * ripple
+			p.spread = 1.16 + 0.09 * flop - 0.03 * ripple
+			p.twist = math.sin(t * 18) * 0.05
+			p.roll = 0.09 * math.sin(now * 14)
+		elseif phase == "stuck" then
+			--[[ Smacked flat, then kicking: the punish window. ]]
+			local impact = math.max(0, 1 - t * 8)
+			p.pitch = 0.55 + 0.04 * math.sin(t * 20)
+			p.squash = 0.6 + 0.04 * math.sin(t * 20) - 0.08 * impact
+			p.spread = 1.25 + 0.08 * impact
+			p.twist = math.sin(t * 14) * 0.08
+			p.roll = 0.06 * math.sin(t * 17)
+		else
+			--[[ Heaves herself up with a hop and a shake. ]]
+			local e = ease(t)
+			local hop = math.sin(math.pi * e)
+			p.pitch = 0.55 * (1 - e)
+			p.lift = 0.8 * hop
+			p.squash = mix(0.6, 1, e) + 0.1 * hop
+			p.spread = mix(1.25, 1, e) - 0.04 * hop
+			p.roll = 0.08 * math.sin(t * 22) * (1 - e)
+		end
+		return p
+	end
+	if move.kind == "Gulp" then
+		if phase == "open" then
+			--[[ Rears up tall, mouth gaping, trembling as it opens. ]]
+			local e = ease(t)
+			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 4))
+			p.pitch = -0.4 * e
+			p.lift = 1 * e
+			p.squash = 1 + 0.18 * e
+			p.spread = 1 - 0.04 * e
+			p.roll = 0.04 * e * math.sin(now * 30)
+			p.armSwell = Vector3.one * (1 + 1.1 * e)
+		elseif phase == "inhale" then
+			--[[ Balloons as she fills, shuddering. ]]
+			local shudder = math.sin(t * 40)
+			local grow = ease(t)
+			p.pitch = -0.4 + 0.1 * grow
+			p.lift = 1 - 0.4 * grow
+			p.squash = 1.18 - 0.04 * grow + 0.03 * shudder
+			p.spread = 0.96 + 0.4 * grow + 0.02 * shudder
+			p.twist = 0.05 * math.sin(now * 5)
+			p.roll = 0.05 * math.sin(now * 38)
+			p.armSwell = Vector3.one * (2.1 + 0.12 * shudder)
+		else
+			--[[ The burp blasts her forward, then she deflates and gasps: the
+			     punish window. ]]
+			local blast = math.sin(math.pi * math.min(1, t * 5))
+			local blend = ease(math.min(1, t * 2.5))
+			local gasp = 0.05 * math.sin(t * math.pi * 8)
+			p.pitch = mix(-0.3, 0.1, blend) + 0.3 * blast
+			p.lean = 1.6 * blast
+			p.lift = 0.6 * (1 - blend)
+			p.squash = mix(1.14, 0.9, blend) - 0.1 * blast + gasp
+			p.spread = mix(1.36, 1.05, blend) + 0.08 * blast
+			p.roll = 0.06 * math.sin(t * math.pi * 5) * (1 - t)
+			p.armSwell = Vector3.one * 1.3
 		end
 		return p
 	end
@@ -762,16 +1096,23 @@ function BossMoves.step(
 	boss: EnemyBoss,
 	now: number,
 	target: Vector3,
-	clamp: (Vector3) -> Vector3
+	clamp: (Vector3) -> Vector3,
+	over: ((Vector3) -> Vector3)?
 ): (Pose, { Event }, boolean)
 	local events: { Event } = {}
+	--[[ The room's limits for a body sliding on its belly, which goes over
+	     low cover; `clamp` where no room says otherwise. ]]
+	local slideClamp = over or clamp
 
 	if move.phase == "" then
 		local first: string = if move.kind == "Lash"
 			then "track"
 			elseif move.kind == "Spin" then "travel"
+			elseif move.kind == "Spit" then "swell"
+			elseif move.kind == "Slide" then "brace"
+			elseif move.kind == "Gulp" then "open"
 			else "windup"
-		for _, e in enter(move, boss, first, move.phaseAt, target, clamp) do
+		for _, e in enter(move, boss, first, move.phaseAt, target, clamp, slideClamp) do
 			table.insert(events, e)
 		end
 	end
@@ -786,7 +1127,7 @@ function BossMoves.step(
 		if following == "" then
 			return rest(move), events, true
 		end
-		for _, e in enter(move, boss, following, endsAt, target, clamp) do
+		for _, e in enter(move, boss, following, endsAt, target, clamp, slideClamp) do
 			table.insert(events, e)
 		end
 	end
@@ -802,7 +1143,7 @@ function BossMoves.step(
 
 	local length = duration(move, boss)
 	local t = if length > 0 then math.clamp((now - move.phaseAt) / length, 0, 1) else 1
-	local p = pose(move, boss, t)
+	local p = pose(move, boss, t, now)
 	move.yaw = p.yaw
 	return p, events, false
 end
@@ -819,6 +1160,7 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 		lean = 0,
 		pitch = 0,
 		twist = 0,
+		roll = 0,
 		armsLift = 0,
 		arm = nil,
 		armOffset = Vector3.zero,
@@ -899,6 +1241,10 @@ end
 
 --[[ The seconds a boss rests after a move. ]]
 function BossMoves.restAfter(kind: Kind, boss: EnemyBoss): number
+	local own = boss.restAfter and boss.restAfter[kind]
+	if own then
+		return own
+	end
 	if kind == "Spin" then
 		return boss.restAfterSpin or boss.restAfterLash
 	end
@@ -923,6 +1269,62 @@ function BossMoves.wheelHit(
 	end
 	local angle = WebWheel.angle(move.angle, s.period, now - move.phaseAt)
 	return WebWheel.hit(s, move.feet, angle, point, pad)
+end
+
+--[[ Where Grandmother Gulp's mouth is, on the floor, for a move facing
+     its `direction`. ]]
+function BossMoves.mouth(move: Move): Vector3
+	return move.feet + move.direction * MOUTH_FORWARD
+end
+
+--[[ Whether `point` is inside Big Gulp's cone: within `reach` of her
+     mouth and `halfAngle` of the way she faces, in front of her. ]]
+function BossMoves.inCone(move: Move, gulp: Balance.BossGulp, point: Vector3): boolean
+	local offset = flat(point) - BossMoves.mouth(move)
+	local distance = offset.Magnitude
+	if distance > gulp.reach then
+		return false
+	end
+	if distance < gulp.mouth then
+		return true
+	end
+	return offset:Dot(move.direction) / distance >= math.cos(gulp.halfAngle)
+end
+
+--[[ Whether Big Gulp is drawing breath now. ]]
+function BossMoves.inhaling(move: Move): boolean
+	return move.kind == "Gulp" and move.phase == "inhale"
+end
+
+--[[ Someone reached her mouth: the inhale ends now, and she burps.
+     Called by `EnemyManager`, which has swallowed and spat them; the
+     burp's own events are not sent, so it lets go of the drag itself. ]]
+function BossMoves.swallow(move: Move, now: number)
+	move.phase = "burp"
+	move.phaseAt = now
+end
+
+--[[ Whether Belly Slide is sliding now (her body hurts whoever it
+     touches). ]]
+function BossMoves.sliding(move: Move): boolean
+	return move.kind == "Slide" and move.phase == "slide"
+end
+
+--[[ A roar at one of her notches (`EnemyBoss.notches`), `t` from 0 to
+     1: she rears up, mouth wide, and settles. ]]
+function BossMoves.roar(boss: EnemyBoss, feet: Vector3, yaw: number, t: number): Pose
+	local p = BossMoves.idle(feet, yaw, 0)
+	local crouch = window(t, 0, 0.16) * (1 - window(t, 0.16, 0.3))
+	local up = math.sin(math.pi * window(t, 0.12, 1))
+	local tremble = math.sin(t * 50) * up
+	p.arm = boss.lash.arms[1]
+	p.pitch = 0.12 * crouch - 0.42 * up
+	p.lift = 1.2 * up
+	p.squash = 1 - 0.14 * crouch + 0.2 * up + 0.03 * tremble
+	p.spread = 1 + 0.08 * crouch + 0.08 * up
+	p.roll = 0.06 * tremble
+	p.armSwell = Vector3.one * (1 + 0.9 * up)
+	return p
 end
 
 return BossMoves

@@ -47,4 +47,55 @@ function CameraFit.offset(viewport: Vector2, framing: Framing): Vector3
 	return Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
 end
 
+--[[ The focus, along the room (Z), that puts a floor point at `z` on screen
+     row `row` of a screen `height` points tall, for a camera `offset` from
+     its focus with a lens `fieldOfView` degrees tall. A row further down
+     the screen takes a focus further up the room (smaller Z). ]]
+function CameraFit.focusPutting(
+	z: number,
+	row: number,
+	height: number,
+	offset: Vector3,
+	fieldOfView: number
+): number
+	local pitch = math.atan2(offset.Y, offset.Z)
+	local tanHalf = math.tan(math.rad(fieldOfView) / 2)
+	local below = pitch + math.atan((2 * row / height - 1) * tanHalf)
+	return z - (offset.Z - offset.Y / math.tan(below))
+end
+
+--[[ What a card above or below the room asks of the camera, in screen rows
+     (`UI/TutorialPrompts`, on a phone held upright): the end of the room it
+     stands past (`Above` the far wall, `Below` the near one), the row that
+     wall must stand at or beyond, and the rows the player stays between. ]]
+export type Clear = {
+	side: "Above" | "Below",
+	wallRow: number,
+	playerTop: number,
+	playerBottom: number,
+}
+
+--[[ `focus` moved along the room just far enough to keep `clear`: the end
+     wall at `wallZ` past its row, so the floor stays off the card, and the
+     player, at `playerZ`, between their rows. Where both cannot be had the
+     player wins. ]]
+function CameraFit.clearFocus(
+	focus: number,
+	clear: Clear,
+	wallZ: number,
+	playerZ: number,
+	height: number,
+	offset: Vector3,
+	fieldOfView: number
+): number
+	local wall = CameraFit.focusPutting(wallZ, clear.wallRow, height, offset, fieldOfView)
+	local moved = if clear.side == "Below" then math.max(focus, wall) else math.min(focus, wall)
+	local lowest = CameraFit.focusPutting(playerZ, clear.playerBottom, height, offset, fieldOfView)
+	local highest = CameraFit.focusPutting(playerZ, clear.playerTop, height, offset, fieldOfView)
+	if lowest <= highest then
+		moved = math.clamp(moved, lowest, highest)
+	end
+	return moved
+end
+
 return CameraFit

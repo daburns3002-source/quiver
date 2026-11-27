@@ -12,7 +12,7 @@
 	- Counter Strike (Epic): while a player's `CounterReady` is set (a hit
 	  taken), their sword burns red, pulsing, shedding red embers; when the
 	  charged blow lands (`CounterAt`), a red flash and burst in front of
-	  them, a ring, a shake, and COUNTER! in the blocky font.
+	  them, a ring, a shake, and COUNTER! in the game's font.
 
 	Presentation only. The sword is grown on this client only, as a look:
 	the server's weld is left as it is.
@@ -36,7 +36,7 @@ local DUST = { Color3.fromRGB(196, 176, 140), Color3.fromRGB(160, 140, 110) }
 local RED = Color3.fromRGB(255, 40, 40)
 local HOT = { RED, Color3.fromRGB(255, 120, 90), Color3.fromRGB(255, 230, 220) }
 
-local ARCADE = Font.fromEnum(Enum.Font.Arcade)
+local ARCADE = Font.fromEnum(Enum.Font.FredokaOne)
 
 --[[ The held sword's model, if this character holds one. ]]
 local function sword(character: Model?): Model?
@@ -202,7 +202,7 @@ local function counterStep()
 	end
 end
 
---[[ COUNTER! over the Warden, in the blocky font, popping and rising. ]]
+--[[ COUNTER! over the Warden, in the game's font, popping and rising. ]]
 local function counterWord(root: BasePart)
 	local anchor = Voxel.cube(0.1, RED)
 	anchor.Transparency = 1

@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local BossWatch = require(script.Parent.BossWatch)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
+local Options = require(script.Parent.Parent.Options)
 
 --[[ The share of its volume the music keeps while a lobby screen is open. ]]
 local DUCK = 0.12
@@ -32,6 +33,11 @@ local players: { [string]: Player } = {}
 local current = "Rooms"
 --[[ Everything faded out: the intro's title plays its own music. ]]
 local quiet = false
+--[[ Something is on screen to read (a tutorial prompt): the music drops to
+     `Music.readDuck` of itself and comes back after, on the duck's own fade. ]]
+local reading = false
+-- a first-time tip is up (`UI/FirstTips`): as quiet as reading, whatever else
+local tipUp = false
 
 local function load(p: Player, index: number)
 	local track = p.list[index]
@@ -97,7 +103,11 @@ local function step(dt: number)
 	local duckTo = if player:GetAttribute("ClassSelecting") == true
 		then 0
 		elseif ducked then DUCK
+		elseif reading then Music.readDuck
 		else 1
+	if tipUp then
+		duckTo = math.min(duckTo, Music.readDuck)
+	end
 	duck += (duckTo - duck) * math.min(1, dt * 6)
 	for name: string in Music.playlists :: { [string]: any } do
 		local p = playerFor(name)
@@ -118,7 +128,7 @@ local function step(dt: number)
 			-- paused, so a room's music picks up where it left off
 			p.sound:Pause()
 		end
-		p.sound.Volume = Music.volume * p.level * duck
+		p.sound.Volume = Music.volume * p.level * duck * Options.music()
 	end
 end
 
@@ -126,6 +136,19 @@ end
      the run's music waits, then fades in when it ends. ]]
 function MusicFx.setQuiet(value: boolean)
 	quiet = value
+end
+
+--[[ While there is something to read (`UI/TutorialPrompts`): quieter, not
+     silent, and back up when it goes. ]]
+function MusicFx.setReading(value: boolean)
+	reading = value
+end
+
+--[[ While a first-time tip is up (owner, 2026-11-13: "make sure the music
+     quiets as well while its paused"): down to the reading level at most,
+     back up after OK. Its own flag, so the tutorial's never clears it. ]]
+function MusicFx.setTip(value: boolean)
+	tipUp = value
 end
 
 function MusicFx.start()

@@ -27,9 +27,12 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local AssassinFx = require(script.Parent.Parent.Fx.Upgrades.AssassinFx)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
+local Haptics = require(script.Parent.Parent.Fx.Haptics)
 local LobbyButtons = require(script.Parent.LobbyButtons)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
@@ -178,14 +181,23 @@ local function requestDash()
 
 	if Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector) then
 		SoundFx.play("dash")
+		Haptics.play("dash")
 		--[[ The server's Earthbreaker slams where this dash ends; it is told
 		     the dash began, and decides for itself whether it counts. ]]
-		dashStarted:FireServer()
+		dashStarted:FireServer((Dash.current(os.clock())))
 		if (PlayerStats.get().abilities.Earthbreaker or 0) > 0 then
 			--[[ The leap and slam (the owner's RubySword kit), as the dash
 			     ends; its arc is in the animation, and the server's slam lands
 			     on its Impact marker. ]]
 			task.delay(Balance.Player.dash.duration, WeaponPose.playSpecial, "earthbreaker")
+		end
+		--[[ A class whose dash cuts (the Assassin's Shadow Dash): both
+		     blades swept out as it goes, and a streak left behind. The
+		     server decides what it cut. ]]
+		local class = Classes[PlayerStats.get().class]
+		if class and class.dash then
+			WeaponPose.playSpecial("dash")
+			AssassinFx.dashed()
 		end
 	end
 end
@@ -305,6 +317,17 @@ local function step()
 	end
 	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
 
+	--[[ Big Gulp's drag is added to walking, not put in its place: walking
+	     straight away is slowed, walking sideways out of the cone works. ]]
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local drag = if root then Shove.dragVelocity(now, root.Position) else Vector3.zero
+	if drag.Magnitude > 1e-3 then
+		local velocity = desiredDirection() * humanoid.WalkSpeed + drag
+		humanoid.WalkSpeed = velocity.Magnitude
+		humanoid:Move(if velocity.Magnitude > 1e-3 then velocity.Unit else Vector3.zero, false)
+		return
+	end
+
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)
 end
@@ -317,6 +340,15 @@ local function releaseAll()
 	stick = Vector2.zero
 	sprintToggled = false
 end
+
+--[[ Quickstep: the server took time off the dash's wait for a kill
+     (`RunSession.onEnemyKilled`); the dash here comes back as much sooner. ]]
+player:GetAttributeChangedSignal("DashRefunds"):Connect(function()
+	local seconds = player:GetAttribute("DashRefund")
+	if type(seconds) == "number" then
+		Dash.refund(os.clock(), seconds)
+	end
+end)
 
 function MoveController.start()
 	MoveController.stop()

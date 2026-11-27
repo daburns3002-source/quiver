@@ -10,7 +10,7 @@
 	outline, a fill with a lighter strip on top and a darker band below,
 	and stair-stepped corners made of overlapping rectangles. The art the
 	sheets draw (ribbons, the pictures, icons, cubes) is Codex's, in
-	`Config/EndScreenAssets`; every word is live, in the blocky font.
+	`Config/EndScreenAssets`; every word is live, in the game's font.
 
 	Presentation only. The server decides that the run is over, whether it
 	was won, and every number shown; the button only asks it for the next
@@ -34,18 +34,32 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
+local EndScreenRules = require(ReplicatedStorage.Shared.Util.EndScreenRules)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 
+local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
+local Kit = require(script.Parent.Kit)
+local Reveal = require(script.Parent.Reveal)
+local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+local VictoryChests = require(script.Parent.VictoryChests)
 
 local EndScreen = {}
 
 export type Summary = {
 	won: boolean,
 	stage: number,
+	--[[ Played on hard (`Util/HardRules`): the tab says HARD, and an area's
+	     last level is won into the lobby. ]]
+	hard: boolean?,
 	kills: number,
 	seconds: number,
 	healthPercent: number,
@@ -55,6 +69,30 @@ export type Summary = {
 	coins: number?,
 	gems: number?,
 	chests: number?,
+	--[[ DEFEAT: every pet slot is full, so its line says to merge. ]]
+	petsFull: boolean?,
+	--[[ An Endless run's floor, best and Soulstones (`EndScreenRules`). ]]
+	endless: EndScreenRules.Endless?,
+	--[[ The first clear's free egg (`Config/Economy.firstClearEgg`), rolled
+	     by the server: its key, the pet and whether it was new. It fills
+	     the chest slot and is opened with the hatchery's reveal. ]]
+	egg: { key: string, pet: string, new: boolean }?,
+	--[[ The boss item the stage paid, shown in the slot beside it. ]]
+	item: string?,
+	--[[ The player's coins buy an open egg (Victory's nudge). ]]
+	canHatch: boolean?,
+	--[[ A campaign level won: the win streak as it now stands
+	     (`Util/RunBonus`), and three chests wait for a pick
+	     (`UI/VictoryChests`). ]]
+	streak: number?,
+	--[[ The level's stars, before this win and now, and its time
+	     (`Util/StarRules`), shown with the chests. ]]
+	stars: VictoryChests.Stars?,
+	--[[ The area whose story beat this win owes (`UI/StoryBeat`). ]]
+	story: string?,
+	--[[ What the run paid the class's own level (`Config/ClassLevels`),
+	     nil when it paid nothing (the tutorial, nothing cleared). ]]
+	classXp: ClassLevelRules.Gain?,
 }
 
 type Box = { x: number, y: number, w: number, h: number }
@@ -83,6 +121,7 @@ local viewportConnection: RBXScriptConnection? = nil
 local inputConnection: RBXScriptConnection? = nil
 local motion: EndScreenMotion.Motion? = nil
 local onRestart: (() -> ())? = nil
+local onLobby: (() -> ())? = nil
 
 local function frame(parent: Instance, name: string, b: Box, z: number): Frame
 	local f = Instance.new("Frame")
@@ -285,7 +324,31 @@ local function pivot(obj: GuiObject): UIScale
 	return scale
 end
 
-local function buildRibbon(parent: Instance, look: any, layout: any, won: boolean): (Frame, Frame)
+--[[ A label whose words shrink to fit their box, never past `size`,
+     wrapping onto a second line where that keeps them larger. ]]
+local function fitted(t: TextLabel, size: number)
+	t.TextScaled = true
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = math.min(size, 100)
+	limit.Parent = t
+end
+
+--[[ A label whose words stay on one line, shrunk to `room` (sheet
+     pixels) if they are wider than it at `size`. ]]
+local function oneLine(t: TextLabel, size: number, room: number)
+	local wide = width(t.Text, size)
+	if wide > room then
+		t.TextSize = math.floor(size * room / wide)
+	end
+end
+
+local function buildRibbon(
+	parent: Instance,
+	look: any,
+	layout: any,
+	won: boolean,
+	subText: string
+): (Frame, Frame)
 	local rb: Box = layout.ribbon
 	local ribbon = frame(parent, "Ribbon", rb, 20)
 	local art = image(
@@ -334,16 +397,17 @@ local function buildRibbon(parent: Instance, look: any, layout: any, won: boolea
 
 	local sb: Box = layout.sub
 	local sub = block(parent, "SubPlate", sb, 26, look.sub)
-	text(
+	local words = text(
 		sub,
 		"Text",
-		{ x = 0, y = 0, w = sb.w, h = sb.h - (look.sub.bottomH or 0) + 4 },
+		{ x = 16, y = 0, w = sb.w - 32, h = sb.h - (look.sub.bottomH or 0) + 4 },
 		29,
-		look.subText,
+		subText,
 		look.text.sub,
 		look.subTextColour,
 		look.text.subStroke
 	)
+	oneLine(words, look.text.sub, sb.w - 32)
 	if look.studs then
 		for _, at in { { 30, 30 }, { sb.w - 30, 30 }, { 30, sb.h - 34 }, { sb.w - 30, sb.h - 34 } } do
 			cube(sub, at[1], at[2], 30, 28, look.studs)
@@ -355,15 +419,37 @@ local function buildRibbon(parent: Instance, look: any, layout: any, won: boolea
 	return ribbon, sub
 end
 
-local function buildHero(parent: Instance, layout: any, won: boolean): ImageLabel
+--[[ `stars` is how many stars the level won now holds (`Util/StarRules`):
+     that many of the trophy's three are gold, the rest dark shapes. Nil for
+     a win with no stars to count (the tutorial): all three, as the picture
+     always had. ]]
+local function buildHero(parent: Instance, layout: any, won: boolean, stars: number?): ImageLabel
 	local hero = image(
 		parent,
 		"Hero",
 		layout.hero,
 		8,
-		if won then EndScreenAssets.heroVictory else EndScreenAssets.heroDefeat
+		if won then EndScreenAssets.heroTrophy else EndScreenAssets.heroDefeat
 	)
 	hero.ScaleType = Enum.ScaleType.Stretch
+	if won then
+		for at, piece in EndScreenAssets.heroStars do
+			local star = Instance.new("ImageLabel")
+			star.Name = "Star" .. at
+			star.BackgroundTransparency = 1
+			star.Image = piece.image
+			star.ScaleType = Enum.ScaleType.Stretch
+			star.ResampleMode = Enum.ResamplerMode.Pixelated
+			star.Position = UDim2.fromScale(piece.box[1], piece.box[2])
+			star.Size = UDim2.fromScale(piece.box[3], piece.box[4])
+			star.ZIndex = hero.ZIndex
+			if stars and at > stars then
+				star.ImageColor3 = Color3.new(0, 0, 0)
+				star.ImageTransparency = 0.62
+			end
+			star.Parent = hero
+		end
+	end
 	pivot(hero)
 	return hero
 end
@@ -490,9 +576,12 @@ local function progressBar(r: Frame, look: any, layout: any): (number) -> ()
 	end
 end
 
---[[ Victory's chest slot, under the coins and gems: the chest of the
-     stage's area, its sparkles, CHEST and how many. Dimmed while the run
-     gave none (until chests exist, always). ]]
+--[[ Victory's chest slot, under the coins and gems: what the run gave
+     beyond them. A level's first clear gives its area's egg (shown, then
+     opened with the hatchery's reveal); a boss its item, at the slot's right
+     end beside the egg, or in the slot when there is no egg. A run that
+     gave none of them has no row at all (`EndScreenRules.chestRow`): a
+     dimmed "CHEST x0" read as "you got nothing". ]]
 local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summary): Count
 	local c = layout.chest
 	local rb: Box = layout.rewards
@@ -507,9 +596,21 @@ local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summar
 	local stage = Balance.Stages[summary.stage]
 	local area = (stage and stage.area) or "MossyGlade"
 	local chests: { [string]: string } = EndScreenAssets.chests
-	local count = summary.chests or 0
+	local egg = summary.egg
+	local item = summary.item
+	local picture, word = chests[area] or chests.MossyGlade, "CHEST"
+	if egg then
+		local art = GearAssets.eggs[egg.key]
+		picture = if art then art.whole else (GearAssets.areaPictures.eggs[area] or picture)
+		word = "FREE EGG"
+	elseif item then
+		picture = ShopAssets.items[item] or picture
+		local info = Economy.items[item]
+		word = if info then info.name else "BOSS ITEM"
+	end
+	local count = if egg or item then 1 else summary.chests or 0
 	local dim = if count > 0 then 0 else look.chestDim
-	local chest = image(slot, "Chest", c.icon, 36, chests[area] or chests.MossyGlade)
+	local chest = image(slot, "Chest", c.icon, 36, picture)
 	chest.ImageTransparency = dim
 	for _, at in c.sparkles do
 		cube(slot, at[1], at[2], c.sparkle, 36, look.cubes).ImageTransparency = dim
@@ -517,14 +618,27 @@ local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summar
 	local label = text(
 		slot,
 		"Label",
-		{ x = c.labelX, y = 3, w = 260, h = sb.h },
+		{ x = c.labelX, y = 3, w = c.countRight - 160 - c.labelX, h = sb.h },
 		36,
-		"CHEST",
+		word,
 		look.text.reward,
 		WHITE,
 		look.text.rewardStroke
 	)
 	label.TextXAlignment = Enum.TextXAlignment.Left
+	fitted(label, look.text.reward)
+	--[[ The boss item beside an egg: its picture at the slot's right end,
+	     past the count. ]]
+	if egg and item and ShopAssets.items[item] then
+		local size = math.min(sb.w - c.countRight - 8, sb.h - 16)
+		image(
+			slot,
+			"Item",
+			{ x = c.countRight + 4, y = (sb.h - size) / 2, w = size, h = size },
+			37,
+			ShopAssets.items[item]
+		)
+	end
 	local v = text(
 		slot,
 		"Value",
@@ -549,11 +663,6 @@ export type Stats = {
 	rewardCounts: { Count },
 }
 
-local function levelOf(index: number): string?
-	local stage = Balance.Stages[index]
-	return stage and stage.level
-end
-
 local function buildStats(content: Instance, look: any, layout: any, summary: Summary): Stats
 	--[[ Everything on the stats panel in one group, so it can slide in as
 	     one piece. ]]
@@ -565,11 +674,8 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		layout.tab,
 		40,
 		look.tab,
-		-- the tutorial is not a numbered level (`Config/Tutorial`); an area's
-		-- levels go by their own numbers ("LEVEL 1-3")
-		if summary.stage == Balance.tutorialStage
-			then "TUTORIAL"
-			else "LEVEL " .. (levelOf(summary.stage) or tostring(summary.stage)),
+		-- TUTORIAL, or the level as its portal names it (`Util/EndScreenRules`)
+		EndScreenRules.levelTab(summary.stage, summary.hard),
 		look.text.tab,
 		look.text.tabStroke,
 		look.tabStuds
@@ -611,6 +717,22 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 			"Percent",
 			summary.healthPercent
 		)
+	elseif summary.endless then
+		-- Endless has no last floor to measure against: the floor itself
+		local endless = summary.endless
+		add(
+			row(
+				group,
+				look,
+				layout,
+				3,
+				EndScreenAssets.chart,
+				EndScreenRules.floorLabel(endless),
+				tostring(endless.floor)
+			),
+			"Count",
+			endless.floor
+		)
 	else
 		local r = row(
 			group,
@@ -642,11 +764,32 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		if look.rewardsTabBlock then nil else look.tabStuds
 	)
 	local rewardCounts: { Count } = {}
+	--[[ Without the chest row the coins and gems move down into the middle
+	     of what the two rows took between them. ]]
+	local chestRow = layout.chest ~= nil and EndScreenRules.chestRow(summary)
+	local drop = 0
+	if layout.chest and not chestRow then
+		local cs: Box = layout.chest.slot
+		local first: Box = layout.slots[1]
+		drop = math.floor((cs.y + cs.h - first.y - first.h) / 2)
+	end
+	--[[ A run that paid no gems shows the coins alone, in the middle of
+	     the two slots (the run-through, 2026-11-14: "a +0 diamond slot on
+	     every end screen"). A win with chests to pick keeps the diamond:
+	     a chest's gems are counted there. ]]
+	local gemless = (summary.gems or 0) == 0 and not (summary.won and summary.streak ~= nil)
 	for i, sb in layout.slots do
+		if gemless and i == 2 then
+			break
+		end
+		if gemless then
+			local other: Box = layout.slots[2]
+			sb = { x = (sb.x + other.x) / 2, y = (sb.y + other.y) / 2, w = sb.w, h = sb.h }
+		end
 		local slot = block(
 			rewards,
 			"Slot" .. i,
-			{ x = sb.x - rb.x, y = sb.y - rb.y, w = sb.w, h = sb.h },
+			{ x = sb.x - rb.x, y = sb.y - rb.y + drop, w = sb.w, h = sb.h },
 			34,
 			look.slot
 		)
@@ -656,7 +799,7 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 			"Icon",
 			{ x = layout.slotIconX, y = (sb.h - size) / 2, w = size, h = size },
 			36,
-			if i == 1 then EndScreenAssets.coin else EndScreenAssets.gem
+			if i == 1 then ShopAssets.coin else ShopAssets.gem
 		)
 		local target = (if i == 1 then summary.coins else summary.gems) or 0
 		local v = text(
@@ -672,7 +815,7 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		v.TextXAlignment = Enum.TextXAlignment.Left
 		table.insert(rewardCounts, { label = v, kind = "Plus", target = target })
 	end
-	if layout.chest then
+	if chestRow then
 		table.insert(rewardCounts, chestSlot(rewards, look, layout, summary))
 	end
 	pivot(rewards)
@@ -695,7 +838,13 @@ export type ButtonParts = {
 	shine: Frame,
 }
 
-local function buildButton(content: Instance, look: any, layout: any, won: boolean): ButtonParts
+local function buildButton(
+	content: Instance,
+	look: any,
+	layout: any,
+	won: boolean,
+	words: string
+): ButtonParts
 	local lb: Box = layout.button
 	local group = frame(content, "ButtonGroup", lb, 50)
 	local face = block(group, "Face", { x = 0, y = 0, w = lb.w, h = lb.h }, 50, look.button)
@@ -784,7 +933,6 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Parent = inner
 
-	local words = look.buttonText
 	local label = text(
 		inner,
 		"Text",
@@ -792,7 +940,7 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 		57,
 		words,
 		look.text.button,
-		WHITE,
+		look.buttonWords,
 		look.text.buttonStroke
 	)
 	local icon: ImageLabel
@@ -812,6 +960,44 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 	return { group = group, button = button, icon = icon, shine = shine }
 end
 
+--[[ BACK TO LOBBY, under the main button (owner, 2026-11-08). Its face is the
+     main button's block; what takes the press reaches past the face at the
+     bottom and sides, since on a phone held sideways this button is short. ]]
+local function buildLobbyButton(content: Instance, look: any, layout: any): (Frame, TextButton)
+	local lb: Box = layout.lobbyButton
+	local group = frame(content, "LobbyButtonGroup", lb, 50)
+	block(group, "Face", { x = 0, y = 0, w = lb.w, h = lb.h }, 50, look.lobbyButton)
+	local words = "BACK TO LOBBY"
+	local size = look.text.lobbyButton
+	local wide = width(words, size) + 12
+	local faceHeight = lb.h - look.lobbyButton.bottomH
+	text(
+		group,
+		"Text",
+		{ x = (lb.w - wide) / 2, y = (faceHeight - 70) / 2, w = wide, h = 70 },
+		57,
+		words,
+		size,
+		WHITE,
+		look.text.lobbyButtonStroke
+	)
+	local press = Instance.new("TextButton")
+	press.Name = "Button"
+	press.Position = UDim2.fromOffset(-16, 0)
+	press.Size = UDim2.new(1, 32, 1, 18)
+	press.BackgroundTransparency = 1
+	press.AutoButtonColor = false
+	press.Text = ""
+	press.ZIndex = 60
+	press.Parent = group
+	pivot(group)
+	return group, press
+end
+
+--[[ The class level plate (`UI/ClassLevelPlate`) of the screen showing,
+     nil when the run paid the class nothing. ]]
+local levelPlate: Frame? = nil
+
 local function fit()
 	if not scaler then
 		return
@@ -825,14 +1011,28 @@ local function fit()
 		view.Y * (if Device.isPhone() then PHONE_HEIGHT_SHARE else HEIGHT_SHARE) / CANVAS.Y,
 		view.X * (if Device.isPhone() then PHONE_WIDTH_SHARE else WIDTH_SHARE) / CANVAS.X
 	)
+	if levelPlate then
+		local x, y, w, h = EndScreenRules.levelPlate(
+			view.X,
+			view.Y,
+			CANVAS.X * scaler.Scale,
+			CANVAS.Y * scaler.Scale,
+			ClassLevelPlate.W,
+			ClassLevelPlate.H
+		)
+		levelPlate.Position = UDim2.fromOffset(x, y)
+		levelPlate.Size = UDim2.fromOffset(w, h)
+	end
 end
 
 function EndScreen.hide()
+	VictoryChests.close()
 	if gui then
 		gui:Destroy()
 		gui = nil
 	end
 	scaler = nil
+	levelPlate = nil
 	if viewportConnection then
 		viewportConnection:Disconnect()
 		viewportConnection = nil
@@ -974,11 +1174,32 @@ function EndScreen.show(summary: Summary)
 	end
 
 	local cubes = buildCubes(content, look, layout)
-	local ribbon, sub = buildRibbon(content, look, layout, won)
-	local hero = buildHero(content, layout, won)
+	--[[ The nudge (review item 9): Victory names an egg the coins buy;
+	     Defeat's line is how to come back stronger. ]]
+	local subText = if won
+		then (if summary.canHatch and look.hatchText then look.hatchText else look.subText)
+		else EndScreenRules.defeatLine(summary.endless, summary.petsFull)
+	local ribbon, sub = buildRibbon(content, look, layout, won, subText)
+	local levelStars = summary.stars
+	local hero = buildHero(
+		content,
+		layout,
+		won,
+		if levelStars and type(levelStars.now) == "number"
+			then StarRules.count(levelStars.now)
+			else nil
+	)
 	local stats = buildStats(content, look, layout, summary)
-	local buttonParts = buildButton(content, look, layout, won)
+	-- NEXT LEVEL, or CONTINUE where it leads to the lobby (`EndScreenRules`)
+	local buttonParts = buildButton(
+		content,
+		look,
+		layout,
+		won,
+		EndScreenRules.buttonWords(won, summary.stage, summary.hard)
+	)
 	local button = buttonParts.button
+	local lobbyGroup, lobbyPress = buildLobbyButton(content, look, layout)
 
 	local played = EndScreenMotion.play({
 		won = won,
@@ -1001,6 +1222,7 @@ function EndScreen.show(summary: Summary)
 		rewards = stats.rewards,
 		rewardCounts = stats.rewardCounts,
 		buttonGroup = buttonParts.group,
+		lobbyGroup = lobbyGroup,
 		icon = buttonParts.icon,
 		shine = buttonParts.shine,
 	})
@@ -1010,6 +1232,10 @@ function EndScreen.show(summary: Summary)
 	     ready is read before the jump, so the tap that skips is never also
 	     taken as a press. ]]
 	local readyAtTap = false
+	--[[ And whether a reveal or the three chests were up as the tap began:
+	     the tap that hurries a reveal along is never also a press, even if
+	     the reveal is gone by the time the tap ends. ]]
+	local busyAtTap = false
 	inputConnection = UserInputService.InputBegan:Connect(function(input: InputObject)
 		local kind = input.UserInputType
 		if
@@ -1018,17 +1244,28 @@ function EndScreen.show(summary: Summary)
 			or input.KeyCode == Enum.KeyCode.ButtonA
 		then
 			readyAtTap = played.ready()
+			busyAtTap = Reveal.busy() or VictoryChests.busy()
 			played.skip()
 		end
 	end)
 
 	local shownAt = os.clock()
 	local pressed = false
+	--[[ Victory's three chests are still to be picked (`UI/VictoryChests`):
+	     the buttons wait for them, as they wait for a reveal. ]]
+	local chestsOwed = won and summary.streak ~= nil
+	local function held(): boolean
+		return Reveal.busy() or chestsOwed or VictoryChests.busy()
+	end
 	button.Activated:Connect(function()
-		if pressed or not readyAtTap then
+		-- never under the free egg's reveal (a gamepad's A reaches both)
+		if pressed or not readyAtTap or busyAtTap or held() then
 			return
 		end
 		pressed = true
+		-- the press answers at once: a click and a ring (`Kit.ring`)
+		SoundFx.play("card_click")
+		Kit.ring(button.Parent :: GuiObject)
 		--[[ The server takes the request only once the run has been over for
 		     `deathPause`; after a skip the button can be ready sooner, so the
 		     request waits out the difference rather than being refused. ]]
@@ -1039,6 +1276,113 @@ function EndScreen.show(summary: Summary)
 			end
 		end)
 	end)
+
+	--[[ Straight away, unlike the main button: the server has no wait on
+	     leaving. Coins and a beaten level were banked as the run ended. ]]
+	lobbyPress.Activated:Connect(function()
+		if pressed or not readyAtTap or busyAtTap or held() then
+			return
+		end
+		pressed = true
+		SoundFx.play("card_click")
+		Kit.ring(lobbyPress.Parent :: GuiObject)
+		if onLobby and gui == screen then
+			onLobby()
+		end
+	end)
+
+	--[[ The class's own level (`Config/ClassLevels`): its plate beside the
+	     panel (under it on an upright screen), the bar filling with what
+	     the run paid once the entrance has played, each level reached
+	     popping with its gift, and the golden weapon's card at level 10. ]]
+	local gain = summary.classXp
+	levelPlate = nil
+	if gain then
+		local plateFrame = Instance.new("Frame")
+		plateFrame.Name = "ClassLevel"
+		plateFrame.BackgroundTransparency = 1
+		plateFrame.ZIndex = 90
+		plateFrame.Parent = screen
+		levelPlate = plateFrame
+		local plate = ClassLevelPlate.build(plateFrame, gain.class, gain.before)
+		task.spawn(function()
+			while gui == screen and not played.ready() do
+				task.wait(0.1)
+			end
+			if gui ~= screen then
+				return
+			end
+			plate.play(gain, function()
+				local function clear()
+					while gui == screen and (Reveal.busy() or chestsOwed or VictoryChests.busy()) do
+						task.wait(0.1)
+					end
+				end
+				--[[ A level's free crate or egg (`Config/ClassLevels.gifts`),
+				     opened by the server already: each with its own reveal,
+				     one after the other, once nothing else is up. ]]
+				local prizes: { any } = gain.prizes or {}
+				for _, prize in prizes do
+					clear()
+					if gui ~= screen then
+						return
+					end
+					if type(prize) == "table" and type(prize.results) == "table" then
+						if prize.kind == "Egg" and type(prize.key) == "string" then
+							Reveal.eggs(prize.key, prize.results)
+						elseif prize.kind == "Crate" and type(prize.key) == "number" then
+							Reveal.crates(prize.key, prize.results)
+						end
+						task.wait(0.2)
+					end
+				end
+				local weapon = gain.weapon
+				if not weapon then
+					return
+				end
+				clear()
+				if gui == screen then
+					ClassLevelPlate.unlock(screen, weapon)
+				end
+			end)
+		end)
+	end
+
+	--[[ The first clear's free egg opens with the hatchery's reveal once
+	     the entrance has played (or been skipped), over this screen; then
+	     the three chests of a level won come up to be picked. ]]
+	local egg = summary.egg
+	if won and (egg or chestsOwed) then
+		task.spawn(function()
+			while gui == screen and not played.ready() do
+				task.wait(0.1)
+			end
+			if gui == screen and egg then
+				Reveal.eggs(egg.key, { { pet = egg.pet, new = egg.new } })
+				task.wait(0.2)
+				while gui == screen and Reveal.busy() do
+					task.wait(0.1)
+				end
+			end
+			if gui == screen and chestsOwed then
+				VictoryChests.open(summary.streak, summary.stars, function(prize)
+					chestsOwed = false
+					--[[ The chest's coins or gems join what the run paid, so
+					     the panel remembers them (the run-through,
+					     2026-11-14: "Victory forgets the chest"). ]]
+					local at = if prize and prize.kind == "coins"
+						then 1
+						elseif prize and prize.kind == "gems" then 2
+						else nil
+					local count = if at then stats.rewardCounts[at] else nil
+					if prize and count and gui == screen then
+						count.target += prize.amount
+						count.label.Text = "+" .. tostring(count.target)
+					end
+				end)
+			end
+		end)
+	end
 
 	fit()
 	local camera = Workspace.CurrentCamera
@@ -1057,10 +1401,12 @@ function EndScreen.hold(ms: number?)
 	end
 end
 
---[[ `restart` is called when the player presses the button; the caller asks
-     the server, which decides. ]]
-function EndScreen.start(restart: () -> ())
+--[[ `restart` and `lobby` are called when the player presses those buttons;
+     the caller asks the server, which decides. ]]
+function EndScreen.start(restart: () -> (), lobby: () -> ())
 	onRestart = restart
+	onLobby = lobby
+	VictoryChests.start()
 	--[[ Load the screens' images now, in the background: a run can end at
 	     any moment, and art fetched only then pops in after the screen
 	     (seen in Studio: the icons and the retry arrow came in late). ]]
@@ -1073,6 +1419,9 @@ function EndScreen.start(restart: () -> ())
 	local chests: { [string]: string } = EndScreenAssets.chests
 	for _, id in chests do
 		table.insert(images, id)
+	end
+	for _, star in EndScreenAssets.heroStars do
+		table.insert(images, star.image)
 	end
 	task.spawn(function()
 		ContentProvider:PreloadAsync(images)

@@ -1,0 +1,215 @@
+--!strict
+--[[
+	Endless milestones pay in eggs and crates (`Balance.Endless.milestones`,
+	`Util/PrizeRules`; owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5
+	CRATES ... I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"). Held here:
+	every milestone gives something real and says so truthfully, and a
+	guarantee can always be met from the pools the game has.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
+local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
+local TestRunner = require(script.Parent.TestRunner)
+
+return function(t: TestRunner.Helper)
+	t.test("every milestone gives at least five of something real", function()
+		local last = 0
+		for _, milestone in Balance.Endless.milestones do
+			t.isTrue(milestone.floor > last, "milestones are in floor order")
+			last = milestone.floor
+			local eggs, crates = milestone.eggs or 0, milestone.crates or 0
+			t.isTrue(eggs + crates >= 5, `floor {milestone.floor} gives fewer than five`)
+			t.isTrue(milestone.soulstones > 0, `floor {milestone.floor} pays no Soulstones`)
+			if milestone.rarity then
+				t.notNil(EggRules.ORDER[milestone.rarity], `{milestone.rarity} is not a rarity`)
+			end
+		end
+	end)
+
+	t.test("a milestone's name says what it gives", function()
+		for _, milestone in Balance.Endless.milestones do
+			local name = milestone.name
+			local eggs, crates = milestone.eggs or 0, milestone.crates or 0
+			t.equal(string.find(name, "EGG") ~= nil, eggs > 0, `{name}: eggs`)
+			t.equal(string.find(name, "CRATE") ~= nil, crates > 0, `{name}: crates`)
+			if eggs > 0 then
+				t.notNil(string.find(name, tostring(eggs), 1, true), `{name} hides its {eggs} eggs`)
+			end
+			if crates > 0 then
+				t.notNil(
+					string.find(name, tostring(crates), 1, true),
+					`{name} hides its {crates} crates`
+				)
+			end
+		end
+	end)
+
+	--[[ Room 100 gives a pick of the Voidglass set (owner, 2026-11-19: "a
+	     choice BETWEEN THE MYTHICS AND LEGENDARIES FOR ALL CLASSES", "the
+	     space and sakura ones"): the Nebula Blade, a Mythic, or its bow,
+	     staff or daggers, one for every class. Its name says so. ]]
+	t.test("a milestone's set pick has a weapon for every class, and its name names it", function()
+		local last = Balance.Endless.milestones[#Balance.Endless.milestones]
+		t.equal(last.floor, 100)
+		t.equal(last.pick, "Voidglass")
+		for _, milestone in Balance.Endless.milestones do
+			local pick = milestone.pick
+			if pick then
+				local set = ShopRules.set(pick)
+				t.isTrue(set ~= nil and set.stocked == true, `{pick} is not a stocked set`)
+				local classes: { [string]: boolean } = {}
+				for _, entry in RewardPickRules.options(pick) do
+					classes[entry.class] = true
+				end
+				for _, class in ClassList.open() do
+					t.isTrue(classes[class] == true, `{pick} has nothing for the {class}`)
+				end
+				t.notNil(
+					string.find(milestone.name, if set then set.name else pick, 1, true),
+					`{milestone.name} does not name the {pick} set`
+				)
+			end
+		end
+	end)
+
+	t.test("a new player has an egg and a crate to be given", function()
+		local key = PrizeRules.eggKey({})
+		t.notNil(key, "no egg is open to a brand-new player")
+		if key then
+			t.isTrue(#EggRules.pool(key) > 0, "the prize egg has pets in it")
+		end
+		for _, chest in Shop.chests do
+			local index = PrizeRules.crateIndex(chest.class)
+			t.notNil(index, `no crate has weapons for a {chest.class}`)
+			if index then
+				t.isTrue(#ShopRules.cratePool(index, chest.class) > 0)
+			end
+		end
+	end)
+
+	--[[ The every-class run-through, 2026-11-16: a prize follows progress
+	     whichever way the launch switch is. A Ranger who had beaten nothing
+	     was given Bogheart's crate and egg in a playtest. ]]
+	t.test("a new player's prizes are the first area's", function()
+		t.equal(PrizeRules.eggKey({}), Eggs.list[1].key)
+		t.equal(PrizeRules.eggKey(nil), Eggs.list[1].key)
+		for _, chest in Shop.chests do
+			if #ShopRules.cratePool(1, chest.class) > 0 then
+				t.equal(PrizeRules.crateIndex(chest.class, {}), 1, chest.class)
+				t.equal(PrizeRules.crateIndex(chest.class, nil), 1, chest.class)
+			end
+		end
+	end)
+
+	t.test("a prize crate or egg is never from an area not reached", function()
+		local order = {}
+		for _, crate in Shop.crates do
+			table.insert(order, crate.area)
+		end
+		local beaten: { [string]: boolean } = {}
+		-- with nothing beaten, then as each area's boss falls in turn
+		local function check()
+			local key = PrizeRules.eggKey(beaten)
+			local egg = if key then EggRules.find(key) else nil
+			if egg and egg.atLaunch then
+				t.isTrue(beaten[egg.atLaunch] == true, `{egg.key} given before {egg.atLaunch}`)
+			end
+			for _, chest in Shop.chests do
+				local index = PrizeRules.crateIndex(chest.class, beaten)
+				local crate = if index then Shop.crates[index] else nil
+				if crate and crate.atLaunch then
+					t.isTrue(
+						beaten[crate.atLaunch] == true,
+						`{crate.area}'s crate given before {crate.atLaunch}`
+					)
+				end
+			end
+		end
+		check()
+		for _, area in order do
+			beaten[area] = true
+			check()
+		end
+	end)
+
+	t.test("with every boss beaten the prizes are the furthest stocked", function()
+		local everything = {}
+		for _, crate in Shop.crates do
+			everything[crate.area] = true
+		end
+		for _, chest in Shop.chests do
+			local furthest: number? = nil
+			for index in Shop.crates do
+				if #ShopRules.cratePool(index, chest.class) > 0 then
+					furthest = math.max(furthest or 0, index)
+				end
+			end
+			t.equal(PrizeRules.crateIndex(chest.class, everything), furthest, chest.class)
+		end
+		local best = PrizeRules.eggKey(everything)
+		local expected: string? = nil
+		for _, egg in Eggs.list do
+			if #EggRules.pool(egg.key) > 0 then
+				expected = egg.key
+			end
+		end
+		t.equal(best, expected)
+	end)
+
+	t.test("a guarantee gives the named rarity when the pool has it", function()
+		local pool = {
+			{ rarity = "Common" },
+			{ rarity = "Rare" },
+			{ rarity = "Legendary" },
+			{ rarity = "Legendary" },
+			{ rarity = "Mythic" },
+		}
+		local sure = PrizeRules.guaranteed(pool, "Legendary")
+		t.equal(#sure, 2, "both Legendaries, and not the Mythic")
+		for _, entry in sure do
+			t.equal(entry.rarity, "Legendary")
+		end
+		t.equal(PrizeRules.guaranteed(pool, "Mythic")[1].rarity, "Mythic")
+		t.equal(PrizeRules.guaranteed(pool, "Epic")[1].rarity, "Legendary", "the next one up")
+	end)
+
+	t.test("a guarantee the pool cannot meet gives its best, never nothing", function()
+		local pool = { { rarity = "Common" }, { rarity = "Rare" } }
+		local sure = PrizeRules.guaranteed(pool, "Mythic")
+		t.equal(#sure, 1)
+		t.equal(sure[1].rarity, "Rare")
+	end)
+
+	t.test("every milestone's guarantee can be met from the real pools", function()
+		for _, milestone in Balance.Endless.milestones do
+			local least = milestone.rarity
+			if least then
+				if (milestone.eggs or 0) > 0 then
+					for _, egg in Eggs.list do
+						local pool = EggRules.pool(egg.key)
+						if #pool > 0 then
+							t.isTrue(#PrizeRules.guaranteed(pool, least) > 0, egg.key)
+						end
+					end
+				end
+				if (milestone.crates or 0) > 0 then
+					for _, chest in Shop.chests do
+						local index = PrizeRules.crateIndex(chest.class)
+						if index then
+							local pool = ShopRules.cratePool(index, chest.class)
+							t.isTrue(#PrizeRules.guaranteed(pool, least) > 0, chest.class)
+						end
+					end
+				end
+			end
+		end
+	end)
+end

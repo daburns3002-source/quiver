@@ -15,10 +15,13 @@ local Workspace = game:GetService("Workspace")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Analytics = require(script.Parent.Parent.Data.Analytics)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Boosts = require(script.Parent.Parent.Data.Boosts)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
@@ -27,13 +30,21 @@ local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoic
 local Loadout = require(script.Parent.Loadout)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MenuHold = require(ReplicatedStorage.Shared.Util.MenuHold)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
+local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
+local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
-local PlayerData = require(script.Parent.Parent.Data.PlayerData)
+local Premium = require(script.Parent.Parent.Data.Premium)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Rewards = require(script.Parent.Parent.Data.Rewards)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
+local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local TutorialHands = require(ReplicatedStorage.Shared.Util.TutorialHands)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
@@ -85,6 +96,11 @@ export type Session = {
 	--[[ The class upgrades beside the shot (`Combat/ClassUpgrades`, which
 	     keeps their counters and timers). ]]
 	upgrades: AbilityEffects.UpgradeStats,
+	--[[ Mana Surge: a kill has charged the next cast (spent by
+	     `ClassUpgrades.spendSurge`). Arcane Shield: when the shield is up
+	     again (os.clock); up now when it is past. ]]
+	surgeReady: boolean,
+	shieldUpAt: number,
 	casts: number,
 	lastDashAt: number,
 	--[[ Share of max health Second Wind revives with (0 without it), and
@@ -97,6 +113,14 @@ export type Session = {
 	     attacking `petHaste` faster until `petHasteUntil` (os.clock). ]]
 	petGuard: boolean,
 	petReviveUsed: boolean,
+	--[[ The run's one Robux revive (`Data/Purchases`) is spent. ]]
+	paidReviveUsed: boolean,
+	--[[ What the passes' coin bonus has left over, under a whole coin, carried
+	     to the next kill or clear (`Util/StoreRules.scaleCoins`). ]]
+	coinCarry: number,
+	--[[ The win streak this run began with (`Util/RunBonus`): 0 outside a
+	     campaign level. Set by `RoomController` as the level starts. ]]
+	streak: number,
 	petHaste: number,
 	petHasteUntil: number,
 	--[[ The Slate Turtle's Roof Huddle (`Shared/Util/Shelter`): while
@@ -104,6 +128,11 @@ export type Session = {
 	     `petShelterCut`. A cut, not a block: see `Util/Shelter`. ]]
 	petShelterCut: number,
 	petShelterUntil: number,
+	--[[ The Bog Beaver's Mud Plaster (`Shared/Util/MudCoat`): while
+	     `petCoatUntil` (os.clock) is ahead, hits drain `petCoat` before
+	     they reach health. A pool, not a cut or a block. ]]
+	petCoat: number,
+	petCoatUntil: number,
 	--[[ `os.clock()` the owner last actually lost health, which is what
 	     arms the Buoy Puffer's Payback Puff (`Combat/PetCombat`). Set only
 	     where damage landed: a dodge, a guard and a shelter that took it
@@ -119,6 +148,12 @@ export type Session = {
 	--[[ This stage's payouts so far, for the end screen's REWARDS box. ]]
 	stageCoins: number,
 	stageGems: number,
+	--[[ Rooms, waves or floors cleared that the class's own level has not
+	     been paid for yet (`Config/ClassLevels`; `Run/RoomController` pays
+	     as the run ends). ]]
+	classClears: number,
+	--[[ The boss item this stage paid (`payBoss`), shown on Victory. ]]
+	stageItem: string?,
 	stageStartedAt: number,
 	--[[ Still on the intro's title screen: the run holds until they press
 	     BEGIN ADVENTURE (`Remotes.IntroBegin`). ]]
@@ -130,8 +165,11 @@ export type Session = {
 	     2026-10-25). ]]
 	seenEnemies: { [string]: boolean },
 	meeting: { string },
-	--[[ When (os.clock) MENU's panel stops holding the world; 0 when shut. ]]
-	menuUntil: number,
+	--[[ Until when a first-time tip holds the run for this player
+	     (`anyReadingTip`), nil when none is up. ]]
+	tipUntil: number?,
+	--[[ MENU's panel's hold on the world (`Util/MenuHold`), on os.clock. ]]
+	menu: MenuHold.State,
 	--[[ The tutorial's fixed hands dealt to this player so far this stage
 	     (`Util/TutorialHands`). ]]
 	tutorialProgress: TutorialHands.Progress,
@@ -144,6 +182,15 @@ export type Session = {
 	--[[ Revives left this stage, and `os.clock()` until which nothing hurts
 	     the player — set by a revive. ]]
 	revivesLeft: number,
+	--[[ Co-op (`Shared/Util/Coop`): down at zero health, waiting on a
+	     teammate (`downedAt` is when, `reviveProgress` how far a revive has
+	     come, seconds), or `out` once the bleed-out ran down, until the
+	     next room. Either way `alive` is false, so nothing targets them,
+	     they fire nothing and heal nothing. ]]
+	downed: boolean,
+	out: boolean,
+	downedAt: number,
+	reviveProgress: number,
 	invulnerableUntil: number,
 	--[[ A melee class's guard: untouchable from `guardFrom` until
 	     `guardUntil`, while its blade is moving (`Combat/MeleeSystem`). ]]
@@ -224,6 +271,20 @@ local petAttack = Remotes.event(Remotes.PetAttack)
 --[[ Seconds between health updates sent for regeneration alone. ]]
 local REGEN_SEND_INTERVAL = 0.25
 
+--[[ Whether `player` came here by the game's own teleport (a party portal
+     to a run server, or a run server back to a lobby, `Run/Party`), and so
+     has already been through the title screen. ]]
+function RunSession.arrivedByTeleport(player: Player): boolean
+	local ok, data = pcall(function()
+		return player:GetJoinData().TeleportData
+	end)
+	return ok
+		and type(data) == "table"
+		and (data :: any).arrowborne == true
+		-- sent to the tutorial on join, before the title: it plays here
+		and (data :: any).story ~= true
+end
+
 function RunSession.create(player: Player): Session
 	local session: Session = {
 		player = player,
@@ -248,7 +309,43 @@ function RunSession.create(player: Player): Session
 		damageTaken = 1,
 		meteor = 0,
 		earthbreaker = 0,
-		upgrades = { phoenix = 0, arrowRain = 0, blackHole = 0, elemental = 0, turret = 0 },
+		upgrades = {
+			phoenix = 0,
+			arrowRain = 0,
+			blackHole = 0,
+			elemental = 0,
+			turret = 0,
+			sniper = 0,
+			splitShot = 0,
+			manaSurge = 0,
+			shieldThrow = 0,
+			bladeStorm = 0,
+			wind = 0,
+			frost = 0,
+			webSnare = 0,
+			thornBurst = 0,
+			rootHold = 0,
+			burrBlight = 0,
+			arcaneShield = 0,
+			quickstep = 0,
+			poisonTrail = 0,
+			fanOfKnives = 0,
+			deathMark = 0,
+			phantomBlades = 0,
+			thousandCuts = 0,
+			wishingStar = 0,
+			spurRowel = 0,
+			splashWave = 0,
+			comboCounter = 0,
+			cometCrash = 0,
+			bellChime = 0,
+			lavaBurst = 0,
+			splitOrb = 0,
+			gravityWell = 0,
+			orbitingOrb = 0,
+		},
+		surgeReady = false,
+		shieldUpAt = 0,
 		casts = 0,
 		lastDashAt = -math.huge,
 		melee = {
@@ -264,15 +361,28 @@ function RunSession.create(player: Player): Session
 			parry = 0,
 			reachScale = 1,
 			counterStrike = 0,
+			sunder = 0,
+			boarRush = 0,
+			ruinCracks = 0,
+			backstab = 0,
+			serrated = 0,
+			bleed = 0,
+			echoSlash = 0,
+			riposte = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
 		petGuard = false,
 		petReviveUsed = false,
+		paidReviveUsed = false,
+		coinCarry = 0,
+		streak = 0,
 		petHaste = 0,
 		petHasteUntil = 0,
 		petShelterCut = 0,
 		petShelterUntil = 0,
+		petCoat = 0,
+		petCoatUntil = 0,
 		lastHurtAt = 0,
 		swingCount = 0,
 		battleCryStacks = 0,
@@ -280,16 +390,26 @@ function RunSession.create(player: Player): Session
 		stageKills = 0,
 		stageCoins = 0,
 		stageGems = 0,
+		classClears = 0,
+		stageItem = nil,
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
-		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
+		-- and a player teleported here by a party portal or back from a run
+		-- has already been through it (`Run/Party`)
+		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true)
+			and not RunSession.arrivedByTeleport(player),
 		seenEnemies = {},
 		meeting = {},
-		menuUntil = 0,
+		tipUntil = nil,
+		menu = MenuHold.new(CombatTuning.menuHold),
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
 		xpArriving = {},
 		revivesLeft = Balance.Revive.perStage,
+		downed = false,
+		out = false,
+		downedAt = 0,
+		reviveProgress = 0,
 		invulnerableUntil = 0,
 		guardFrom = 0,
 		guardUntil = 0,
@@ -334,7 +454,10 @@ function RunSession.applyLoadout(session: Session)
 
 	local ratio = if session.maxHealth > 0 then session.health / session.maxHealth else 1
 
-	session.damage = stats.damage
+	-- the held weapon's merge tier (`Util/MergeRules`, owner 2026-10-28)
+	local own = Classes[class]
+	local tier = Wallet.weaponTier(session.player, equipped or (own and own.weapon))
+	session.damage = stats.damage * (MergeRules.weaponScale[tier] or 1)
 	session.maxHealth = stats.maxHealth
 	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
 	session.attackCooldown = stats.attackCooldown
@@ -423,18 +546,40 @@ function RunSession.leaveTitle(session: Session)
 	session.stageStartedAt = os.clock()
 end
 
+--[[ The Player attribute that says this player really stands in the lobby,
+     or has: off the title and the story, and not on the way into the
+     tutorial. The Workspace's `InLobby` alone cannot say it: it is true
+     under the title, and still true in the moment between the story's end
+     and the tutorial starting, which is when the daily REWARDS screen once
+     opened itself over the tutorial's first room (`docs/FIXES.md`). Set by
+     whoever puts the player there (`Main` on a join that skips the title
+     and at the title's end, `RoomController.toLobby` after a run) and never
+     cleared: from then on `InLobby` tells the truth for them. ]]
+RunSession.ARRIVED = "Arrived"
+
+function RunSession.arrive(session: Session)
+	session.player:SetAttribute(RunSession.ARRIVED, true)
+end
+
 --[[ A kind of enemy has landed (`EnemyManager`): everyone who has not met
-     it yet this visit is shown its NEW ENEMY! screen, and the run holds
-     until they close it (owner, 2026-10-25: pause until GOT IT!). Kinds
+     it yet this visit is told (`Remotes.NewEnemy`). With
+     `NewEnemies.card` on, that is the NEW ENEMY! screen and the run holds
+     until they close it (owner, 2026-10-25: pause until GOT IT!); off
+     (2026-11-14), it is a name tag over the enemy and nothing holds. Kinds
      without a screen (bosses, summons, the old archetypes) pass. ]]
 function RunSession.meetEnemy(kind: string)
-	if not NewEnemies.enemies[kind] then
+	--[[ Never in the lobby (`InLobby`, `RoomController.broadcast`): an enemy
+	     landing there is a run's straggler, and its card or tag would show
+	     over the lobby (owner's checklist, `rg-newenemy`). ]]
+	if not NewEnemies.enemies[kind] or workspace:GetAttribute("InLobby") == true then
 		return
 	end
 	for _, session in sessions do
 		if not session.seenEnemies[kind] then
 			session.seenEnemies[kind] = true
-			table.insert(session.meeting, kind)
+			if NewEnemies.card then
+				table.insert(session.meeting, kind)
+			end
 			newEnemy:FireClient(session.player, kind)
 			--[[ `seenEnemies` is this visit's; the dex wants a lasting
 			     record, so the profile is written here and not when the
@@ -442,12 +587,7 @@ function RunSession.meetEnemy(kind: string)
 			     or not they read the card, and closing the game on an open
 			     card should still fill in the dex (`Util/DexBook`, save
 			     version 7). ]]
-			local profile = PlayerData.get(session.player)
-			if profile and not profile.enemiesSeen[kind] then
-				profile.enemiesSeen[kind] = true
-				PlayerData.touch(session.player)
-				Wallet.send(session.player)
-			end
+			Wallet.meetEnemy(session.player, kind)
 		end
 	end
 end
@@ -465,10 +605,18 @@ function RunSession.anyMeeting(): boolean
 end
 
 --[[ MENU's panel opened or shut (`Remotes.RunMenu`). A client's say-so, so
-     it can only ever hold the run for `CombatTuning.menuHold` at a time. ]]
+     it holds the run only within a budget (`Util/MenuHold`): at most
+     `CombatTuning.menuHold` at a time, earned back while the run plays, and
+     sending "open" again does not stretch it. ]]
 function RunSession.setInMenu(session: Session, open: unknown)
-	if type(open) == "boolean" then
-		session.menuUntil = if open then os.clock() + CombatTuning.menuHold else 0
+	if type(open) ~= "boolean" then
+		return
+	end
+	local now = os.clock()
+	if open then
+		MenuHold.open(session.menu, now, CombatTuning.menuHold, CombatTuning.menuRefill)
+	else
+		MenuHold.close(session.menu, now, CombatTuning.menuHold, CombatTuning.menuRefill)
 	end
 end
 
@@ -476,7 +624,33 @@ end
 function RunSession.anyInMenu(): boolean
 	local now = os.clock()
 	for _, session in sessions do
-		if session.menuUntil > now then
+		if MenuHold.holding(session.menu, now) then
+			return true
+		end
+	end
+
+	return false
+end
+
+--[[ A `hold` first-time tip came up for this player in a run (owner, 2026-11-13:
+     "pause the game and have an ok button to dismiss the tip and resume the
+     game"): the run holds until OK, `Tips.holdMax` at most. Only a tip the
+     save had never seen holds (`Main` asks `Wallet.sawTip` first), so a
+     client can hold a run at most once per tip, ever. ]]
+function RunSession.holdForTip(session: Session)
+	session.tipUntil = os.clock() + Tips.holdMax
+end
+
+--[[ OK on the tip: the hold is let go. ]]
+function RunSession.tipClosed(session: Session)
+	session.tipUntil = nil
+end
+
+--[[ Whether anyone is reading a first-time tip, as `anyMeeting`. ]]
+function RunSession.anyReadingTip(): boolean
+	local now = os.clock()
+	for _, session in sessions do
+		if session.tipUntil and now < session.tipUntil then
 			return true
 		end
 	end
@@ -681,9 +855,10 @@ end
 	heal into the XP call would make a future "XP without a kill" source heal
 	the player for no reason.
 ]]
-function RunSession.onEnemyKilled(session: Session)
+function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 	session.stageKills += 1
-	RunSession.payCoins(session, RunSession.areaPay().killCoins)
+	Rewards.note(session.player, "kills", 1)
+	RunSession.payEarned(session, RunSession.areaPay().killCoins, position)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
 	     `duration` seconds after the last kill. The attribute tells the
 	     client to play its cry. ]]
@@ -697,6 +872,25 @@ function RunSession.onEnemyKilled(session: Session)
 		session.battleCryUntil = now + config.duration
 		local cries = session.player:GetAttribute("BattleCry")
 		session.player:SetAttribute("BattleCry", (if type(cries) == "number" then cries else 0) + 1)
+	end
+	--[[ Mana Surge: the kill charges the next cast (`ClassUpgrades.spendSurge`);
+	     the attribute lights the staff and swells the orb the client draws. ]]
+	if session.alive and session.upgrades.manaSurge > 0 and not session.surgeReady then
+		session.surgeReady = true
+		session.player:SetAttribute("ManaSurge", true)
+	end
+	--[[ Quickstep: the kill takes time off the dash's wait. The server
+	     holds a dash to its cooldown from `lastDashAt`, so that moves back;
+	     the attribute (a count, and the seconds) tells the client's own
+	     dash to come back as much sooner (`Input/Dash.refund`). ]]
+	if session.alive and session.upgrades.quickstep > 0 then
+		session.lastDashAt -= session.upgrades.quickstep
+		session.player:SetAttribute("DashRefund", session.upgrades.quickstep)
+		local refunds = session.player:GetAttribute("DashRefunds")
+		session.player:SetAttribute(
+			"DashRefunds",
+			(if type(refunds) == "number" then refunds else 0) + 1
+		)
 	end
 	if not session.alive or session.healPerKill <= 0 then
 		return
@@ -744,13 +938,38 @@ function RunSession.areaPay(): Economy.Area
 end
 
 --[[ Coins into the player's saved wallet, counted for this stage's
-     summary. ]]
-function RunSession.payCoins(session: Session, amount: number)
+     summary, and told to the player (`Remotes.CoinsGained`: how many, and
+     where they dropped, for a kill), so the coins can fly to the run's coin
+     counter (`Fx/CoinDrops`). ]]
+local coinsGained = Remotes.event(Remotes.CoinsGained)
+function RunSession.payCoins(session: Session, amount: number, position: Vector3?)
 	if amount <= 0 then
 		return
 	end
 	session.stageCoins += amount
-	Wallet.addCoins(session.player, amount)
+	Rewards.note(session.player, "coins", amount)
+	Wallet.addCoins(session.player, amount, "Run")
+	coinsGained:FireClient(session.player, amount, position)
+end
+
+--[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
+     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with a coin event's
+     share (a 2x Coins weekend or live event, `Data/Boosts`), the run's win
+     streak, its party's friend bonus, hard mode and Roblox Premium's tenth
+     added (`Util/RunBonus`, `Data/Premium`), the part under a whole coin
+     carried to the next. Anything else paid in a run (the tutorial's top-up
+     to the first egg) goes through `payCoins` as it is. ]]
+function RunSession.payEarned(session: Session, base: number, position: Vector3?)
+	local scale = RunBonus.scale(
+		StoreRules.coinScale(Passes.owned(session.player)) + Boosts.coinShare(),
+		session.streak,
+		Coop.partySize(),
+		CurrentStage.hard(),
+		Premium.has(session.player)
+	)
+	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
+	session.coinCarry = carry
+	RunSession.payCoins(session, whole, position)
 end
 
 --[[ This stage's boss is beaten: every player in the run gets its item and
@@ -761,8 +980,10 @@ function RunSession.payBoss()
 		return
 	end
 	for _, session in sessions do
-		local gems = Wallet.beatBoss(session.player, area)
+		local gems, item = Wallet.beatBoss(session.player, area)
+		Rewards.note(session.player, "bosses", 1)
 		session.stageGems += gems
+		session.stageItem = item
 	end
 end
 
@@ -787,7 +1008,17 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 		return
 	end
 
-	RunSession.onEnemyKilled(session)
+	RunSession.onEnemyKilled(session, position)
+	--[[ Co-op: the rest of the party is paid the kill's coins too. The kill
+	     count and what a kill triggers (Battle Cry, healing) stay the
+	     killer's. ]]
+	if Coop.partySize() > 1 then
+		for _, other in sessions do
+			if other ~= session then
+				RunSession.payEarned(other, RunSession.areaPay().killCoins)
+			end
+		end
+	end
 
 	if position then
 		Pickups.dropForKill(owner, position, xp, session.random, function(point)
@@ -806,6 +1037,18 @@ local function xpSetOff(session: Session, amount: number)
 		session.xpArriving,
 		{ amount = amount, at = os.clock() + Balance.Pickups.collectFlight }
 	)
+end
+
+--[[ XP taken from the floor: to the taker solo, and to every player in a
+     co-op run, whoever's kill it was (`docs/COOP.md`). ]]
+local function shareXp(session: Session, amount: number)
+	if Coop.partySize() <= 1 then
+		xpSetOff(session, amount)
+		return
+	end
+	for _, other in sessions do
+		xpSetOff(other, amount)
+	end
 end
 
 --[[ Credits every batch of crystals that has reached its player by `now`.
@@ -833,7 +1076,7 @@ function RunSession.collectCrystals()
 	for player, xp in Pickups.collectCrystals() do
 		local session = RunSession.get(player)
 		if session then
-			xpSetOff(session, xp)
+			shareXp(session, xp)
 		end
 	end
 end
@@ -875,9 +1118,9 @@ function RunSession.pickUpFloor()
 			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth, true)
 		end
 
-		local xp = Pickups.takeCrystals(session.player, root.Position)
+		local xp = Pickups.takeCrystals(session.player, root.Position, nil, Coop.partySize() > 1)
 		if xp > 0 then
-			xpSetOff(session, xp)
+			shareXp(session, xp)
 		end
 	end
 end
@@ -911,9 +1154,20 @@ end
 	itself sent, and an invalid one changes nothing at all.
 ]]
 function RunSession.chooseAbility(session: Session, index: number): boolean
+	local source = session.loadout.offerSource or "Level"
 	local ability = Loadout.choose(session.loadout, index)
 	if not ability then
 		return false
+	end
+	-- the tutorial's hands are fixed: its picks say nothing about the cards
+	if not tutorial then
+		Analytics.cardPicked(
+			session.player,
+			ability.id,
+			ability.rarity,
+			source,
+			session.loadout.level
+		)
 	end
 
 	RunSession.applyLoadout(session)
@@ -952,9 +1206,12 @@ function RunSession.resetRun(session: Session)
 	session.loadout.weapon = weapon
 	session.secondWindUsed = false
 	session.petReviveUsed = false
+	-- a new run may be revived once again (`Data/Purchases`)
+	session.paidReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
-	session.menuUntil = 0
+	session.tipUntil = nil
+	MenuHold.close(session.menu, os.clock(), CombatTuning.menuHold, CombatTuning.menuRefill)
 	-- nor do crystals still flying in from it
 	table.clear(session.xpArriving)
 	RunSession.newStage(session)
@@ -964,14 +1221,202 @@ function RunSession.resetRun(session: Session)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 end
 
+--[[ Defined with the damage path below; the co-op revive uses it too. ]]
+local revive: (session: Session, health: number, kind: string) -> ()
+
+--[[ Who sits in this server's run: a player off the title. ]]
+local function inRun(session: Session): boolean
+	return not session.atTitle and session.character ~= nil
+end
+
+--[[ Whether any player in the run other than `except` is up and fighting. ]]
+function RunSession.anyStanding(except: Session?): boolean
+	for _, other in sessions do
+		if other ~= except and other.alive and inRun(other) then
+			return true
+		end
+	end
+	return false
+end
+
+--[[ Whether anyone in the run is down or out (co-op). ]]
+function RunSession.anyDowned(): boolean
+	for _, session in sessions do
+		if session.downed or session.out then
+			return true
+		end
+	end
+	return false
+end
+
+local function publishDowned(session: Session)
+	local player = session.player
+	player:SetAttribute(
+		"Downed",
+		if session.downed then true elseif session.out then false else nil
+	)
+	player:SetAttribute(
+		"ReviveProgress",
+		if session.downed then session.reviveProgress / Coop.revive.hold else nil
+	)
+	player:SetAttribute(
+		"DownedEndsAt",
+		if session.downed
+			then Workspace:GetServerTimeNow() + Coop.revive.bleedOut - (os.clock() - session.downedAt)
+			else nil
+	)
+end
+
+--[[ At zero health in a party with someone still standing. ]]
+function RunSession.goDown(session: Session)
+	session.alive = false
+	session.downed = true
+	session.out = false
+	session.downedAt = os.clock()
+	session.reviveProgress = 0
+	session.stationarySince = nil
+	log.info("%s is down", session.player.Name)
+	publishDowned(session)
+	healthChanged:FireClient(session.player, 0, session.maxHealth)
+end
+
+local function standUp(session: Session, share: number, kind: string)
+	session.downed = false
+	session.out = false
+	session.reviveProgress = 0
+	session.alive = session.character ~= nil
+	publishDowned(session)
+	revive(session, session.maxHealth * share, kind)
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[
+	Every frame the run moves (co-op): a teammate in range fills a downed
+	player's revive, leaving drains it, and the bleed-out puts them out for
+	the room. Then, if nobody is standing any more, the run is lost — the
+	last player standing going down, or leaving, is a wipe.
+]]
+function RunSession.stepDowned(deltaTime: number, now: number)
+	local any = false
+	for _, session in sessions do
+		if not session.downed then
+			if session.out then
+				any = true
+			end
+			continue
+		end
+		any = true
+		local root = session.root
+		local inRange = false
+		if root then
+			for _, other in sessions do
+				local helper = other.root
+				if other ~= session and other.alive and helper then
+					local flat = (helper.Position - root.Position) * Vector3.new(1, 0, 1)
+					if flat.Magnitude <= Coop.revive.radius then
+						inRange = true
+						break
+					end
+				end
+			end
+		end
+		local before = session.reviveProgress
+		session.reviveProgress = Coop.reviveStep(before, deltaTime, inRange)
+		if session.reviveProgress >= Coop.revive.hold then
+			log.info("%s was stood up by a teammate", session.player.Name)
+			standUp(session, Coop.revive.health, "Revive")
+		elseif now - session.downedAt >= Coop.revive.bleedOut and not inRange then
+			session.downed = false
+			session.out = true
+			session.reviveProgress = 0
+			log.info("%s bled out: out until the next room", session.player.Name)
+			publishDowned(session)
+		elseif session.reviveProgress ~= before then
+			publishDowned(session)
+		end
+	end
+	if any and not RunSession.anyStanding() then
+		log.info("nobody standing: the run is lost")
+		local handler = RunSession.onDeath
+		for _, session in sessions do
+			if session.downed or session.out then
+				session.downed = false
+				session.out = false
+				publishDowned(session)
+				local humanoid = session.humanoid
+				if humanoid then
+					humanoid.Health = 0
+				end
+			end
+		end
+		if handler then
+			handler(nil :: any)
+		end
+	end
+end
+
+--[[ A new room (co-op): everyone down or out comes back into it, at the
+     share of health the out ones return at. ]]
+function RunSession.returnTheDowned()
+	for _, session in sessions do
+		if session.downed or session.out then
+			standUp(session, Coop.revive.returnHealth, "Revive")
+		end
+	end
+end
+
+--[[ The Robux revive (`Data/Purchases`, through `RoomController.revive`):
+     back up at full health behind the revive's shield, with the run's one
+     paid revive spent. Called once the room has been entered again, so the
+     shield and the call-out are where the player now stands. ]]
+function RunSession.paidRevive(session: Session)
+	session.paidReviveUsed = true
+	session.downed = false
+	session.out = false
+	session.reviveProgress = 0
+	session.alive = session.character ~= nil
+	publishDowned(session)
+	revive(session, session.maxHealth, "Revive")
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ Co-op, a revive bought by someone else: this player sits the room out,
+     as one who bled out does, and is back for the next room
+     (`returnTheDowned`). ]]
+function RunSession.sitOut(session: Session)
+	session.alive = false
+	session.downed = false
+	session.out = true
+	session.reviveProgress = 0
+	session.stationarySince = nil
+	publishDowned(session)
+	healthChanged:FireClient(session.player, 0, session.maxHealth)
+end
+
+--[[ Clears down and out without a revive: a run reset. ]]
+local function clearDowned(session: Session)
+	if session.downed or session.out then
+		session.downed = false
+		session.out = false
+		session.reviveProgress = 0
+		session.alive = session.character ~= nil
+		publishDowned(session)
+	end
+end
+
 --[[ A stage is starting: its revives are full again. ]]
 function RunSession.newStage(session: Session)
+	clearDowned(session)
 	session.revivesLeft = Balance.Revive.perStage
 	session.stageKills = 0
 	session.stageCoins = 0
 	session.stageGems = 0
+	session.classClears = 0
+	session.stageItem = nil
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
+	-- no streak rides on a stage until `RoomController` says one does
+	session.streak = 0
 end
 
 --[[ Whether nothing can hurt this player right now: a revive's shield, or
@@ -980,6 +1425,16 @@ function RunSession.isInvulnerable(session: Session): boolean
 	local now = os.clock()
 	return now < session.invulnerableUntil
 		or (now >= session.guardFrom and now < session.guardUntil)
+end
+
+--[[ Whether a melee class's guard is what keeps it safe right now (mid-swing,
+     not a revive's grace): Steadfast's plates flash on it, and Riposte
+     throws a shot it caught back (`Combat/ProjectileSystem`). ]]
+function RunSession.guarding(session: Session): boolean
+	local now = os.clock()
+	return now >= session.invulnerableUntil
+		and now >= session.guardFrom
+		and now < session.guardUntil
 end
 
 function RunSession.get(player: Player): Session?
@@ -1066,9 +1521,12 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.humanoid = humanoid
 	session.root = root
 	session.health = session.maxHealth
-	session.alive = true
+	--[[ A body back while sitting a room out (a teammate's revive,
+	     `sitOut`) stays out until the next room stands it up. ]]
+	session.alive = not session.out
 	session.lastFiredAt = 0
 	session.swingIndex = 0
+	session.player:SetAttribute("Combo", nil)
 	session.stationarySince = nil
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
@@ -1125,7 +1583,7 @@ local function guardPet(session: Session): string?
 	return nil
 end
 
-local function revive(session: Session, health: number, kind: string)
+function revive(session: Session, health: number, kind: string)
 	session.health = math.max(1, health)
 	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
 
@@ -1150,20 +1608,34 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if RunSession.isInvulnerable(session) then
 		--[[ A swing's guard caught it (Steadfast's plates flash); a revive's
 		     grace says nothing. ]]
-		local now = os.clock()
-		if
-			now >= session.invulnerableUntil
-			and now >= session.guardFrom
-			and now < session.guardUntil
-		then
+		if RunSession.guarding(session) then
 			playerDodged:FireClient(session.player, "Guard")
 		end
+		return
+	end
+
+	--[[ The first levels' breath after a hit (`StageConfig.hitGrace`): the
+	     one that just landed is the only one for that long. ]]
+	local grace = CurrentStage.config().hitGrace
+	if grace and os.clock() - session.lastHurtAt < grace then
 		return
 	end
 
 	--[[ Agility: rolled on the session's own Random, by the server. ]]
 	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
 		playerDodged:FireClient(session.player, "Agility")
+		return
+	end
+
+	--[[ Arcane Shield: up, it takes the whole hit and goes, back after the
+	     card's seconds (its level is shields a second). `ArcaneShieldAt` is
+	     when (server time), for every client to shatter the ring and raise
+	     it again (`Fx/Upgrades/ClassCardFx`). ]]
+	local shieldRate = session.upgrades.arcaneShield
+	if shieldRate > 0 and os.clock() >= session.shieldUpAt then
+		local shieldEvery = 1 / shieldRate
+		session.shieldUpAt = os.clock() + shieldEvery
+		session.player:SetAttribute("ArcaneShieldAt", Workspace:GetServerTimeNow() + shieldEvery)
 		return
 	end
 
@@ -1190,10 +1662,22 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if os.clock() < session.petShelterUntil then
 		amount = Shelter.reduce(amount, session.petShelterCut)
 	end
+	--[[ The Bog Beaver's mud soaks what is left, until it is spent
+	     (`Shared/Util/MudCoat`). Last, so it pays out only for damage that
+	     would really have landed. ]]
+	if session.petCoat > 0 and os.clock() < session.petCoatUntil then
+		local through, left = MudCoat.soak(session.petCoat, amount)
+		session.petCoat = left
+		amount = through
+	end
 	if amount <= 0 then
 		return
 	end
-	session.health = math.max(0, session.health - amount)
+	--[[ The tutorial cannot be lost (owner, 2026-11-14, the kid playtest:
+	     two deaths in it lost the player before the lobby): health stops at
+	     `Tutorial.healthFloor` there. ]]
+	local floor = if tutorial then Tutorial.healthFloor else 0
+	session.health = math.max(math.min(floor, session.health), session.health - amount)
 	--[[ Arms the Buoy Puffer: it answers damage that landed, nothing else. ]]
 	session.lastHurtAt = os.clock()
 	playerDamaged:FireClient(session.player, amount)
@@ -1229,6 +1713,14 @@ function RunSession.applyDamage(session: Session, amount: number)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 
 	if session.health > 0 then
+		return
+	end
+
+	--[[ Co-op: down rather than dead while a teammate still stands, who
+	     can stand them up (`Coop.revive`). The run ends only when nobody
+	     does. ]]
+	if Coop.partySize() > 1 and RunSession.anyStanding(session) then
+		RunSession.goDown(session)
 		return
 	end
 

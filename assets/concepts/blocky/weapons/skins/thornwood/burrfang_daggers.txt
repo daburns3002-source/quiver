@@ -1,0 +1,6 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as burrfang_daggers.png
+
+Image 1 is a style reference for our game's daggers (match its blocky voxel style, chunky proportions and finish, but NOT its designs or colours). Image 2 is a weapon from the same area of the game: match its palette and materials, not its shape. Draw a new weapon for Thornwood: a dark bramble wood. Hedge green, bramble plum and maroon, cream thorns, boar brown, and its spider boss's purple, olive-gold and magenta.
+BURRFANG DAGGERS (Epic dagger): a plum-purple bramble blade with two cream thorn barbs on its back edge, a maroon wrapped grip and a round spiky burr for a pommel, a faint magenta glow in the blade's centre groove.
+View: ONE single dagger only (not a pair), shown flat side-on, upright with the blade pointing up, straight-on camera, no perspective, centred, filling about 85 percent of the image. A short one-handed dagger: the blade about twice the length of the handle, a small crossguard, a wrapped grip and a pommel. Simple chunky blocks, no fine filigree. No hands, no character. This image is the weapon's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

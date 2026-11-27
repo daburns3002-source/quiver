@@ -94,6 +94,43 @@ return table.freeze({
 				},
 			},
 		},
+		Follow = {
+			length = 1.41,
+			-- One squeeze a beat, timed to its Surge in Config/PetGaits: narrow and long on the push, wide as it coasts.
+			joints = {
+				Body = {
+					pos = {
+						times = { 0, 0.35, 0.9, 1.41 },
+						values = { 0, 0, 0, 0, 0.14, 0, 0, 0.03, 0, 0, 0, 0 },
+					},
+					rot = {
+						times = { 0, 0.35, 1, 1.41 },
+						values = {
+							0,
+							0,
+							0,
+							1,
+							-0.06976,
+							0,
+							0,
+							0.99756,
+							0.02618,
+							0,
+							0,
+							0.99966,
+							0,
+							0,
+							0,
+							1,
+						},
+					},
+					scale = {
+						times = { 0, 0.35, 0.85, 1.41 },
+						values = { 1, 1, 1, 0.78, 1.3, 0.78, 1.14, 0.84, 1.14, 1, 1, 1 },
+					},
+				},
+			},
+		},
 		Idle = {
 			length = 2.6,
 			joints = {

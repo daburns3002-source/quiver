@@ -1,0 +1,362 @@
+{
+ "BoarTuskBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://77962333727255",
+    "name": "Blade",
+    "size": [
+     0.2725,
+     0.9797,
+     0.1628
+    ],
+    "textureId": "rbxassetid://105525519507283"
+   }
+  ],
+  "size": [
+   0.2725,
+   0.9797,
+   0.1628
+  ]
+ },
+ "PlumBurrBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://86014272638021",
+    "name": "Blade",
+    "size": [
+     0.3307,
+     0.9854,
+     0.2057
+    ],
+    "textureId": "rbxassetid://85905059654359"
+   }
+  ],
+  "size": [
+   0.3307,
+   0.9854,
+   0.2057
+  ]
+ },
+ "LurkerVineBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://87550629133726",
+    "name": "Blade",
+    "size": [
+     0.3577,
+     0.9853,
+     0.1564
+    ],
+    "textureId": "rbxassetid://90777492796483"
+   }
+  ],
+  "size": [
+   0.3577,
+   0.9853,
+   0.1564
+  ]
+ },
+ "SilkweaverBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://95266328110031",
+    "name": "Blade",
+    "size": [
+     0.3643,
+     0.9817,
+     0.1361
+    ],
+    "textureId": "rbxassetid://75527921481531"
+   }
+  ],
+  "size": [
+   0.3643,
+   0.9817,
+   0.1361
+  ]
+ },
+ "NightbarbBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109499000934241",
+    "name": "Blade",
+    "size": [
+     0.3362,
+     0.9812,
+     0.1305
+    ],
+    "textureId": "rbxassetid://125891269086548"
+   }
+  ],
+  "size": [
+   0.3362,
+   0.9812,
+   0.1305
+  ]
+ },
+ "HedgeBulbStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://132588295643126",
+    "name": "Blade",
+    "size": [
+     0.3294,
+     0.9843,
+     0.1957
+    ],
+    "textureId": "rbxassetid://73271034118093"
+   }
+  ],
+  "size": [
+   0.3294,
+   0.9843,
+   0.1957
+  ]
+ },
+ "BurrTotemStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://76543112191577",
+    "name": "Blade",
+    "size": [
+     0.3811,
+     0.9828,
+     0.2221
+    ],
+    "textureId": "rbxassetid://134124316973616"
+   }
+  ],
+  "size": [
+   0.3811,
+   0.9828,
+   0.2221
+  ]
+ },
+ "LurkerCrestStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://119306784069336",
+    "name": "Blade",
+    "size": [
+     0.3949,
+     0.9814,
+     0.1624
+    ],
+    "textureId": "rbxassetid://85849626216785"
+   }
+  ],
+  "size": [
+   0.3949,
+   0.9814,
+   0.1624
+  ]
+ },
+ "SilkDiademStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://138240697340282",
+    "name": "Blade",
+    "size": [
+     0.342,
+     0.979,
+     0.2618
+    ],
+    "textureId": "rbxassetid://115043591704604"
+   }
+  ],
+  "size": [
+   0.342,
+   0.979,
+   0.2618
+  ]
+ },
+ "BlackspineStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://87471750172727",
+    "name": "Blade",
+    "size": [
+     0.2716,
+     0.9794,
+     0.1958
+    ],
+    "textureId": "rbxassetid://83374859278710"
+   }
+  ],
+  "size": [
+   0.2716,
+   0.9794,
+   0.1958
+  ]
+ },
+ "BoarbackBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://113402614650273",
+    "name": "Blade",
+    "size": [
+     0.4262,
+     0.981,
+     0.1671
+    ],
+    "textureId": "rbxassetid://70491525351180"
+   }
+  ],
+  "size": [
+   0.4262,
+   0.981,
+   0.1671
+  ]
+ },
+ "PlumguardBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://106192581553377",
+    "name": "Blade",
+    "size": [
+     0.425,
+     0.9783,
+     0.1492
+    ],
+    "textureId": "rbxassetid://96057068900034"
+   }
+  ],
+  "size": [
+   0.425,
+   0.9783,
+   0.1492
+  ]
+ },
+ "BurrcrestBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://125506236365276",
+    "name": "Blade",
+    "size": [
+     0.4868,
+     0.9806,
+     0.2914
+    ],
+    "textureId": "rbxassetid://85372036426503"
+   }
+  ],
+  "size": [
+   0.4868,
+   0.9806,
+   0.2914
+  ]
+ },
+ "SilkboundBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://113794307409410",
+    "name": "Blade",
+    "size": [
+     0.4527,
+     0.9793,
+     0.2075
+    ],
+    "textureId": "rbxassetid://81831311267800"
+   }
+  ],
+  "size": [
+   0.4527,
+   0.9793,
+   0.2075
+  ]
+ },
+ "BriarbreakerBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://86108481832919",
+    "name": "Blade",
+    "size": [
+     0.43,
+     0.9812,
+     0.1657
+    ],
+    "textureId": "rbxassetid://139116065006999"
+   }
+  ],
+  "size": [
+   0.43,
+   0.9812,
+   0.1657
+  ]
+ }
+}

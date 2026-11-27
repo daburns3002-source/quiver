@@ -47,6 +47,30 @@ function WeaponTiming.cycleSpeed(weaponName: string, index: number, cooldown: nu
 	return math.max(1, natural / (cooldown * WeaponTiming.CYCLE_SHARE))
 end
 
+--[[ How much faster than written a weapon's one-off clip (`clips.special`,
+     the Meteor's cast) plays to fit inside one `cooldown`, as a fire clip
+     does: played at its own length it ran past the next attack, which cut
+     it short, and the staff's casts and its Meteor hid each other (owner's
+     checklist, `rg-meteor`). Never slower than written; 1 for a weapon
+     without that clip, and for a clip not in `FITTED`: the Earthbreaker's
+     slam lands on the server at its written pace
+     (`Balance.Player.earthbreaker.leap`). ]]
+WeaponTiming.FITTED = { meteor = true }
+
+function WeaponTiming.specialSpeed(weaponName: string, key: string, cooldown: number): number
+	if not WeaponTiming.FITTED[key] then
+		return 1
+	end
+	local weapon = weaponOf(weaponName)
+	local special = weapon and weapon.clips.special
+	local name = special and special[key]
+	local clip = name and WeaponTiming.clips(weaponName)[name]
+	if not clip then
+		return 1
+	end
+	return math.max(1, clip.length / (cooldown * WeaponTiming.CYCLE_SHARE))
+end
+
 --[[ Seconds from the start of attack `index` to its blow landing: the
      clip's `Hit` marker at the speed it plays. 0 for a clip without one. ]]
 function WeaponTiming.hitDelay(weaponName: string, index: number, cooldown: number): number

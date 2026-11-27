@@ -1,0 +1,20 @@
+{
+  "note": "Tripo web studio jobs for Thornwood's fifteen bows, staffs and blades (owner, 2026-11-18: 'Yes, all fifteen'). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (975 in all; 5955 before, 4980 after). Each from Codex's redrawing of its design sheet's front view alone (`assets/concepts/blocky/weapons/skins/thornwood/<name>_single.png`, `thornwood_single_prompts.py`). Open a job at https://studio.tripo3d.ai/workspace/generate/<id>.",
+  "jobs": {
+    "boar_tusk_bow": { "class": "Ranger", "tier": 1, "key": "BoarTuskBow", "id": "df9fc1f0-fc00-4cb5-b7e6-1b879a8bcc7c" },
+    "plum_burr_bow": { "class": "Ranger", "tier": 2, "key": "PlumBurrBow", "id": "dca2da30-62a5-4344-9f4b-15201c6084e4" },
+    "lurker_vine_bow": { "class": "Ranger", "tier": 3, "key": "LurkerVineBow", "id": "402072ee-85de-42b7-aff5-f72d55c9afeb" },
+    "silkweaver_bow": { "class": "Ranger", "tier": 4, "key": "SilkweaverBow", "id": "919a26b3-5715-449e-b75f-5426f5402dd7" },
+    "nightbarb_bow": { "class": "Ranger", "tier": 5, "key": "NightbarbBow", "id": "3def9f32-538a-43c6-aa22-7cab0413ee4b" },
+    "hedge_bulb_staff": { "class": "Arcanist", "tier": 1, "key": "HedgeBulbStaff", "id": "aceb4d8c-cbcf-4a87-823e-33d1de7fbae3" },
+    "burr_totem_staff": { "class": "Arcanist", "tier": 2, "key": "BurrTotemStaff", "id": "2db90f37-058e-485c-b5da-7839950cafd3" },
+    "lurker_crest_staff": { "class": "Arcanist", "tier": 3, "key": "LurkerCrestStaff", "id": "91ab2114-dbec-4f2f-b1d7-84c253bfe231" },
+    "silk_diadem_staff": { "class": "Arcanist", "tier": 4, "key": "SilkDiademStaff", "id": "c4c0ee55-d7b8-407b-a58a-8994369a263e" },
+    "blackspine_staff": { "class": "Arcanist", "tier": 5, "key": "BlackspineStaff", "id": "19b43ecb-2f01-4fac-b7b9-b68f5cc03146" },
+    "boarback_blade": { "class": "Warden", "tier": 1, "key": "BoarbackBlade", "id": "3dd9e60f-a3da-4f46-8612-7bb619daecba" },
+    "plumguard_blade": { "class": "Warden", "tier": 2, "key": "PlumguardBlade", "id": "f7fbba39-6639-43cc-bd3f-f633cf44768b" },
+    "burrcrest_blade": { "class": "Warden", "tier": 3, "key": "BurrcrestBlade", "id": "b351eac9-d4bc-4f93-8a3d-0701dc85ac4e" },
+    "silkbound_blade": { "class": "Warden", "tier": 4, "key": "SilkboundBlade", "id": "f78cc609-4d0d-473a-81f7-6cde1aebd4e4" },
+    "briarbreaker_blade": { "class": "Warden", "tier": 5, "key": "BriarbreakerBlade", "id": "83d7b011-8cc1-40c5-bf17-a8dffd7c2a4f" }
+  }
+}

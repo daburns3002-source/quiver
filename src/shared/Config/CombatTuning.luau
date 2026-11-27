@@ -16,6 +16,11 @@ return table.freeze({
 	     Why it was needed: a level's difficulty was one flat number, so it
 	     was tuned for the middle and met the player at wave 1 with no cards
 	     drafted at all. ]]
+	--[[ Every boss's health, on top of its own number, its stage's and
+	     co-op's (owner, 2026-11-08: "boss health needs to be higher, the
+	     bosses are too easy to kill"). One knob, so each boss's own number
+	     keeps its place relative to the others. ]]
+	bossHealth = 1.5,
 	roomHealthStart = 0.75,
 	roomHealthPerEncounter = 0.029,
 	--[[ The same ramp on enemy damage (owner, 2026-11-05: "the levels should
@@ -26,6 +31,9 @@ return table.freeze({
 	     (`Run/Waves.damageRamp`) ]]
 	roomDamageStart = 0.7,
 	roomDamagePerEncounter = 0.016,
-	--[[ How long MENU's LEAVE THE RUN? panel can hold the run, in seconds. ]]
+	--[[ How long MENU's LEAVE THE RUN? panel can hold the run, in seconds:
+	     a budget spent while held (`Util/MenuHold`), earned back at
+	     `menuRefill` seconds a second while not. ]]
 	menuHold = 60,
+	menuRefill = 0.25,
 })

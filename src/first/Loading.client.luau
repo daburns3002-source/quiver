@@ -29,6 +29,7 @@ local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 
@@ -58,7 +59,7 @@ local function text(parent: Instance, name: string, words: string, colour: Color
 	local label = Instance.new("TextLabel")
 	label.Name = name
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = words
 	label.TextColor3 = colour
 	label.TextScaled = true
@@ -80,6 +81,20 @@ note.AnchorPoint = Vector2.new(0.5, 1)
 note.Position = UDim2.fromScale(0.5, 0.97)
 note.Size = UDim2.fromScale(0.8, 0.03)
 note.ZIndex = 5
+
+--[[ Every trip between servers (a run starting, a run back to the lobby)
+     shows this cover rather than Roblox's own teleport screen, which looked
+     like the game starting over (owner, 2026-11-20: "the game keeps
+     restarting"). The far side's loading screen is the same cover, so the
+     trip reads as one loading screen. A copy, kept for as long as this
+     client is here: the loading screen itself is destroyed once it lifts.
+     The trip to the tutorial carries the whole loading screen instead
+     (`carryAlong`, below). ]]
+local travel = gui:Clone()
+travel.Name = "TravelScreen"
+pcall(function()
+	TeleportService:SetTeleportGui(travel)
+end)
 
 gui.Parent = player:WaitForChild("PlayerGui")
 ReplicatedFirst:RemoveDefaultLoadingScreen()
@@ -116,12 +131,15 @@ local function build()
 	-- arrived before they are required, so the plain paths below are safe
 	shared:WaitForChild("Config"):WaitForChild("LoadingScreen")
 	shared:WaitForChild("Config"):WaitForChild("LoadingTips")
+	shared:WaitForChild("Config"):WaitForChild("UiPalette")
+	shared:WaitForChild("Util"):WaitForChild("TipPlate")
 	shared:WaitForChild("Util"):WaitForChild("LoadingPick")
 	shared:WaitForChild("Util"):WaitForChild("SpotlightArt")
 	local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 	local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 	local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 	local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
+	local TipPlate = require(ReplicatedStorage.Shared.Util.TipPlate)
 
 	-- what the player has met, from their save if it comes in time
 	local profile = awaitProfile(LoadingScreen.profileWait)
@@ -182,16 +200,8 @@ local function build()
 	title.Visible = false
 	loading.Visible = false
 
-	-- one of the tips
-	local tip =
-		text(screen, "Tip", LoadingTips[math.random(1, #LoadingTips)], LoadingScreen.tipText)
-	place(tip, layout.tip)
-	tip.TextWrapped = true
-	tip.TextXAlignment = Enum.TextXAlignment.Left
-	tip.ZIndex = 3
-	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = 40
-	limit.Parent = tip
+	-- one of the tips, on its plate rather than on the picture
+	TipPlate.draw(screen, size, layout.tip, LoadingTips[math.random(1, #LoadingTips)], 3)
 
 	-- the bar
 	local trough = Instance.new("Frame")
@@ -213,6 +223,18 @@ local function build()
 end
 
 task.spawn(build)
+
+--[[ Sent to the tutorial's server on join (`Run/Party.ROUTE`): this screen
+     goes along, so the trip reads as the same loading screen. ]]
+local function carryAlong()
+	if player:GetAttribute("JoinRoute") == "Tutorial" then
+		pcall(function()
+			TeleportService:SetTeleportGui(gui)
+		end)
+	end
+end
+player:GetAttributeChangedSignal("JoinRoute"):Connect(carryAlong)
+carryAlong()
 
 local started = os.clock()
 local connection: RBXScriptConnection

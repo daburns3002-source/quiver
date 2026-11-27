@@ -55,6 +55,17 @@ improves; it is written at most every 30 s per player
 The top ten are read every 60 s (`Leaderboard.refreshEvery`) with
 `GetSortedAsync`; names come from `Players:GetNameFromUserIdAsync`, cached.
 
+**The YOU row** (2026-11-11). Under the ten rows of each board is an eleventh,
+"YOU: #N" with the player's own best. The same read now asks for
+`Leaderboard.rankDepth` (100) entries, still one page and one call, and names
+are looked up only for the ten drawn. `Util/BoardRank` places each player in
+that list with this server's bests folded in; a best under the last entry of a
+full read is "#100+", never a made-up place. A board is one SurfaceGui for
+everyone, so `Run/BoardYou` builds the row empty (tag `BoardYou`) and
+publishes each player's two texts as attributes on their Player
+(`StoryYouRank`, `StoryYouBest`, `EndlessYouRank`, `EndlessYouBest`), and each
+client writes its own into the row (`UI/BoardYou`). `tests/BoardRank.spec`.
+
 **Failure.** Every DataStore call is in a `pcall`. In Studio without API access,
 or when a call fails, the board shows what this server knows (the last top it
 read, with its own players' bests folded in), and that is logged once. Studio
@@ -72,8 +83,133 @@ this separate ordered store, written only by the max rule above.
 ## Drawing it
 
 `StoryLeaderboard.attach(face, areaNames)` builds a `SurfaceGui` on the front
-of `face` (sized by `Leaderboard.pixelsPerStud`, `Enum.Font.Arcade`), with
+of `face` (sized by `Leaderboard.pixelsPerStud`, `Enum.Font.FredokaOne`), with
 `Leaderboard.rows` rows, and redraws it whenever the top changes. `areaNames`
 maps a stage index to its area's name, e.g. `{ [7] = "Mossy Glade 1-1",
 [4] = "Thornwood" }` (an area of several levels names the level too). The board's title, FARTHEST ADVENTURERS, is the frame's,
 not the SurfaceGui's.
+
+## THIS WEEK'S DELVERS: the weekly Endless tournament
+
+Owner, 2026-11-18 ("yes all of these create them"): a weekly board of each
+player's best Endless floor, with prizes when the week ends. Rules in
+`Util/TournamentRules` (pure, `tests/TournamentRules.spec` drives a week and
+its rollover with a fake clock), numbers in `Config/Tournament`, the store
+and the board in `Run/WeeklyTournament`, the prize panel in
+`UI/TournamentPrize`.
+
+**The week** runs from Monday 00:00 UTC to the next Monday. Weeks are
+numbered from 1970-01-05 (the first Monday of Unix time) and named by their
+Monday's date ("2026-11-16"). The week rolls over by itself: the board
+empties and its countdown starts again.
+
+**The board** stands past DEEPEST DELVERS on the same side
+(`Config/Lobby.weeklyLeaderboard`, the same stone build): a heading,
+THIS WEEK'S DELVERS, with "RESETS IN 2D 4H" beside it (hours and minutes
+under a day, minutes under an hour), the top ten with rank, name, floor and
+time, and the YOU row (`WeeklyYouRank`, `WeeklyYouBest`, `Run/BoardYou`).
+
+**The store**
+
+| | |
+|---|---|
+| Kind | `OrderedDataStore` |
+| Name | `EndlessWeekly_v1` (`Config/Tournament.storeName`) |
+| Scope | the week's Monday, `"2026-11-16"`: every week its own board, an old one never rewritten |
+| Key | `tostring(userId)` |
+| Value | `TournamentRules.score`: the floor times 1,000,000, plus 999,999 less the tenths of a second the run took to clear it |
+
+**Ties.** A deeper floor always wins. On the same floor the faster run
+wins: the time is the server's, from the run's start
+(`session.stageStartedAt`) to the floor being cleared, so it can no more be
+claimed than the floor. Two runs level to the tenth of a second share the
+better place, on the board and for the prize, so a tie never costs one.
+
+**Write cost.** As the boards above: a best is marked for writing only when
+it improves (a deeper floor, or the same floor faster), at most every
+`Leaderboard.flushEvery` (30 s) per player, when they leave and as the server
+closes, and `UpdateAsync` writes nothing when the stored value is already as
+good. The top is read every 60 s. A player's own best this week comes from
+their save on join, so joining costs no read of this store.
+
+**Prizes** (`Config/Tournament.places` and `.bands`; the owner's yes,
+2026-11-18, "YES BUILD IT", with the themed set weapons added; starting
+numbers):
+
+| Place | Prize |
+|---|---|
+| 1 | 300 gems, 1,000 Soulstones, the ENDLESS CHAMPION title, and **two** themed set weapons of the player's choice |
+| 2-10 | 150 gems, 500 Soulstones, and **one** themed set weapon of the player's choice |
+| 11-100 | 60 gems, 250 Soulstones |
+
+and, on top, for everyone who played that week, by the deepest floor:
+
+| Floor | Prize |
+|---|---|
+| 1-9 | 50 Soulstones |
+| 10-19 | 100 Soulstones, 1,000 coins |
+| 20-29 | 200 Soulstones, 2,500 coins |
+| 30-49 | 300 Soulstones, 10 gems |
+| 50+ | 500 Soulstones, 25 gems |
+
+**The set weapon picks.** "Skins" in the owner's words are the themed sets'
+weapons (`docs/WEAPONS-THEMED.md`, `Config/Shop.sets`): one Legendary a
+class in each set. A pick is **any one of them the player does not own, of
+any set and any class**, but never a reward weapon (`WeaponStats.earned`:
+the Nebula Blade, the Petalfall Blade and the Wishcutter Blade are Endless
+room 100's and the season pass's; owner, 2026-11-19, "yes, close it"). On
+the panel those three keep their place in their set's row, captioned
+REWARD and not pressable, and a tap names where they are earned. A pick is
+chosen on the prize panel (PICK!, then TAKE IT)
+and granted by the server (`Remotes.TournamentPick`,
+`Wallet.pickTournamentWeapon`, which refuses anything owned, not a set's,
+or with no pick owed). Every stocked set counts, whether or not its shelf
+is on sale that week. A pick with nothing left to take (the player owns
+every set weapon) is paid as `Tournament.pickGems` (300) gems, when the
+week pays and again on any later join. Picks not taken are kept in the save
+(`tournamentPicks`) and offered again on the next join.
+
+Coins, gems, Soulstones and weapons the player chooses: no eggs or crates
+and nothing rolled, so nothing here is a random item and the
+paid-random-items rule does not touch it. A week's Soulstones are not under
+the run cap.
+
+**Paid once, on the next join.** Each week a player sets a best in is
+noted in their save (version 26, `tournamentWeeks`: week number to that
+week's best score, at most `Tournament.keep` of them; `tournamentWins`;
+`tournamentPicks`). Once the week is over
+and `Tournament.grace` (300 s) has passed, so the week's last writes from
+other servers are in, the server reads that week's top 100 once, places the
+player (their save's best counts even if the store never heard of it), and
+pays and takes the week out of the save in one step with nothing yielding
+between (`Wallet.payTournament`), so a week pays once. A player in the game
+as the week ends is paid there, within seconds of the grace. If the store
+cannot be read, the week waits and is tried again every 60 s; it is never
+paid a guessed place. Past the top 100 a player has no place and gets their
+floor's band alone.
+
+**The title.** A week's winner gets ENDLESS CHAMPION over their name tag for
+good (`UI/NameTags`, gold), "x2", "x3" with more wins (`tournamentWins`,
+published as the Player's `TournamentWins`). A title rather than a trail:
+every trail is a Claude Design build.
+
+**Studio** never writes the store (`Leaderboard.writeFromStudio`); without
+API access it places from what it knows. `Remotes.DebugTournament` (Studio
+only): `("shift", s)` moves the tournament's clock on (with no seconds, to
+just past the next reset and its grace), `("floor", f, s)` records a floor
+as a run would, `("rival", n)` puts n made-up players on this week's board.
+
+**Seen in Studio 2026-11-19** (desktop size, by probe): the board past
+DEEPEST DELVERS with twelve made-up players and a real floor (rank, name,
+floor and time, bronze on third, YOU: #6, RESETS IN 3D 16H); the clock moved
+past the reset and its grace: the board emptied, and the week paid #6 at
+floor 34 (+160 gems, +800 Soulstones, one pick) and, a week later, #1 at
+floor 64 (+325 gems, +1,500 Soulstones, two picks, ENDLESS CHAMPION over the
+name tag); PICK! opened the eight sets, a click and TAKE IT granted the
+Wishbright Bow, the panel closed and the week was gone from the save. A pick
+of an owned set weapon and of an area's weapon were both refused. On the
+tree rebased on main (hard mode's name-tag frame in), the title sits over
+the name's row and the in-Roblox tests pass, 1,285. **Not
+seen:** a phone, a real Endless run feeding the board (the floor was
+recorded by the debug remote; `RoomController` calls the same `record`), the
+live store (Studio has no DataStores), and two servers writing one week.

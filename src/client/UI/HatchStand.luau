@@ -19,11 +19,19 @@ local UserInputService = game:GetService("UserInputService")
 local Chunky = require(script.Parent.Chunky)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
+local OddsText = require(ReplicatedStorage.Shared.Util.OddsText)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Reveal = require(script.Parent.Reveal)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
 local HatchStand = {}
+
+--[[ Seconds after a stand opens before E, R or T spend anything. E is also
+     the key that opened it, and at 0.3 s a second press bought an egg (the
+     run-through, 2026-11-14). ]]
+local KEY_WAIT = 1
+--[[ The height of the line under the odds that says they are rounded. ]]
+local ROUNDED_H = 40
 
 export type Tile = {
 	rarity: string,
@@ -34,6 +42,9 @@ export type Tile = {
 	key: string?,
 	chance: number,
 	owned: boolean,
+	--[[ The best merge tier held of it (`Util/MergeRules`), for the badge
+	     in the card's bottom left; nil for one not owned. ]]
+	tier: string?,
 	--[[ Drawn black on its rarity's card, as Codex's screens draw a Mythic
 	     nobody has pulled yet: the colour says how rare, the silhouette
 	     keeps what it is a surprise. ]]
@@ -68,6 +79,12 @@ export type Spec = {
 	--[[ The screen's own modes, as tabs along the panel's head (the
 	     Blacksmith's CRATES and STORE). ]]
 	modes: { Mode }?,
+	--[[ A luck boost the odds are drawn at, in gold beside the card's head
+	     ("2x LUCK!"; docs/LIVE-EVENTS.md); nil with none. ]]
+	luck: string?,
+	--[[ Buys the Server Luck, a button at the card's head; nil when it is
+	     not offered. ]]
+	boost: (() -> ())?,
 }
 export type Mode = { words: string, on: boolean, pick: () -> () }
 export type Controller = {
@@ -92,22 +109,17 @@ end
 	head. Returns the room left inside the panel. Laid out for the screen as
 	it is held: 1920 x 1080, or 1080 x 1920 on a phone held upright.
 ]]
+--[[ A tab's width in sheet pixels: the kit's, or narrower when that many
+     would run past the panel (REWARDS' four on an upright phone). ]]
+function HatchStand.tabWidth(upright: boolean, count: number): number
+	local most = if upright then 300 else 250
+	local room = if upright then 940 else 1540
+	return math.min(most, math.floor((room + 18) / math.max(count, 1) - 18))
+end
+
 function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
 	local dim = c.Parent :: GuiObject
-	local layer = c:FindFirstAncestorWhichIsA("ScreenGui")
-	if layer then
-		-- the Blacksmith's own lobby wallet; this frame carries its own
-		for _, other in layer:GetDescendants() do
-			if
-				other.Name == "Wallet"
-				and other:IsA("GuiObject")
-				and not other:IsDescendantOf(c)
-			then
-				other.Visible = false
-			end
-		end
-	end
 	-- the station's back arrow and old wallet give way to the X and the pills
 	for _, child in c:GetChildren() do
 		if child:IsA("ImageButton") or child.Name == "Wallet" then
@@ -156,12 +168,11 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	)
 	local top = if up then 290 else 182
 	if modes then
-		local w = if up then 300 else 250
+		local w = HatchStand.tabWidth(up, #modes)
 		for i, mode in modes do
 			Chunky.tab(
 				sheet,
 				mode.words,
-				if i == 1 then Chunky.gold else Chunky.blue,
 				mode.on,
 				(if up then 70 else 190) + (i - 1) * (w + 18),
 				top,
@@ -189,9 +200,11 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	}
 end
 
---[[ The odds as the cards print them: "2.5%". ]]
+--[[ The odds as the cards print them: four figures, "59.18%"
+     (`Util/OddsText`, Roblox's paid random items policy; owner, 2026-11-19),
+     with the line that they are rounded under the grid. ]]
 local function odds(chance: number): string
-	return string.format("%g%%", math.round(chance * 10000) / 100)
+	return OddsText.percent(chance)
 end
 
 --[[ The columns that make the largest square tiles for `count` in a w x h
@@ -264,7 +277,6 @@ function HatchStand.draw(
 			Chunky.tab(
 				sheet,
 				tab.words,
-				Chunky.purple,
 				tab.on,
 				cx + (i - 1) * (w + gap),
 				y,
@@ -301,12 +313,12 @@ function HatchStand.draw(
 	end
 	y = cBottom - 316
 
-	words(sheet, spec.title, cx, y, cw, 76, nil, 6)
+	words(sheet, spec.title, cx, y, cw, 76, Chunky.ink, 0)
 	y += 92
 
 	-- the price, and beside it the area picker when the chests took the tabs
 	if #spec.tabs > 0 then
-		Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(spec.price), cx, y, 250, 82, Chunky.gold)
+		Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(spec.price), cx, y, 250, 82)
 		Chunky.button(
 			sheet,
 			`<  {spec.picker}  >`,
@@ -325,8 +337,7 @@ function HatchStand.draw(
 			cx + cw / 2 - 140,
 			y,
 			280,
-			82,
-			Chunky.gold
+			82
 		)
 	end
 	y += 104
@@ -335,10 +346,20 @@ function HatchStand.draw(
 	local slots = #spec.counts + 1
 	local gap = 16
 	local bw = (cw - (slots - 1) * gap) / slots
+	--[[ With a keyboard each button names its key, since the key spends
+	     coins: E the first, R the last, T for AUTO (the run-through,
+	     2026-11-14: "E spends coins with no sign of it"). ]]
+	local keys = UserInputService.KeyboardEnabled and not UserInputService.TouchEnabled
 	for i, count in spec.counts do
-		Chunky.button(
+		local key = if not keys
+			then ""
+			elseif i == 1 then " [E]"
+			elseif i == #spec.counts then " [R]"
+			else ""
+		local open: Frame? = nil
+		open = Chunky.button(
 			sheet,
-			`{spec.verb} {count}`,
+			`{spec.verb} {count}{key}`,
 			if not affordable(count)
 				then Chunky.grey
 				elseif i == 1 then Chunky.green
@@ -348,13 +369,17 @@ function HatchStand.draw(
 			bw,
 			116,
 			function()
+				-- a grey one shakes its head rather than doing nothing
+				if not affordable(count) and open then
+					Kit.shake(open)
+				end
 				press(count)
 			end
 		)
 	end
 	Chunky.button(
 		sheet,
-		if control.auto then "AUTO ON" else "AUTO",
+		(if control.auto then "AUTO ON" else "AUTO") .. (if keys then " [T]" else ""),
 		if control.auto then Chunky.green else Chunky.blue,
 		cx + #spec.counts * (bw + gap),
 		y,
@@ -365,9 +390,46 @@ function HatchStand.draw(
 
 	-- what is inside, on the white card
 	Chunky.card(sheet, kx, ky, kw, kh)
-	words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	if spec.luck or spec.boost then
+		-- the head shared: what is inside on the left, the luck on the right
+		local head =
+			words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw * 0.4 - 24, 62, Chunky.navy, 0)
+		head.TextXAlignment = Enum.TextXAlignment.Left
+		local right = kx + kw - 24
+		if spec.boost then
+			local luckW = kw * 0.32
+			Chunky.button(
+				sheet,
+				"2x LUCK ALL",
+				Chunky.green,
+				right - luckW,
+				ky + 12,
+				luckW,
+				66,
+				guard(spec.boost)
+			).Name =
+				"ServerLuck"
+			right -= luckW + 12
+		end
+		if spec.luck then
+			local tag = words(
+				sheet,
+				spec.luck,
+				kx + kw * 0.4,
+				ky + 14,
+				right - kx - kw * 0.4,
+				62,
+				Chunky.gold,
+				4
+			)
+			tag.Name = "LuckOn"
+			tag.TextXAlignment = Enum.TextXAlignment.Right
+		end
+	else
+		words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	end
 	local held = #spec.tiles
-	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120
+	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120 - ROUNDED_H
 	local tileGap = 16
 	local cols, tile = HatchStand.grid(held, gw, gh, tileGap)
 	local rows = math.max(math.ceil(held / cols), 1)
@@ -386,15 +448,17 @@ function HatchStand.draw(
 			tile,
 			tile
 		)
-		Chunky.tile(
+		local card = Chunky.tile(
 			holder,
 			entry.rarity,
 			entry.icon,
 			odds(entry.chance),
 			entry.silhouette == true or spec.locked ~= nil,
-			entry.owned,
-			entry.key
+			entry.owned
 		)
+		if entry.owned then
+			Chunky.tier(card, entry.tier)
+		end
 	end
 
 	if spec.locked then
@@ -412,6 +476,19 @@ function HatchStand.draw(
 			23
 	end
 
+	-- the odds are rounded: said under them (Roblox's paid random items policy)
+	local rounded = words(
+		sheet,
+		OddsText.ROUNDED,
+		kx + 30,
+		ky + kh - 120 - ROUNDED_H,
+		kw - 60,
+		ROUNDED_H - 6,
+		Chunky.inkSoft,
+		0
+	)
+	rounded.Name = "OddsRounded"
+
 	-- the tally and the guaranteed Mythic along the card's foot
 	local left2 = math.max(1, Pity.EVERY - spec.pity)
 	local tally =
@@ -424,7 +501,7 @@ function HatchStand.draw(
 		ky + kh - 112,
 		kw - 60,
 		44,
-		Chunky.purple,
+		Chunky.shade(Chunky.purple),
 		0
 	)
 	line.Name = "PityLine"
@@ -476,7 +553,7 @@ function HatchStand.controller(
 	local stopCanvas = Kit.canvas(stopLayer)
 	local autoLabel = Kit.label(stopCanvas, "AUTO", Kit.white)
 	Kit.put(autoLabel, 24, 788, 320, 48)
-	local stop = Kit.button(stopCanvas, "STOP", Color3.fromRGB(230, 60, 50), function()
+	local stop = Kit.button(stopCanvas, "STOP", Chunky.red, function()
 		control.auto = false
 		if s.isOpen() and not Reveal.busy() then
 			s.open()
@@ -491,7 +568,7 @@ function HatchStand.controller(
 			processed
 			or not s.isOpen()
 			or not active()
-			or os.clock() - openedAt < 0.3
+			or os.clock() - openedAt < KEY_WAIT
 			or Reveal.busy()
 		then
 			return

@@ -50,6 +50,11 @@ export type Shot = {
 	flip: boolean?,
 	targets: number?,
 	impact: Impact?,
+	--[[ Which enemy goes first, for a pet that does not pick the nearest
+	     (`Shared/Util/PetCrowd`): the furthest (the Cave Cricket), or the
+	     one with the most others within `aimRadius` (the Gulpling). ]]
+	aim: ("Farthest" | "Densest")?,
+	aimRadius: number?,
 }
 
 local PetAttacks: { [string]: { Shot } } = {
@@ -177,30 +182,31 @@ local PetAttacks: { [string]: { Shot } } = {
 		{ effect = "FxPetReviveBurst", clip = "Play", kind = "Owner", at = 2.2, life = 1.6 },
 	},
 
-	--[[ Thornwood (area 2). Every piece here is a Mossy Glade effect
-	     standing in: the area's own `FxPet` models are not made yet, so a
-	     Thornwood pet throws the forest's thorn-shaped pieces rather than
-	     nothing at all. Swapping them later is one `effect` name each.
+	--[[ Thornwood (area 2). Its own pieces since 2026-11-26
+	     (docs/PETS-THORNWOOD.md, Effect pieces): Claude Design from the
+	     sheets `assets/concepts/pets/attacks/thornwood_pieces_a.png` and
+	     `_b.png`, bark, bramble, ivory thorns, berries and magenta silk where
+	     the Mossy Glade pieces it borrowed until then were leaves, acorns,
+	     slime and spores.
 
 	     Each of these pets has a one-second Attack clip, where the forest's
 	     run longer, so every piece fires inside that second -- the Glade's
 	     habit of trailing a second effect a beat later (Glimmerhorn's heal
 	     at 1.4 s) would simply never play here. ]]
 
-	-- it rams: the hit shows on the floor, not in the air
+	-- it rams: the gouge shows on the floor, not in the air
 	BarkHoglet = {
 		{
-			effect = "FxPetLeafSlash",
+			effect = "FxPetTuskGouge",
 			clip = "Slash",
 			kind = "Ground",
 			at = 0.3,
-			lift = 1.2,
 			life = 0.35,
 		},
 	},
 	Burrball = {
 		{
-			effect = "FxPetAcornPellet",
+			effect = "FxPetClingBurr",
 			clip = "Spin",
 			kind = "Projectile",
 			at = 0.1,
@@ -209,34 +215,35 @@ local PetAttacks: { [string]: { Shot } } = {
 			speed = 34,
 		},
 	},
+	-- a needle goes in and through: nothing is left on the floor
 	Budbulb = {
 		{
-			effect = "FxPetSlimeGlob",
+			effect = "FxPetThornPop",
 			clip = "Fly",
 			kind = "Projectile",
 			at = 0.35,
 			speed = 20,
-			arc = 3,
-			impact = { effect = "FxPetSlimeGlob", clip = "Splat", life = 2 },
+			arc = 1,
 		},
 	},
 	BerryMouse = {
-		{ effect = "FxPetSporePatch", clip = "Play", kind = "Owner", at = 0.4, life = 3 },
+		{ effect = "FxPetBerryHeal", clip = "Play", kind = "Owner", at = 0.4, life = 0.9 },
 	},
 	--[[ The Thistle Mole's shell answers (`PetCombat` `reflect`), so unlike
-	     the Snail's it has a piece: the thorns going out off its owner as it
-	     blocks. Played when the shell blocks rather than on a clock, from
-	     the same `Remotes.PetAttack` the Snail's flight uses. ]]
+	     the Snail's it has a piece: the thistle spikes going out off its
+	     owner as it blocks, as far as the 10 studs they hurt. Played when the
+	     shell blocks rather than on a clock, from the same
+	     `Remotes.PetAttack` the Snail's flight uses. ]]
 	ThistleMole = {
-		{ effect = "FxPetCrownShockwave", clip = "Play", kind = "Owner", at = 0.1, life = 0.8 },
+		{ effect = "FxPetThistleBurst", clip = "Play", kind = "Owner", at = 0.1, life = 0.8 },
 	},
 	--[[ Its hold jumps to a second enemy (`chain`), and the Hold piece is
-	     drawn round every enemy the attack holds, so both get their roots
-	     without a second entry. The vines across the floor say where it
+	     drawn round every enemy the attack holds, so both get their snare
+	     without a second entry. The vine across the floor says where it
 	     jumped. ]]
 	BriarBeetle = {
 		{
-			effect = "FxPetLeafSlash",
+			effect = "FxPetBriarVine",
 			clip = "Slash",
 			kind = "Ground",
 			at = 0.4,
@@ -244,37 +251,36 @@ local PetAttacks: { [string]: { Shot } } = {
 			targets = 2,
 			every = 0.08,
 		},
-		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Hold", at = 0.45 },
+		{ effect = "FxPetBriarSnare", clip = "Snare", kind = "Hold", at = 0.45 },
 	},
 	--[[ Blood Berry: a berry thrown, and the owner fed as it bursts. The
 	     mark it used to hang over an enemy is gone with the spec's
 	     (`healPerHit` now). ]]
 	BerryBat = {
 		{
-			effect = "FxPetSlimeGlob",
+			effect = "FxPetBloodBerry",
 			clip = "Fly",
 			kind = "Projectile",
 			at = 0.3,
 			speed = 32,
-			impact = { effect = "FxPetSlimeGlob", clip = "Splat", life = 0.8 },
+			impact = { effect = "FxPetBerrySplat", clip = "Splat", life = 0.8 },
 		},
-		{ effect = "FxPetHealSparkles", clip = "Play", kind = "Owner", at = 0.55, life = 0.9 },
+		{ effect = "FxPetBerryHeal", clip = "Play", kind = "Owner", at = 0.55, life = 0.9 },
 	},
 	BrambleBear = {
 		{
-			effect = "FxPetLeafSlash",
-			clip = "Slash",
+			effect = "FxPetBrambleSlam",
+			clip = "Play",
 			kind = "Ground",
 			at = 0.3,
-			lift = 1.2,
-			life = 0.35,
+			life = 0.6,
 			targets = 3,
 			every = 0.12,
 		},
 	},
 	BriarLynx = {
 		{
-			effect = "FxPetFeatherDart",
+			effect = "FxPetThornShear",
 			clip = "Fly",
 			kind = "Projectile",
 			at = 0.25,
@@ -286,23 +292,27 @@ local PetAttacks: { [string]: { Shot } } = {
 			homing = true,
 		},
 	},
+	-- Thorn Bite: the thorns stay in (`bleed`), which is what the drip says
 	BrambleWilf = {
 		{
-			effect = "FxPetEmberBolt",
+			effect = "FxPetGoldThorn",
 			clip = "Fly",
 			kind = "Projectile",
 			at = 0.45,
 			count = 3,
 			spread = 18,
 			speed = 30,
-			-- a thorn going in, standing in for art of its own (`bleed`)
-			impact = { effect = "FxPetBurningMark", clip = "Burn", life = 2 },
+			impact = { effect = "FxPetThornBleed", clip = "Bleed", life = 2 },
 		},
-		{ effect = "FxPetHowlAura", clip = "Play", kind = "Owner", at = 0.8, life = 2 },
+		{ effect = "FxPetBrambleHowl", clip = "Play", kind = "Owner", at = 0.8, life = 2 },
 	},
+	--[[ Briar Cage: two spirits hop off, and the cage comes down round the
+	     enemy they hold (`root`, and a `boss` above 0). The cage is the Hold
+	     piece, drawn round each held enemy's feet for as long as the server
+	     holds it, so nothing else marks where it lands. ]]
 	ThornPrincess = {
 		{
-			effect = "FxPetMiniSlime",
+			effect = "FxPetBriarSpirit",
 			clip = "Bounce",
 			kind = "Projectile",
 			at = 0.4,
@@ -310,40 +320,27 @@ local PetAttacks: { [string]: { Shot } } = {
 			spread = 50,
 			speed = 12,
 			arc = 4,
-			impact = { effect = "FxPetMiniSlime", clip = "Splash", life = 0.5 },
 		},
-		--[[ The cage coming down (`root`, and a `boss` above 0): the
-		     shockwave now lands on the enemy rather than under her, since it
-		     is what holds it. Its Hold piece is drawn round the held
-		     enemy's feet for as long as the server holds it. ]]
-		{
-			effect = "FxPetCrownShockwave",
-			clip = "Play",
-			kind = "Ground",
-			at = 0.45,
-			life = 1.2,
-			targets = 2,
-		},
-		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Hold", at = 0.4 },
+		{ effect = "FxPetBriarCage", clip = "Snare", kind = "Hold", at = 0.4 },
 	},
-	--[[ The Wake (`aura`): a ring turning round its owner, not a beam. It
-	     lives as long as the ring does, so the pet raising it again every
-	     three seconds reads as one unbroken ring rather than a flicker, and
-	     the howl under it is the moment it is raised.
+	--[[ The Wake (`aura`): a ring of thorns turning round its owner, as
+	     wide as the 12 studs it hurts. The pet raises it again every three
+	     seconds and each ring lives a little longer than that, so the next
+	     one has risen before the last sinks and it reads as one unbroken
+	     ring rather than a flicker.
 
 	     Its revive has no piece: the Glimmerhorn shows one at 2.2 s and this
 	     clip is over at 1.0, so there is nowhere to put it until Thornwake
 	     has an Attack long enough or a burst of its own. ]]
 	Thornwake = {
 		{
-			effect = "FxPetCrownShockwave",
+			effect = "FxPetThornWake",
 			clip = "Play",
 			kind = "Owner",
-			at = 0.25,
-			life = 3,
+			at = 0.3,
+			life = 3.3,
 			sweep = 360,
 		},
-		{ effect = "FxPetHowlAura", clip = "Play", kind = "Owner", at = 0.2, life = 1 },
 	},
 	--[[ The Drowned Village's five (2026-11-04). They could have no pieces
 	     until they had clips to hang them on: each came out of Tripo as one
@@ -431,6 +428,119 @@ local PetAttacks: { [string]: { Shot } } = {
 			at = 0.42,
 			life = 0.35,
 			sweep = 70,
+		},
+	},
+
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md, Attacks). Its own pieces
+	     since 2026-11-26: Claude Design from the sheet
+	     `assets/concepts/pets/attacks/bogheart_pieces.png`, cave stone, bog
+	     mud, lichen, cyan cave light and teal crystal. Times match each
+	     pet's Attack clip in assets/models/pet_motions.json. ]]
+	--[[ Long Chirp: a chirp flung at the furthest enemy as the cricket
+	     lands its hop (0.32): a ring of sound. ]]
+	CaveCricket = {
+		{
+			effect = "FxPetChirpRing",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.6,
+			speed = 44,
+			arc = 3,
+			homing = true,
+			aim = "Farthest",
+		},
+	},
+	--[[ Fourth Lick: a quick lick at the end of the skitter (0.3); its
+	     reach is 16 studs, so nothing flies. ]]
+	LichenGecko = {
+		{
+			effect = "FxPetLichenLick",
+			clip = "Lash",
+			kind = "Reach",
+			at = 0.3,
+			life = 0.3,
+		},
+	},
+	--[[ Mud Plaster: on the owner as the beaver slaps its tail (0.35),
+	     held the 6 s the coat can last, crumbling in its last second. ]]
+	BogBeaver = {
+		{
+			effect = "FxPetMudCoat",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.35,
+			life = 6,
+			sweep = 90,
+		},
+	},
+	--[[ Glow Mote: the mote rides its target from the lure flash (0.35)
+	     for the 1.5 s fuse, and the burst goes off under it at 1.85, when
+	     `Combat/PetCombat` lands it. ]]
+	Lanternfin = {
+		{
+			effect = "FxPetGlowMote",
+			clip = "Spin",
+			kind = "Overhead",
+			at = 0.35,
+			lift = 1.2,
+			life = 1.5,
+		},
+		{
+			effect = "FxPetMoteBurst",
+			clip = "Play",
+			kind = "Ground",
+			at = 1.85,
+			life = 0.8,
+		},
+	},
+	--[[ Tremor Snap: a ripple under its target as the olm slaps the
+	     ground (0.4). The blow lands at once. ]]
+	Olm = {
+		{
+			effect = "FxPetTremorRipple",
+			clip = "Play",
+			kind = "Ground",
+			at = 0.4,
+			life = 0.7,
+		},
+	},
+	--[[ Spore Sneeze: the whole 60-degree wedge thrown on the sneeze
+	     (0.5), 16 studs long like the cone it hurts, so it is not turned. ]]
+	GlowcapWilf = {
+		{
+			effect = "FxPetSporeSneeze",
+			clip = "Sneeze",
+			kind = "Reach",
+			at = 0.5,
+			life = 0.45,
+		},
+	},
+	--[[ Little Belly Flop: the landing ring under the biggest crowd as
+	     the gulpling comes down (0.55). ]]
+	Gulpling = {
+		{
+			effect = "FxPetFlopSplash",
+			clip = "Play",
+			kind = "Ground",
+			at = 0.55,
+			life = 0.9,
+			aim = "Densest",
+			aimRadius = 7,
+		},
+	},
+	--[[ Prism Split: a crystal bolt from the coil's strike (0.45) that
+	     shatters where it lands; the server lands the bolt and its shards
+	     as the piece arrives (`Shared/Combat/PetShots`). ]]
+	PrismLeviathan = {
+		{
+			effect = "FxPetPrismBolt",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.45,
+			speed = 40,
+			arc = 1,
+			homing = true,
+			impact = { effect = "FxPetPrismShards", clip = "Play", life = 0.6 },
 		},
 	},
 }

@@ -24,10 +24,12 @@ local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local DeepAccord = require(ReplicatedStorage.Shared.Util.DeepAccord)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
@@ -35,6 +37,7 @@ local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local TollcrabMoves = require(script.Parent.TollcrabMoves)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Waves = require(script.Parent.Parent.Run.Waves)
 local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
@@ -86,6 +89,17 @@ type BossState = {
 	wheelHitAt: { [Player]: number },
 	--[[ When it last stepped (`os.clock()`), for a chase's stride. ]]
 	steppedAt: number,
+	--[[ Its notches (`EnemyBoss.notches`) fallen through, how many roars
+	     it owes for them, and when the roar it is giving began and ends
+	     (`os.clock()`), or 0. ]]
+	notchesPassed: number,
+	roarsOwed: number,
+	roarAt: number,
+	roarUntil: number,
+	--[[ Belly Slide: who it has already hit this slide. ]]
+	slideHit: { [Player]: boolean },
+	--[[ Big Gulp: whether the clients are being told to drag. ]]
+	dragging: boolean,
 }
 
 type Enemy = {
@@ -157,6 +171,10 @@ type Enemy = {
 	rootedUntil: number,
 	markScale: number?,
 	markUntil: number?,
+	--[[ Sunder (the Warden's card): takes `1 + sunder` times the damage
+	     until `sunderUntil` (os.clock), beside any pet's mark. ]]
+	sunder: number?,
+	sunderUntil: number?,
 	--[[ The Inkpot's Ink Blink: until `blindUntil` (os.clock) this enemy
 	     cannot pick a target further than `blindRange` studs away. It
 	     still walks and still swings at whatever is close. ]]
@@ -195,6 +213,21 @@ type Enemy = {
 	clips: ModelClip.Model?,
 	clip: string?,
 	lastPosition: Vector3?,
+	--[[ A spinning turret's (`EnemyShot.spin`) aim: radians round from +Z,
+	     turned on by `spin` with every volley. ]]
+	spinAim: number?,
+}
+
+--[[ A cloud of spores where an enemy died (`EnemyConfig.burst`): it hurts
+     whoever is within `radius` of `at` on each tick from `nextAt` until
+     `endsAt`, every `every` seconds, for `damage`. ]]
+type Cloud = {
+	at: Vector3,
+	radius: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+	endsAt: number,
 }
 
 local EnemyManager = {}
@@ -231,6 +264,7 @@ local enemyDied = Remotes.event(Remotes.EnemyDied)
 local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
 local playerShoved = Remotes.event(Remotes.PlayerShoved)
 local playerGrabbed = Remotes.event(Remotes.PlayerGrabbed)
+local playerDragged = Remotes.event(Remotes.PlayerDragged)
 
 --[[ Studs enemies try to keep between each other, so a wave reads as a group
      rather than one overlapping blob. ]]
@@ -307,15 +341,77 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 		end
 		damageScale = Waves.damageRamp(stage, ordinal)
 	end
+	--[[ Hard mode on top (`Util/HardRules`), bosses too; co-op's health
+	     comes on top of this as on normal (`partyHealth`). ]]
+	local tough = HardRules.scale(CurrentStage.hard())
 	return {
-		damage = (stage and stage.enemyDamage or 1) * damageScale,
-		health = (stage and stage.enemyHealth or 1) * healthScale,
+		damage = (stage and stage.enemyDamage or 1) * damageScale * tough.damage,
+		health = (stage and stage.enemyHealth or 1) * healthScale * tough.health,
 		fireRate = 1,
 	}
 end
 
+--[[ Makes `model` its fight's elite on hard (`Util/HardRules.eliteSlot`):
+     `Balance.Hard.eliteHealth` times its health, and marked for the
+     clients, which draw a gold ELITE plate over it (`Fx/EnemyHealthBars`). ]]
+local function makeElite(model: Model)
+	local enemy = enemies[model]
+	if not enemy then
+		return
+	end
+	local scale = Balance.Hard.eliteHealth
+	enemy.health *= scale
+	enemy.maxHealth *= scale
+	model:SetAttribute("MaxHealth", enemy.maxHealth)
+	model:SetAttribute("Health", enemy.health)
+	model:SetAttribute(HardRules.ELITE, true)
+end
+
+--[[ Co-op's health on top (`Shared/Util/Coop`): a boss takes the party's
+     whole scaling, since a boss fight's count never scales; the rest a
+     little, since their count does. A boss also takes
+     `CombatTuning.bossHealth`. ]]
+local function partyHealth(config: EnemyConfig): number
+	local boss = config.boss ~= nil
+	return Coop.healthScale(Coop.partySize(), boss) * (if boss then CombatTuning.bossHealth else 1)
+end
+
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
+
+--[[ Spore clouds still hanging where their enemies died. ]]
+local clouds: { Cloud } = {}
+
+--[[ Grandmother Gulp's slime trails (`BossSlide`): each hurts whoever
+     stands on it, every `every` seconds until `endsAt`, but only as far
+     along as she has slid (`speed` from `startAt`). ]]
+type Strip = {
+	from: Vector3,
+	direction: Vector3,
+	length: number,
+	width: number,
+	startAt: number,
+	speed: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+	endsAt: number,
+}
+local strips: { Strip } = {}
+
+--[[ The Bog Rises (`BossFlood`): the poison creeping in from the walls
+     from `startAt` over `rise` seconds to `inset`, then staying, until the
+     boss who raised it dies. ]]
+type Flood = {
+	owner: Model,
+	inset: Vector2,
+	startAt: number,
+	rise: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+}
+local flood: Flood? = nil
 
 --[[ Until when (os.clock) the run holds still for a boss's entry banner. ]]
 local introUntil = 0
@@ -333,6 +429,9 @@ function EnemyManager.init(parent: Instance)
 
 	table.clear(enemies)
 	table.clear(positions)
+	table.clear(clouds)
+	table.clear(strips)
+	flood = nil
 	aliveCount = 0
 	introUntil = 0
 end
@@ -361,7 +460,10 @@ end
      anything that is not one. For damage that cares (Execute). ]]
 --[[ Slows a live enemy to `scale` of its speed (0 roots it) until
      `untilTime` (os.clock). The stronger and longer of two holds wins. ]]
-function EnemyManager.slow(model: Model, scale: number, untilTime: number)
+--[[ `frost` marks a chill (Frost Orb, Elemental Orbs' ice): `FrostUntil`
+     (server time) on the model, for the ice round its feet
+     (`Fx/Upgrades/ArcanistBuildFx`). ]]
+function EnemyManager.slow(model: Model, scale: number, untilTime: number, frost: boolean?)
 	local enemy = enemies[model]
 	if not enemy then
 		return
@@ -369,7 +471,54 @@ function EnemyManager.slow(model: Model, scale: number, untilTime: number)
 	local now = os.clock()
 	local held = (enemy.slowUntil or 0) > now
 	enemy.slowScale = if held then math.min(enemy.slowScale or 1, scale) else scale
-	enemy.slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+	local slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+	enemy.slowUntil = slowUntil
+	if frost then
+		model:SetAttribute("FrostUntil", Workspace:GetServerTimeNow() + (slowUntil - now))
+	end
+end
+
+--[[ Sunder: a live enemy takes `1 + extra` times the damage from
+     everything until `untilTime` (os.clock); the stronger of two holds
+     wins, the later end is kept. Published as `SunderedUntil` (server time)
+     for the cracks over it (`Fx/Upgrades/WardenBuildFx`). ]]
+function EnemyManager.sunder(model: Model, extra: number, untilTime: number)
+	local enemy = enemies[model]
+	if not enemy or extra <= 0 then
+		return
+	end
+	local now = os.clock()
+	local held = (enemy.sunderUntil or 0) > now
+	enemy.sunder = if held then math.max(enemy.sunder or 0, extra) else extra
+	local sunderUntil = math.max(enemy.sunderUntil or 0, untilTime)
+	enemy.sunderUntil = sunderUntil
+	model:SetAttribute("SunderedUntil", Workspace:GetServerTimeNow() + (sunderUntil - now))
+end
+
+--[[ Wind Arrows: a live enemy just hit from `from` is shoved `extra` times
+     its own knockback more, on top of the hit's, and the cap on a pile of
+     shoves is raised by as much. Nothing an enemy that takes no knockback
+     (a boss) would feel. ]]
+function EnemyManager.knock(model: Model, from: Vector3, extra: number)
+	local enemy = enemies[model]
+	if not enemy or extra <= 0 then
+		return
+	end
+	local away = Vector3.new(enemy.position.X - from.X, 0, enemy.position.Z - from.Z)
+	if away.Magnitude < 1e-3 then
+		return
+	end
+	local impulse = enemy.config.knockback * KNOCKBACK_SETTLE / Balance.Knockback.slideTime
+	if impulse <= 0 then
+		return
+	end
+	local combined = enemy.knockbackVelocity + away.Unit * impulse * extra
+	local most = impulse * (2 + extra)
+	if combined.Magnitude > most then
+		combined = combined.Unit * most
+	end
+	enemy.knockbackVelocity = combined
+	enemy.staggerUntil = os.clock() + Balance.Knockback.stagger
 end
 
 --[[ Holds a live enemy where it stands for `seconds` (a pet's root,
@@ -388,6 +537,19 @@ function EnemyManager.root(model: Model, seconds: number, by: string): boolean
 	model:SetAttribute("RootedUntil", Workspace:GetServerTimeNow() + (untilTime - now))
 	model:SetAttribute("RootedBy", by)
 	return true
+end
+
+--[[ The way a live enemy faces, flat and unit length; nil for one that is
+     gone. One that has not turned to anyone yet (a training dummy never
+     does) faces the way it is drawn, down -Z. Backstab asks it
+     (`Combat/MeleeSystem`). ]]
+function EnemyManager.facing(model: Model): Vector3?
+	local enemy = enemies[model]
+	if not enemy then
+		return nil
+	end
+	local yaw = enemy.yaw or 0
+	return Vector3.new(-math.sin(yaw), 0, -math.cos(yaw))
 end
 
 --[[ A live enemy takes `scale` times the damage until `untilTime`. ]]
@@ -806,6 +968,19 @@ local function clipData(key: string): ModelClip.Model?
 	return data
 end
 
+--[[ How many of `model`'s parts ride `data`'s clips, told to the clients
+     (`ModelClipParts`) so none fits the model while only half of it has
+     reached them (`Fx/ModelAnimator`). Counted here, where it is whole. ]]
+local function clipParts(model: Model, data: ModelClip.Model): number
+	local n = 0
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and data.parts[d.Name] then
+			n += 1
+		end
+	end
+	return n
+end
+
 --[[ Shows `clip` on an enemy that plays its own, from the start, if its
      model has it and it is not already showing. ]]
 local function play(enemy: Enemy, clip: string)
@@ -872,7 +1047,7 @@ local function fall(enemy: Enemy)
 	end
 	local body = enemy.model:Clone()
 	body.Name = `{enemy.model.Name}Fallen`
-	for _, name in { "Health", "MaxHealth", "Boss", "WindingUp", "LungeWindup" } do
+	for _, name in { "Health", "MaxHealth", "Boss", "WindingUp", "LungeWindup", "LungeStopped" } do
 		body:SetAttribute(name, nil)
 	end
 	for _, part in body:GetDescendants() do
@@ -915,8 +1090,8 @@ function EnemyManager.spawn(
 		hitbox = hitbox,
 		skin = skin,
 		config = config,
-		health = config.health * difficulty().health,
-		maxHealth = config.health * difficulty().health,
+		health = config.health * difficulty().health * partyHealth(config),
+		maxHealth = config.health * difficulty().health * partyHealth(config),
 		position = position,
 		knockbackVelocity = Vector3.zero,
 		staggerUntil = 0,
@@ -950,6 +1125,7 @@ function EnemyManager.spawn(
 	local own = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
 	local ownClips = if own and not config.boss then clipData(own.clips) else nil
 	if own and ownClips then
+		model:SetAttribute("ModelClipParts", clipParts(model, ownClips))
 		model:SetAttribute("ModelClips", own.clips)
 		CollectionService:AddTag(model, "ModelClips")
 		enemies[model].clips = ownClips
@@ -979,6 +1155,10 @@ function EnemyManager.spawn(
 		local imported = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
 		local clipped = config.boss.clips ~= nil and imported ~= nil
 		if clipped and imported then
+			local data = clipData(imported.clips)
+			if data then
+				model:SetAttribute("ModelClipParts", clipParts(model, data))
+			end
 			model:SetAttribute("ModelClips", imported.clips)
 			local stretch = imported.stretch
 			if stretch then
@@ -1002,6 +1182,12 @@ function EnemyManager.spawn(
 			summonOwed = 0,
 			wheelHitAt = {},
 			steppedAt = 0,
+			notchesPassed = 0,
+			roarsOwed = 0,
+			roarAt = 0,
+			roarUntil = 0,
+			slideHit = {},
+			dragging = false,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -1011,7 +1197,7 @@ function EnemyManager.spawn(
 		     thresholds, so King Bloblin's two give thirds. Drawing only —
 		     the health above it is still the truth. ]]
 		local summon = config.boss.summon
-		local fractions = summon and summon.atFractions
+		local fractions = (summon and summon.atFractions) or config.boss.notches
 		if fractions and #fractions > 0 then
 			model:SetAttribute("HealthSegments", #fractions + 1)
 		end
@@ -1022,8 +1208,8 @@ function EnemyManager.spawn(
 
 	--[[ Health travels as attributes so each client can draw the enemy's
 	     bar. Read for drawing only; the server's own number is the truth. ]]
-	model:SetAttribute("MaxHealth", config.health * difficulty().health)
-	model:SetAttribute("Health", config.health * difficulty().health)
+	model:SetAttribute("MaxHealth", config.health * difficulty().health * partyHealth(config))
+	model:SetAttribute("Health", config.health * difficulty().health * partyHealth(config))
 
 	model.Parent = parent
 
@@ -1079,8 +1265,22 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 		return
 	end
 
+	--[[ Co-op brings more of them (`Shared/Util/Coop`), but never a second
+	     boss: a fight with a boss in it keeps its count. ]]
+	local hasBoss = false
+	for _, config in roster do
+		if config.boss ~= nil then
+			hasBoss = true
+		end
+	end
+	if not hasBoss then
+		count = Coop.enemyCount(count, Coop.partySize())
+	end
+
 	local clusterSize = math.max(Balance.Spawning.clusterSize, 1)
 	local index = 0
+	--[[ On hard, one of a fight without a boss is its elite. ]]
+	local eliteAt = HardRules.eliteSlot(count, hasBoss, CurrentStage.hard())
 
 	--[[ In triangles, as the footage shows. Members are spawned one at a
 	     time, so each later spot is checked against the bodies already
@@ -1106,6 +1306,9 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 			local spot = spots[offset - 1]
 			local at = if spot then clusterSpot(config, spot) else nil
 			local model = EnemyManager.spawn(config, delay, at)
+			if model and index + offset == eliteAt then
+				makeElite(model)
+			end
 
 			if offset == 1 and model then
 				spots = arrange(members, enemies[model].position, widest)
@@ -1222,6 +1425,8 @@ end
 	third is where the enemy fell, on the killing blow only: it is where the
 	kill's crystals drop, and the model is gone by the time anyone asks.
 ]]
+--[[ `knock`, when given, is the share of the enemy's knockback this blow
+     gives (0 to 1; all of it when omitted). ]]
 --[[ `fromPosition` is where the blow came from, for knockback; nil for
      damage that does not push, like a burn ticking. `kind` is how the
      number is drawn; omitted is a plain hit. ]]
@@ -1230,7 +1435,8 @@ function EnemyManager.damage(
 	amount: number,
 	fromPosition: Vector3?,
 	kind: Types.HitKind?,
-	by: Player?
+	by: Player?,
+	knock: number?
 ): (boolean, number, Vector3?)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
@@ -1301,6 +1507,9 @@ function EnemyManager.damage(
 	if (enemy.markUntil or 0) > os.clock() then
 		amount *= enemy.markScale or 1
 	end
+	if (enemy.sunderUntil or 0) > os.clock() then
+		amount *= 1 + (enemy.sunder or 0)
+	end
 	enemy.health -= amount
 	--[[ A training dummy shows the blow and keeps every point of health. ]]
 	if enemy.config.dummy then
@@ -1322,11 +1531,15 @@ function EnemyManager.damage(
 	if knockbackDirection.Magnitude > 1e-3 then
 		local flat = knockbackDirection.Unit
 		local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
-		local impulse = enemy.config.knockback * rate
+		local whole = enemy.config.knockback * rate
+		--[[ `knock` is this blow's share of the shove (a dagger's slash,
+		     `Config/Classes.swing.knock`); the cap on a pile of shoves is
+		     a whole hit's, whatever this one gives. ]]
+		local impulse = whole * math.clamp(knock or 1, 0, 1)
 		local combined = enemy.knockbackVelocity + flat * impulse
 
-		if combined.Magnitude > impulse * 2 then
-			combined = combined.Unit * impulse * 2
+		if combined.Magnitude > whole * 2 then
+			combined = combined.Unit * whole * 2
 		end
 
 		enemy.knockbackVelocity = combined
@@ -1352,6 +1565,16 @@ function EnemyManager.damage(
 	local holding = enemy.boss and enemy.boss.holding
 	if holding then
 		playerGrabbed:FireClient(holding, 0)
+	end
+	--[[ Grandmother Gulp killed mid-inhale lets go too, and her flood
+	     drains with her, so the walk to the exit is dry. ]]
+	if enemy.boss and enemy.boss.dragging then
+		playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+	end
+	local raised = flood
+	if raised and raised.owner == model then
+		flood = nil
+		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 1, "BogFloodEnd", 0)
 	end
 
 	--[[
@@ -1381,6 +1604,28 @@ function EnemyManager.damage(
 	local split = enemy.config.split
 	if split then
 		spawnSplit(split, enemy.position)
+	end
+
+	--[[ The Spore Puff's cloud: it blooms the moment the body falls, so a
+	     player at arm's length sees it before its first tick lands. ]]
+	local burst = enemy.config.burst
+	if burst then
+		local now = os.clock()
+		table.insert(clouds, {
+			at = enemy.position,
+			radius = burst.radius,
+			damage = enemy.config.attackDamage * burst.damageScale * difficulty().damage,
+			every = burst.every,
+			nextAt = now + burst.delay,
+			endsAt = now + burst.linger,
+		})
+		enemyTelegraph:FireAllClients(
+			enemy.position,
+			Vector3.zAxis,
+			burst.linger,
+			"SporeCloud",
+			burst.radius
+		)
 	end
 
 	return true, enemy.config.xpReward, enemy.position
@@ -1433,6 +1678,15 @@ local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.Ene
 		now, so standing still through the tell is punished.
 	]]
 	local direction = enemy.volleyDirection or aimAt(enemy.position, targetRoot)
+
+	--[[ A spinning turret aims at nobody: each volley leaves `spin` further
+	     round than the last, from wherever its first one pointed. ]]
+	local spin = shot.spin
+	if spin then
+		local aim = enemy.spinAim or (if direction then math.atan2(direction.X, direction.Z) else 0)
+		direction = Vector3.new(math.sin(aim), 0, math.cos(aim))
+		enemy.spinAim = aim + spin
+	end
 
 	if not direction then
 		return
@@ -1558,6 +1812,9 @@ local function hurt(session: RunSession.Session, amount: number): boolean
 	return session.health < before or not session.alive
 end
 
+--[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
+local PLAYER_REACH = 1
+
 --[[ Resolves what a boss's move did this step: draws its warnings, and
      hits, shoves, grabs and releases players. ]]
 local function resolveBossEvent(
@@ -1677,6 +1934,99 @@ local function resolveBossEvent(
 		if held and move then
 			BossMoves.grab(move, boss, now, held, clamp)
 		end
+	elseif e.kind == "Glob" then
+		--[[ From her mouth, high, to the spot; `direction` carries the
+		     whole throw for the client (`Fx/GulpFx`). ]]
+		local move = state.move
+		local mouth = if move then BossMoves.mouth(move) else e.at
+		local from = mouth + Vector3.new(0, 4, 0)
+		enemyTelegraph:FireAllClients(from, e.at - from, e.duration, "GulpGlob", 1.4)
+	elseif e.kind == "GlobLand" then
+		local spit = boss.spit :: Balance.BossSpit
+		table.insert(clouds, {
+			at = e.at,
+			radius = spit.cloudRadius,
+			damage = spit.cloudDamage * scale,
+			every = spit.cloudEvery,
+			nextAt = now + spit.cloudEvery,
+			endsAt = now + spit.cloudLinger,
+		})
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			spit.cloudLinger,
+			"SporeCloud",
+			spit.cloudRadius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius then
+				hurt(session, spit.damage * scale)
+			end
+		end
+	elseif e.kind == "Trail" then
+		local belly = boss.slide :: Balance.BossSlide
+		table.insert(strips, {
+			from = e.at,
+			direction = e.direction,
+			length = e.length,
+			width = e.width,
+			startAt = now,
+			speed = belly.speed,
+			damage = belly.trailDamage * scale,
+			every = belly.trailEvery,
+			nextAt = now + belly.trailEvery,
+			endsAt = now + e.duration + belly.trailLinger,
+		})
+		table.clear(state.slideHit)
+		enemyTelegraph:FireAllClients(
+			e.at,
+			e.direction,
+			e.duration + belly.trailLinger,
+			"SlimeTrail",
+			e.length,
+			e.width
+		)
+	elseif e.kind == "SlideEnd" then
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"BumpShock",
+			6
+		)
+	elseif e.kind == "ConeTell" then
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, "GulpCone", e.length, e.width)
+	elseif e.kind == "Inhale" then
+		local gulp = boss.gulp :: Balance.BossGulp
+		local move = state.move
+		local mouth = if move then BossMoves.mouth(move) else e.at
+		state.dragging = true
+		playerDragged:FireAllClients(
+			mouth,
+			e.direction,
+			gulp.reach,
+			gulp.halfAngle,
+			gulp.pull,
+			e.duration
+		)
+		enemyTelegraph:FireAllClients(
+			mouth,
+			e.direction,
+			e.duration,
+			"GulpInhale",
+			e.length,
+			e.width
+		)
+	elseif e.kind == "InhaleEnd" then
+		if state.dragging then
+			state.dragging = false
+			playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+		end
 	elseif e.kind == "Bump" then
 		local player = state.holding
 		state.holding = nil
@@ -1686,6 +2036,30 @@ local function resolveBossEvent(
 			if session and session.alive then
 				hurt(session, boss.lash.bumpDamage * scale)
 				shove(session, e.direction, boss.lash.bumpShove)
+			end
+		end
+	elseif e.kind == "TollTell" or e.kind == "TollRing" or e.kind == "EchoTell" then
+		--[[ The Old Tollcrab's (`Fx/TollFx`): a ring's reach and its gap's
+		     width in degrees, or a mark's radius. ]]
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.radius, e.width)
+	elseif e.kind == "EchoStrike" then
+		local echo = boss.echo :: Balance.BossEcho
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"EchoStrike",
+			e.radius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius + PLAYER_REACH then
+				hurt(session, echo.damage * scale)
+				shove(session, if away.Magnitude > 0.1 then away else Vector3.zAxis, echo.shove)
 			end
 		end
 	end
@@ -1716,9 +2090,6 @@ local function showClip(
 	model:SetAttribute("ModelClip", if clip ~= "" then clip else nil)
 end
 
---[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
-local PLAYER_REACH = 1
-
 --[[ A spinning web's turn to touch the players (`BossMoves.wheelHit`):
      each one it touches is hurt, at most every `hitEvery`, and pushed out
      from under the web or on round with the arm that swept them. ]]
@@ -1747,6 +2118,23 @@ local function sweepWheel(
 			then Vector3.new(root.Position.X - move.feet.X, 0, root.Position.Z - move.feet.Z)
 			else WebWheel.sweep(move.feet, root.Position)
 		shove(session, if push.Magnitude > 0.1 then push else Vector3.zAxis, s.shove)
+	end
+end
+
+--[[ The Old Tollcrab's rolling rings and scuttling body touching the
+     players (`TollcrabMoves.touch`): each is hit once by each. ]]
+local function sweepCrab(boss: Balance.EnemyBoss, move: BossMoves.Move, now: number)
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+		local damage, push, distance =
+			TollcrabMoves.touch(move, boss, now, session.player, root.Position, PLAYER_REACH)
+		if damage then
+			hurt(session, damage * difficulty().damage)
+			shove(session, push, distance)
+		end
 	end
 end
 
@@ -1789,6 +2177,57 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	     That makes the cage a window to shoot in rather than a stun lock,
 	     and it is why the hold is short. ]]
 	local caged = move == nil and RootHold.held(enemy.rootedUntil, now)
+
+	--[[ Her notches (`EnemyBoss.notches`): each one fallen through is owed
+	     a roar, given between moves, the pause that says the rules just
+	     changed. The flood's notch raises the flood as she roars. ]]
+	local notches = boss.notches
+	if notches then
+		local passed = BossThresholds.reached(notches, enemy.health, enemy.maxHealth)
+		if passed > state.notchesPassed then
+			state.roarsOwed += passed - state.notchesPassed
+			state.notchesPassed = passed
+		end
+	end
+	if not move and state.roarUntil == 0 and state.roarsOwed > 0 then
+		state.roarsOwed -= 1
+		local roar = boss.roar or 1.5
+		state.roarAt = now
+		state.roarUntil = now + roar
+		state.restUntil = math.max(state.restUntil, now + roar + 0.4)
+		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 0.6, "Shake", 0.7)
+		local rising = boss.flood
+		if rising and not flood and enemy.health <= enemy.maxHealth * rising.atFraction then
+			flood = {
+				owner = enemy.model,
+				inset = rising.inset,
+				startAt = now,
+				rise = rising.rise,
+				damage = rising.damage * difficulty().damage,
+				every = rising.every,
+				nextAt = now + rising.every,
+			}
+			local floor = Arena.halfSize()
+			--[[ The floor's half size and the inset, packed into the
+			     channel (`Fx/GulpFx`); `reach` is how long it rises. ]]
+			enemyTelegraph:FireAllClients(
+				Vector3.new(floor.X, 0, floor.Y),
+				Vector3.new(rising.inset.X, 0, rising.inset.Y),
+				3600,
+				"BogFlood",
+				rising.rise
+			)
+		end
+	end
+	if state.roarUntil > 0 then
+		if now < state.roarUntil then
+			local roar = state.roarUntil - state.roarAt
+			local t = math.clamp((now - state.roarAt) / roar, 0, 1)
+			BossBody.pose(state.body, BossMoves.roar(boss, feet, enemy.yaw or 0, t))
+			return
+		end
+		state.roarUntil = 0
+	end
 
 	if not move then
 		local summon = boss.summon
@@ -1847,13 +2286,38 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			return
 		end
 		local loop = BossMoves.loopOf(boss)
-		move = BossMoves.start(loop[(state.next - 1) % #loop + 1], now, feet, enemy.yaw or 0)
+		local kind: BossMoves.Kind = loop[(state.next - 1) % #loop + 1]
+		--[[ Big Gulp waits until her health is below its fraction. ]]
+		local gulp = boss.gulp
+		if kind == "Gulp" and gulp and enemy.health > enemy.maxHealth * gulp.fromFraction then
+			state.next = state.next % #loop + 1
+			kind = loop[(state.next - 1) % #loop + 1]
+		end
+		if TollcrabMoves.owns(kind) then
+			--[[ Enraged from `enrageAt` of his health down (docs/BOSSES.md
+			     §3: the Drowned Rise). ]]
+			local enrageAt = boss.enrageAt
+			local enraged = enrageAt ~= nil and enemy.health <= enemy.maxHealth * enrageAt
+			move = TollcrabMoves.start(kind, now, feet, enemy.yaw or 0, enraged)
+		else
+			move = BossMoves.start(kind, now, feet, enemy.yaw or 0)
+		end
 		state.move = move
 	end
 	assert(move, "a boss move")
 
 	local target = if targetRoot then targetRoot.Position else feet
-	local pose, events, done = BossMoves.step(move, boss, now, target, clamp)
+	local function over(point: Vector3): Vector3
+		local resolved = Arena.resolveOverLow(Vector3.new(point.X, half, point.Z), radius)
+		return Vector3.new(resolved.X, 0, resolved.Z)
+	end
+	local crab = TollcrabMoves.owns(move.kind)
+	local pose: BossMoves.Pose, events: { BossMoves.Event }, done: boolean
+	if crab then
+		pose, events, done = TollcrabMoves.step(move, boss, now, target, clamp)
+	else
+		pose, events, done = BossMoves.step(move, boss, now, target, clamp, over)
+	end
 
 	enemy.position = pose.feet + Vector3.new(0, half + pose.lift, 0)
 	enemy.yaw = pose.yaw
@@ -1869,6 +2333,61 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	end
 	if move.kind == "Spin" then
 		sweepWheel(state, boss, move, now)
+	elseif crab then
+		sweepCrab(boss, move, now)
+	end
+	--[[ Belly Slide: her body hurts whoever it touches on the way, once a
+	     slide, and shoves them out to the side. ]]
+	local belly = boss.slide
+	if belly and BossMoves.sliding(move) then
+		local side = Vector3.new(-move.direction.Z, 0, move.direction.X)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive or state.slideHit[session.player] then
+				continue
+			end
+			local away =
+				Vector3.new(root.Position.X - pose.feet.X, 0, root.Position.Z - pose.feet.Z)
+			if away.Magnitude <= radius + PLAYER_REACH then
+				state.slideHit[session.player] = true
+				hurt(session, belly.damage * difficulty().damage)
+				shove(session, side * (if away:Dot(side) >= 0 then 1 else -1), belly.shove)
+			end
+		end
+	end
+	--[[ Big Gulp: whoever the drag brings to her mouth is swallowed, hurt
+	     and spat back out across the room, and the inhale ends. ]]
+	local gulp = boss.gulp
+	if gulp and BossMoves.inhaling(move) then
+		local mouth = BossMoves.mouth(move)
+		local swallowed = false
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - mouth.X, 0, root.Position.Z - mouth.Z)
+			if away.Magnitude <= gulp.mouth then
+				swallowed = true
+				hurt(session, gulp.damage * difficulty().damage)
+				shove(session, move.direction, gulp.spit)
+				enemyTelegraph:FireAllClients(
+					root.Position,
+					move.direction,
+					Balance.Telegraph.grabDuration,
+					"Grab",
+					Balance.Telegraph.grabSize
+				)
+			end
+		end
+		if swallowed then
+			BossMoves.swallow(move, now)
+			if state.dragging then
+				state.dragging = false
+				playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+			end
+			enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 0.3, "Shake", 0.5)
+		end
 	end
 
 	--[[ After the events: a grab switches the clip to the pull. ]]
@@ -1960,6 +2479,7 @@ local function stepLunge(
 			     wind-up flag that starts it. ]]
 			enemy.model:SetAttribute("LungeWindup", lunge.telegraph)
 			enemy.model:SetAttribute("LungeTravel", lunge.distance / lunge.speed)
+			enemy.model:SetAttribute("LungeStopped", nil)
 			enemy.model:SetAttribute(WINDING_UP, true)
 			enemyTelegraph:FireAllClients(
 				enemy.position,
@@ -1986,6 +2506,8 @@ local function stepLunge(
 			EnemyModel.restore(enemy.skin, config)
 			enemy.model:SetAttribute(WINDING_UP, nil)
 		end
+		-- its rig lands the leap here (`Fx/EnemyRig`)
+		enemy.model:SetAttribute("LungeStopped", true)
 		enemy.lungeIndex = nil
 		enemy.lungeMoving = false
 		enemy.lastAttackAt = now
@@ -2028,6 +2550,11 @@ local function stepLunge(
 	end
 
 	if enemy.lungeTravelled >= lunge.distance - 1e-3 or moved < step * 0.3 then
+		--[[ Stopped short by cover: the rig lands its leap now instead of
+		     playing it for the bolt's full time (`Fx/EnemyRig`). ]]
+		if enemy.lungeTravelled < lunge.distance - 1e-3 then
+			enemy.model:SetAttribute("LungeStopped", true)
+		end
 		enemy.lungeIndex = nil
 		enemy.lungeMoving = false
 		-- The cooldown runs from the end of the lunge, not its wind-up.
@@ -2659,7 +3186,91 @@ local function stepWake(enemy: Enemy, now: number)
 	end
 end
 
+--[[ Ticks the spore clouds: each hurts whoever stands inside it, every
+     `every` seconds, until it has blown away. ]]
+local function stepClouds(now: number)
+	local index = 1
+	while index <= #clouds do
+		local cloud = clouds[index]
+		if now >= cloud.endsAt then
+			table.remove(clouds, index)
+			continue
+		end
+		if now >= cloud.nextAt then
+			cloud.nextAt += cloud.every
+			for _, session in RunSession.all() do
+				local root = session.root
+				if not root or not session.alive then
+					continue
+				end
+				local away =
+					Vector3.new(root.Position.X - cloud.at.X, 0, root.Position.Z - cloud.at.Z)
+				if away.Magnitude <= cloud.radius then
+					hurt(session, cloud.damage)
+				end
+			end
+		end
+		index += 1
+	end
+end
+
+--[[ Ticks Grandmother Gulp's slime trails and her flood: each hurts
+     whoever stands in it, every `every` seconds. A trail only as far as
+     she has slid; the flood as far in as it has risen. ]]
+local function stepBogHazards(now: number)
+	local index = 1
+	while index <= #strips do
+		local strip = strips[index]
+		if now >= strip.endsAt then
+			table.remove(strips, index)
+			continue
+		end
+		if now >= strip.nextAt then
+			strip.nextAt += strip.every
+			local laid = math.min(strip.length, (now - strip.startAt) * strip.speed)
+			local side = Vector3.new(-strip.direction.Z, 0, strip.direction.X)
+			for _, session in RunSession.all() do
+				local root = session.root
+				if not root or not session.alive then
+					continue
+				end
+				local offset =
+					Vector3.new(root.Position.X - strip.from.X, 0, root.Position.Z - strip.from.Z)
+				local along = offset:Dot(strip.direction)
+				if
+					along >= 0
+					and along <= laid
+					and math.abs(offset:Dot(side)) <= strip.width / 2
+				then
+					hurt(session, strip.damage)
+				end
+			end
+		end
+		index += 1
+	end
+
+	local rising = flood
+	if rising and now >= rising.nextAt then
+		rising.nextAt += rising.every
+		local risen = math.clamp((now - rising.startAt) / rising.rise, 0, 1)
+		local half = Arena.halfSize()
+		local dryX = half.X - rising.inset.X * risen
+		local dryZ = half.Y - rising.inset.Y * risen
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			if math.abs(root.Position.X) > dryX or math.abs(root.Position.Z) > dryZ then
+				hurt(session, rising.damage)
+			end
+		end
+	end
+end
+
 function EnemyManager.step(deltaTime: number, now: number)
+	stepClouds(now)
+	stepBogHazards(now)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 		if enemy.arrivesAt == nil then

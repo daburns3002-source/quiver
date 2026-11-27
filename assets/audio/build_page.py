@@ -195,6 +195,150 @@ ROUND_21 = [
     }),
 ]
 
+ROUND_28 = [
+    ("Round 28 · the Ranger's class cards", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow.", None),
+        "fx_arrow_rain": ("Rain of Arrows", "Every 6th shot an arrow goes up and 12 rain down on the target 0.6 s later.", None),
+        "fx_sniper": ("Sniper Shot", "Stand still for 3 s and a gold sniper arrow flies through everything with your next shot.", None),
+        "fx_split_shot": ("Split Shot", "An arrow that kills splits into three green splinters. Plays on every such kill.", (0.5, 3)),
+        "fx_wind_gust": ("Wind Arrows", "An arrow blows an enemy shot out of the air in a puff of wind.", (0.4, 3)),
+    }),
+    ("Round 28 · the Arcanist's class cards", {
+        "fx_black_hole": ("Black Hole · opens", "Every 7th cast a hole opens on the target and drags enemies in for 2 s.", None),
+        "fx_black_hole_implode": ("Black Hole · implodes", "The hole snaps shut in a blast.", None),
+        "fx_turret": ("Arcane Turret", "Every 10 s a crystal rises beside you and casts orbs for 6 s.", None),
+        "fx_mana_surge": ("Mana Surge", "A kill charges your staff with a blue flare; the next orb is bigger.", (0.8, 3)),
+        "fx_arcane_shield": ("Arcane Shield", "Your shield takes a hit and shatters; it comes back 10 s later.", None),
+    }),
+    ("Round 28 · the Warden's class cards", {
+        "fx_titan_slam": ("Titan's Grip", "With the giant sword, every slam shakes the room.", (1.2, 3)),
+        "fx_counter_strike": ("Counter Strike", "After you are hit, your next swing deals triple damage with a red burst and COUNTER!", None),
+        "fx_shield_throw": ("Shield Throw", "Your dash throws a spinning shield that bounces between three enemies.", None),
+        "fx_blade_storm": ("Blade Storm", "Every 5th swing throws your sword spinning out and back.", None),
+    }),
+]
+
+ROUND_29 = [
+    ("Round 29 · the four sent back, four new takes each", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow.", None),
+        "fx_sniper": ("Sniper Shot", "Stand still for 3 s and a gold sniper arrow flies through everything with your next shot.", None),
+        "fx_wind_gust": ("Wind Arrows", "An arrow blows an enemy shot out of the air in a puff of wind.", (0.4, 3)),
+        "fx_mana_surge": ("Mana Surge", "A kill charges your staff with a blue flare; the next orb is bigger.", (0.8, 3)),
+    }),
+]
+
+ROUND_30 = [
+    ("Round 30 · Phoenix Arrow, four more takes", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. These lean towards what you kept: the laser pew, the fwip and the swell into a shing.", None),
+    }),
+]
+
+ROUND_31 = [
+    ("Round 31 · Phoenix Arrow, four new directions", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. Four quite different ideas this time: magical, fierce, grand and retro.", None),
+    }),
+]
+
+ROUND_32 = [
+    ("Round 32 · Phoenix Arrow, after your reference", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. Like your reference, a real bird of prey's cry over real fire, cut from public-domain recordings.", None),
+    }),
+]
+
+ROUND_33 = [
+    ("Round 33 · the Assassin's daggers", {
+        "dagger_slash": ("Slash, right hand", "The first strike of three. With the next one it plays about twice a second, so it has to be light. Today it is the Warden's swing sped up.", (0.5, 4)),
+        "dagger_slash_2": ("Slash, left hand", "The second strike, from the other hand. Pick one that sits well after your first.", (0.5, 4)),
+        "dagger_stab": ("Stab", "The third strike: both daggers driven in, 1.5x damage. A little weight.", None),
+        "fx_shadow_dash": ("Shadow Dash", "The dash cutting through whatever it passed, every 2.5 seconds. Today it borrows the stab.", None),
+    }),
+    ("Round 33 · the Assassin's cards (all silent today)", {
+        "fx_backstab": ("Backstab", "A strike from behind lands harder. Short: it can play several times a second.", (0.4, 3)),
+        "fx_poison_trail": ("Poison Trail", "The dash leaves a cloud of poison behind.", None),
+        "fx_fan_of_knives": ("Fan of Knives", "Three knives thrown in a fan, every four seconds of fighting.", None),
+        "fx_death_mark": ("Death Mark", "The toughest enemy in the room is marked. Rare, so it can be fuller.", None),
+        "fx_thousand_cuts": ("Thousand Cuts", "The Mythic: every ten seconds shadows cut every enemy at once.", None),
+    }),
+]
+
+ROUND_34 = [
+    ("Round 34 · the themed daggers' own effects (all silent today)", {
+        "fx_wishing_star": ("Wishing Star (Twinkle Daggers)", "Every 5th strike a star falls on the enemy and bursts 0.35 s later. Plays as it starts to fall, so the burst in each take is timed to land with it.", None),
+        "fx_spur_rowel": ("Spur Rowel (Spur Daggers)", "The double stab flings a spinning spur that hops between three enemies over about half a second.", None),
+        "fx_splash_wave": ("Splash Wave (Squirt Daggers)", "Every 3rd strike a splash round the enemy that slows what it soaks.", (1.5, 3)),
+        "fx_combo_counter": ("Combo Counter, one more (Token Daggers)", "Ticks on EVERY strike that lands, about twice a second, as the pixel digits count up. Has to be tiny and never wear on you.", (0.5, 8)),
+        "fx_combo_break": ("Combo Counter, lost (Token Daggers)", "You took a hit and the count is gone: the digits shatter.", None),
+        "fx_comet_crash": ("Comet Crash (Comet Daggers)", "A strike calls a comet that crashes on the enemy 1.5 s later; each take's crash is timed to land with it. Plays about once a second in a fight, so the wait should stay quiet.", None),
+        "fx_bell_chime": ("Bell Chime (Bellchime Daggers)", "Every 6th strike a bell rings and holds the enemies near you still for a moment.", None),
+        "fx_lava_burst": ("Lava Burst (Embershard Daggers)", "The double stab sends lava bursting along the ground, one burst after another for about 0.4 s.", None),
+    }),
+    ("Round 34 · Thornwood's two (also silent; same upload if you pick them, skip if not)", {
+        "fx_thorn_burst": ("Thorn Burst", "Every 3rd volley's arrows burst into thorns where they land.", None),
+        "fx_boar_rush": ("Boar Rush", "The combo's last blow shoves what it hits far back, with a ring of dust.", None),
+    }),
+]
+
+ROUND_35 = [
+    ("Round 35 · Thornwood's pets (all silent today)", {
+        "pet_bark_hoglet": ("Bark Hoglet · Bark Charge", "A short, hard ram, every 3 s.", (3.0, 3)),
+        "pet_burrball": ("Burrball · Burr Toss", "Three burrs flicked off its back, every 2.5 s.", (2.5, 3)),
+        "pet_budbulb": ("Budbulb · Spore Puff", "A cloud of spores that slows, every 2 s.", (2.0, 3)),
+        "pet_berry_mouse": ("Berry Mouse · Berry Cache", "Drops a berry patch that heals you, every 18 s.", None),
+        "pet_thistle_mole": ("Thistle Mole · Thorn Shell", "Its shell blocks a hit and thorns burst off it.", None),
+        "pet_briar_beetle": ("Briar Beetle · Chain Snare", "Roots grab one enemy, then jump to the one beside it.", None),
+        "pet_berry_bat": ("Berry Bat · Blood Berry", "A bite that heals you a little, every 2.5 s.", (2.5, 3)),
+        "pet_bramble_bear": ("Bramble Bear · Bramble Swipe", "One big swipe across three enemies, every 3 s.", (3.0, 3)),
+        "pet_briar_lynx": ("Briar Lynx · Thorn Darts", "Four homing thorns, every 3 s.", (3.0, 3)),
+        "pet_bramble_wilf_bolt": ("Bramble Wilf · thorn bolt (Legendary)", "The first half: a bolt of stacking thorns.", None),
+        "pet_bramble_wilf_howl": ("Bramble Wilf · howl (Legendary)", "The second half, 0.35 s later: a howl that speeds your attacks.", None),
+        "pet_thorn_princess": ("Thorn Princess · Briar Cage (Legendary)", "Two spirits fly out and a thorn cage holds an enemy, even a boss.", None),
+        "pet_thornwake": ("Thornwake · The Wake (Mythic)", "A ring of thorns turns round you, shredding what comes near.", None),
+    }),
+    ("Round 35 · the Drowned Village's pets", {
+        "pet_slate_turtle": ("Slate Turtle · Roof Huddle", "Tucks in beside you: everything hurts less for 3 s.", None),
+        "pet_buoy_puffer": ("Buoy Puffer · Payback Puff", "Only when you are hurt: it puffs up and fires one big spine.", None),
+        "pet_inkpot": ("Inkpot · Ink Blink", "Squirts ink in an enemy's face so it cannot aim.", None),
+        "pet_tide_wilf": ("Tide Wilf · Wake Chase (Legendary)", "Foam that bites whatever wears it for moving.", None),
+        "pet_abyss_jelly": ("Abyss Jelly · Deep Accord (Mythic)", "A curtain of stinging tentacles over three enemies.", None),
+    }),
+    ("Round 35 · Bogheart Caverns' pets", {
+        "pet_cave_cricket": ("Cave Cricket · Long Chirp", "A dart at the enemy furthest away, every 2.5 s.", (2.5, 3)),
+        "pet_lichen_gecko": ("Lichen Gecko · Fourth Lick", "Quick tongue nips, every 2 s. Small: it plays often.", (2.0, 4)),
+        "pet_bog_beaver": ("Bog Beaver · Mud Plaster", "Plasters you in mud that soaks hits, every 15 s.", None),
+        "pet_lanternfin_mote": ("Lanternfin · Glow Mote sticks", "The first half: a light sticks to an enemy.", None),
+        "pet_lanternfin_burst": ("Lanternfin · Glow Mote bursts", "The second half, 1.5 s later: it bursts on the enemy and those near it.", None),
+        "pet_olm": ("Olm · Tremor Snap", "A blind snap that hits harder in a crowd, every 3 s.", (3.0, 3)),
+        "pet_glowcap_wilf": ("Glowcap Wilf · Spore Sneeze (Legendary)", "Sneezes a wedge of spores at the nearest enemy.", None),
+        "pet_gulpling": ("Gulpling · Little Belly Flop (Legendary)", "A small leap that lands on the crowd.", None),
+        "pet_prism_leviathan": ("Prism Leviathan · Prism Split (Mythic)", "A crystal bolt that breaks into three shards as it lands.", None),
+    }),
+    ("Round 35 · enemies with no attack sound", {
+        "enemy_charger_bite": ("Charger (Mossy Glade) · bite", "Its bump when it reaches you, about once a second.", (1.0, 4)),
+        "enemy_bulwark_bash": ("Bulwark (Mossy Glade) · bash", "Its heavy blow, every 1.6 s.", (1.6, 3)),
+        "enemy_spitter_spit": ("Spitter (Mossy Glade) · spit", "Two orbs fired together, every 3 s.", (3.0, 3)),
+        "enemy_baby_slime_bite": ("Baby Slime · nip", "The little slimes a Brood Slime splits into. Four can bite at once, so it has to be tiny.", (0.25, 4)),
+        "enemy_brood_slime_bite": ("Brood Slime · bite", "The big slime's bite, every 1.3 s.", (1.3, 3)),
+        "enemy_burrower_clods": ("Lurker (Mossy Glade) · clods", "It surfaces beside you and flings five clods.", None),
+        "enemy_lancer_lance": ("Lancer · lance", "One fast lance down a lane. Benched today (no room has it), but ready when it returns.", None),
+        "enemy_glowcap_spores": ("Glowcap (Bogheart) · spores", "Four glowing spores fired in a fan.", None),
+        "enemy_spore_puff_bite": ("Spore Puff (Bogheart) · bite", "Its bite, about once a second.", (1.1, 4)),
+        "enemy_shellback_bash": ("Shellback (Bogheart) · bash", "Its heavy shell bash, every 1.6 s.", (1.6, 3)),
+        "enemy_fisherman_cast": ("Hollow Fisherman (Drowned) · cast", "Casts its bobber at you.", None),
+    }),
+    ("Round 35 · the Old Tollcrab's moves", {
+        "boss_toll_raise": ("Toll · wind-up", "He raises the bell before planting it.", None),
+        "boss_toll_ring": ("Toll · ring", "The bell planted and rung: a ring rolls out with one gap to step through.", None),
+        "boss_toll_rap": ("Echo · rap", "He raps at you, three times; each drops a glowing ring under you.", (0.75, 3)),
+        "boss_toll_echo": ("Echo · strike", "Each ring strikes a beat after its rap.", (0.75, 3)),
+        "boss_toll_scuttle": ("Scuttle · dash", "Three short sideways dashes, about half a second apart.", (0.55, 3)),
+    }),
+    ("Round 35 · Grandmother Gulp's moves", {
+        "boss_gulp_spit": ("Spore Spit", "Three globs lobbed together, landing 0.75 s later (the splat is in the take).", None),
+        "boss_gulp_slide": ("Belly Slide", "She slides across the room, leaving a slime trail.", None),
+        "boss_gulp_inhale": ("Big Gulp", "A 2.2 s inhale that drags you toward her mouth.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -230,6 +374,14 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "35": (ROUND_35, "picks35attacks", []),
+    "34":(ROUND_34, "picks34daggers", []),
+    "33": (ROUND_33, "picks33assassin", []),
+    "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "30": (ROUND_30, "picks30cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "29": (ROUND_29, "picks29cards", ["Rain of Arrows B", "Split Shot A", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "28": (ROUND_28, "picks28cards", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),
     "19": (ROUND_19, "picks19", []),

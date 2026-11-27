@@ -47,8 +47,8 @@ function LobbyMotes.start()
 	local motes = LobbyConfig.motes
 	local air = emitterPart(
 		"Motes",
-		Vector3.new(170, motes.high, 150),
-		origin + Vector3.new(0, motes.high / 2 + 1, 16),
+		Vector3.new(170 * LobbyConfig.spread, motes.high, 150 * LobbyConfig.spread),
+		origin + Vector3.new(0, motes.high / 2 + 1, 16 * LobbyConfig.spread),
 		folder
 	)
 	local gold = Instance.new("ParticleEmitter")

@@ -14,9 +14,45 @@
 	expects it.
 ]]
 
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+--[[ Whatever a publish from Studio left saved in Workspace goes before the
+     game builds its own world (`Util/WorldSweep`): previews and imports
+     posed at the origin stood in the middle of every arena (2026-11-20). ]]
+do
+	local WorldSweep = require(script.Parent.Util.WorldSweep)
+	local removed = WorldSweep.sweep(Workspace)
+	if #removed > 0 then
+		warn(
+			string.format(
+				"[WorldSweep] removed %d saved Workspace instances: %s",
+				#removed,
+				table.concat(removed, ", ", 1, math.min(#removed, 12))
+			)
+		)
+	end
+	--[[ In a live server only the repo's own scripts and Roblox's
+	     (`WorldSweep.ROBLOX_OWN`: footsteps, camera, animations) run: a test
+	     autopilot or any other script left in Studio when it was published
+	     goes before a player joins. Studio keeps its test scripts. ]]
+	if not RunService:IsStudio() then
+		local StarterPlayer = game:GetService("StarterPlayer")
+		local scripts = WorldSweep.only({
+			[game:GetService("ServerScriptService")] = { Server = true, ServerPackages = true },
+			[StarterPlayer:WaitForChild("StarterPlayerScripts")] = { Client = true },
+			[StarterPlayer:WaitForChild("StarterCharacterScripts")] = {},
+			[game:GetService("StarterGui")] = {},
+			[game:GetService("ReplicatedFirst")] = { Loading = true },
+		})
+		if #scripts > 0 then
+			warn("[WorldSweep] removed scripts left in the place: " .. table.concat(scripts, ", "))
+		end
+	end
+end
 
 --[[ Every remote, before anything else loads or builds: a client waits only
      so long for one, and the lobby's meshes keep a fresh live server busy
@@ -24,40 +60,68 @@ local RunService = game:GetService("RunService")
 require(ReplicatedStorage.Shared.Net.Remotes).createAll()
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local Analytics = require(script.Parent.Data.Analytics)
 local AreaStrikes = require(script.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Arena.Arena)
+local AssassinUpgrades = require(script.Parent.Combat.AssassinUpgrades)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Boosts = require(script.Parent.Data.Boosts)
 local Burning = require(script.Parent.Combat.Burning)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local Codes = require(script.Parent.Data.Codes)
+local DashCut = require(ReplicatedStorage.Shared.Combat.DashCut)
 local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Enemies.EnemyModel)
+local Favourite = require(script.Parent.Data.Favourite)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Hatchery = require(script.Parent.Data.Hatchery)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
+local Inbound = require(script.Parent.Net.Inbound)
+local Invites = require(script.Parent.Data.Invites)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
+local LikeGoal = require(script.Parent.Data.LikeGoal)
 local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local Notify = require(script.Parent.Data.Notify)
+local Party = require(script.Parent.Run.Party)
+local Passes = require(script.Parent.Data.Passes)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
+local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
 local PlayerData = require(script.Parent.Data.PlayerData)
+local PlayerSettings = require(script.Parent.Data.Settings)
+local Policy = require(script.Parent.Data.Policy)
+local Premium = require(script.Parent.Data.Premium)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
+local Purchases = require(script.Parent.Data.Purchases)
+local QuestChest = require(script.Parent.Data.QuestChest)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
+local Rewards = require(script.Parent.Data.Rewards)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local Season = require(script.Parent.Data.Season)
+local Shoutouts = require(script.Parent.Data.Shoutouts)
+local SoulLink = require(script.Parent.Combat.SoulLink)
+local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
+local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
+local TrailsServer = require(script.Parent.Data.Trails)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
+local VictoryChests = require(script.Parent.Run.VictoryChests)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
+local WeeklyTournament = require(script.Parent.Run.WeeklyTournament)
 
 local log = Log.forTag("Server")
 
@@ -70,9 +134,44 @@ log.info("%s v%s booting", Game.Name, Game.Version)
 --[[ Saved data first, so a profile is loading while everything else boots;
      each player is told their wallet once it is in. ]]
 PlayerData.onLoaded(Wallet.send)
+-- a golden weapon a saved class level has earned and the profile lacks
+PlayerData.onLoaded(function(player)
+	Wallet.settleClassWeapons(player)
+end)
 PlayerData.start()
+Analytics.start()
+Policy.start()
+Boosts.start()
 WeaponShop.start()
 Hatchery.start()
+SoulstoneShop.start()
+PlayerSettings.start()
+Rewards.start()
+-- the experience notifications: the opt-in question, and the queue
+Notify.start()
+QuestChest.start()
+Premium.start()
+Invites.start()
+-- the season pass: its XP hears Rewards.note (`Config/Season`)
+Season.start()
+-- the CODES box, the favourite prompt and the hatch shout-outs (2026-11-18)
+Codes.start()
+LikeGoal.start()
+Favourite.start()
+Shoutouts.start()
+VictoryChests.start()
+TrailsServer.start()
+--[[ Robux: passes checked as players join, receipts granted once
+     (`Config/RobuxStore`). The revive is the run's to apply. ]]
+Passes.start()
+Purchases.revive = {
+	can = RoomController.canRevive,
+	early = RoomController.reviveEarly,
+	apply = RoomController.revive,
+	hold = RoomController.holdForRevive,
+	release = RoomController.releaseRevive,
+}
+Purchases.start()
 --[[ The pets' models, for every player's pets at heel (`Fx/PetPreview`). ]]
 task.spawn(PetPreview.build)
 
@@ -105,8 +204,40 @@ end
 
 buildSpawn(workspace)
 
---[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
-RunSession.onHurt = ClassUpgrades.onHurt
+--[[
+	The first player into a new server arrives while it is still loading its
+	meshes and building the lobby, and their body spawns on the arena's spawn
+	pad, over nothing. It fell for as long as that took (to y -480 in a
+	2026-11-11 Studio playtest, 20 studs short of the height Roblox destroys
+	a fallen body at) before `onCharacterAdded` could put it in the lobby.
+	So until then every body is held where it spawned.
+]]
+local held: { BasePart } = {}
+local holding = true
+local function holdWhileLoading(character: Model)
+	local root = character:WaitForChild("HumanoidRootPart", 10)
+	if holding and root and root:IsA("BasePart") then
+		root.Anchored = true
+		table.insert(held, root)
+	end
+end
+local function watchArrival(player: Player)
+	player.CharacterAdded:Connect(holdWhileLoading)
+	if player.Character then
+		task.spawn(holdWhileLoading, player.Character)
+	end
+end
+local arrivals = Players.PlayerAdded:Connect(watchArrival)
+for _, player in Players:GetPlayers() do
+	watchArrival(player)
+end
+
+--[[ A hit taken charges Counter Strike (`Combat/ClassUpgrades`) and
+     empties the Token Daggers' Combo Counter (`Combat/AssassinUpgrades`). ]]
+RunSession.onHurt = function(session)
+	ClassUpgrades.onHurt(session)
+	AssassinUpgrades.onHurt(session)
+end
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]
@@ -133,6 +264,8 @@ UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
 Lobby.build(workspace)
 RoomController.start()
+-- a party's run server waits for its party (`Run/Party`)
+Party.init()
 -- The FARTHEST ADVENTURERS board's store (`Run/StoryLeaderboard`).
 StoryLeaderboard.start()
 do
@@ -163,6 +296,14 @@ do
 		EndlessLeaderboard.attach(face)
 	end
 end
+-- The weekly tournament's board and prizes (`Run/WeeklyTournament`).
+WeeklyTournament.start()
+do
+	local face = Lobby.weeklyLeaderboardFace()
+	if face then
+		WeeklyTournament.attach(face)
+	end
+end
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
      recorded, which a drafted card can change (the Dual Bows Mythic), or
@@ -178,7 +319,10 @@ end
 
 --[[ The weapon in hand during a run, nothing in the lobby (owner,
      2026-10-25); and jumping in the lobby only (2026-10-26,
-     `RunSession.allowJump`). Called whenever either can change. ]]
+     `RunSession.allowJump`). Called whenever either can change. The
+     player always wears their own avatar: the class armour sets were
+     scrapped (owner, 2026-11-13: "scrap the models on the player
+     entirely"). ]]
 local function refreshWeapon(player: Player)
 	local character = player.Character
 	if not character then
@@ -195,8 +339,25 @@ local function refreshWeapon(player: Player)
 	end
 end
 
+--[[ Players never block each other (`docs/COOP.md`): every part of every
+     character, the class body's too, is in a group that does not collide
+     with itself. ]]
+local PLAYERS_GROUP = "Players"
+PhysicsService:RegisterCollisionGroup(PLAYERS_GROUP)
+PhysicsService:CollisionGroupSetCollidable(PLAYERS_GROUP, PLAYERS_GROUP, false)
+
+local function joinPlayersGroup(part: Instance)
+	if part:IsA("BasePart") then
+		part.CollisionGroup = PLAYERS_GROUP
+	end
+end
+
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
+	for _, part in character:GetDescendants() do
+		joinPlayersGroup(part)
+	end
+	character.DescendantAdded:Connect(joinPlayersGroup)
 	RunSession.bindCharacter(session, character)
 	refreshWeapon(player)
 	--[[ In the lobby, a new body appears on the arrival circle, behind the title
@@ -209,6 +370,44 @@ local function onCharacterAdded(player: Player, character: Model)
 	     to learn about each new body. Without this a respawned player is
 	     invisible to every enemy shot. ]]
 	ProjectileSystem.refreshFilters()
+end
+
+--[[ What comes after a fresh join's loading screen (Fable's loop review,
+     2026-11-11, approved): a player who owes the tutorial is sent to its
+     server at once, behind this loading screen, and sees the title and the
+     story there; one who has beaten 1-1 sees the title and skips the story.
+     Told to the client as `Party.ROUTE`; until then it holds its loading
+     screen. A profile that never loads owes the tutorial. ]]
+local function tutorialOwed(player: Player): (boolean, boolean)
+	local deadline = os.clock() + PROFILE_WAIT
+	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	local profile = PlayerData.get(player)
+	local beaten = if profile then profile.levelsBeaten else nil
+	--[[ Studio's `Sandbox.forceTutorial` plays it even when the profile says
+	     it is done, so a playtest can have the tutorial and the unlocked
+	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
+	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
+	return forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten), forced
+end
+
+local function routeJoin(player: Player)
+	local owed, forced = tutorialOwed(player)
+	if not player.Parent then
+		return
+	end
+	--[[ The story is for a first visit: whoever has won the tutorial before
+	     (and so anyone who has beaten 1-1) has seen it. Studio's forced
+	     tutorial is the owner's run-through from the intro, story and all. ]]
+	local profile = PlayerData.get(player)
+	local seen = not forced and (not owed or (profile ~= nil and profile.tutorialDone))
+	if owed and Party.canTravel() and RoomController.inLobby() then
+		player:SetAttribute(Party.ROUTE, "Tutorial")
+		Party.startTutorial(player, Balance.tutorialStage, true, seen)
+	else
+		player:SetAttribute(Party.ROUTE, if seen then "Lobby" else "Story")
+	end
 end
 
 local function onPlayerAdded(player: Player)
@@ -231,6 +430,13 @@ local function onPlayerAdded(player: Player)
 	if player.Character then
 		onCharacterAdded(player, player.Character)
 	end
+
+	if session.atTitle and not Party.isRunServer() then
+		task.spawn(routeJoin, player)
+	elseif not Party.isRunServer() then
+		-- back from a run, or Studio's `SkipIntro`: in the lobby from the start
+		RunSession.arrive(session)
+	end
 end
 
 for _, player in Players:GetPlayers() do
@@ -238,6 +444,21 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
+
+--[[ Everyone who arrived while the server loaded goes to the lobby now,
+     and is let go there. ]]
+holding = false
+arrivals:Disconnect()
+task.defer(function()
+	for _, root in held do
+		local character = root.Parent
+		if character and character:IsA("Model") and RoomController.inLobby() then
+			Lobby.place(character)
+		end
+		root.Anchored = false
+	end
+	table.clear(held)
+end)
 
 -- into the lobby and out of it: the weapon goes away and comes back, and the
 -- golden hour comes and goes with it
@@ -260,7 +481,7 @@ end)
 	arriving here — a string, a float, an index out of range, a choice with no
 	offer open — changes nothing.
 ]]
-Remotes.event(Remotes.AbilityChosen).OnServerEvent:Connect(function(player, index)
+Inbound.on(Remotes.AbilityChosen, function(player, index)
 	if typeof(index) ~= "number" then
 		return
 	end
@@ -279,7 +500,7 @@ end)
      game is running in Studio, so nothing a live client sends can use it. ]]
 local FORCEABLE = { Mythic = true, Legendary = true }
 
-Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player, rarity)
+Inbound.debug(Remotes.DebugForceMythic, function(player, rarity)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -293,10 +514,12 @@ end)
 
 --[[ Testing only: switch class, the order fixed so the key cycles. Honoured
      only in Studio, like the Mythic key. The run's drafted skills stay; a
-     skill the new class cannot be dealt keeps working if already held. ]]
-local CLASS_ORDER = { "Ranger", "Arcanist", "Warden" }
+     skill the new class cannot be dealt keeps working if already held.
+     Every class there is, one still locked on class select too: this key
+     is how a class is played while it is being built. ]]
+local CLASS_ORDER = ClassList.all()
 
-Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
+Inbound.debug(Remotes.DebugNextClass, function(player)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -315,7 +538,7 @@ end)
 
 --[[ Testing only: one more level of a named card, within its levels.
      Honoured only in Studio, like the keys above. ]]
-Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
+Inbound.debug(Remotes.DebugGrant, function(player, id)
 	if not RunService:IsStudio() or typeof(id) ~= "string" then
 		return
 	end
@@ -331,7 +554,7 @@ Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
 end)
 
 --[[ Testing only: straight into a room. Honoured only in Studio. ]]
-Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position)
+Inbound.debug(Remotes.DebugRoom, function(player, position)
 	if not RunService:IsStudio() or type(position) ~= "number" or not RunSession.get(player) then
 		return
 	end
@@ -339,7 +562,27 @@ Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position
 	log.info("%s jumped to room %d (Studio)", player.Name, math.floor(position))
 end)
 
-Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, name)
+--[[ Testing only: a killing blow past every save (Second Wind, a pet's
+     revive, a shield), for co-op's downed and revive. Studio only. ]]
+Inbound.debug(Remotes.DebugDown, function(player)
+	local session = RunSession.get(player)
+	if not RunService:IsStudio() or not session then
+		return
+	end
+	session.invulnerableUntil = 0
+	session.guardUntil = 0
+	session.dodgeChance = 0
+	session.petGuard = false
+	session.petCoat = 0
+	session.petShelterUntil = 0
+	session.secondWindUsed = true
+	session.petReviveUsed = true
+	session.revivesLeft = 0
+	RunSession.applyDamage(session, session.maxHealth * 100)
+	log.info("%s took a killing blow (Studio)", player.Name)
+end)
+
+Inbound.debug(Remotes.DebugSpawnEnemy, function(_player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
 	end
@@ -353,7 +596,7 @@ end)
 
 --[[ Testing only: build the imported pets so the client can preview them
      following the player. Honoured only in Studio. ]]
-Remotes.event(Remotes.DebugPetPreview).OnServerEvent:Connect(function(player)
+Inbound.debug(Remotes.DebugPetPreview, function(player)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -364,7 +607,7 @@ end)
 --[[ Testing only: the playtest sandbox (`Config/Sandbox`). In, the room
      becomes training dummies; out, the stage starts again. Honoured only in
      Studio. ]]
-Remotes.event(Remotes.DebugSandbox).OnServerEvent:Connect(function(player, on)
+Inbound.debug(Remotes.DebugSandbox, function(player, on)
 	if not RunService:IsStudio() or type(on) ~= "boolean" or not RunSession.get(player) then
 		return
 	end
@@ -386,7 +629,7 @@ end)
 --[[ Testing only: the pet at heel in a run (`Config/PetCombat`), as the
      sandbox picks it, until Phase 6 brings equipping. Honoured only in
      Studio. ]]
-Remotes.event(Remotes.DebugPet).OnServerEvent:Connect(function(player, key)
+Inbound.debug(Remotes.DebugPet, function(player, key)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -396,7 +639,7 @@ Remotes.event(Remotes.DebugPet).OnServerEvent:Connect(function(player, key)
 	end
 end)
 
-Remotes.event(Remotes.DebugWeapon).OnServerEvent:Connect(function(player, name)
+Inbound.debug(Remotes.DebugWeapon, function(player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
 	end
@@ -417,23 +660,38 @@ end)
 
 --[[
 	Earthbreaker (the Warden's Mythic): a dash ends in a leap and a slam
-	where he comes down, and the ground there erupts for a while. Only for
-	a session holding the card, and no sooner than the dash's own cooldown
-	allows (less a little for the trip), so a client cannot fire slams at
-	will. Where he lands is his character's, as every position is.
+	where he comes down, and the ground there erupts for a while. Shield
+	Throw (his Rare): the dash throws a shield (`ClassUpgrades.onDash`).
+	Shadow Dash (the Assassin's own): the dash cuts what it passes through
+	(`MeleeSystem.dash`). Only for a session holding either card or playing
+	such a class, and no sooner than the dash's own cooldown allows (less a
+	little for the trip), so a client cannot fire slams, shields or cuts at
+	will. Where he lands is his character's, as
+	every position is.
 ]]
-Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.DashStarted, function(player, heading)
 	local session = RunSession.get(player)
 	local root = session and session.root
-	if not session or not root or not session.alive or session.earthbreaker <= 0 then
+	if not session or not root or not session.alive then
+		return
+	end
+	local class = Classes[session.loadout.class]
+	local cuts = class ~= nil and class.dash ~= nil
+	if session.earthbreaker <= 0 and session.upgrades.shieldThrow <= 0 and not cuts then
 		return
 	end
 	local now = os.clock()
 	local dash = Balance.Player.dash
-	if now - session.lastDashAt < dash.cooldown * 0.8 then
+	if now - session.lastDashAt < DashCut.cooldown(session.loadout.class) * 0.8 then
 		return
 	end
 	session.lastDashAt = now
+	ClassUpgrades.onDash(session, root, now)
+	--[[ A class whose dash cuts (the Assassin's Shadow Dash). ]]
+	MeleeSystem.dash(session, root, now, DashCut.heading(heading))
+	if session.earthbreaker <= 0 then
+		return
+	end
 	local quake = Balance.Player.earthbreaker
 	local damage = session.damage
 	AreaStrikes.strike({
@@ -460,7 +718,7 @@ Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 	})
 end)
 
-Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.AbilityReroll, function(player)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.reroll(session)
@@ -469,7 +727,7 @@ end)
 
 --[[ The end screen's button. Only a player in the run may ask, and
      `requestRestart` ignores the request unless the run is over. ]]
-Remotes.event(Remotes.RunRestart).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.RunRestart, function(player)
 	if RunSession.get(player) then
 		RoomController.requestRestart()
 	end
@@ -478,15 +736,55 @@ end)
 --[[ BACK TO LOBBY, from the HUD mid-room or an end screen. Only a player in
      the run may ask, and `requestLobby` refuses unless there is a run to
      leave. Nothing is credited: leaving is giving up, not winning. ]]
-Remotes.event(Remotes.RunLobby).OnServerEvent:Connect(function(player)
-	if RunSession.get(player) then
-		RoomController.requestLobby()
+Inbound.on(Remotes.RunLobby, function(player)
+	if RunSession.get(player) and RoomController.requestLobby() then
+		-- a starter offer owed on their Victory was shown on the way out
+		Purchases.starterAnswered(player)
+	end
+end)
+
+--[[ A story beat watched or skipped (`Config/StoryBeats`); `Wallet.sawStory`
+     keeps it only for a boss this player has beaten. ]]
+Inbound.on(Remotes.StorySeen, function(player, area)
+	Wallet.sawStory(player, area)
+end)
+
+--[[ The title or the story on this player's screen, for the onboarding
+     funnel (`Data/Analytics`): only from a player still on the title, and
+     only a step a client can see (`Analytics.clientStep`). ]]
+Inbound.on(Remotes.FunnelStep, function(player, step)
+	local session = RunSession.get(player)
+	if session and session.atTitle then
+		Analytics.clientStep(player, step)
+	end
+end)
+
+--[[ A screen opened on this player's screen, for the recurring funnels
+     (`Analytics.opened` takes only an `AnalyticsRules.SCREENS` name). ]]
+Inbound.on(Remotes.ScreenOpened, Analytics.opened)
+
+--[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only.
+     In a run, a `hold` tip never seen before holds it until OK
+     (`TipClosed`); every other tip holds nothing (`TipRules.holds`). ]]
+Inbound.on(Remotes.TipSeen, function(player, key)
+	local fresh = Wallet.sawTip(player, key)
+	local session = RunSession.get(player)
+	if fresh and session and TipRules.holds(key) and Workspace:GetAttribute("InLobby") ~= true then
+		RunSession.holdForTip(session)
+	end
+end)
+
+--[[ OK on a first-time tip: the run goes on. ]]
+Inbound.on(Remotes.TipClosed, function(player)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.tipClosed(session)
 	end
 end)
 
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
-Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.IntroBegin, function(player)
 	local session = RunSession.get(player)
 	--[[ Off the title and the story cutscene and into the tutorial
 	     (`Config/Tutorial`), which is won into the lobby. Only a player who
@@ -496,62 +794,89 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 		return
 	end
 	RunSession.leaveTitle(session)
-	if not RoomController.inLobby() then
+	--[[ On the tutorial's own server (sent there on join, `Party`), leaving
+	     the title is all it takes: the run server starts the stage. ]]
+	if not RoomController.inLobby() or Party.isRunServer() then
 		return
 	end
 	--[[ The tutorial only until the player has beaten Mossy Glade 1-1
 	     (owner, 2026-10-26: "the tutorial should play until they have beaten
 	     the first level of mossy glade"); after that, straight to the lobby.
-	     Their profile is normally in long before the story ends; it is
-	     given a few seconds more if not, and a profile that never loads
-	     owes the tutorial. ]]
-	local deadline = os.clock() + PROFILE_WAIT
-	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
-		task.wait(0.25)
-	end
-	local profile = PlayerData.get(player)
-	local beaten = if profile then profile.levelsBeaten else nil
+	     Their profile is normally in long before the story ends
+	     (`tutorialOwed`). ]]
+	local owed = tutorialOwed(player)
 	if not RoomController.inLobby() or not player.Parent then
 		return
 	end
-	--[[ Studio's `Sandbox.forceTutorial` plays it even when the profile says
-	     it is done, so a playtest can have the tutorial and the unlocked
-	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
-	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
-	if forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
-		RoomController.beginStage(Balance.tutorialStage)
+	if owed then
+		Party.startTutorial(player, Balance.tutorialStage)
 	else
 		local character = player.Character
 		if character then
 			Lobby.place(character)
 		end
+		-- only now, with the tutorial ruled out, do they stand in the lobby
+		RunSession.arrive(session)
 		log.info("%s has beaten %s: no tutorial", player.Name, Tutorial.untilBeaten)
 	end
 end)
 
---[[ START on a portal's screen (`UI/PortalScreen`): which portal and which
-     of its levels. The server decides: only in the lobby, off the title, and
-     only for the portal the player stands at (`Lobby.startFor`). ]]
-Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index, level)
+--[[ PLAY on an area's level screen (`UI/PortalScreen`), reached by walking
+     into that area's portal or from the lobby's PLAY button
+     (`UI/AreaScreen`): which portal and which of its levels. The server
+     decides: only in the lobby, off the title, and only an area and a level
+     this player's saved profile has open (`Lobby.levelOpen`). Where the
+     player stands no longer gates the start (owner, 2026-11-14: PLAY's
+     screen starts the run itself); it decides only who comes along
+     (`PlayPortal.alone`). With `hard` true, the level on hard: refused
+     unless its area's boss is beaten and the hard level before it won on
+     hard (`Lobby.hardOpen`, `Util/HardRules`). ]]
+Inbound.on(Remotes.PortalStart, function(player, index, level, hard)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
 		return
 	end
-	-- only a level this player has opened (`Util/LevelUnlocks`)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
-	local stage = Lobby.startFor(root.Position, index, level, beaten)
+	local bosses = if profile then profile.bossesBeaten else nil
+	local onHard = hard == true
+	local stage = if onHard
+		then Lobby.hardOpen(
+			index,
+			level,
+			beaten,
+			bosses,
+			if profile then profile.hardBeaten else nil
+		)
+		else Lobby.levelOpen(index, level, beaten, bosses)
 	if stage then
-		RoomController.beginStage(stage)
+		--[[ Standing in that portal: with whoever else stands there
+		     (`Run/Party`). From PLAY's screen: alone. ]]
+		local standing = Lobby.portalAt(root.Position, LobbyConfig.startSlack)
+		Party.start(
+			player,
+			index :: number,
+			level :: number,
+			stage,
+			PlayPortal.alone(standing, index :: number),
+			onHard
+		)
 	end
 end)
 
 --[[ A pick at an Endless checkpoint, or 0 to bank and leave. Everything
      about it is checked by `RoomController.endlessPick`, which only
      honours a checkpoint it opened itself (`docs/ENDLESS.md`). ]]
-Remotes.event(Remotes.EndlessPick).OnServerEvent:Connect(function(player, choice)
+Inbound.on(Remotes.EndlessPick, function(player, choice)
 	RoomController.endlessPick(player, choice)
+end)
+
+--[[ TAKE IT on the reward pick panel: only the weapon is sent, and only a
+     weapon of a set the server owes this player a pick of is given
+     (`Wallet.pickReward`, `Util/RewardPickRules`). ]]
+Inbound.on(Remotes.RewardPick, function(player, weapon)
+	Wallet.pickReward(player, weapon)
 end)
 
 --[[ Which portal's screen each player has open (`Remotes.PortalOpen`), so
@@ -562,7 +887,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 --[[ GOT IT! on a NEW ENEMY! screen. Only clears a screen the server opened. ]]
-Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
+Inbound.on(Remotes.NewEnemySeen, function(player, kind)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.metEnemy(session, kind)
@@ -570,7 +895,7 @@ Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
 end)
 
 --[[ MENU's LEAVE THE RUN? panel opened or shut. ]]
-Remotes.event(Remotes.RunMenu).OnServerEvent:Connect(function(player, open)
+Inbound.on(Remotes.RunMenu, function(player, open)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.setInMenu(session, open)
@@ -620,6 +945,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 			local shown = index or 0
 			if portalShown[player] ~= shown then
 				portalShown[player] = shown
+				-- read by the other players' portal screens, for the party
+				player:SetAttribute("Portal", if shown ~= 0 then shown else nil)
 				Remotes.event(Remotes.PortalOpen):FireClient(player, shown)
 			end
 		end
@@ -630,6 +957,7 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	if next(portalShown) then
 		for player, shown in portalShown do
 			if shown ~= 0 then
+				player:SetAttribute("Portal", nil)
 				Remotes.event(Remotes.PortalOpen):FireClient(player, 0)
 			end
 		end
@@ -639,6 +967,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
 	     (`Config/NewEnemies`). ]]
 	if RunSession.anyMeeting() then
+		wasHeld = true
+		return
+	end
+
+	--[[ And while anyone reads a first-time tip, until OK (`Config/Tips`). ]]
+	if RunSession.anyReadingTip() then
 		wasHeld = true
 		return
 	end
@@ -683,11 +1017,14 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)
+	--[[ Soul Chain's fireball landing on each enemy it leaps to. ]]
+	SoulLink.step(now)
 	--[[ Meteors landing and cracked ground erupting (the Mythics). ]]
 	AreaStrikes.step(now)
 	--[[ The class upgrades: black holes dragging, the phoenix's fire, the
 	     Arcane Turret's crystal. ]]
 	ClassUpgrades.step(deltaTime, now)
+	AssassinUpgrades.step(deltaTime, now)
 	--[[ After projectiles, because a hit's knockback moves its enemy and can
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]
@@ -699,6 +1036,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	RunSession.landXp(now)
 	--[[ Mending. ]]
 	RunSession.regenerate(deltaTime, now)
+	--[[ Co-op: revives filling, bleed-outs running down, and a wipe when
+	     nobody is left standing (`Shared/Util/Coop`). ]]
+	RunSession.stepDowned(deltaTime, now)
 
 	--[[ Last, so a room is only ever declared clear after everything that
 	     could still kill something has had its turn this frame. ]]

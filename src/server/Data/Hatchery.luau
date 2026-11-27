@@ -6,8 +6,8 @@
 	non-negotiable 2), every egg paid whole through `Data/Wallet`.
 
 	- `Remotes.HatchEgg(key, count)`: pays `count` eggs (1 or 3), rolls each,
-	  keeps every pet (a second of one is counted, for fusing later), and
-	  answers `EggHatched`.
+	  keeps every pet (a second of one is another C copy to merge,
+	  `Util/MergeRules`), and answers `EggHatched`.
 	- `Remotes.EquipPet(slot, pet)`: an owned pet into slot 1 or 2, or nil to
 	  empty it; saved.
 
@@ -22,12 +22,20 @@ local RunService = game:GetService("RunService")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
+local Analytics = require(script.Parent.Analytics)
+local Boosts = require(script.Parent.Boosts)
+local Passes = require(script.Parent.Passes)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
+local Rewards = require(script.Parent.Rewards)
+local Shoutouts = require(script.Parent.Shoutouts)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Hatchery")
@@ -49,12 +57,117 @@ local function allowed(player: Player): boolean
 	return PlayerData.get(player) ~= nil
 end
 
---[[ The saved slots onto the Player's attributes. ]]
+--[[ The saved slots onto the Player's attributes: the ones open to this
+     player (the third with the Extra Pet Slot pass), which is what
+     `Combat/PetCombat` and the pets at heel read. Called again when a pass
+     is bought (`Data/Purchases`). ]]
 function Hatchery.apply(player: Player)
 	local profile = PlayerData.get(player)
+	local open = StoreRules.petSlots(Passes.owned(player))
 	for slot, attribute in Eggs.slots do
-		player:SetAttribute(attribute, if profile then profile.equippedPets[slot] else nil)
+		player:SetAttribute(
+			attribute,
+			if profile and slot <= open then profile.equippedPets[slot] else nil
+		)
 	end
+end
+
+type Result = { pet: string, new: boolean }
+
+--[[ Rolls `n` of an egg's pool for a player and keeps every pet, the
+     pity counted; what hatched goes straight into any empty slot open to
+     them, rarest first (`EggRules.fill`; until 2026-11-14 only a player's
+     very first pet did). A slot the player filled is never changed. ]]
+local function rollEggs(
+	player: Player,
+	profile: any,
+	pool: { EggRules.Entry },
+	n: number
+): { Result }
+	local results: { Result } = {}
+	local hatched: { string } = {}
+	local mythics = Pity.mythics(pool)
+	for _ = 1, n do
+		-- the 100th egg since the last Mythic hatches one (`Util/Pity`)
+		local since = profile.pity.eggs
+		local entry = if Pity.forced(since) and #mythics > 0
+			then mythics[random:NextInteger(1, #mythics)]
+			else EggRules.roll(pool, random:NextNumber())
+		if entry then
+			profile.pity.eggs = Pity.after(since, entry.rarity == "Mythic")
+			local new = Wallet.grantPet(player, entry.pet)
+			table.insert(results, { pet = entry.pet, new = new })
+			table.insert(hatched, entry.pet)
+			Shoutouts.rolled(player, "Pet", entry.pet)
+		end
+	end
+	local open = StoreRules.petSlots(Passes.owned(player))
+	local filled = EggRules.fill(profile.equippedPets, open, hatched)
+	for slot, pet in filled do
+		Wallet.equipPet(player, slot, pet)
+	end
+	if next(filled) ~= nil then
+		Hatchery.apply(player)
+	end
+	return results
+end
+
+--[[ A free egg, the run's to give (a level's first clear,
+     `Run/RoomController`): rolled and kept as a bought one is, unpaid and
+     whether or not its area is open yet. Returns the pet, for the Victory
+     screen to reveal; nil if there is nothing to give. ]]
+function Hatchery.grantFree(player: Player, key: string): Result?
+	local profile = PlayerData.get(player)
+	local pool = EggRules.pool(key, Boosts.luck())
+	if not profile or not EggRules.find(key) or #pool == 0 then
+		return nil
+	end
+	local results = rollEggs(player, profile, pool, 1)
+	Analytics.hatched(player, key, results, "Free")
+	log.info("%s was given a free %s", player.Name, key)
+	return results[1]
+end
+
+--[[ `n` free eggs at once, a prize's to give (an Endless milestone,
+     `Data/EndlessPrizes`): rolled and kept as bought ones are, the pity
+     counted. With `least`, the first is sure to be at least that rarity
+     (`Util/PrizeRules.guaranteed`). Returns the pets, to show. ]]
+function Hatchery.grantMany(player: Player, key: string, n: number, least: string?): { Result }
+	local profile = PlayerData.get(player)
+	local pool = EggRules.pool(key, Boosts.luck())
+	if not profile or not EggRules.find(key) or #pool == 0 or n < 1 then
+		return {}
+	end
+	local results: { Result } = {}
+	local left = n
+	if least then
+		local sure = PrizeRules.guaranteed(pool, least)
+		local entry = sure[random:NextInteger(1, #sure)]
+		profile.pity.eggs = Pity.after(profile.pity.eggs, entry.rarity == "Mythic")
+		table.insert(results, { pet = entry.pet, new = Wallet.grantPet(player, entry.pet) })
+		Shoutouts.rolled(player, "Pet", entry.pet)
+		left -= 1
+	end
+	for _, result in rollEggs(player, profile, pool, left) do
+		table.insert(results, result)
+	end
+	Analytics.hatched(player, key, results, "Prize")
+	log.info("%s was given %d free %s", player.Name, n, key)
+	return results
+end
+
+--[[ Whether the player's coins buy an open egg, for Victory's nudge. ]]
+function Hatchery.canHatch(player: Player): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	for _, egg in Eggs.list do
+		if profile.coins >= egg.price and EggRules.open(egg, profile.bossesBeaten) then
+			return true
+		end
+	end
+	return false
 end
 
 local function hatch(player: Player, key: unknown, count: unknown)
@@ -69,35 +182,16 @@ local function hatch(player: Player, key: unknown, count: unknown)
 	local n = count :: number
 	local profile = PlayerData.get(player)
 	local egg = EggRules.find(key)
-	local pool = EggRules.pool(key)
+	local pool = EggRules.pool(key, Boosts.luck())
 	if not profile or not egg or #pool == 0 or not EggRules.open(egg, profile.bossesBeaten) then
 		return
 	end
-	if not Wallet.pay(player, { coins = egg.price * n }) then
+	if not Wallet.pay(player, { coins = egg.price * n }, nil, "Egg", key :: string) then
 		return
 	end
-	local results = {}
-	local firstFree = profile.equippedPets[1] == nil
-	local mythics = Pity.mythics(pool)
-	for _ = 1, n do
-		-- the 100th egg since the last Mythic hatches one (`Util/Pity`)
-		local since = profile.pity.eggs
-		local entry = if Pity.forced(since) and #mythics > 0
-			then mythics[random:NextInteger(1, #mythics)]
-			else EggRules.roll(pool, random:NextNumber())
-		if entry then
-			profile.pity.eggs = Pity.after(since, entry.rarity == "Mythic")
-		end
-		if entry then
-			local new = Wallet.grantPet(player, entry.pet)
-			table.insert(results, { pet = entry.pet, new = new })
-		end
-	end
-	-- a player's very first pet goes straight into slot 1
-	if firstFree and next(profile.equippedPets) == nil and results[1] then
-		Wallet.equipPet(player, 1, results[1].pet)
-		Hatchery.apply(player)
-	end
+	local results = rollEggs(player, profile, pool, n)
+	Rewards.note(player, "hatches", #results)
+	Analytics.hatched(player, key, results, "Bought")
 	log.info("%s hatched %d %s", player.Name, n, egg.name)
 	eggHatched:FireClient(player, key, results)
 end
@@ -111,8 +205,8 @@ local function equip(player: Player, slot: unknown, pet: unknown)
 end
 
 function Hatchery.start()
-	Remotes.event(Remotes.HatchEgg).OnServerEvent:Connect(hatch)
-	Remotes.event(Remotes.EquipPet).OnServerEvent:Connect(equip)
+	Inbound.on(Remotes.HatchEgg, hatch)
+	Inbound.on(Remotes.EquipPet, equip)
 	PlayerData.onLoaded(Hatchery.apply)
 	--[[ Studio only: a full wallet, the areas opened to try every egg, and
 	     the levels beaten that other things wait on (1-10 opens the Endless
@@ -130,7 +224,7 @@ function Hatchery.start()
 			end
 		end)
 	end
-	Remotes.event(Remotes.ProfileRequest).OnServerEvent:Connect(function(player)
+	Inbound.on(Remotes.ProfileRequest, function(player)
 		if allowed(player) then
 			Wallet.send(player)
 		end

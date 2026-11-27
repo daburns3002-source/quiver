@@ -23,6 +23,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local SoulLink = require(script.Parent.SoulLink)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -33,10 +34,19 @@ local log = Log.forTag("Projectiles")
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
+local upgradeFx = Remotes.event(Remotes.UpgradeFx)
+
+--[[ Root Hold's roots are drawn as Stumpy's Root Snare is: the pet whose
+     `Hold` piece `Fx/RootHoldFx` plays round a held enemy's feet. ]]
+local ROOT_LOOK = "Stumpy"
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
 local currentNow = 0
+
+--[[ Gravity Well: each blast's pull, ticked in `step` until it ends. ]]
+type Well = { at: Vector3, radius: number, speed: number, endsAt: number }
+local wells: { Well } = {}
 
 type Projectile = {
 	--[[ Decides both what this can damage and what stops it. See
@@ -76,6 +86,9 @@ type Projectile = {
 	bounces: number,
 	--[[ Hits left that send it on to the nearest other enemy. ]]
 	ricochet: number,
+	--[[ The speed those ricochets leave at when it is not this one's own:
+	     Chain Lightning's arc (`Balance.Projectile.arcSpeed`). ]]
+	arcSpeed: number?,
 	--[[ Radians a second it turns towards the nearest enemy ahead. ]]
 	homing: number,
 	--[[ Fraction of its damage a hit sets burning per second, and for how
@@ -86,6 +99,13 @@ type Projectile = {
 	     Orbs' ice. ]]
 	slow: number,
 	slowDuration: number,
+	--[[ Thornwood's cards: whether its slow is Web Snare's silk and its
+	     splash a Thorn Burst, Root Hold's seconds and Burr Blight's stack
+	     (0 none). ]]
+	web: boolean,
+	thorn: boolean,
+	root: number,
+	blight: number,
 	--[[ Long Shot's extra damage at full range, and where the flight began,
 	     which is what "range" is measured from. ]]
 	farBonus: number,
@@ -102,6 +122,16 @@ type Projectile = {
 	--[[ Studs a struck player is dragged back along this line. 0 for every
 	     shot but the Hollow Fisherman's hook. ]]
 	reel: number,
+	--[[ Split Shot: splinters sent on from an enemy this kills (0 none). ]]
+	split: number,
+	--[[ Wind Arrows: extra knockback on a hit, as a share of the hit's own,
+	     and enemy shots near it blown away (0 none). ]]
+	gust: number,
+	--[[ Split Orb: shards its first hit bursts it into (0 none, and spent
+	     on that hit). Gravity Well: studs its blast pulls enemies in (0
+	     none). ]]
+	shards: number,
+	well: number,
 }
 
 local ProjectileSystem = {}
@@ -194,13 +224,16 @@ end
 ]]
 function ProjectileSystem.clear()
 	table.clear(active)
+	table.clear(wells)
 	droppedSinceWarning = 0
 	lastWarnedAt = -math.huge
 end
 
---[[ Removes every enemy shot within `radius` of `centre`, measured flat.
-     For a revive: the volley that killed the player must not land again. ]]
-function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number)
+--[[ Removes every enemy shot within `radius` of `centre`, measured flat,
+     and returns how many. For a revive: the volley that killed the player
+     must not land again. ]]
+function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number): number
+	local cleared = 0
 	for index = #active, 1, -1 do
 		local projectile = active[index]
 		local offset = projectile.position - centre
@@ -210,8 +243,10 @@ function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number)
 		then
 			active[index] = active[#active]
 			active[#active] = nil
+			cleared += 1
 		end
 	end
+	return cleared
 end
 
 --[[
@@ -232,6 +267,9 @@ export type SpawnParams = {
 	splashScale: number,
 	bounces: number,
 	ricochet: number,
+	--[[ Chain Lightning: its ricochets leave as arcs, at this speed. Omitted
+	     means at the shot's own. ]]
+	arcSpeed: number?,
 	homing: number,
 	owner: Player?,
 	now: number,
@@ -256,6 +294,22 @@ export type SpawnParams = {
 	     line (`Balance.EnemyShot.reel`, the Hollow Fisherman's hook).
 	     Omitted means none, which is every other shot. ]]
 	reel: number?,
+	--[[ Split Shot's splinters and Wind Arrows' gust (`Combat/ClassUpgrades`
+	     `dress`). Omitted means none. ]]
+	split: number?,
+	gust: number?,
+	--[[ Thornwood's cards (`dress` again). `web`: the slow on it is Web
+	     Snare's silk, not a chill. `thorn`: its splash is a Thorn Burst, to
+	     draw as one. `root`: Root Hold's seconds on what it hits. `blight`:
+	     Burr Blight's stack, as a share of its damage. Omitted means none. ]]
+	web: boolean?,
+	thorn: boolean?,
+	root: number?,
+	blight: number?,
+	--[[ Split Orb's shards and Gravity Well's pull (`dress` again). Omitted
+	     means none. ]]
+	shards: number?,
+	well: number?,
 }
 
 --[[
@@ -300,16 +354,25 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		splashScale = params.splashScale,
 		bounces = params.bounces,
 		ricochet = params.ricochet,
+		arcSpeed = params.arcSpeed,
 		homing = params.homing,
 		burn = params.burn or 0,
 		burnDuration = params.burnDuration or 0,
 		slow = params.slow or 1,
 		slowDuration = params.slowDuration or 0,
+		web = params.web == true,
+		thorn = params.thorn == true,
+		root = params.root or 0,
+		blight = params.blight or 0,
 		farBonus = params.farBonus or 0,
 		origin = params.origin,
 		link = params.link or 0,
 		look = params.look,
 		reel = params.reel or 0,
+		split = params.split or 0,
+		gust = params.gust or 0,
+		shards = params.shards or 0,
+		well = params.well or 0,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -345,6 +408,28 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 	     the same frame as the damage numbers it caused rather than after
 	     them. ]]
 	explosion:FireAllClients(centre, projectile.splashRadius)
+	--[[ Thorn Burst: the same blast, drawn as thorns. ]]
+	if projectile.thorn then
+		upgradeFx:FireAllClients("ThornBurst", projectile.owner, centre, projectile.splashRadius)
+	end
+	--[[ Gravity Well: the blast pulls what is near it in, over a moment
+	     (`step`), the card's studs in all. ]]
+	if projectile.well > 0 then
+		local well = Balance.Player.waveTwo.well
+		table.insert(wells, {
+			at = Vector3.new(centre.X, 0, centre.Z),
+			radius = well.radius,
+			speed = projectile.well / well.duration,
+			endsAt = currentNow + well.duration,
+		})
+		upgradeFx:FireAllClients(
+			"GravityWell",
+			projectile.owner,
+			centre,
+			well.radius,
+			well.duration
+		)
+	end
 
 	local nearby: { { model: Model, position: Vector3 } } = {}
 	for model, position in EnemyManager.positions() do
@@ -381,10 +466,17 @@ type Onward = {
 	damage: number,
 	ricochet: number,
 	from: Model?,
+	--[[ Chain Lightning's arc: the enemy it was sent at, that it is drawn as
+	     lightning between the two, and how long it lives
+	     (`Balance.Projectile.arcLife`, not an arrow's life). ]]
+	to: Model?,
+	arc: boolean?,
+	lifetime: number?,
 }
 
 local function fireOnward(projectile: Projectile, onward: Onward)
 	local specs: { Types.ShotSpec } = {}
+	local lifetime = onward.lifetime or Balance.Projectile.lifetime
 
 	for _ = 1, onward.count do
 		ProjectileSystem.spawn({
@@ -392,7 +484,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			origin = onward.origin,
 			direction = onward.direction,
 			speed = onward.speed,
-			lifetime = Balance.Projectile.lifetime,
+			lifetime = lifetime,
 			damage = onward.damage,
 			pierce = 0,
 			critChance = projectile.critChance,
@@ -401,17 +493,23 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			arcSpeed = projectile.arcSpeed,
 			homing = projectile.homing,
 			burn = projectile.burn,
 			burnDuration = projectile.burnDuration,
 			slow = projectile.slow,
 			slowDuration = projectile.slowDuration,
+			web = projectile.web,
+			blight = projectile.blight,
 			farBonus = projectile.farBonus,
 			link = projectile.link,
 			look = projectile.look,
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = onward.from,
+			split = projectile.split,
+			gust = projectile.gust,
+			well = projectile.well,
 		})
 
 		table.insert(specs, {
@@ -419,7 +517,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			lateralOffset = 0,
 			damageScale = 1,
 			speed = onward.speed,
-			lifetime = Balance.Projectile.lifetime,
+			lifetime = lifetime,
 			pierce = 0,
 			critChance = projectile.critChance,
 			critMultiplier = projectile.critMultiplier,
@@ -427,6 +525,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			arcSpeed = projectile.arcSpeed,
 			homing = projectile.homing,
 			delay = 0,
 			burn = projectile.burn,
@@ -447,6 +546,8 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 		firedAt = currentNow,
 		predicted = false,
 		from = onward.from,
+		to = onward.to,
+		arc = onward.arc,
 		look = projectile.look,
 	} :: Types.ShotEvent)
 end
@@ -459,6 +560,11 @@ end
 	that hit stops there as any arrow does, and the client is told about the
 	new one the way it is told about a chain. Every body this arrow has struck
 	is skipped, so a ricochet never bounces straight back.
+
+	Chain Lightning's is an arc (`projectile.arcSpeed`): the same new shot, at
+	a bolt's speed, so the hop lands a few hundredths of a second later, and
+	the client is told the enemy it was sent at and draws lightning between
+	the two bodies in place of a shot in flight.
 ]]
 local function fireRicochet(projectile: Projectile, hit: Model)
 	if projectile.ricochet <= 0 then
@@ -484,15 +590,193 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 		return
 	end
 
+	local arcSpeed = projectile.arcSpeed
+
 	fireOnward(projectile, {
 		origin = Vector3.new(from.X, from.Y, from.Z),
 		direction = direction,
 		count = 1,
-		speed = projectile.speed,
+		speed = arcSpeed or projectile.speed,
 		damage = projectile.damage * Balance.Projectile.ricochetDamageScale,
 		ricochet = projectile.ricochet - 1,
 		from = hit,
+		to = if arcSpeed then target.model else nil,
+		arc = if arcSpeed then true else nil,
+		lifetime = if arcSpeed then Balance.Projectile.arcLife else nil,
 	})
+end
+
+--[[
+	Split Shot: the arrow that killed sends splinters on from the kill, fanned
+	about its heading, short and weak, and never splitting again. Announced as
+	invented shots, so every client draws them (the "Splinter" look). Split
+	Orb's shards are the same fan, from an orb's first hit ("Shard").
+]]
+type Fan = { spread: number, damage: number, range: number }
+
+local function fireFan(
+	projectile: Projectile,
+	from: Model,
+	count: number,
+	config: Fan,
+	look: string
+)
+	local direction = Vector3.new(projectile.direction.X, 0, projectile.direction.Z)
+	if count <= 0 or direction.Magnitude < 1e-3 then
+		return
+	end
+	direction = direction.Unit
+	local origin = projectile.position
+	local lifetime = config.range / math.max(projectile.speed, 1)
+	local damage = projectile.damage * config.damage
+	local specs: { Types.ShotSpec } = {}
+	for index = 1, count do
+		local spec: Types.ShotSpec = {
+			angleOffset = (index - (count + 1) / 2) * config.spread,
+			lateralOffset = 0,
+			damageScale = config.damage,
+			speed = projectile.speed,
+			lifetime = lifetime,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			ricochet = 0,
+			homing = 0,
+			delay = 0,
+			burn = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
+		}
+		table.insert(specs, spec)
+		ProjectileSystem.spawn({
+			faction = "Player" :: Faction,
+			origin = origin,
+			direction = ShotPipeline.aim(direction, spec),
+			speed = spec.speed,
+			lifetime = lifetime,
+			damage = damage,
+			pierce = 0,
+			critChance = spec.critChance,
+			critMultiplier = spec.critMultiplier,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			ricochet = 0,
+			homing = 0,
+			look = look,
+			owner = projectile.owner,
+			now = currentNow,
+			ignore = from,
+		})
+	end
+	local owner = projectile.owner
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = if owner then owner.UserId else 0,
+		origin = origin,
+		direction = direction,
+		specs = specs,
+		firedAt = currentNow,
+		predicted = false,
+		from = from,
+		look = look,
+	} :: Types.ShotEvent)
+end
+
+local function fireSplinters(projectile: Projectile, from: Model)
+	fireFan(projectile, from, projectile.split, Balance.Player.splitShot, "Splinter")
+end
+
+--[[
+	Riposte: a shot the Warden's swing guard caught flies back at whoever
+	fired it -- the enemy nearest where it was fired, turning after it as
+	Tracking Eye's arrows turn -- or straight back the way it came when none
+	is near there. The Warden's own damage, at the card's share.
+]]
+local RIPOSTE_TURN = math.rad(240)
+
+local function throwBack(projectile: Projectile, session: RunSession.Session)
+	local config = Balance.Player.waveTwo.riposte
+	local root = session.root
+	local origin = if root
+		then Vector3.new(root.Position.X, Balance.Projectile.height, root.Position.Z)
+		else projectile.position
+	local shooter: Vector3? = nil
+	local nearest = config.seek
+	for _, position in EnemyManager.positions() do
+		local away = Vector3.new(
+			position.X - projectile.origin.X,
+			0,
+			position.Z - projectile.origin.Z
+		).Magnitude
+		if away <= nearest then
+			nearest = away
+			shooter = position
+		end
+	end
+	local heading = if shooter
+		then Vector3.new(shooter.X - origin.X, 0, shooter.Z - origin.Z)
+		else Vector3.new(-projectile.direction.X, 0, -projectile.direction.Z)
+	if heading.Magnitude < 1e-3 then
+		return
+	end
+	local direction = heading.Unit
+	local speed = session.projectileSpeed * config.speed
+	local lifetime = session.projectileLifetime
+	local damage = session.damage * session.melee.riposte
+	local spec: Types.ShotSpec = {
+		angleOffset = 0,
+		lateralOffset = 0,
+		damageScale = 1,
+		speed = speed,
+		lifetime = lifetime,
+		pierce = 0,
+		critChance = 0,
+		critMultiplier = 1,
+		splashRadius = 0,
+		splashScale = 0,
+		bounces = 0,
+		ricochet = 0,
+		homing = RIPOSTE_TURN,
+		delay = 0,
+		burn = 0,
+		burnDuration = 0,
+		farBonus = 0,
+		link = 0,
+	}
+	ProjectileSystem.spawn({
+		faction = "Player" :: Faction,
+		origin = origin,
+		direction = direction,
+		speed = speed,
+		lifetime = lifetime,
+		damage = damage,
+		pierce = 0,
+		critChance = 0,
+		critMultiplier = 1,
+		splashRadius = 0,
+		splashScale = 0,
+		bounces = 0,
+		ricochet = 0,
+		homing = RIPOSTE_TURN,
+		look = "Riposte",
+		owner = session.player,
+		now = currentNow,
+	})
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = session.player.UserId,
+		origin = origin,
+		direction = direction,
+		specs = { spec },
+		firedAt = currentNow,
+		predicted = false,
+		look = "Riposte",
+	} :: Types.ShotEvent)
 end
 
 local function applyHit(projectile: Projectile, model: Model): boolean
@@ -538,11 +822,32 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
-			SoulLink.apply(projectile.owner, projectile.link, model, projectile.position, damage)
+			--[[ Split Orb: its first hit bursts it into shards, fanned on
+			     past what it hit; spent, so a piercing or chained orb
+			     bursts once. ]]
+			if projectile.shards > 0 then
+				local shards = projectile.shards
+				projectile.shards = 0
+				fireFan(projectile, model, shards, Balance.Player.waveTwo.shard, "Shard")
+			end
+			SoulLink.apply(
+				projectile.owner,
+				projectile.link,
+				model,
+				projectile.position,
+				damage,
+				currentNow
+			)
 		end
 
 		if xp > 0 then
 			RunSession.creditKill(projectile.owner, xp, fell)
+			fireSplinters(projectile, model)
+		end
+
+		--[[ Wind Arrows: the hit shoves harder. ]]
+		if landed and projectile.gust > 0 then
+			EnemyManager.knock(model, projectile.position - projectile.direction, projectile.gust)
 		end
 
 		if landed then
@@ -557,7 +862,43 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 				currentNow
 			)
 			if projectile.slow < 1 then
-				EnemyManager.slow(model, projectile.slow, os.clock() + projectile.slowDuration)
+				--[[ Web Snare's slow is silk, not ice: `WebbedUntil` for the
+				     strands (`Fx/Upgrades/ThornwoodFx`), no chill. ]]
+				EnemyManager.slow(
+					model,
+					projectile.slow,
+					os.clock() + projectile.slowDuration,
+					not projectile.web
+				)
+				if projectile.web then
+					model:SetAttribute(
+						"WebbedUntil",
+						workspace:GetServerTimeNow() + projectile.slowDuration
+					)
+				end
+			end
+			--[[ Root Hold: held where it stands; a boss is slowed instead. ]]
+			if projectile.root > 0 then
+				if EnemyManager.isBoss(model) then
+					EnemyManager.slow(
+						model,
+						Balance.Player.thornwood.root.boss,
+						os.clock() + projectile.root
+					)
+				else
+					EnemyManager.root(model, projectile.root, ROOT_LOOK)
+				end
+			end
+			--[[ Burr Blight: another stack of poison, from the orb's base
+			     damage as Blaze's burn is, spread over the stack's time. ]]
+			if projectile.blight > 0 then
+				local blight = Balance.Player.thornwood.blight
+				Burning.bleed(model, {
+					rate = projectile.damage * projectile.blight / blight.duration,
+					stacks = blight.stacks,
+					duration = blight.duration,
+				}, projectile.owner, currentNow)
+				model:SetAttribute("BlightedUntil", workspace:GetServerTimeNow() + blight.duration)
 			end
 			fireRicochet(projectile, model)
 		end
@@ -576,7 +917,12 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 	end
 
 	local before = session.health
+	--[[ Riposte: a shot the swing's guard catches is thrown back. ]]
+	local caught = session.melee.riposte > 0 and session.alive and RunSession.guarding(session)
 	RunSession.applyDamage(session, projectile.damage)
+	if caught then
+		throwBack(projectile, session)
+	end
 	--[[ A hook reels whoever it caught back along the line it flew, toward
 	     the rod that cast it (`Balance.EnemyShot.reel`). Only on a hit that
 	     landed: a dodge or a shield that took nothing was not caught, so
@@ -598,12 +944,41 @@ local contact: ProjectileFlight.Contact = {
 	end,
 }
 
+--[[ Gravity Well: each blast's pull, harder the nearer the middle as Black
+     Hole's, until it ends. Ticked before anything else in `step`, which
+     stops early when nothing is flying: the orb that opened a well has
+     usually gone by then. ]]
+local function pullWells(deltaTime: number, now: number)
+	local well = Balance.Player.waveTwo.well
+	for index = #wells, 1, -1 do
+		local pulling = wells[index]
+		if now >= pulling.endsAt then
+			table.remove(wells, index)
+			continue
+		end
+		for model, position in EnemyManager.positions() do
+			local away =
+				Vector3.new(position.X - pulling.at.X, 0, position.Z - pulling.at.Z).Magnitude
+			if away <= pulling.radius then
+				local pull = pulling.speed * (0.5 + 0.5 * (1 - away / pulling.radius))
+				EnemyManager.pull(model, pulling.at, pull * deltaTime, well.stopAt)
+			end
+		end
+	end
+end
+
 function ProjectileSystem.step(deltaTime: number, now: number)
 	currentNow = now
+	pullWells(deltaTime, now)
 
 	if #active == 0 then
 		return
 	end
+
+	--[[ Wind Arrows: where each gusting arrow is, its owner beside it, to
+	     blow the enemy shots there away after the loop (removing them inside
+	     it would move a shot already stepped back into the loop's way). ]]
+	local gusts: { { at: Vector3, owner: Player? } } = {}
 
 	-- Reverse iteration so removals do not skip entries.
 	for index = #active, 1, -1 do
@@ -632,10 +1007,21 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 			alive = ProjectileFlight.advance(projectile, deltaTime, params, overlap, contact)
 		end
 
+		if alive and projectile.gust > 0 then
+			table.insert(gusts, { at = projectile.position, owner = projectile.owner })
+		end
+
 		if not alive then
 			local last = #active
 			active[index] = active[last]
 			active[last] = nil
+		end
+	end
+
+	local radius = Balance.Player.wind.clearRadius
+	for _, gust in gusts do
+		if ProjectileSystem.clearEnemyShotsNear(gust.at, radius) > 0 then
+			upgradeFx:FireAllClients("Gust", gust.owner, gust.at, radius)
 		end
 	end
 end

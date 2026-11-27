@@ -28,6 +28,7 @@ local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local DashCut = require(ReplicatedStorage.Shared.Combat.DashCut)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Stages = require(ReplicatedStorage.Shared.Combat.Stages)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -71,6 +72,25 @@ export type MeleeStats = {
 	--[[ Damage multiplier on the first swing after being hit (0 none).
 	     Counter Strike. ]]
 	counterStrike: number,
+	--[[ Extra damage a struck enemy takes from everything for a while, as a
+	     fraction (0 none). Sunder. ]]
+	sunder: number,
+	--[[ Thornwood's, on the slam alone: Boar Rush, extra shove in shares of
+	     a hit's own; Ruin Cracks, extra damage taken, as Sunder's. ]]
+	boarRush: number,
+	ruinCracks: number,
+	--[[ Extra damage on a strike from behind, as a fraction. Backstab. ]]
+	backstab: number,
+	--[[ Extra damage an enemy takes from everything after a crit on it, as
+	     a fraction (0 none). Serrated Edge. ]]
+	serrated: number,
+	--[[ A strike's share dealt each second by every cut an enemy carries
+	     (0 none). Bleed. ]]
+	bleed: number,
+	--[[ Wave 2's (2026-11-26): Echo Slash, the echo's share of each blow;
+	     Riposte, a thrown-back shot's damage times the Warden's. 0 none. ]]
+	echoSlash: number,
+	riposte: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -81,6 +101,57 @@ export type UpgradeStats = {
 	blackHole: number,
 	elemental: number,
 	turret: number,
+	--[[ The class cards of 2026-11-13: 1 when held, but for these three,
+	     which are their card's level. ]]
+	sniper: number,
+	splitShot: number,
+	manaSurge: number,
+	shieldThrow: number,
+	bladeStorm: number,
+	--[[ Wind Arrows: extra knockback, as a share of a hit's own. ]]
+	wind: number,
+	--[[ Frost Orb: how much slower a chilled enemy moves (0 none). ]]
+	frost: number,
+	--[[ Thornwood's (`Balance.Player.thornwood`): Web Snare, how much
+	     slower a webbed enemy moves; Thorn Burst, the burst's share of the
+	     hit; Root Hold, seconds held; Burr Blight, a stack's share of the
+	     hit. 0 without the card. ]]
+	webSnare: number,
+	thornBurst: number,
+	rootHold: number,
+	burrBlight: number,
+	--[[ Arcane Shield: how fast a spent shield is back, in shields a second
+	     (0 none). ]]
+	arcaneShield: number,
+	--[[ The Assassin's (`Combat/AssassinUpgrades`): Quickstep, seconds off
+	     the dash's wait a kill; Poison Trail, seconds its cloud stays; Fan
+	     of Knives, how many knives; Death Mark, the extra the marked enemy
+	     takes; Phantom Blades, how many circle; Thousand Cuts, 1 when held. ]]
+	quickstep: number,
+	poisonTrail: number,
+	fanOfKnives: number,
+	deathMark: number,
+	phantomBlades: number,
+	thousandCuts: number,
+	--[[ The themed daggers' own (`Balance.Player.daggers`), each its card's
+	     level's worth, 0 without it: Wishing Star, the star's share of a
+	     strike; Spur Rowel, how many enemies the rowel strikes; Splash Wave,
+	     the splash's share; Combo Counter, the most the count adds; Comet
+	     Crash, the comet's share of the strike; Bell Chime, seconds held;
+	     Lava Burst, the lava's share of the stab. ]]
+	wishingStar: number,
+	spurRowel: number,
+	splashWave: number,
+	comboCounter: number,
+	cometCrash: number,
+	bellChime: number,
+	lavaBurst: number,
+	--[[ Wave 2's (2026-11-26), 0 without the card: Split Orb, how many
+	     shards an orb bursts into; Gravity Well, studs a blast pulls in;
+	     Orbiting Orb, how many orbs circle. ]]
+	splitOrb: number,
+	gravityWell: number,
+	orbitingOrb: number,
 }
 
 --[[ What the server applies. ]]
@@ -346,10 +417,16 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 		table.insert(out, Stages.splash(blast, 0.4))
 	end
 
-	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow. ]]
-	local ricochet = at(counts, "Ricochet") + at(counts, "ChainLightning")
+	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow, but as
+	     lightning: its arcs leave at a bolt's speed
+	     (`Balance.Projectile.arcSpeed`). ]]
+	local arcs = at(counts, "ChainLightning")
+	local ricochet = at(counts, "Ricochet") + arcs
 	if ricochet > 0 then
-		table.insert(out, Stages.ricochet(ricochet))
+		table.insert(
+			out,
+			Stages.ricochet(ricochet, if arcs > 0 then Balance.Projectile.arcSpeed else nil)
+		)
 	end
 
 	local homing = at(counts, "TrackingEye")
@@ -421,12 +498,42 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			blackHole = at(counts, "BlackHole"),
 			elemental = at(counts, "ElementalOrbs"),
 			turret = at(counts, "ArcaneTurret"),
+			sniper = at(counts, "SniperShot"),
+			splitShot = at(counts, "SplitShot"),
+			manaSurge = at(counts, "ManaSurge"),
+			shieldThrow = at(counts, "ShieldThrow"),
+			bladeStorm = at(counts, "BladeStorm"),
+			wind = at(counts, "WindArrows"),
+			frost = at(counts, "FrostOrb"),
+			webSnare = at(counts, "WebSnare"),
+			thornBurst = at(counts, "ThornBurst"),
+			rootHold = at(counts, "RootHold"),
+			burrBlight = at(counts, "BurrBlight"),
+			arcaneShield = at(counts, "ArcaneShield"),
+			quickstep = at(counts, "Quickstep"),
+			poisonTrail = at(counts, "PoisonTrail"),
+			fanOfKnives = at(counts, "FanOfKnives"),
+			deathMark = at(counts, "DeathMark"),
+			phantomBlades = at(counts, "PhantomBlades"),
+			thousandCuts = at(counts, "ThousandCuts"),
+			wishingStar = at(counts, "WishingStar"),
+			spurRowel = at(counts, "SpurRowel"),
+			splashWave = at(counts, "SplashWave"),
+			comboCounter = at(counts, "ComboCounter"),
+			cometCrash = at(counts, "CometCrash"),
+			bellChime = at(counts, "BellChime"),
+			lavaBurst = at(counts, "LavaBurst"),
+			splitOrb = at(counts, "SplitOrb"),
+			gravityWell = at(counts, "GravityWell"),
+			orbitingOrb = at(counts, "OrbitingOrb"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
 			reachBonus = at(counts, "LongReach"),
 			guardLinger = at(counts, "Steadfast"),
-			slamBonus = at(counts, "HeavyBlade"),
+			--[[ Twin Fangs is the Assassin's Heavy Blade: its combo's last
+			     blow, the double stab. ]]
+			slamBonus = at(counts, "HeavyBlade") + at(counts, "TwinFangs"),
 			lifesteal = at(counts, "Bloodletting"),
 			executeBonus = at(counts, "Execute"),
 			whirlwindEvery = if at(counts, "Whirlwind") > 0
@@ -437,6 +544,14 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			parry = at(counts, "Parry"),
 			reachScale = math.max(at(counts, "TitansGrip"), 1),
 			counterStrike = at(counts, "CounterStrike"),
+			sunder = at(counts, "Sunder"),
+			boarRush = at(counts, "BoarRush"),
+			ruinCracks = at(counts, "RuinCracks"),
+			backstab = at(counts, "Backstab"),
+			serrated = at(counts, "SerratedEdge"),
+			bleed = at(counts, "Bleed"),
+			echoSlash = at(counts, "EchoSlash"),
+			riposte = at(counts, "Riposte"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
@@ -483,7 +598,7 @@ function AbilityEffects.clientStats(counts: Counts, class: string?, weapon: stri
 
 	return {
 		moveSpeed = player.moveSpeed * (1 + at(merged, "Lightfoot")),
-		dashCooldown = player.dash.cooldown,
+		dashCooldown = DashCut.cooldown(class),
 		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + attackSpeed(merged)),
 		momentumBonus = at(merged, "Momentum"),
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,

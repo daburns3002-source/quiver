@@ -148,8 +148,8 @@ gaps between roofs are drops (void edges, a light preview of Act 5).
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Spore Puff** | Charger · twist: bursts into a poison cloud when killed close | Kill it from range |
-| **Glowcap** | **New: stationary** — a mushroom turret that sprays spores in a spiral | A rotating hazard |
+| **Spore Puff** | Charger · twist: bursts into a poison cloud when killed close (built 2026-11-06: `EnemyConfig.burst`) | Kill it from range |
+| **Glowcap** | **New: stationary** — a mushroom turret that sprays spores in a spiral (built 2026-11-06: a ring of four, each ring turned 25° on, `EnemyShot.spin`) | A rotating hazard |
 | ~~**Cave Crawler**~~ | *Cut (owner, 2026-10-24): the Lurker again; only Thornwood's Bramble Lurker stays* | — |
 | **Shellback** | Bulwark · reskin (beetle) | The wall between you and the turrets |
 

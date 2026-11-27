@@ -15,18 +15,23 @@
 	  Round things are ellipsoids (a block with a sphere `SpecialMesh`).
 	- `place` puts a character at the spawn.
 	- `portalAt` says which active portal a player is standing in, if any,
-	  for its screen to open (`UI/PortalScreen`); `startFor` checks a START
-	  from that screen and names the stage it may start.
+	  for its screen to open (`UI/PortalScreen`); `levelOpen` checks a start
+	  (from that screen, or from the lobby's PLAY screen, `UI/AreaScreen`)
+	  and names the stage it may start; `startFor` says who stands at the
+	  portal to go along.
 
 	Seeded, so the lobby is the same every time.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyBackdrop = require(script.Parent.LobbyBackdrop)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -34,6 +39,7 @@ local LobbyCourtyard = require(script.Parent.LobbyCourtyard)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 local PalaceBuildings = require(ReplicatedStorage.Shared.Config.PalaceBuildings)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 local Lobby = {}
 
@@ -42,6 +48,7 @@ local COLOURS = LobbyConfig.colours
 local folder: Folder? = nil
 local leaderboardFace: Part? = nil
 local endlessLeaderboardFace: Part? = nil
+local weeklyLeaderboardFace: Part? = nil
 
 --[[ The courtyard's floor, which the buildings and the terrace stand on, and
      the ground past the balustrade, below it. ]]
@@ -57,6 +64,11 @@ local OUTER_RINGS = {
 	{ out = 86, spacing = 24, grow = { 2.0, 2.8 } },
 }
 local OUTER_FLOOR = 2000
+--[[ The courtyard's south edge, where the stairs down begin. ]]
+local SOUTH_EDGE = -math.huge
+for _, point in LobbyConfig.courtyard.outline do
+	SOUTH_EDGE = math.max(SOUTH_EDGE, point.Y)
+end
 --[[ How far each scatter kind keeps from everything else, studs. ]]
 --[[ How much room each scattered thing keeps to itself, in studs at
      `grow` 1. A tree asked for 6, which with everything else competing
@@ -95,30 +107,20 @@ local function world(at: Vector2, y: number?): Vector3
 	return ORIGIN + Vector3.new(at.X, y or 0, at.Y)
 end
 
---[[ Which row arch `index` stands in: 1 the front, 2 the back. ]]
+--[[ Which row arch `index` stands in: 1 the front, 2 the back, 0 for one
+     set aside (Endless). The sums are `Config/Lobby`'s, shared with the
+     Studio bots. ]]
 function Lobby.rowOf(index: number): number
-	return math.ceil(index / LobbyConfig.perRow)
+	return (LobbyConfig.slotOf(index))
 end
 
---[[ How many arches stand in row `row`. ]]
-local function rowCount(row: number): number
-	return math.clamp(#LobbyConfig.portals - (row - 1) * LobbyConfig.perRow, 0, LobbyConfig.perRow)
-end
-
---[[ The centre of row `row`'s ledge, and how high its top stands. ]]
-local function rowCentre(row: number): (Vector2, number)
-	return LobbyConfig.terrace - Vector2.new(0, (row - 1) * LobbyConfig.rowDepth),
-		LobbyConfig.ledge + (row - 1) * LobbyConfig.rowRise
-end
+local rowCount = LobbyConfig.rowCount
+local rowCentre = LobbyConfig.rowCentre
 
 --[[ Where arch `index` stands: front row west to east, then the back, each
-     row centred on the carpet however many arches it has. ]]
+     row centred on the carpet however many arches it has; Endless apart. ]]
 function Lobby.archAt(index: number): Vector2
-	local perRow = LobbyConfig.perRow
-	local column = (index - 1) % perRow + 1
-	local row = Lobby.rowOf(index)
-	local offset = (column - (rowCount(row) + 1) / 2) * LobbyConfig.archSpacing
-	return rowCentre(row) + Vector2.new(offset, 0)
+	return LobbyConfig.archAt(index)
 end
 
 local part = LobbyCourtyard.part
@@ -212,7 +214,7 @@ local function words(board: Part, text: string, colour: Color3)
 	label.Position = UDim2.fromScale(0.5, 0.5)
 	label.Size = UDim2.fromScale(0.92, 0.84)
 	label.TextWrapped = true
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = text
 	label.TextColor3 = colour
 	label.TextStrokeColor3 = Color3.fromRGB(60, 36, 20)
@@ -462,7 +464,7 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	-- two chunky lines, as the sheet letters them
 	label.Text = string.gsub(spec.title or "", " ", "\n")
@@ -565,6 +567,8 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	model.WorldPivot = base
 	model:ScaleTo(scale)
 	if bobbing then
+		-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+		CollectionService:AddTag(bobbing, "SmoothMotion")
 		TweenService
 			:Create(bobbing, BOB, { CFrame = bobbing.CFrame * CFrame.new(0, BOB_HEIGHT, 0) })
 			:Play()
@@ -695,22 +699,156 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 		board.LightInfluence = 0
 		board.MaxDistance = 140
 		board.Parent = anchor
-		for line, text in { item.name, tostring(item.price) .. " COINS" } do
+		local function line(row: number, text: string, colour: Color3): TextLabel
 			local label = Instance.new("TextLabel")
 			label.BackgroundTransparency = 1
 			label.Size = UDim2.fromScale(1, 0.5)
-			label.Position = UDim2.fromScale(0, (line - 1) * 0.5)
-			label.Font = Enum.Font.Arcade
+			label.Position = UDim2.fromScale(0, (row - 1) * 0.5)
+			label.Font = Enum.Font.FredokaOne
 			label.TextScaled = true
 			label.Text = text
-			label.TextColor3 = if line == 1
-				then Color3.new(1, 1, 1)
-				else Color3.fromRGB(255, 205, 40)
+			label.TextColor3 = colour
 			label.TextStrokeTransparency = 0
 			label.Parent = board
+			return label
 		end
+		line(1, item.name, Color3.new(1, 1, 1))
+		--[[ The price as every screen shows one: the game's coin, then the
+		     number (CLAUDE.md rule 15). The pair is centred by the number's
+		     length; a digit is about half the line's height wide (measured
+		     in Studio, 2026-11-12). ]]
+		local amount = tostring(item.price)
+		local tall = board.Size.Y.Scale / 2 / board.Size.X.Scale
+		local wide = #amount * 0.5 * tall
+		local left = 0.5 - (tall * 1.1 + wide) / 2
+		local coin = Instance.new("ImageLabel")
+		coin.Name = "Coin"
+		coin.BackgroundTransparency = 1
+		coin.Image = ShopAssets.coin
+		coin.Position = UDim2.fromScale(left, 0.5)
+		coin.Size = UDim2.fromScale(tall, 0.5)
+		coin.Parent = board
+		local price = line(2, amount, Color3.fromRGB(255, 205, 40))
+		price.Position = UDim2.fromScale(left + tall * 1.1, 0.5)
+		price.Size = UDim2.fromScale(wide + tall, 0.5)
+		price.TextXAlignment = Enum.TextXAlignment.Left
 	end
 	model.Parent = parent
+end
+
+--[[ A gold padlock hanging at `centre`, across a locked opening. ]]
+local function padlock(centre: CFrame, model: Instance)
+	local lock = centre * CFrame.new(0, -1, 0.3)
+	part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
+	part(
+		"Keyhole",
+		Vector3.new(0.6, 1, 0.2),
+		lock * CFrame.new(0, 0, 0.55),
+		COLOURS.woodDark,
+		model
+	)
+	for _, side in { -1, 1 } do
+		part(
+			"Shackle",
+			Vector3.new(0.5, 2, 0.5),
+			lock * CFrame.new(side, 2, 0),
+			COLOURS.gold,
+			model
+		)
+	end
+	part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
+end
+
+--[[ An area's portal from its import (`LobbyConfig.portalModels`), standing out
+     from the wall on `base`, its spinning vortex a picture in the doorway that
+     `Fx/PortalVortex` steps through on each client. ]]
+local function meshPortal(
+	spec: LobbyConfig.PortalModel,
+	template: MeshPart,
+	base: CFrame,
+	active: boolean,
+	model: Instance
+)
+	local vortex = LobbyConfig.portalVortex
+	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+	-- an import's front is its -Z, and the portals face south
+	local turned = middle * CFrame.Angles(0, math.pi, 0)
+	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?)
+		local mesh = from:Clone()
+		mesh.Name = "Frame"
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		mesh.Size = size
+		mesh.TextureID = spec.texture
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.CFrame = turned * CFrame.new(at)
+		mesh.Parent = model
+	end
+	if spec.parts then
+		-- a Claude Design bundle: each mesh in its own colours, glow apart
+		for _, piece in spec.parts do
+			local from = lobbyTemplates[piece.mesh]
+			if from then
+				frame(from, piece.size, piece.middle, piece.neon)
+			end
+		end
+	else
+		frame(template, spec.size, Vector3.new(0, spec.size.Y / 2, 0))
+	end
+
+	local foot = spec.vortexFoot or vortex.foot
+	local plane = part(
+		"Vortex",
+		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
+		middle * CFrame.new(0, foot + vortex.size.Y / 2, spec.vortexForward or vortex.forward),
+		spec.glow,
+		model
+	)
+	plane.Transparency = 1
+	plane.CanCollide = false
+	plane.CanQuery = false
+	plane.CanTouch = false
+	plane.CastShadow = false
+
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Back
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+	gui.CanvasSize = vortex.cell
+	gui.LightInfluence = 0
+	gui.Parent = plane
+
+	local image = Instance.new("ImageLabel")
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromScale(1, 1)
+	image.Image = spec.vortex
+	image.ImageRectSize = vortex.cell
+	image.ResampleMode = Enum.ResamplerMode.Pixelated
+	image.Parent = gui
+	CollectionService:AddTag(image, vortex.tag)
+
+	local pulse = Instance.new("ImageLabel")
+	pulse.Name = "Pulse"
+	pulse.BackgroundTransparency = 1
+	pulse.AnchorPoint = Vector2.new(0.5, 0.5)
+	pulse.Position = UDim2.fromScale(0.5, 1 - (vortex.heart - vortex.foot) / vortex.size.Y)
+	pulse.Size = UDim2.fromScale(0.45, 0.39)
+	pulse.Image = vortex.pulse
+	pulse.ImageTransparency = 0.5
+	pulse.ZIndex = 2
+	pulse.Parent = image
+
+	local light = Instance.new("PointLight")
+	light.Color = spec.glow
+	light.Range = 18
+	light.Brightness = 2
+	light.Parent = plane
+
+	if not active then
+		padlock(middle * CFrame.new(0, foot + vortex.size.Y / 2, 1.2), model)
+	end
 end
 
 --[[ A portal, set in its row's wall (`terrace` builds the wall): a stone arch
@@ -720,14 +858,76 @@ end
 local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Portal_" .. index
-	local _, ledge = rowCentre(Lobby.rowOf(index))
-	local base = CFrame.new(world(Lobby.archAt(index), LAWN + ledge))
+	local base = CFrame.new(world(Lobby.archAt(index), LAWN + LobbyConfig.archFoot(index)))
+		* CFrame.Angles(0, LobbyConfig.archTurn(index), 0)
 	local across = LobbyConfig.archWidth
 	local sides = LobbyConfig.archSides
 	local active = portal.levels ~= nil
+	local spec = if portal.name then LobbyConfig.portalModels[portal.name] else nil
+	local template = if spec then lobbyTemplates[spec.mesh] else nil
+	if spec and template then
+		meshPortal(spec, template, base, active, model)
+		-- one set aside stands free: its jambs and its dark veil are solid
+		if portal.aside then
+			local door = LobbyConfig.portalVortex.size.X
+			local tall = if spec.parts then spec.parts[1].size.Y else spec.size.Y
+			local jamb = (spec.size.X - door) / 2
+			local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+			for _, side in { -1, 1 } do
+				local block = part(
+					"Jamb",
+					Vector3.new(jamb, tall, spec.size.Z),
+					middle * CFrame.new(side * (door + jamb) / 2, tall / 2, 0),
+					COLOURS.stone,
+					model
+				)
+				block.Transparency = 1
+				block.CanCollide = true
+			end
+			local veil = part(
+				"Veil",
+				Vector3.new(door, tall, 0.4),
+				middle * CFrame.new(0, tall / 2, 0),
+				COLOURS.stone,
+				model
+			)
+			veil.Transparency = 1
+			veil.CanCollide = true
+		end
+		signboard(
+			string.upper(portal.name :: string),
+			base * CFrame.new(0, spec.size.Y + 1.8 + (spec.signLift or 0), 1.6),
+			LobbyConfig.archSpacing - 5.5,
+			3.4,
+			LobbyConfig.plaques[portal.name :: string] or COLOURS.woodDark,
+			model
+		)
+		model.Parent = parent
+		return
+	end
 	local fill = if active
 		then (portal.tint or COLOURS.gold):Lerp(Color3.new(0, 0, 0), 0.35)
 		else LobbyConfig.archDark
+
+	-- one set aside has no row's wall behind it, so it stands in its own
+	if portal.aside then
+		local tall = LobbyConfig.archWall
+		part(
+			"Backing",
+			Vector3.new(across + 6, tall, 1.6),
+			base * CFrame.new(0, tall / 2, 0),
+			COLOURS.stone,
+			model
+		).CanCollide =
+			true
+		part(
+			"Cornice",
+			Vector3.new(across + 7, 0.8, 2.6),
+			base * CFrame.new(0, tall + 0.4, 0),
+			COLOURS.gold,
+			model
+		)
+	end
 
 	-- the opening: straight sides and a round top, laid on the wall
 	local mouth = part(
@@ -801,26 +1001,7 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 		light.Brightness = 2
 		light.Parent = top
 	else
-		-- a padlock across the dark
-		local lock = centre * CFrame.new(0, -1, 0.3)
-		part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
-		part(
-			"Keyhole",
-			Vector3.new(0.6, 1, 0.2),
-			lock * CFrame.new(0, 0, 0.55),
-			COLOURS.woodDark,
-			model
-		)
-		for _, side in { -1, 1 } do
-			part(
-				"Shackle",
-				Vector3.new(0.5, 2, 0.5),
-				lock * CFrame.new(side, 2, 0),
-				COLOURS.gold,
-				model
-			)
-		end
-		part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
+		padlock(centre, model)
 	end
 	if portal.name then
 		signboard(
@@ -837,7 +1018,9 @@ end
 
 --[[ Broad marble steps up a ledge's front edge: from `low` to `high`, starting
      at `edge` (z) and coming south, `width` across at `x`. `carpet` is how wide
-     a red carpet runs up their middle, if one does. Returns the foot's z. ]]
+     a red carpet runs up their middle, if one does. A flight that must fit
+     `run` studs instead rises up to `steep` a step, its treads shared out
+     over the run. Returns the foot's z. ]]
 local function steps(
 	x: number,
 	edge: number,
@@ -845,14 +1028,16 @@ local function steps(
 	high: number,
 	width: number,
 	parent: Instance,
-	carpet: number?
+	carpet: number?,
+	steep: number?,
+	run: number?
 ): number
-	local count = math.max(1, math.ceil((high - low) / 0.6))
+	local count = math.max(1, math.ceil((high - low) / (steep or 0.6)))
 	local rise = (high - low) / count
+	local depth = if run then run / count else 1.4
 	for k = 1, count do
 		-- step k's top stands k rises above the lower floor, k steps back
 		local topY = low + k * rise
-		local depth = 1.4
 		local z = edge + (count - k + 0.5) * depth
 		local step = part(
 			"Step",
@@ -884,7 +1069,7 @@ local function steps(
 				false
 		end
 	end
-	return edge + count * 1.4
+	return edge + count * depth
 end
 
 --[[ A stone pier between two arches: a gold band at its foot and head, and a
@@ -943,6 +1128,14 @@ function Lobby.build(parent: Instance)
 				table.insert(ids, piece.mesh)
 			end
 		end
+		for _, spec in LobbyConfig.portalModels do
+			table.insert(ids, spec.mesh)
+			if spec.parts then
+				for _, piece in spec.parts do
+					table.insert(ids, piece.mesh)
+				end
+			end
+		end
 		dexTemplates = MeshTemplates.load(ids)
 		lobbyTemplates = dexTemplates
 	end
@@ -991,8 +1184,8 @@ function Lobby.build(parent: Instance)
 	end
 
 	-- the portal ledges, back row first, each with its wall of arches
-	local rows = Lobby.rowOf(#LobbyConfig.portals)
-	local across = LobbyConfig.perRow * LobbyConfig.archSpacing + 24
+	local rows = LobbyConfig.rows()
+	local across = LobbyConfig.terraceAcross
 	local drop = LobbyConfig.courtyard.drop
 	local walkWidth = LobbyConfig.courtyard.walkWidth
 	local carpetFoot = 0
@@ -1023,10 +1216,21 @@ function Lobby.build(parent: Instance)
 		local _, below = rowCentre(row - 1)
 		local low = if row == 1 then 0 else below
 		if row == 1 then
-			carpetFoot = steps(0, front, low, height, 52, root, walkWidth)
+			carpetFoot = steps(0, front, low, height, LobbyConfig.terraceSteps, root, walkWidth)
 		else
 			for _, side in { -1, 1 } do
-				steps(side * (across / 2 - 5), front, low, height, 9, root)
+				-- down to the front ledge's edge, so steeper than the front's
+				steps(
+					side * (across / 2 - 5),
+					front,
+					low,
+					height,
+					9,
+					root,
+					nil,
+					LobbyConfig.backStep,
+					LobbyConfig.rowDepth - 0.5
+				)
 			end
 		end
 
@@ -1082,7 +1286,7 @@ function Lobby.build(parent: Instance)
 		local arrival = LobbyConfig.courtyard.arrival
 		LobbyCourtyard.carpet(
 			arrival.at + Vector2.new(0, arrival.across / 2 - 0.5),
-			Vector2.new(0, 88),
+			Vector2.new(0, SOUTH_EDGE),
 			walkWidth,
 			carpets
 		)
@@ -1090,27 +1294,30 @@ function Lobby.build(parent: Instance)
 	for index, portal in LobbyConfig.portals do
 		portalArch(index, portal, root)
 	end
-	local back = rowCentre(rows)
+	-- the unseen walls round the terrace, 30 studs over its highest ledge
+	local back, top = rowCentre(rows)
+	local fence = top + 30
 	wall(
 		"TerraceWall",
-		Vector3.new(across, 30, 4),
-		CFrame.new(world(back + Vector2.new(0, -10), 15)),
+		Vector3.new(across, fence, 4),
+		CFrame.new(world(back + Vector2.new(0, -10), fence / 2)),
 		root
 	)
 	for _, side in { -1, 1 } do
 		local z = LobbyConfig.terrace.Y - LobbyConfig.rowDepth
 		wall(
 			"TerraceSide",
-			Vector3.new(4, 30, 60),
-			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), 15)),
+			Vector3.new(4, fence, 60),
+			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), fence / 2)),
 			root
 		)
 	end
 
 	--[[ A leaderboard: a stone board on two posts, the names on its dark face.
-	     Built twice — FARTHEST ADVENTURERS and DEEPEST DELVERS
-	     (`LobbyConfig.leaderboard`, `LobbyConfig.endlessLeaderboard`) — so
-	     the two boards are the same board, drawn on by different modules.
+	     Built three times — FARTHEST ADVENTURERS, DEEPEST DELVERS and THIS
+	     WEEK'S DELVERS (`LobbyConfig.leaderboard`, `.endlessLeaderboard`,
+	     `.weeklyLeaderboard`) — so the boards are the same board, drawn on
+	     by different modules.
 
 	     Everything is placed off `base`, which carries the board's `turn`.
 	     It used to be built straight onto world axes, which only read the
@@ -1190,6 +1397,7 @@ function Lobby.build(parent: Instance)
 
 	leaderboardFace = buildBoard("Leaderboard", LobbyConfig.leaderboard)
 	endlessLeaderboardFace = buildBoard("EndlessLeaderboard", LobbyConfig.endlessLeaderboard)
+	weeklyLeaderboardFace = buildBoard("WeeklyLeaderboard", LobbyConfig.weeklyLeaderboard)
 
 	-- waterfalls down the corner cliffs into round pools
 	for _, at in LobbyConfig.waterfalls do
@@ -1283,7 +1491,10 @@ function Lobby.build(parent: Instance)
 	local cell = LobbyConfig.scatterCell
 	local scattered: { { at: Vector2, reach: number } } = {}
 	local function blocked(at: Vector2, reach: number): boolean
-		if LobbyCourtyard.inside(at, -(reach + 2)) or (at.Y > 80 and math.abs(at.X) < 20) then
+		if
+			LobbyCourtyard.inside(at, -(reach + 2))
+			or (at.Y > SOUTH_EDGE - 8 and math.abs(at.X) < 20)
+		then
 			return true
 		end
 		if math.abs(at.X) + reach > half.X - 2 or math.abs(at.Y) + reach > half.Y - 2 then
@@ -1349,13 +1560,25 @@ function Lobby.place(character: Model)
 	character:PivotTo(CFrame.lookAt(at, at + Vector3.new(0, 0, -1)))
 end
 
+--[[ Whether `stage` is the first level of a portal's area. Endless has no
+     area to load into. ]]
+function Lobby.isFirstLevel(stage: number): boolean
+	for _, portal in LobbyConfig.portals do
+		local levels = portal.levels
+		if levels and levels[1] == stage and portal.name ~= "Endless" then
+			return true
+		end
+	end
+	return false
+end
+
 --[[ The index of the nearest active portal whose mouth `position` stands
      within `LobbyConfig.portalReach` (plus `slack`) of, or nil. ]]
 function Lobby.portalAt(position: Vector3, slack: number?): number?
 	local best, bestDistance = nil, LobbyConfig.portalReach + (slack or 0)
 	for index, portal in LobbyConfig.portals do
 		if portal.levels then
-			local mouth = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead))
+			local mouth = world(LobbyConfig.mouthAt(index))
 			local distance = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z).Magnitude
 			if distance <= bestDistance then
 				best, bestDistance = index, distance
@@ -1366,21 +1589,53 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 end
 
 --[[
-	START on a portal's screen: the stage level `level` of portal `index`
-	plays, or nil when the request is not one this player may make. Both
-	numbers come from the client, so each is checked: a whole number, an
-	active portal, the portal itself open to this player (`requires`:
-	Endless waits on 1-10), one of its levels, that level open to this
-	player (the levels they have beaten, `beaten`, from their saved profile:
-	`Util/LevelUnlocks`), and the player standing at that portal (within
-	`startSlack` more than its screen opens at, for the press's trip), so
-	nobody starts an area from across the lobby.
+	Whether a player at `position` joins a start of portal `index`'s level
+	`level`: `levelOpen` for them, and standing at that portal (within
+	`startSlack` more than its screen opens at, for the press's trip). A
+	party is gathered with it (`Run/Party`): only those in the portal's
+	mouth go along. The starter's own request is checked by `levelOpen`
+	alone since 2026-11-14, when the lobby's PLAY screen began starting runs
+	from anywhere in the lobby (`Main`, `Remotes.PortalStart`). A `hard`
+	start takes only those with it open on hard (`hardOpen`, their own
+	`hardBeaten`).
 ]]
 function Lobby.startFor(
 	position: Vector3,
 	index: unknown,
 	level: unknown,
-	beaten: LevelUnlocks.Beaten?
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	hard: boolean?,
+	hardBeaten: LevelUnlocks.Beaten?
+): number?
+	local stage = if hard
+		then Lobby.hardOpen(index, level, beaten, bosses, hardBeaten)
+		else Lobby.levelOpen(index, level, beaten, bosses)
+	if not stage or Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+		return nil
+	end
+	return stage
+end
+
+--[[
+	PLAY on an area's level screen: the stage level `level` of portal
+	`index` plays for a player who has beaten `beaten`, or nil when the
+	request is not one this player may make. Both numbers come from the
+	client, so each is checked: a whole number, an active portal, the portal
+	itself open to this player (`Util/LaunchLocks`: at launch each area
+	waits on the one before it), one of its levels, and that level open to
+	this player (`Util/LevelUnlocks`). This is the whole of what a start
+	needs (`Main`, `Remotes.PortalStart`), and a party's run server checks
+	its leader's request again with it (`Run/Party`), since what a teleport
+	carries passes through the client. `locks` is the launch switch, for a
+	spec; left out, it is `Config/Launch.locks`.
+]]
+function Lobby.levelOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	locks: boolean?
 ): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
@@ -1394,15 +1649,40 @@ function Lobby.startFor(
 	if not stage or not levels then
 		return nil
 	end
-	--[[ The portal's own gate first (Endless waits on 1-10), then the
-	     level's. Both are checked here because both come from the client. ]]
-	if not LevelUnlocks.portalOpen(portal.requires, beaten) then
+	--[[ The portal's own gate first (at launch each area waits on the
+	     one before it, `Util/LaunchLocks`), then the level's. Both are
+	     checked here because both come from the client. `bosses` is the
+	     player's beaten bosses, for a gate that waits on one. ]]
+	if not LaunchLocks.portalOpen(portal, beaten, bosses, locks) then
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then
 		return nil
 	end
-	if Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+	return stage
+end
+
+--[[
+	PLAY on an area's level screen with HARD on (`Util/HardRules`): the
+	stage, as `levelOpen` gives it, only when that level is also open on
+	hard for this player: their area's boss beaten (`bosses`) and the hard
+	level before it won on hard (`hardBeaten`). Nil otherwise, so a hard
+	level whose area boss stands is refused whatever the client sends.
+]]
+function Lobby.hardOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	hardBeaten: LevelUnlocks.Beaten?,
+	locks: boolean?
+): number?
+	local stage = Lobby.levelOpen(index, level, beaten, bosses, locks)
+	if not stage then
+		return nil
+	end
+	local portal = LobbyConfig.portals[index :: number]
+	if not HardRules.isOpen(portal.levels, Balance.Stages, bosses, hardBeaten, level :: number) then
 		return nil
 	end
 	return stage
@@ -1420,6 +1700,11 @@ end
 --[[ The DEEPEST DELVERS board's face (`Run/EndlessLeaderboard`). ]]
 function Lobby.endlessLeaderboardFace(): Part?
 	return endlessLeaderboardFace
+end
+
+--[[ The THIS WEEK'S DELVERS board's face (`Run/WeeklyTournament`). ]]
+function Lobby.weeklyLeaderboardFace(): Part?
+	return weeklyLeaderboardFace
 end
 
 function Lobby.folder(): Folder?

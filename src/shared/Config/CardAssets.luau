@@ -79,10 +79,52 @@ local CardAssets = {
 		["arcane-turret"] = "rbxassetid://86210492796030",
 		["titans-grip"] = "rbxassetid://106382045408524",
 		["counter-strike"] = "rbxassetid://98666038274289",
+		-- the class cards of 2026-11-13, the same way
+		["sniper-shot"] = "rbxassetid://129367213129332",
+		["split-shot"] = "rbxassetid://108866279388920",
+		["wind-arrows"] = "rbxassetid://134274543245694",
+		["mana-surge"] = "rbxassetid://92034879814078",
+		["frost-orb"] = "rbxassetid://79255713310856",
+		["arcane-shield"] = "rbxassetid://138729156394154",
+		["shield-throw"] = "rbxassetid://111019992395887",
+		["blade-storm"] = "rbxassetid://106023560509222",
+		["sunder"] = "rbxassetid://129654171015164",
+		-- wave 2's last five (Codex, 2026-11-26; wave2_cards_2026_11_26.sh)
+		["echo-slash"] = "rbxassetid://135708320442545",
+		["riposte"] = "rbxassetid://104830533216722",
+		["split-orb"] = "rbxassetid://104805629607464",
+		["gravity-well"] = "rbxassetid://120200992574842",
+		["orbiting-orb"] = "rbxassetid://70402106324323",
+		-- the Assassin's ten (Codex, 2026-11-15; assassin_cards_2026_11_15.sh)
+		["twin-fangs"] = "rbxassetid://81377613756035",
+		["backstab"] = "rbxassetid://108203732763760",
+		["quickstep"] = "rbxassetid://129751250001790",
+		["serrated-edge"] = "rbxassetid://109295872984581",
+		["bleed"] = "rbxassetid://109318110379622",
+		["poison-trail"] = "rbxassetid://77915439868921",
+		["fan-of-knives"] = "rbxassetid://112048313735456",
+		["death-mark"] = "rbxassetid://127593517696959",
+		["phantom-blades"] = "rbxassetid://81658600065127",
+		["thousand-cuts"] = "rbxassetid://120243122334089",
+		-- Thornwood's six (Codex, 2026-11-18; thornwood_cards_2026_11_18.sh)
+		["web-snare"] = "rbxassetid://109546856097028",
+		["thorn-burst"] = "rbxassetid://132356564537786",
+		["root-hold"] = "rbxassetid://113442679427540",
+		["burr-blight"] = "rbxassetid://99608010792054",
+		["boar-rush"] = "rbxassetid://91694443828146",
+		["ruin-cracks"] = "rbxassetid://80397573386163",
+		-- The themed daggers' seven (Codex, 2026-11-18; themed_daggers_2026_11_18.sh)
+		["wishing-star"] = "rbxassetid://139241169175642",
+		["spur-rowel"] = "rbxassetid://125363665141363",
+		["splash-wave"] = "rbxassetid://137041704554034",
+		["combo-counter"] = "rbxassetid://101123560395553",
+		["comet-crash"] = "rbxassetid://72842362613678",
+		["bell-chime"] = "rbxassetid://115195188335152",
+		["lava-burst"] = "rbxassetid://107430460320723",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name
-	     and rarity on it in the blocky font (CLAUDE.md rule 11). ]]
+	     and rarity on it in the game's font (CLAUDE.md rule 11). ]]
 	banners = {
 		Common = "rbxassetid://99271147813779",
 		Uncommon = "rbxassetid://107353888465461",
@@ -105,7 +147,7 @@ local CardAssets = {
 	--[[ The draft screen's buttons in the Glow Toy set (804 x 324, the plate
 	     inside 45..758 x 48..278; pressed, it sits 30 lower): its blank
 	     plates, green, blue and grey for one that cannot be pressed, with
-	     their words written live in the blocky font (CLAUDE.md rule 11); and
+	     their words written live in the game's font (CLAUDE.md rule 11); and
 	     the dice the Reroll art carried, cut out by
 	     `assets/ui/glow_toy_cards/cut_dice.py`. ]]
 	buttons = {

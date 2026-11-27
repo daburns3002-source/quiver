@@ -38,6 +38,13 @@ local SHAPE: { { mode: string, size: number } } = {
 	{ mode = "Rooms", size = 25 },
 }
 
+--[[ Thornwood's last level, 2-10, the Broodmother's (2026-11-13: the area
+     became ten levels, `tools/area_levels.py`), and its first, 2-1. ]]
+local function thornwood(position: number?): Balance.StageConfig
+	local list = LobbyConfig.portals[2].levels :: { number }
+	return Balance.Stages[list[position or #list]]
+end
+
 local function levels(): { Balance.StageConfig }
 	local out = {}
 	for _, index in LobbyConfig.portals[1].levels :: { number } do
@@ -105,7 +112,7 @@ return function(t: TestRunner.Helper)
 	--[[ Owner, 2026-11-05: "the levels should scale difficulty per room". ]]
 	t.test("every fight of every level hits at least as hard as the one before", function()
 		local all = levels()
-		table.insert(all, Balance.Stages[Balance.campaign[#Balance.campaign]])
+		table.insert(all, thornwood())
 		for _, stage in all do
 			local list = fights(stage)
 			local before = 0
@@ -128,15 +135,16 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("Thornwood's rooms never bring less health than the room before", function()
-		local stage = Balance.Stages[Balance.campaign[#Balance.campaign]]
+		local stage = thornwood()
 		local before = 0
 		for n, fight in fights(stage) do
 			local total = 0
 			for member = 1, fight.count do
 				total += fight.roster[(member - 1) % #fight.roster + 1].health
 			end
-			--[[ The Broodmother alone closes it, on her own terms. ]]
-			if fight.roster[1].boss == nil then
+			--[[ The Broodmother alone closes it, on her own terms; an Angel
+			     room (2-10 has two since 2026-11-13) holds nobody. ]]
+			if fight.count > 0 and fight.roster[1].boss == nil then
 				t.isTrue(total >= before, `Thornwood room {n} brings {total}, under {before}`)
 				before = total
 			end
@@ -291,6 +299,20 @@ return function(t: TestRunner.Helper)
 	--[[ Nothing is in one, and nothing can be: an encounter room that
 	     spawned anything would freeze the run, since `RoomController` opens
 	     the offer instead of a fight and the door waits on the choice. ]]
+	--[[ The breath after a hit (`StageConfig.hitGrace`) is the first
+	     levels' alone: later ones are tuned without it. ]]
+	t.test("only the tutorial and 1-1 to 1-3 give a breath after a hit", function()
+		local early = { ["1-1"] = true, ["1-2"] = true, ["1-3"] = true }
+		for index, stage in Balance.Stages do
+			if index == Balance.tutorialStage or (stage.level and early[stage.level]) then
+				t.isTrue((stage.hitGrace or 0) > 0, `{stage.name} gives no breath`)
+				t.isTrue((stage.hitGrace or 0) <= 1, `{stage.name}'s breath is over a second`)
+			else
+				t.isNil(stage.hitGrace, `{stage.name} gives a breath`)
+			end
+		end
+	end)
+
 	t.test("an Angel room is empty, and still a room a player can walk", function()
 		for _, stage in levels() do
 			for _, index in stage.rooms or ({} :: { number }) do
@@ -302,14 +324,30 @@ return function(t: TestRunner.Helper)
 				end
 			end
 		end
+		--[[ And in every area: nothing stands on the straight line from
+		     the spawn to the door, where a player walking up would stop
+		     dead on it. ]]
+		local rooms = 0
+		for _, room in Balance.Rooms do
+			if room.encounter then
+				rooms += 1
+				for _, obstacle in room.obstacles do
+					t.isTrue(
+						math.abs(obstacle.offset.X) - obstacle.size.X / 2 >= Balance.encounterLane,
+						`{room.name} has cover on its door line`
+					)
+				end
+			end
+		end
+		t.isTrue(rooms > 0)
 	end)
 
 	t.test("Thornwood, after the glade, is harder than all of it", function()
 		local last = levels()[10]
-		local thornwood = Balance.Stages[Balance.campaign[#Balance.campaign]]
-		t.equal(thornwood.area, "Thornwood")
-		t.isTrue((thornwood.enemyHealth or 1) > (last.enemyHealth or 1))
-		t.isTrue((thornwood.enemyDamage or 1) >= (last.enemyDamage or 1))
+		local first = thornwood(1)
+		t.equal(first.area, "Thornwood")
+		t.isTrue((first.enemyHealth or 1) > (last.enemyHealth or 1))
+		t.isTrue((first.enemyDamage or 1) >= (last.enemyDamage or 1))
 	end)
 
 	--[[ He closes the area as the Broodmother closes Thornwood: the last

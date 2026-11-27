@@ -1,0 +1,123 @@
+--!strict
+--[[
+	FxPetThistleBurst as the owner imported it (fx_pet_thistle_burst, a rigged import). Generated
+	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
+	and the GLB; regenerate after a re-import, never hand-edit.
+
+	Each part: its GLB node's name (which Config/ModelClips keys on), mesh
+	and texture ids, colour, material, transparency, size, and its rest
+	place relative to the model's pivot (12 CFrame components), and the name of its GLB material (`surface`).
+]]
+
+return table.freeze({
+	{
+		name = "pet_thistle_burst_Spike10_Mesh1",
+		meshId = "rbxassetid://97418386274482",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0.42614, 0.17, -0.58654, 0.80902, 0, -0.58779, 0, 1, 0, 0.58779, 0, 0.80902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike1_Mesh1",
+		meshId = "rbxassetid://105759964191214",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0, 0.17, -0.725, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike2_Mesh1",
+		meshId = "rbxassetid://80979727335598",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { -0.42614, 0.17, -0.58654, 0.80902, 0, 0.58779, 0, 1, 0, -0.58779, 0, 0.80902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike3_Mesh1",
+		meshId = "rbxassetid://88552087956543",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { -0.68952, 0.17, -0.22404, 0.30902, 0, 0.95106, 0, 1, 0, -0.95106, 0, 0.30902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike4_Mesh1",
+		meshId = "rbxassetid://117366511443946",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { -0.68952, 0.17, 0.22404, -0.30902, 0, 0.95106, 0, 1, 0, -0.95106, 0, -0.30902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike5_Mesh1",
+		meshId = "rbxassetid://102338410091822",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { -0.42614, 0.17, 0.58654, -0.80902, 0, 0.58779, 0, 1, 0, -0.58779, 0, -0.80902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike6_Mesh1",
+		meshId = "rbxassetid://109815738914937",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0, 0.17, 0.725, -1, 0, 0, 0, 1, 0, 0, 0, -1 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike7_Mesh1",
+		meshId = "rbxassetid://128947965813585",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0.42614, 0.17, 0.58654, -0.80902, 0, -0.58779, 0, 1, 0, 0.58779, 0, -0.80902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike8_Mesh1",
+		meshId = "rbxassetid://90415081844103",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0.68952, 0.17, 0.22404, -0.30902, 0, -0.95106, 0, 1, 0, 0.95106, 0, -0.30902 },
+		surface = "",
+	},
+	{
+		name = "pet_thistle_burst_Spike9_Mesh1",
+		meshId = "rbxassetid://120254440306810",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.34, 0.34, 0.55 },
+		cframe = { 0.68952, 0.17, -0.22404, 0.30902, 0, -0.95106, 0, 1, 0, 0.95106, 0, 0.30902 },
+		surface = "",
+	},
+})

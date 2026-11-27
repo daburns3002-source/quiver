@@ -21,7 +21,7 @@ local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
 local SandboxMenu = {}
 
-local FONT = Enum.Font.Arcade
+local FONT = Enum.Font.FredokaOne
 local PANEL = Color3.fromRGB(27, 27, 43)
 local BUTTON = Color3.fromRGB(52, 56, 92)
 local ACCENT = Color3.fromRGB(255, 106, 85)

@@ -31,6 +31,7 @@
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 
@@ -226,6 +227,38 @@ function Preload.cool(name: string, list: { string })
 			set.labels[id] = nil
 		end
 	end
+end
+
+--[[ Draws each model for a few frames, out of sight, one after another, so its
+     meshes and textures are built before a screen first stands it up. Fetching
+     only downloads a model parked in ReplicatedStorage; nothing has drawn it.
+     Yields for as long as that takes, so it belongs in a task of its own. ]]
+function Preload.drawModels(models: { Model })
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "Warm_Models"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = -100
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	local view = Instance.new("ViewportFrame")
+	view.BackgroundTransparency = 1
+	view.ImageTransparency = 0.99
+	view.Size = UDim2.fromOffset(64, 64)
+	view.Parent = gui
+	local camera = Instance.new("Camera")
+	camera.Parent = view
+	view.CurrentCamera = camera
+	for _, model in models do
+		local copy = model:Clone()
+		local box, size = copy:GetBoundingBox()
+		camera.CFrame =
+			CFrame.lookAt(box.Position + Vector3.new(0, 0, size.Magnitude * 2), box.Position)
+		copy.Parent = view
+		for _ = 1, 3 do
+			RunService.RenderStepped:Wait()
+		end
+		copy:Destroy()
+	end
+	gui:Destroy()
 end
 
 --[[ Drops a whole warm set and its screen. ]]

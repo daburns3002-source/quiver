@@ -1,6 +1,6 @@
 """Builds the music audition page from a render's manifest and OGG/MP3 files.
 
-    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or level, boss)
+    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or level, boss, night)
 
 Each take plays as a seamless Web Audio loop, with a button that starts it a
 few seconds before the seam so the join can be heard. Picks save to the
@@ -28,6 +28,11 @@ TRACKS = {
              "the king appears, like a trainer battle's. You liked Dive: here it is with its runs in four keys; pick one. After it comes the 76-second loop "
              "(D minor, 152 BPM): stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "
              "half-time breakdown for the slime's wobble, a snare-roll build, and the tune once more."),
+    "night": ("Title at Night", "The music under the new title screen, the World Tree at night. Four new tunes in the game's "
+              "own chip sound (the pulse lead, the triangle bass, thin chip arpeggios) with a dark, solemn, grand tone: "
+              "slow (48 BPM), minor, strings and bells behind, no drum kit. Each opens with a 5-second build on the black "
+              "screen, a low drone and a slow heartbeat, then arrives softly on the cut to the title and loops for a "
+              "minute. All four are original; nothing is taken from any other game's music."),
 }
 manifest = json.load(open(os.path.join(RENDER, "manifest.json")))  # as the theme script writes it
 here = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +45,10 @@ rows = []
 entries = []
 for v in manifest:
     for key, it in (v.get("intros") or {}).items():
-        entries.append((f"{TRACK}_{v['take']}_{key}", f"{v['take'].upper()} · {key.replace('_', ' ').title()}", key.upper(),
+        # several takes with one intro each are picked by take (and shown by name); one take's intros, by intro
+        several = len(manifest) > 1
+        label = f"{v['take'].upper()} · {v.get('name') or key.replace('_', ' ').title()}"
+        entries.append((f"{TRACK}_{v['take']}_{key}", label, v["take"].upper() if several else key.upper(),
                         f"{it['intro_seconds']:.1f} s intro, then the loop", it["note"], [it["loop_start"], it["loop_end"]]))
 if not entries:
     # takes are letters (A, B) or, for whole different tunes, names (Hilltop)

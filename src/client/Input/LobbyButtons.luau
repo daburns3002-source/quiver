@@ -26,6 +26,7 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Hud = require(ReplicatedStorage.Shared.Config.Hud)
+local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
 local HudLayout = require(script.Parent.Parent.UI.HudLayout)
 
@@ -37,10 +38,13 @@ local JUMP_SIZE = Hud.phone.lobbyJumpSize
 local SPRINT_SIZE = Hud.phone.lobbySprintSize
 local GAP = Hud.phone.lobbyGap
 
-local INK = Color3.fromRGB(24, 16, 10)
-local JUMP_COLOUR = Color3.fromRGB(70, 176, 58)
-local SPRINT_OFF = Color3.fromRGB(78, 52, 32)
-local SPRINT_ON = Color3.fromRGB(255, 206, 74)
+--[[ From the UI's palette (`Config/UiPalette`): go's green for JUMP, the
+     grey of a thing that is off and the sunny gold of one that is on for
+     SPRINT, whose word turns dark on the gold. ]]
+local INK = UiPalette.edge
+local JUMP_COLOUR = UiPalette.go.top
+local SPRINT_OFF = UiPalette.off.top
+local SPRINT_ON = UiPalette.primary.top
 
 local gui: ScreenGui? = nil
 local connections: { RBXScriptConnection } = {}
@@ -84,7 +88,7 @@ local function button(parent: Instance, name: string, text: string, size: number
 	word.BackgroundTransparency = 1
 	word.Position = UDim2.fromScale(0.1, 0.3)
 	word.Size = UDim2.fromScale(0.8, 0.4)
-	word.FontFace = Font.fromEnum(Enum.Font.Arcade)
+	word.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
 	word.TextScaled = true
 	word.TextColor3 = Color3.new(1, 1, 1)
 	word.Text = text
@@ -117,6 +121,8 @@ function LobbyButtons.start(jump: () -> (), toggleSprint: () -> (), sprinting: (
 	local sprintButton = button(created, "Sprint", "SPRINT", SPRINT_SIZE)
 	local jumpFace = jumpButton:FindFirstChild("Face") :: Frame
 	local sprintFace = sprintButton:FindFirstChild("Face") :: Frame
+	local sprintWord = sprintFace:FindFirstChild("Word") :: TextLabel?
+	local sprintStroke = if sprintWord then sprintWord:FindFirstChildOfClass("UIStroke") else nil
 	jumpFace.BackgroundColor3 = JUMP_COLOUR
 
 	local function place(at: UDim2)
@@ -173,6 +179,12 @@ function LobbyButtons.start(jump: () -> (), toggleSprint: () -> (), sprinting: (
 			end
 			local on = sprinting()
 			sprintFace.BackgroundColor3 = if on then SPRINT_ON else SPRINT_OFF
+			if sprintWord then
+				sprintWord.TextColor3 = if on then UiPalette.ink else UiPalette.white
+			end
+			if sprintStroke then
+				sprintStroke.Enabled = not on
+			end
 			jumpFace.BackgroundColor3 = if pressing
 				then JUMP_COLOUR:Lerp(Color3.new(0, 0, 0), 0.3)
 				else JUMP_COLOUR

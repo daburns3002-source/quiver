@@ -11,7 +11,8 @@
 	  `overdrawSoundAfter` seconds still.
 	- Bouncy Wall: a yellow kick on the wall at each bounce.
 	- Blast Arrows: a starburst at the blast's own radius.
-	- Soul Chain: a chain between linked enemies.
+
+	Soul Chain's link is every class's and is drawn by `SoulFireFx`.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -147,33 +148,10 @@ local function onExplosion(centre: Vector3, radius: number)
 	})
 end
 
-local function onSoulLink(centre: Vector3, reached: { Vector3 })
-	if UpgradeFx.level("SoulChain") <= 0 then
-		return
-	end
-	SoundFx.play("fx_soul_chain")
-	for _, to in reached do
-		local span = to - centre
-		if span.Magnitude < 1e-3 then
-			continue
-		end
-		local mid = (centre + to) / 2 + Vector3.new(0, K.chainLift, 0)
-		local scale = math.clamp(span.Magnitude / K.chainLength, 0.35, 1.4)
-		UpgradeFx.play("FxSoulChain", {
-			-- the chain lies along its length: the model's X
-			at = CFrame.lookAt(mid, mid + UpgradeFx.flat(span)) * CFrame.Angles(0, math.rad(90), 0),
-			life = K.chainLife,
-			scale = scale,
-			motion = UpgradeFx.pop(scale, 0.12),
-		})
-	end
-end
-
 function RangerFx.start()
 	FxEvents.fired:connect(onFired)
 	FxEvents.wall:connect(onWall)
 	Remotes.event(Remotes.Explosion).OnClientEvent:Connect(onExplosion)
-	Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(onSoulLink)
 	RunService.Heartbeat:Connect(overdrawStep)
 end
 

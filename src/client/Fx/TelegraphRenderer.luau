@@ -22,11 +22,20 @@ local BroodWebFx = require(script.Parent.BroodWebFx)
 local BroodWheelFx = require(script.Parent.BroodWheelFx)
 local Device = require(script.Parent.Parent.Device)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
+local GulpFx = require(script.Parent.GulpFx)
 local MythicFx = require(script.Parent.MythicFx)
 local SplitFx = require(script.Parent.SplitFx)
+local TollFx = require(script.Parent.TollFx)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local TelegraphRenderer = {}
+
+--[[ How fast Grandmother Gulp's slime trail is laid: as fast as she slides. ]]
+local GULP_SLIDE_SPEED = (function(): number
+	local boss = Balance.Enemies.GrandmotherGulp.boss
+	local slide = boss and boss.slide
+	return if slide then slide.speed else 26
+end)()
 
 local folder: Folder? = nil
 local activeLines = 0
@@ -347,6 +356,50 @@ local function drawCracks(origin: Vector3, duration: number, radius: number)
 	end
 end
 
+--[[
+	A Spore Puff's cloud (`Balance.EnemyBurst`): a ring on the floor the size
+	the server hurts, at full size from the first frame, and a soft pink-green
+	puff that blooms inside it and drifts away over its `duration`. What it
+	hurts is the ring; the puff is only how it reads.
+]]
+local function drawSporeCloud(origin: Vector3, duration: number, radius: number)
+	local config = Balance.Telegraph
+	local ring = groundDisc(origin, "SporeCloudRing", config.sporeColor, radius * 2)
+	ring.Transparency = 0.6
+	TweenService:Create(
+		ring,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Transparency = 1 }
+	):Play()
+	Debris:AddItem(ring, duration)
+
+	local puff = Instance.new("Part")
+	puff.Name = "SporeCloud"
+	puff.Shape = Enum.PartType.Ball
+	puff.Anchored = true
+	puff.CanCollide = false
+	puff.CanQuery = false
+	puff.CanTouch = false
+	puff.CastShadow = false
+	puff.Material = Enum.Material.SmoothPlastic
+	puff.Color = config.sporeCloudColor
+	puff.Transparency = 0.35
+	puff.Size = Vector3.one * radius * 0.6
+	puff.CFrame = CFrame.new(origin.X, radius * 0.35, origin.Z)
+	puff.Parent = folder
+	TweenService:Create(
+		puff,
+		TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{ Size = Vector3.one * radius * 2 }
+	):Play()
+	TweenService:Create(
+		puff,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Transparency = 1, CFrame = CFrame.new(origin.X, radius * 0.8, origin.Z) }
+	):Play()
+	Debris:AddItem(puff, duration)
+end
+
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
      client never decides whether a warning is owed, only how to show it.
      `width` is sent only for a lane. ]]
@@ -380,6 +433,19 @@ function TelegraphRenderer.onTelegraph(
 		elseif tell == "WebSplat" then
 			BroodWebFx.splat(origin, direction, duration, reach)
 			return
+		elseif tell == "TollTell" then
+			-- the Old Tollcrab's: `reach` the ring's, `width` its gap in degrees
+			TollFx.tell(parent, origin, direction, duration, reach, width or 60)
+			return
+		elseif tell == "TollRing" then
+			TollFx.ring(parent, origin, direction, duration, reach, width or 60)
+			return
+		elseif tell == "EchoTell" then
+			TollFx.echoTell(parent, origin, duration, reach)
+			return
+		elseif tell == "EchoStrike" then
+			TollFx.echoStrike(parent, origin, duration, reach)
+			return
 		elseif tell == "WheelTell" then
 			-- `reach` is the web's radius, `width` its arms' length
 			BroodWheelFx.tell(parent, origin, direction, duration, reach, width or reach)
@@ -398,6 +464,33 @@ function TelegraphRenderer.onTelegraph(
 			return
 		elseif tell == "BumpShock" then
 			BossFx.bump(parent, origin, direction, duration)
+			return
+		elseif tell == "GulpGlob" then
+			-- `direction` is the whole throw, `reach` the glob's size
+			GulpFx.glob(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "GulpCone" then
+			-- `reach` the cone's length, `width` its half angle
+			GulpFx.cone(parent, origin, direction, duration, reach, width or 0.5)
+			return
+		elseif tell == "GulpInhale" then
+			GulpFx.inhale(parent, origin, direction, duration, reach, width or 0.5)
+			return
+		elseif tell == "SlimeTrail" then
+			GulpFx.trail(parent, origin, direction, duration, reach, width or 6, GULP_SLIDE_SPEED)
+			return
+		elseif tell == "BogFlood" then
+			-- `origin` the floor's half size, `direction` the inset, `reach`
+			-- how long it rises
+			GulpFx.flood(
+				parent,
+				Vector2.new(origin.X, origin.Z),
+				Vector2.new(direction.X, direction.Z),
+				reach
+			)
+			return
+		elseif tell == "BogFloodEnd" then
+			GulpFx.drain()
 			return
 		elseif tell == "LaneAim" or tell == "Lane" then
 			if direction.Magnitude > 1e-3 then
@@ -453,6 +546,11 @@ function TelegraphRenderer.onTelegraph(
 		if folder then
 			MythicFx.erupt(folder, origin, reach)
 		end
+		return
+	end
+
+	if tell == "SporeCloud" then
+		drawSporeCloud(origin, duration, reach)
 		return
 	end
 

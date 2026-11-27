@@ -1,0 +1,6 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as golden_bow.png
+
+Image 1 is a style reference for our game's weapons (match its blocky voxel style, chunky proportions and finish, but NOT its design or colours). Draw a new weapon: GOLDEN BOW (Legendary bow): a recurve bow cast in solid polished gold blocks, both limbs gold with a small carved gold leaf at each limb tip, a brown leather-wrapped grip in the middle with one square emerald-green gem set just above it, and a thin white-gold bowstring; glowing softly gold.
+It is a trophy a player earns by mastering a class: regal, clean and bright. Polished yellow gold with darker amber-gold shading on the block sides; simple chunky blocks, no fine filigree, no rust, no moss.
+View: the weapon shown flat side-on, upright, straight-on camera, no perspective, centred, filling about 85 percent of the image. No hands, no character. This image is the weapon's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

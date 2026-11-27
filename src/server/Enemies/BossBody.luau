@@ -23,6 +23,8 @@
 	jelly tube: his chain is part of his rig.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
+
 local BossMoves = require(script.Parent.BossMoves)
 
 local BossBody = {}
@@ -86,6 +88,8 @@ function BossBody.new(
 			end
 		end
 		part.Anchored = true
+		-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+		CollectionService:AddTag(part, "SmoothMotion")
 		local rest: Rest =
 			{ part = part, size = part.Size, offset = feet:ToObjectSpace(part.CFrame) }
 		if part.Name == "Shadow" then
@@ -102,6 +106,14 @@ function BossBody.new(
 		return body
 	end
 
+	--[[ The tube is its arm's own colour: the Slime King's lime jelly,
+	     Grandmother Gulp's pink tongue. ]]
+	local colour = JELLY
+	for _, arm in body.arms do
+		colour = arm.part.Color
+		break
+	end
+
 	local tube = Instance.new("Folder")
 	tube.Name = "ArmTube"
 	tube.Parent = model
@@ -114,9 +126,10 @@ function BossBody.new(
 		part.CanTouch = false
 		part.CastShadow = false
 		part.Material = Enum.Material.Glass
-		part.Color = JELLY
+		part.Color = colour
 		part.Transparency = 1
 		part.Size = Vector3.one * 0.1
+		CollectionService:AddTag(part, "SmoothMotion")
 		part.Parent = tube
 		return part
 	end
@@ -203,7 +216,7 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 	local base = ground
 		* CFrame.Angles(0, pose.twist, 0)
 		* CFrame.new(0, pose.lift, -pose.lean)
-		* CFrame.Angles(-pose.pitch, 0, 0)
+		* CFrame.Angles(-pose.pitch, 0, pose.roll)
 
 	for _, rest in body.rests do
 		local r = rest.offset

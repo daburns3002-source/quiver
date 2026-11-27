@@ -16,6 +16,7 @@ local Arena = require(ServerScriptService.Server.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
@@ -105,7 +106,7 @@ return function(t: TestRunner.Helper)
 	t.test(
 		"every card a class can be dealt has its icon warmed, with every rarity's frame",
 		function()
-			for _, class in { "Ranger", "Arcanist", "Warden" } do
+			for _, class in ClassList.all() do
 				local ids = CardPreload.imagesFor(class)
 				for _, ability in Abilities.all do
 					local classes = ability.classes

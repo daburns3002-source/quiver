@@ -67,3 +67,19 @@ Two things block a clean run:
 `rarity()` reads the tier from names like `bow_5mythic_glade_spirit_bow`; the Tripo imports are
 named "eelcrest bow arena 3", so either they get renamed on import or the `SKINS` table carries
 the tier explicitly. The table above is the source either way.
+
+## Daggers (the Assassin), drawn 2026-11-16
+
+The Drowned Village had no daggers (`WEAPONS-BOGHEART.md` says so); the owner, told so on
+2026-11-16, said "Ok take care of this". Codex's front views, in
+`assets/concepts/blocky/weapons/skins/drowned/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Modelled in Tripo on 2026-11-16** (owner: "Yes, model them", then "8k textures"): HD model, 4,000 triangles, 8K texture, 65 credits each, 715 for the eleven. The jobs are in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`; the GLBs are not in git, as no Tripo export is: `name_daggers_glb.py` names them for the Import Queue in `Downloads\assassin_daggers_import`, each one textured mesh with UVs. Shop and gear pictures (two copies crossed in a V): `assets/ui/shop/new_dagger_icons.py`. **Imported and wired 2026-11-17** (owner: "models are in"): mesh and texture ids in `assets/models/weapons/blocky/daggers/skin_imports.json`, grips measured from the GLBs (`measure_grips.py`), written into `Config/Weapons` by `skins_to_luau.py` (its `DAGGERS` list), each held in both hands; stats and effects in `Config/WeaponStats`, a cleave each in `Config/WeaponFx`, pictures uploaded (`Config/ShopAssets`, `Config/GearAssets`).
+
+| Tier | Daggers | Picture |
+|---|---|---|
+| Uncommon | **Driftwood Dirks**: a chipped slate blade lashed with rope to a driftwood handle | `driftwood_dirks.png` |
+| Rare | **Barnacle Knives**: a dark iron blade with a teal edge and three barnacles, rope grip, an iron ring pommel | `barnacle_knives.png` |
+| Epic | **Eeltooth Daggers**: a curved eel-blue blade with a pale edge, a yellow fin guard | `eeltooth_daggers.png` |
+| Legendary | **Tollbell Daggers**: a bronze bell-metal blade green with verdigris, a small bell for a pommel; glows teal | `tollbell_daggers.png` |
+| Mythic | **Riptide Fangs**: a glowing sea-glass crystal blade rising out of a curling wave guard, a pearl pommel; glows teal and white | `riptide_fangs.png` |
+
+Effects: the Tollbell Daggers carry Serrated Edge, the Riptide Fangs Bleed. Sold from the Drowned Village's DAGGER chest.

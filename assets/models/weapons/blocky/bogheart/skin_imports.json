@@ -1,0 +1,362 @@
+{
+ "BogironBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://106626851576904",
+    "name": "Blade",
+    "size": [
+     0.365,
+     0.98,
+     0.215
+    ],
+    "textureId": "rbxassetid://85082672046783"
+   }
+  ],
+  "size": [
+   0.366,
+   0.98,
+   0.231
+  ]
+ },
+ "CaplightBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://78732110431221",
+    "name": "Blade",
+    "size": [
+     0.447,
+     0.98,
+     0.441
+    ],
+    "textureId": "rbxassetid://105810499031996"
+   }
+  ],
+  "size": [
+   0.442,
+   0.98,
+   0.449
+  ]
+ },
+ "DeepglowBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://132847635057810",
+    "name": "Blade",
+    "size": [
+     0.475,
+     0.981,
+     0.155
+    ],
+    "textureId": "rbxassetid://93900761687877"
+   }
+  ],
+  "size": [
+   0.475,
+   0.982,
+   0.146
+  ]
+ },
+ "GlowcapLongbow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://85684342392121",
+    "name": "Bow",
+    "size": [
+     0.352,
+     0.979,
+     0.16
+    ],
+    "textureId": "rbxassetid://140691179436768"
+   }
+  ],
+  "size": [
+   0.355,
+   0.978,
+   0.172
+  ]
+ },
+ "GrandmothersStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://90956375054285",
+    "name": "Staff",
+    "size": [
+     0.284,
+     0.984,
+     0.269
+    ],
+    "textureId": "rbxassetid://80572155464574"
+   }
+  ],
+  "size": [
+   0.282,
+   0.982,
+   0.282
+  ]
+ },
+ "GulpfangBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://70750010208640",
+    "name": "Blade",
+    "size": [
+     0.355,
+     0.982,
+     0.164
+    ],
+    "textureId": "rbxassetid://97419873120402"
+   }
+  ],
+  "size": [
+   0.358,
+   0.981,
+   0.167
+  ]
+ },
+ "GulpstringBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://80628391762625",
+    "name": "Bow",
+    "size": [
+     0.396,
+     0.98,
+     0.12
+    ],
+    "textureId": "rbxassetid://137735639693578"
+   }
+  ],
+  "size": [
+   0.395,
+   0.982,
+   0.13
+  ]
+ },
+ "LichenStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://128370773687924",
+    "name": "Staff",
+    "size": [
+     0.322,
+     0.978,
+     0.24
+    ],
+    "textureId": "rbxassetid://97626502629734"
+   }
+  ],
+  "size": [
+   0.327,
+   0.979,
+   0.278
+  ]
+ },
+ "LumenveilBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://108849383826297",
+    "name": "Bow",
+    "size": [
+     0.499,
+     0.986,
+     0.173
+    ],
+    "textureId": "rbxassetid://110956143308073"
+   }
+  ],
+  "size": [
+   0.496,
+   0.976,
+   0.163
+  ]
+ },
+ "MyceliadStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://114017100747129",
+    "name": "Staff",
+    "size": [
+     0.479,
+     0.975,
+     0.354
+    ],
+    "textureId": "rbxassetid://112810987557095"
+   }
+  ],
+  "size": [
+   0.478,
+   0.982,
+   0.339
+  ]
+ },
+ "PeatwoodBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://134793521712254",
+    "name": "Bow",
+    "size": [
+     0.309,
+     0.98,
+     0.123
+    ],
+    "textureId": "rbxassetid://122181203004125"
+   }
+  ],
+  "size": [
+   0.315,
+   0.98,
+   0.127
+  ]
+ },
+ "PuffballStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://108312008882565",
+    "name": "Staff",
+    "size": [
+     0.319,
+     0.987,
+     0.326
+    ],
+    "textureId": "rbxassetid://88895094742911"
+   }
+  ],
+  "size": [
+   0.323,
+   0.991,
+   0.327
+  ]
+ },
+ "ShellbackCleaver": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://102547166808602",
+    "name": "Blade",
+    "size": [
+     0.354,
+     0.979,
+     0.249
+    ],
+    "textureId": "rbxassetid://76281554635101"
+   }
+  ],
+  "size": [
+   0.355,
+   0.98,
+   0.25
+  ]
+ },
+ "SporestringBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://96366000244536",
+    "name": "Bow",
+    "size": [
+     0.355,
+     0.978,
+     0.3
+    ],
+    "textureId": "rbxassetid://138494610719022"
+   }
+  ],
+  "size": [
+   0.356,
+   0.981,
+   0.286
+  ]
+ },
+ "VentstoneStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://114311529112134",
+    "name": "Staff",
+    "size": [
+     0.263,
+     0.982,
+     0.194
+    ],
+    "textureId": "rbxassetid://110542643129302"
+   }
+  ],
+  "size": [
+   0.263,
+   0.988,
+   0.181
+  ]
+ }
+}

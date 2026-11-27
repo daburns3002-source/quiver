@@ -6,8 +6,8 @@
 	- **Crates**, one per area, for coins ("start at 500 for mossy glade",
 	  then 1,000, 2,000, 4,000, 10,000, 20,000): each opens one of that
 	  area's weapons, rolled on the server by rarity ("uncommon, rare, epic,
-	  and a small mythic chance"). A weapon already owned pays back
-	  `duplicateRefund` of the price. An area with no weapons yet shows its
+	  and a small mythic chance"). A weapon already owned is one more C
+	  copy to merge (`Util/MergeRules`, owner 2026-10-28). An area with no weapons yet shows its
 	  crate as a black silhouette.
 	- **The store** sells an area's weapons for gems, by rarity; its
 	  Legendaries ("the legendary weapon will cost coins and a certain item
@@ -32,20 +32,40 @@ export type Crate = {
 	     store cannot cost. Unstocked areas' weapons are still held and
 	     fought with in the sandbox; they are simply not for sale.
 
-	     **The Drowned Village is still unstocked, and the art is no longer
-	     why** (2026-11-02): all fourteen of its weapons now have their
-	     pictures in `Config/ShopAssets`. Two things that art cannot supply
-	     are left. It has no `Config/Economy` entry, which needs the Old
-	     Tollcrab's boss item -- a name, a price and an icon of its own,
-	     beside the Royal Jelly and the Brood Silk. And it has no stages in
-	     `Config/Balance`, so that boss never spawns and the item could not
-	     drop even if it existed; stocking it would put area-3 gear, which
-	     is a quarter stronger than anything native (`WeaponStats.areaScale`),
-	     on sale to a player who has only ever seen the glade. The crate
-	     opens when the area does.
+	     **The Drowned Village and Bogheart Caverns are stocked since
+	     2026-11-13** (owner, approving balance review item 5: after the
+	     glade there was nothing to buy). Their boss items are drawn
+	     (Codex, `assets/concepts/blocky/ui/shop/items34_raw.png`), and
+	     each crate waits at launch on what its area's portal waits on
+	     (`atLaunch`), so gear a quarter or a half stronger than the
+	     glade's (`WeaponStats.areaScale`) is not sold to a glade-only
+	     player.
 
 	     `Util/ShopRules.catalog` is the one gate, so the store, the
 	     crates and the gear screen all agree about what exists. ]]
+	stocked: boolean?,
+	--[[ The area whose boss must be beaten before this crate opens, and
+	     its area's store with it, once the game is locked for launch
+	     (`Config/Launch.locks`, read through `Util/LaunchLocks`): the boss
+	     its area's portal waits on. Not read while the switch is off. ]]
+	atLaunch: string?,
+}
+
+--[[ A themed set (owner, 2026-11-18: "weapons ... that are not area
+     specific", in themed lines): one theme across one weapon for every
+     class, all of one rarity, belonging to no area. Its weapons name it in
+     `Config/WeaponStats` (`set`). docs/WEAPONS-THEMED.md. ]]
+export type Set = {
+	key: string,
+	--[[ Its name on the shelf and on its Dex page. ]]
+	name: string,
+	--[[ What each of its weapons costs at the store: coins and gems, since
+	     a set has no boss whose item a Legendary could ask for. ]]
+	coins: number,
+	gems: number,
+	--[[ Whether it is for sale: its four models are in and its pictures
+	     drawn. An unstocked set's weapons are held in the sandbox only, as
+	     an unstocked area's are. ]]
 	stocked: boolean?,
 }
 
@@ -53,12 +73,55 @@ local Shop = {
 	--[[ Areas in order: area 1 is the Mossy Glade (`WeaponStats.area`). ]]
 	crates = {
 		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500, stocked = true },
-		{ area = "Thornwood", name = "THORNWOOD", price = 1000 },
-		{ area = "DrownedVillage", name = "DROWNED VILLAGE", price = 2000 },
-		{ area = "BogheartCaverns", name = "BOGHEART CAVERNS", price = 4000 },
+		--[[ Stocked since 2026-11-26, once its fifteen bows, staffs and
+		     blades were imported (its five daggers were in already). At
+		     launch it waits on King Bloblin, as its portal waits on 1-10. ]]
+		{
+			area = "Thornwood",
+			name = "THORNWOOD",
+			price = 1000,
+			stocked = true,
+			atLaunch = "MossyGlade",
+		},
+		{
+			area = "DrownedVillage",
+			name = "DROWNED VILLAGE",
+			price = 2000,
+			stocked = true,
+			atLaunch = "Thornwood",
+		},
+		{
+			area = "BogheartCaverns",
+			name = "BOGHEART CAVERNS",
+			price = 4000,
+			stocked = true,
+			atLaunch = "DrownedVillage",
+		},
 		{ area = "WindsweptCliffs", name = "WINDSWEPT CLIFFS", price = 10000 },
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },
+
+	--[[ The themed sets, in the order the SETS shelf and the Dex show them.
+	     A set waits on no boss: it is open from the start, whatever the
+	     launch switch says. Never in a crate, an Endless prize or a free
+	     crate (`ShopRules.cratePool`). Prices are starting numbers (owner's
+	     yes, 2026-11-18): gems buy nothing above Epic anywhere else, so a
+	     set's Legendary is the one place they do. ]]
+	sets = {
+		--[[ Chunky toy electronics: graphite blocks, cyan and magenta light
+		     strips, a green circuit chip. Legendary. Stocked since its four
+		     Tripo models were imported and wired (2026-11-18). ]]
+		{ key = "NeonCircuit", name = "NEON CIRCUIT", coins = 5000, gems = 300, stocked = true },
+		-- THEMED SETS BEGIN (assets/models/weapons/blocky/themed_sets/sets.py; regenerate, never hand-edit)
+		{ key = "Starwish", name = "STARWISH", coins = 5000, gems = 300, stocked = true },
+		{ key = "Tumbleweed", name = "TUMBLEWEED", coins = 5000, gems = 300, stocked = true },
+		{ key = "SplashDay", name = "SPLASH DAY", coins = 5000, gems = 300, stocked = true },
+		{ key = "CoinOp", name = "COIN-OP", coins = 5000, gems = 300, stocked = true },
+		{ key = "Voidglass", name = "VOIDGLASS", coins = 5000, gems = 300, stocked = true },
+		{ key = "LanternBloom", name = "LANTERN BLOOM", coins = 5000, gems = 300, stocked = true },
+		{ key = "Cinderforge", name = "CINDERFORGE", coins = 5000, gems = 300, stocked = true },
+		-- THEMED SETS END
+	} :: { Set },
 
 	counts = { 1, 3 },
 
@@ -70,8 +133,11 @@ local Shop = {
 	     button. Each costs its area's price, whichever is chosen. ]]
 	chests = {
 		{ class = "Ranger", name = "BOW", tab = "BOWS" },
-		{ class = "Arcanist", name = "WAND", tab = "WANDS" },
+		-- the Arcanist's weapons are all staffs (it read WANDS over a list of STAFFS)
+		{ class = "Arcanist", name = "STAFF", tab = "STAFFS" },
 		{ class = "Warden", name = "SWORD", tab = "SWORDS" },
+		-- the Assassin's, since its daggers were modelled (2026-11-17)
+		{ class = "Assassin", name = "DAGGER", tab = "DAGGERS" },
 	} :: { Chest },
 
 	--[[ A chest's odds, by rarity (weights, not percentages). A chest
@@ -85,9 +151,6 @@ local Shop = {
 		Epic = 11,
 		Mythic = 1,
 	} :: { [string]: number },
-
-	--[[ Share of a crate's price paid back for a weapon already owned. ]]
-	duplicateRefund = 0.4,
 
 	--[[ The store's gem prices, by rarity, times the area's number. ]]
 	gemPrices = {

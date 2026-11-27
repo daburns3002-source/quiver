@@ -21,29 +21,47 @@
 
 --[[ `loopStart`/`loopEnd` (seconds): the track plays once from the top (a
 	boss's battle intro), then loops round that region (`Sound.LoopRegion`). ]]
-export type Track = { id: string, name: string, loopStart: number?, loopEnd: number? }
+export type Track = {
+	id: string,
+	name: string,
+	loopStart: number?,
+	loopEnd: number?,
+	--[[ A scored track's own beats, in seconds from its start. ]]
+	cues: { [string]: number }?,
+	ding: number?,
+}
 
 local Music = {
 	--[[ Loudness under the sound effects, which carry the fight. ]]
 	volume = 0.3,
 	--[[ Seconds one playlist takes to fade into another. ]]
 	fade = 1.5,
+	--[[ The share of its volume the music keeps while there is something on
+	     screen to read (owner, 2026-11-11: "have the music quiet down when
+	     there is something on the screen to read"): a tutorial prompt, or a
+	     NEW ENEMY! screen in the tutorial (`MusicFx.setReading`). ]]
+	readDuck = 0.3,
 	--[[ The intro cutscene's music (`UI/IntroCutscene`): from the top on
-	     the cutscene's first frame, a quiet build into the theme's hit at
-	     `Config/Intro.revealAt` (5.0 s), then looping round its region
+	     the cutscene's first frame, a quiet build into the theme's arrival
+	     at `Config/Intro.revealAt` (5.0 s), then looping round its region
 	     while the title waits; it fades out as BEGIN ADVENTURE starts the
-	     run. The title theme (`title_theme.py`), 71.5 s: the 5.0 s build,
-	     then the 60 s loop from 11.0 s (after the build's tail). An empty
-	     id is silent. ]]
+	     run. The night title theme, "Moonrise" (owner's pick of four,
+	     2026-11-12, for the World Tree title: "the pokemon synths still to
+	     match the game but a dark souls/elden ring like tone"; the tone
+	     only, the tune is ours): `title_night.py` take d, 71.5 s: the 5.0 s
+	     build, then the 60 s loop from 11.0 s (after the build's tail), the
+	     same region the old theme had (Soar, `title_theme.py`,
+	     rbxassetid://115433438359101). An empty id is silent. ]]
 	intro = {
-		id = "rbxassetid://115433438359101",
-		name = "Title theme (Soar)",
+		id = "rbxassetid://78573546600610",
+		name = "Title theme (Moonrise)",
 		loopStart = 11.0,
 		loopEnd = 71.0,
 	} :: Track,
 	--[[ The story cutscene's music (`UI/StoryCutscene`, owner 2026-10-25: "it
 	     needs some music"), scored to its frames by `story_theme.py` (cue times
-	     from `Config/Story`; re-render it whenever the frames' holds change), with
+	     from `Config/Story` as it was on 2026-10-25; the holds have since been
+	     kept on its cues instead, see `cues` below), with
 	     King Bloblin's yawn mixed in on f03b. From the top on the first frame,
 	     once, never paused (a frame still loading keeps the one before it up).
 	     `assets/audio/music/story.ogg`, 45.6 s (uploaded as
@@ -51,6 +69,35 @@ local Music = {
 	story = {
 		id = "rbxassetid://96540837394738",
 		name = "Story (King Bloblin)",
+		--[[ When the uploaded track lands each shot (its render's
+		     `story_manifest.json`), and its ding as the King's eyes go small
+		     (measured in the file). `Config/Story`'s holds keep the pictures
+		     on these (`tests/StoryTimeline.spec`): a new render, uploaded,
+		     brings new numbers here. Crumple, Rise and Breath are left out:
+		     the music only holds its strings under them, and they run short
+		     to pay for Steam's longer hold. ]]
+		cues = {
+			Sky = 0.9,
+			Glade = 2.9,
+			Chest = 5.9,
+			Lounge = 8.5,
+			Yawn = 10.2,
+			Bushes = 12.0,
+			Run = 14.0,
+			Skid = 15.2,
+			Offer = 16.9,
+			Take = 18.9,
+			Unroll = 20.1,
+			Eyes = 21.9,
+			Steam = 23.7,
+			Roar = 31.2,
+			Shockwave = 33.0,
+			Pan = 34.8,
+			Faces = 36.8,
+			Ready = 38.8,
+			Away = 40.3,
+		},
+		ding = 22.7,
 	} :: Track,
 	playlists = {
 		Rooms = {

@@ -1,0 +1,1544 @@
+--!strict
+--[[
+	The title screen's picture, "The World Tree at night" (owner, 2026-11-12;
+	`Config/TitleScene` has every block and colour, `Util/TitleLayout` where
+	they sit on a screen): a night sky with stars and a moon, the World Tree
+	huge in the middle with mint lanterns and lit windows, a tiny hero and a
+	pet on a dark ridge looking up at it, the gold ARROW BORNE logo with its
+	streak of light, slow motes, and the green BEGIN ADVENTURE button.
+
+	Built by hand from flat blocks: plain Frames, with one picture, the soft
+	round glow the game already had. No painted or generated art and no live
+	3D. `UI/IntroCutscene` shows it on the music's hit and fades it away on
+	the press.
+
+	Solid blocks are placed on whole pixels, grown outward, so no hairline
+	shows between neighbours; the small lights are placed by share of the
+	picture. The logo is laid out in its own points under a UIScale.
+]]
+
+local GuiService = game:GetService("GuiService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
+
+local Chunky = require(script.Parent.Chunky)
+local Config = require(ReplicatedStorage.Shared.Config.TitleScene)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local TitleLayout = require(ReplicatedStorage.Shared.Util.TitleLayout)
+
+local TitleScene = {}
+
+--[[ The one picture the scene draws, for the cutscene to load before the
+     cut. ]]
+TitleScene.images = { GearAssets.fx.glow }
+
+type Fading = { item: Instance, property: string, base: number }
+type Mote = {
+	frame: Frame,
+	halo: ImageLabel,
+	x: number,
+	y: number,
+	delay: number,
+	loop: number,
+}
+
+--[[ The logo's moving pieces (`step`): its size, the streak's bar, light
+     and arrowhead (each with where it rests, as a share of the logo's
+     box), and the bands of light on the gold. ]]
+type LogoParts = {
+	scale: UIScale,
+	base: number,
+	bar: Frame,
+	barWide: number,
+	glow: ImageLabel,
+	glowWide: number,
+	tipFrom: number,
+	travel: number,
+	head: Frame,
+	shines: { UIGradient },
+}
+
+type Twinkle = { frames: { Frame }, base: number, phase: number }
+type Sway = { frame: Frame, x: number, y: number, reach: number, phase: number }
+
+export type Scene = {
+	root: Frame,
+	twinkles: { Twinkle },
+	sways: { Sway },
+	shooting: Frame,
+	logo: LogoParts,
+	view: Vector2,
+	design: Config.Design,
+	motes: { Mote },
+	fading: { Fading },
+	shown: number,
+	still: boolean,
+}
+
+export type Button = {
+	group: Frame,
+	hit: TextButton,
+	scale: UIScale,
+	view: Vector2,
+	gap: number,
+	fading: { Fading },
+	shown: number,
+	still: boolean,
+}
+
+--[[ Whether the player has asked Roblox for less motion: the motes then
+     stand still and the button does not pulse. ]]
+local function reducedMotion(): boolean
+	local ok, reduced = pcall(function()
+		return (GuiService :: any).ReducedMotionEnabled
+	end)
+	return ok and reduced == true
+end
+
+local function collect(root: Instance, into: { Fading })
+	local function note(item: Instance, property: string, base: number)
+		if base < 1 then
+			table.insert(into, { item = item, property = property, base = base })
+		end
+	end
+	for _, item in root:GetDescendants() do
+		if item:IsA("TextLabel") then
+			note(item, "TextTransparency", item.TextTransparency)
+		elseif item:IsA("ImageLabel") then
+			note(item, "ImageTransparency", item.ImageTransparency)
+		elseif item:IsA("UIStroke") then
+			note(item, "Transparency", item.Transparency)
+		elseif item:IsA("Frame") then
+			note(item, "BackgroundTransparency", item.BackgroundTransparency)
+		end
+	end
+end
+
+local function fade(list: { Fading }, shown: number)
+	for _, entry in list do
+		(entry.item :: any)[entry.property] = 1 - (1 - entry.base) * shown
+	end
+end
+
+local function round(value: number): number
+	return math.floor(value + 0.5)
+end
+
+local function glowImage(name: string, colour: Color3, alpha: number): ImageLabel
+	local image = Instance.new("ImageLabel")
+	image.Name = name
+	image.BackgroundTransparency = 1
+	image.Image = GearAssets.fx.glow
+	image.ImageColor3 = colour
+	image.ImageTransparency = 1 - alpha
+	image.ScaleType = Enum.ScaleType.Stretch
+	image.AnchorPoint = Vector2.new(0.5, 0.5)
+	return image
+end
+
+--[[ A TextSize may not pass 100, and BORNE's line is 113 points on an
+     upright phone. A UIScale enlarges letters past that, so the logo is laid
+     out at this share of its size and its UIScale makes up the rest. ]]
+local LOGO_INNER = 0.5
+
+--[[ The logo inside `holder`, every piece placed by share of it (`holder`
+     is the logo's box at `LOGO_INNER` of its size, under a UIScale): a faint
+     gold haze, then for each word soft rings, a hard shadow, the near-black
+     outline and the gold face, then the streak of light and its arrowhead. ]]
+local function buildLogo(
+	holder: Frame,
+	design: Config.Design,
+	at: TitleLayout.Logo,
+	scale: UIScale
+): LogoParts
+	local look = Config.logo
+	local unit = design.logo.unit
+	local wide, tall = at.width, at.bottom - at.top
+	local z = 0
+	--[[ Places `item` in the logo's own points, measured from its top-left. ]]
+	local function place(
+		item: GuiObject,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		into: Instance?
+	)
+		z += 1
+		item.ZIndex = z
+		item.Position = UDim2.fromScale(x / wide, y / tall)
+		item.Size = UDim2.fromScale(w / wide, h / tall)
+		item.Parent = into or holder
+	end
+	local wordsTall = at.lines[#at.lines].top + at.lines[#at.lines].tall - at.top
+
+	-- the night's own dark, softly, so the crown does not show between letters
+	local backing = glowImage("Backing", look.backing.colour, look.backing.alpha)
+	local wordsWide = at.wordsWide
+	place(
+		backing,
+		wide / 2,
+		wordsTall / 2,
+		wordsWide * look.backing.wide,
+		wordsTall * look.backing.tall
+	)
+	local haze = glowImage("Haze", look.glow, look.haze.alpha)
+	place(haze, wide / 2, wordsTall / 2, wide * look.haze.wide, wordsTall * look.haze.tall)
+
+	local function word(index: number, name: string, colour: Color3, drop: number): TextLabel
+		--[[ The label is exactly one line of the font tall, and the letters
+		     are given that line as their size (TextScaled would stop at 100
+		     on the screen, UIScale or not; a set TextSize does not). ]]
+		local line = at.lines[index]
+		local high = line.size * Config.letterLine
+		local label = Instance.new("TextLabel")
+		label.Name = `{name}{index}`
+		label.BackgroundTransparency = 1
+		label.Font = Chunky.font
+		label.Text = look.words[index]
+		label.TextSize = high * LOGO_INNER
+		label.TextColor3 = colour
+		place(label, 0, line.top - at.top + line.tall / 2 - high / 2 + drop, wide, high)
+		return label
+	end
+	local function outlined(label: TextLabel, colour: Color3, thick: number, clear: number)
+		local stroke = Instance.new("UIStroke")
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		stroke.LineJoinMode = Enum.LineJoinMode.Round
+		stroke.Color = colour
+		stroke.Thickness = thick * LOGO_INNER
+		stroke.Transparency = clear
+		stroke.Parent = label
+	end
+	local edge = look.outlineThick * unit
+	for ring = #look.glowRings, 1, -1 do
+		for index in look.words do
+			local soft = word(index, "Glow", look.glow, 0)
+			soft.TextTransparency = look.glowRingClear
+			outlined(soft, look.glow, edge + look.glowRings[ring] * unit, look.glowRingClear)
+		end
+	end
+	for index in look.words do
+		outlined(word(index, "Shadow", look.outline, look.shadowDrop * unit), look.outline, edge, 0)
+	end
+	for index in look.words do
+		outlined(word(index, "Outline", look.outline, 0), look.outline, edge, 0)
+	end
+	for index in look.words do
+		local face = word(index, "Face", Color3.new(1, 1, 1), 0)
+		local gold = Instance.new("UIGradient")
+		gold.Rotation = 90
+		local stops = {}
+		for _, stop in look.gold do
+			table.insert(stops, ColorSequenceKeypoint.new(stop.at, stop.colour))
+		end
+		gold.Color = ColorSequence.new(stops)
+		gold.Parent = face
+	end
+	-- a band of light that crosses the gold now and then (`step`)
+	local shine = look.motion.shine
+	local shines: { UIGradient } = {}
+	for index in look.words do
+		local band = Instance.new("UIGradient")
+		band.Rotation = shine.tilt
+		band.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.5 - shine.wide, 1),
+			NumberSequenceKeypoint.new(0.5, 1 - shine.alpha),
+			NumberSequenceKeypoint.new(0.5 + shine.wide, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		band.Offset = Vector2.new(-1, 0)
+		band.Parent = word(index, "Shine", Color3.new(1, 1, 1), 0)
+		table.insert(shines, band)
+	end
+
+	-- the streak: clear at its left end, brightest at its right
+	local streak = look.streak
+	local left = at.streakLeft - at.left
+	local top = at.streakTop - at.top
+	local function bar(name: string, colour: Color3, grow: number, clear: number): Frame
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		place(frame, left, top - grow, at.streakWide, streak.thick + 2 * grow)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = frame
+		local fadeIn = Instance.new("UIGradient")
+		fadeIn.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(streak.midAt, clear),
+			NumberSequenceKeypoint.new(1, clear),
+		})
+		fadeIn.Parent = frame
+		return frame
+	end
+	-- its light: the round glow picture, stretched along the bright end
+	local soft = glowImage("StreakGlow", streak.glow, streak.soft.alpha)
+	local softWide = at.streakWide * (1 - streak.soft.from)
+	place(
+		soft,
+		left + at.streakWide - softWide / 2,
+		top + streak.thick / 2,
+		softWide,
+		streak.thick * streak.soft.tall
+	)
+	local light = bar("Streak", Color3.new(1, 1, 1), 0, 0)
+	local colours = light:FindFirstChildOfClass("UIGradient") :: UIGradient
+	colours.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, streak.from),
+		ColorSequenceKeypoint.new(streak.midAt, streak.mid),
+		ColorSequenceKeypoint.new(1, streak.to),
+	})
+
+	--[[ The arrowhead: a small triangle of thin columns, pointing right, in
+	     a holder the size of the logo so `step` can move it as one. ]]
+	local arrowhead = Instance.new("Frame")
+	arrowhead.Name = "Arrowhead"
+	arrowhead.BackgroundTransparency = 1
+	place(arrowhead, 0, 0, wide, tall)
+	local head = streak.head
+	local tip = left + at.streakWide + head.overhang
+	local middle = top + streak.thick / 2
+	local halo = glowImage("HeadGlow", streak.glow, streak.headGlow.alpha)
+	local across = head.tall * streak.headGlow.across
+	place(halo, tip - head.long / 2, middle, across, across, arrowhead)
+	for column = 0, head.long - 1 do
+		local half = head.tall / 2 * (1 - column / head.long)
+		local piece = Instance.new("Frame")
+		piece.Name = "Head"
+		piece.BorderSizePixel = 0
+		piece.BackgroundColor3 = streak.to
+		place(
+			piece,
+			tip - head.long + column,
+			middle - half,
+			1.6,
+			math.max(0.6, 2 * half),
+			arrowhead
+		)
+	end
+	return {
+		scale = scale,
+		base = scale.Scale,
+		bar = light,
+		barWide = at.streakWide / wide,
+		glow = soft,
+		glowWide = softWide / wide,
+		tipFrom = left / wide,
+		travel = at.streakWide / wide,
+		head = arrowhead,
+		shines = shines,
+	}
+end
+
+--[[ Builds the picture into `parent`, which is `view` points in size (the
+     whole screen, or a phone-sized frame in a Studio preview). ]]
+function TitleScene.build(parent: Instance, view: Vector2): Scene
+	local design = TitleLayout.design(view.X, view.Y)
+	local fit = TitleLayout.fit(design, view.X, view.Y)
+	local k = fit.scale
+	local wide, tall = design.width, design.height
+
+	local root = Instance.new("Frame")
+	root.Name = "TitleScene"
+	root.BackgroundTransparency = 1
+	root.Size = UDim2.fromScale(1, 1)
+	root.ClipsDescendants = true
+	root.ZIndex = 3
+
+	local stage = Instance.new("Frame")
+	stage.Name = "Stage"
+	stage.BackgroundTransparency = 1
+	stage.Position = UDim2.fromOffset(round(fit.x), round(fit.y))
+	stage.Size = UDim2.fromOffset(round(wide * k), round(tall * k))
+	stage.Parent = root
+
+	-- everything is stacked in the order it is made
+	local z = 0
+	local function layer(item: GuiObject)
+		z += 1
+		item.ZIndex = z
+		item.Parent = stage
+	end
+	--[[ A solid block on whole pixels, grown outward to them. ]]
+	local function block(name: string, x: number, y: number, w: number, h: number, colour: Color3)
+		local x0, y0 = math.floor(x * k), math.floor(y * k)
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		frame.Position = UDim2.fromOffset(x0, y0)
+		frame.Size = UDim2.fromOffset(math.ceil((x + w) * k) - x0, math.ceil((y + h) * k) - y0)
+		layer(frame)
+		return frame
+	end
+	--[[ A small light, by share of the picture; `alpha` is how solid. ]]
+	local function light(
+		name: string,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		colour: Color3,
+		alpha: number?
+	): Frame
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		frame.BackgroundTransparency = 1 - (alpha or 1)
+		frame.Position = UDim2.fromScale(x / wide, y / tall)
+		frame.Size = UDim2.fromScale(w / wide, h / tall)
+		layer(frame)
+		return frame
+	end
+
+	-- the screen's own edges in layout points, with a little to spare
+	local left, right = fit.left - 2, fit.right + 2
+	local top, bottom = fit.top - 2, math.max(fit.bottom, tall) + 2
+
+	-- the sky, and more of its darkest above a layout the screen is taller than
+	if top < 0 then
+		block("SkyAbove", left, top, right - left, 1 - top, Config.sky[1])
+	end
+	local sky = block("Sky", left, 0, right - left, tall, Color3.new(1, 1, 1))
+	local dusk = Instance.new("UIGradient")
+	dusk.Rotation = 90
+	dusk.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Config.sky[1]),
+		ColorSequenceKeypoint.new(Config.skyMid, Config.sky[2]),
+		ColorSequenceKeypoint.new(design.horizon, Config.sky[3]),
+		ColorSequenceKeypoint.new(1, Config.sky[4]),
+	})
+	dusk.Parent = sky
+
+	--[[ A soft round light (the round glow picture) with its middle at
+	     (`x`, `y`), `across` wide: every light's glow, never a square. ]]
+	local function glowAt(
+		name: string,
+		x: number,
+		y: number,
+		across: number,
+		colour: Color3,
+		alpha: number
+	)
+		local image = glowImage(name, colour, alpha)
+		layer(image)
+		image.Position = UDim2.fromScale(x / wide, y / tall)
+		image.Size = UDim2.fromScale(across / wide, across / tall)
+	end
+	--[[ A star: a perfect cross on whole pixels (`TitleLayout.cross`). ]]
+	local function cross(
+		name: string,
+		x: number,
+		y: number,
+		size: number,
+		alpha: number,
+		colour: Color3?
+	): { Frame }
+		local bars = {}
+		for _, bar in TitleLayout.cross(x, y, size, k) do
+			local frame = Instance.new("Frame")
+			frame.Name = name
+			frame.BorderSizePixel = 0
+			frame.BackgroundColor3 = colour or Config.star
+			frame.BackgroundTransparency = 1 - alpha
+			frame.Position = UDim2.fromOffset(bar[1], bar[2])
+			frame.Size = UDim2.fromOffset(bar[3], bar[4])
+			layer(frame)
+			table.insert(bars, frame)
+		end
+		return bars
+	end
+	-- star dust: tiny faint crosses, under the stars
+	for _, speck in TitleLayout.dust(design, fit) do
+		cross("Dust", speck.x, speck.y, speck.size, speck.alpha)
+	end
+	-- the stars, each a cross; one in a few twinkles (`step`), and a few are large
+	local twinkles: { Twinkle } = {}
+	for index, star in TitleLayout.stars(design, fit) do
+		if index % Config.twinkle.every == 0 then
+			local bars = cross("Twinkle", star.x, star.y, star.size, star.alpha)
+			table.insert(twinkles, { frames = bars, base = star.alpha, phase = index * 1.7 })
+		else
+			cross("Star", star.x, star.y, star.size, star.alpha)
+		end
+	end
+	for _, star in design.bigStars do
+		cross("BigStar", star[1], star[2], Config.bigStar.size, Config.bigStar.alpha)
+	end
+	-- a few far birds: each a shallow V of two strokes
+	local bird = Config.bird
+	for _, at in design.birds do
+		for side = -1, 1, 2 do
+			local wing = light(
+				"Bird",
+				at[1] + (side - 1) * at[3] / 2,
+				at[2],
+				at[3],
+				bird.thick,
+				Config.star,
+				bird.alpha
+			)
+			wing.Rotation = side * bird.tilt
+		end
+	end
+	--[[ The shooting star: a streak that is clear at its tail, turned along
+	     its path, shown only while it crosses (`step`). ]]
+	local path, streak = design.shooting, Config.shooting
+	local shooting = Instance.new("Frame")
+	shooting.Name = "Shooting"
+	shooting.BorderSizePixel = 0
+	shooting.BackgroundColor3 = Config.star
+	shooting.BackgroundTransparency = 1
+	shooting.AnchorPoint = Vector2.new(0.5, 0.5)
+	shooting.Size = UDim2.fromOffset(round(streak.long * k), math.max(1, round(streak.thick * k)))
+	shooting.Rotation = math.deg(math.atan2(path.to[2] - path.from[2], path.to[1] - path.from[1]))
+	local tail = Instance.new("UIGradient")
+	tail.Transparency = NumberSequence.new(1, 0)
+	tail.Parent = shooting
+	layer(shooting)
+	local moon = Config.moon
+	local function rounded(frame: Frame, share: number)
+		local curve = Instance.new("UICorner")
+		curve.CornerRadius = UDim.new(share, 0)
+		curve.Parent = frame
+	end
+	local halo = Config.moonHalo
+	glowAt(
+		"MoonGlow",
+		design.moon.x + moon.size / 2,
+		design.moon.y + moon.size / 2,
+		moon.size * halo.across,
+		moon.colour,
+		halo.alpha
+	)
+	rounded(
+		light("Moon", design.moon.x, design.moon.y, moon.size, moon.size, moon.colour, moon.alpha),
+		moon.corner / moon.size
+	)
+	for _, crater in Config.moonCraters do
+		light(
+			"MoonCrater",
+			design.moon.x + crater[1],
+			design.moon.y + crater[2],
+			crater[3],
+			crater[3],
+			Config.moonCrater
+		)
+	end
+	-- thin clouds: a band with a shorter step above and one below
+	local cloud = Config.cloud
+	for _, band in design.clouds do
+		local x, y, w = band[1], band[2], band[3]
+		light("Cloud", x, y, w, cloud.tall, cloud.colour, cloud.alpha)
+		light(
+			"Cloud",
+			x + w * 0.18,
+			y - cloud.tall * 0.8,
+			w * 0.5,
+			cloud.tall * 0.8,
+			cloud.colour,
+			cloud.alpha
+		)
+		light(
+			"Cloud",
+			x + w * 0.46,
+			y + cloud.tall,
+			w * 0.42,
+			cloud.tall * 0.6,
+			cloud.colour,
+			cloud.alpha
+		)
+	end
+
+	-- the soft light behind the crown
+	local tree = design.tree
+	local u = tree.unit
+	local glow = glowImage("Glow", Config.glow.colour, Config.glow.alpha)
+	layer(glow)
+	glow.Position = UDim2.fromScale(tree.x / wide, (tree.y - Config.glow.rise * u) / tall)
+	glow.Size =
+		UDim2.fromScale(2 * Config.glow.radius * u / wide, 2 * Config.glow.radius * u / tall)
+
+	--[[ A see-through band between two heights, on whole pixel rows, so
+	     bands stacked on each other neither overlap nor leave a gap. ]]
+	local function slab(
+		name: string,
+		x: number,
+		from: number,
+		to: number,
+		w: number,
+		colour: Color3,
+		alpha: number
+	)
+		local x0, y0 = math.floor(x * k), round(from * k)
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		frame.BackgroundTransparency = 1 - alpha
+		frame.Position = UDim2.fromOffset(x0, y0)
+		frame.Size = UDim2.fromOffset(math.ceil((x + w) * k) - x0, round(to * k) - y0)
+		layer(frame)
+	end
+	-- far mountains: pale see-through steps narrowing to a snowy top
+	local peak = Config.peak
+	for shift = -1, 1 do
+		for _, at in design.peaks do
+			local mid, foot, w, h = at[1] + shift * wide, at[2], at[3], at[4]
+			if mid + w / 2 > left and mid - w / 2 < right then
+				local rise = h / peak.steps
+				for step = 0, peak.steps - 1 do
+					local across = w * (1 - step / peak.steps)
+					local x = mid - across / 2 + at[5] * w * step / peak.steps
+					local snowy = step >= peak.steps - peak.snow
+					slab(
+						"Peak",
+						x,
+						foot - (step + 1) * rise,
+						foot - step * rise,
+						across,
+						peak.colour,
+						if snowy then peak.alpha + peak.snowAlpha else peak.alpha
+					)
+					if step == peak.steps - peak.snow - 1 then
+						-- a little snow lying on the step under the top
+						local under = mid + at[5] * w * (step + 1) / peak.steps
+						slab(
+							"PeakSnow",
+							under - across * 0.2,
+							foot - (step + 1) * rise,
+							foot - (step + 0.5) * rise,
+							across * 0.4,
+							peak.colour,
+							peak.snowAlpha
+						)
+					end
+				end
+			end
+		end
+	end
+
+	--[[ A line of light along the tops of `blocks` that show. ]]
+	local function litTops(
+		name: string,
+		blocks: { Config.Block },
+		thick: number,
+		colour: Color3,
+		alpha: number
+	)
+		for _, edge in TitleLayout.topEdges(blocks) do
+			local line = block(name, edge[1], edge[3], edge[2] - edge[1], thick, colour)
+			line.BackgroundTransparency = 1 - alpha
+		end
+	end
+	--[[ The hills, again to either side on a screen wider than the layout:
+	     a farther, paler row with a watchtower on it, mist at its feet,
+	     then the near ones with small stepped pines and houses on them and
+	     a few lit windows. The tree's light lies along every hill's top. ]]
+	local hillRim = Config.hillRim
+	local function row(
+		name: string,
+		hills: { Config.Block },
+		look: { colour: Color3, tall: number },
+		alpha: number
+	)
+		local drawn: { Config.Block } = {}
+		for shift = -1, 1 do
+			for _, hill in hills do
+				local x = hill[1] + shift * wide
+				if x + hill[3] > left and x < right then
+					block(name, x, hill[2], hill[3], look.tall, look.colour)
+					table.insert(drawn, { x, hill[2], hill[3], look.tall })
+				end
+			end
+		end
+		litTops(`{name}Rim`, drawn, hillRim.tall, Config.tree.crownLit, alpha)
+	end
+	--[[ A pine: three steps narrowing to the top, on a short stem. ]]
+	local function drawPine(name: string, x: number, foot: number, high: number, colour: Color3)
+		for step = 0, 2 do
+			local half = high * (0.42 - 0.13 * step)
+			local rung = foot - high * (0.5 + 0.25 * step)
+			block(name, x - half, rung, 2 * half, high * 0.27, colour)
+		end
+		block(name, x - high * 0.08, foot - high * 0.26, high * 0.16, high * 0.28, colour)
+	end
+	row("FarHill", design.farHills, Config.farHill, hillRim.far)
+	for _, at in design.farPines do
+		drawPine("FarPine", at[1], at[2], at[3], Config.farHill.colour)
+	end
+	local lit = Config.villageLight
+	-- the far watchtower: a body under a wider toothed top, one window lit
+	local tower, towerAt = Config.tower, design.tower
+	local far = Config.farHill.colour
+	block("Tower", towerAt.x, towerAt.y - tower.tall, tower.wide, tower.tall + 0.5, far)
+	block("Tower", towerAt.x - 1.5, towerAt.y - tower.tall - 3, tower.wide + 3, 3.5, far)
+	for tooth = 0, 2 do
+		block(
+			"Tower",
+			towerAt.x - 1.5 + tooth * (tower.wide + 1) / 2,
+			towerAt.y - tower.tall - 5,
+			2,
+			2.5,
+			far
+		)
+	end
+	light(
+		"TowerWindow",
+		towerAt.x + tower.wide / 2 - 1,
+		towerAt.y - tower.tall + 5,
+		2,
+		3,
+		lit.colour,
+		tower.alpha
+	)
+	-- mist: a thin pale band with a shorter step under it and one above
+	local mist = Config.mist
+	for _, band in design.mist do
+		local x, y, w = band[1], band[2], band[3]
+		light("Mist", x, y, w, mist.tall, mist.colour, mist.alpha)
+		light("Mist", x + w * 0.2, y + mist.tall, w * 0.5, mist.tall * 0.7, mist.colour, mist.alpha)
+		light(
+			"Mist",
+			x + w * 0.56,
+			y - mist.tall * 0.7,
+			w * 0.3,
+			mist.tall * 0.7,
+			mist.colour,
+			mist.alpha
+		)
+	end
+	row("Hill", design.hills, Config.hill, hillRim.near)
+	for shift = -1, 1 do
+		for _, pine in design.pines do
+			local x, foot, high = pine[1] + shift * wide, pine[2], pine[3]
+			if x + high > left and x - high < right then
+				drawPine("Pine", x, foot, high, Config.hill.colour)
+			end
+		end
+	end
+	-- houses: a body, a roof in three steps, a chimney and one lit window
+	local home = Config.house
+	for _, at in design.houses do
+		local x, foot, w = at[1], at[2], at[3]
+		local eaves = foot - w * 0.6
+		local dark = Config.hill.colour
+		block("House", x, eaves, w, w * 0.6 + 0.5, dark)
+		block("House", x - w * 0.1, eaves - w * 0.2, w * 1.2, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.12, eaves - w * 0.4, w * 0.76, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.34, eaves - w * 0.55, w * 0.32, w * 0.15 + 0.5, dark)
+		block("House", x + w * 0.72, eaves - w * 0.75, w * 0.14, w * 0.4, dark)
+		glowAt(
+			"HouseGlow",
+			x + w * 0.4,
+			foot - w * 0.3,
+			w * home.glow,
+			Config.tree.windowHalo,
+			home.glowAlpha
+		)
+		light(
+			"HouseWindow",
+			x + w * 0.27,
+			foot - w * 0.43,
+			w * 0.26,
+			w * 0.26,
+			lit.colour,
+			lit.alpha
+		)
+	end
+	for _, at in design.village do
+		light("Village", at[1], at[2], lit.size, lit.size, lit.colour, lit.alpha)
+	end
+	local groundTop = tree.y - Config.ground.above
+	block(
+		"Ground",
+		left,
+		groundTop,
+		right - left,
+		math.max(design.groundTall, bottom - groundTop),
+		Config.ground.colour
+	)
+
+	-- the World Tree
+	local shape = Config.tree
+	local function onTree(name: string, part: { number }, colour: Color3)
+		block(name, tree.x + part[1] * u, tree.y + part[2] * u, part[3] * u, part[4] * u, colour)
+	end
+	for _, part in shape.trunk do
+		onTree("Trunk", part, shape.trunkColour)
+	end
+	for _, part in shape.roots do
+		onTree("Root", part, shape.trunkColour)
+	end
+	for _, strip in shape.bark do
+		onTree("Bark", { strip[1], strip[2], 2, strip[3] }, shape.barkColour)
+	end
+	-- balconies: a floor, a rail on posts, and a lantern hung from the outer end
+	local deck = shape.balcony
+	for _, at in shape.balconies do
+		local x, y, w = at[1], at[2], at[3]
+		onTree("Balcony", { x, y, w, deck.floor }, shape.trunkColour)
+		onTree("Balcony", { x, y - deck.rail, w, deck.post }, shape.trunkColour)
+		local count = math.floor(w / deck.every)
+		for n = 0, count do
+			local px = x + n * (w - deck.post) / count
+			onTree("Balcony", { px, y - deck.rail, deck.post, deck.rail }, shape.trunkColour)
+		end
+		light(
+			"BalconyRim",
+			tree.x + x * u,
+			tree.y + (y - deck.rail) * u,
+			w * u,
+			deck.post * u * 0.5,
+			shape.crownLit,
+			deck.rim
+		)
+		local hx = if x < 0 then x + 1 else x + w - 1 - deck.lantern
+		local hy = y + deck.floor + deck.string
+		light(
+			"BalconyString",
+			tree.x + (hx + deck.lantern / 2 - 0.5) * u,
+			tree.y + (y + deck.floor) * u,
+			u,
+			deck.string * u,
+			shape.trunkColour
+		)
+		glowAt(
+			"BalconyGlow",
+			tree.x + (hx + deck.lantern / 2) * u,
+			tree.y + (hy + deck.lantern / 2) * u,
+			deck.lantern * shape.lanternGlow * u,
+			shape.lanternHalo,
+			shape.lanternHaloAlpha
+		)
+		light(
+			"BalconyLantern",
+			tree.x + hx * u,
+			tree.y + hy * u,
+			deck.lantern * u,
+			deck.lantern * u,
+			shape.lantern
+		)
+	end
+	-- shelf mushrooms on the trunk's sides, each in a small round glow
+	local shelf = shape.shelf
+	for _, at in shape.shelves do
+		local x, y, w = at[1], at[2], at[3]
+		glowAt(
+			"ShelfGlow",
+			tree.x + (x + w / 2) * u,
+			tree.y + (y + shelf.tall / 2) * u,
+			w * shelf.glow * u,
+			shape.lanternHalo,
+			shelf.glowAlpha
+		)
+		light("Shelf", tree.x + x * u, tree.y + y * u, w * u, shelf.tall * u, shape.lantern)
+		-- its paler underside, narrower, against the trunk
+		local under = w * shelf.under
+		light(
+			"ShelfUnder",
+			tree.x + (if x < 0 then x + w - under else x) * u,
+			tree.y + (y + shelf.tall) * u,
+			under * u,
+			shelf.tall * 0.8 * u,
+			Config.glowcap.stem,
+			0.7
+		)
+	end
+	-- sprigs of leaf standing out of the crown, behind it
+	for _, sprig in TitleLayout.sprigs() do
+		local x, y, side = sprig.x, sprig.y, sprig.side
+		onTree("Sprig", { x, y, side, side }, shape.crownColours[sprig.colour])
+		onTree("SprigLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"SprigShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
+	end
+	-- leaf blocks round the crown's edge, behind it
+	for index, square in shape.leaves do
+		local x, y, side = square[1], square[2], square[3]
+		onTree("Leaves", { x, y, side, side }, shape.crownColours[index % 2 + 1])
+		onTree("LeavesLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"LeavesShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
+	end
+	for index, square in shape.crown do
+		local x, y, side = square[1], square[2], square[3]
+		onTree("Crown", { x, y, side, side }, shape.crownColours[(index - 1) % 2 + 1])
+		onTree("CrownLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"CrownShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
+		local patch = shape.crownPatch
+		light(
+			"CrownPatch",
+			tree.x + (x + side * patch.x) * u,
+			tree.y + (y + side * patch.y) * u,
+			side * patch.w * u,
+			side * patch.h * u,
+			shape.crownLit,
+			patch.alpha
+		)
+	end
+	-- flecks of leaf over the whole crown, lit and shaded in turn
+	for _, fleck in TitleLayout.flecks() do
+		light(
+			"Fleck",
+			tree.x + fleck.x * u,
+			tree.y + fleck.y * u,
+			fleck.side * u,
+			fleck.side * u,
+			if fleck.lit then shape.crownLit else shape.crownShade,
+			if fleck.lit then shape.flecks.lit else shape.flecks.dark
+		)
+	end
+	-- leaf tiers: a lit edge with its shadow under it
+	local tiers = shape.tiers
+	for _, tier in TitleLayout.tiers() do
+		local x, y = tree.x + tier.x * u, tree.y + tier.y * u
+		light("Tier", x, y, tier.long * u, tiers.thick * u, shape.crownLit, tiers.lit)
+		light(
+			"TierShade",
+			x,
+			y + tiers.thick * u,
+			tier.long * u,
+			tiers.thick * u,
+			shape.crownShade,
+			tiers.dark
+		)
+	end
+	for index, lantern in shape.lanterns do
+		local x, y, side = lantern[1], lantern[2], lantern[3]
+		if index <= shape.strings.count then
+			local long = shape.strings.long
+			light(
+				"LanternString",
+				tree.x + (x + side / 2 - 0.5) * u,
+				tree.y + (y - long) * u,
+				u,
+				long * u,
+				shape.trunkColour
+			)
+		end
+		glowAt(
+			"LanternGlow",
+			tree.x + (x + side / 2) * u,
+			tree.y + (y + side / 2) * u,
+			side * shape.lanternGlow * u,
+			shape.lanternHalo,
+			shape.lanternHaloAlpha
+		)
+		light("Lantern", tree.x + x * u, tree.y + y * u, side * u, side * u, shape.lantern)
+	end
+	for _, window in shape.windows do
+		local x, y = tree.x + window[1] * u, tree.y + window[2] * u
+		glowAt(
+			"WindowGlow",
+			x + 4 * u,
+			y + 5 * u,
+			shape.windowGlow * u,
+			shape.windowHalo,
+			shape.windowHaloAlpha
+		)
+		light("Window", x, y, 8 * u, 10 * u, shape.window)
+		-- four panes and a sill
+		local bar = shape.windowBar * u
+		light("WindowBar", x + 4 * u - bar / 2, y, bar, 10 * u, shape.doorFrame)
+		light("WindowBar", x, y + 5 * u - bar / 2, 8 * u, bar, shape.doorFrame)
+		light(
+			"WindowSill",
+			x - shape.sill.over * u,
+			y + 10 * u,
+			(8 + 2 * shape.sill.over) * u,
+			shape.sill.tall * u,
+			shape.doorFrame
+		)
+	end
+	-- vines under the crown, and a few small warm windows up in it
+	for _, vine in shape.vines do
+		onTree("Vine", { vine[1], vine[2], 2, vine[3] }, shape.crownColours[1])
+	end
+	for _, at in shape.crownWindows do
+		local x, y = tree.x + at[1] * u, tree.y + at[2] * u
+		glowAt(
+			"CrownWindowGlow",
+			x + 2.5 * u,
+			y + 3 * u,
+			shape.crownWindowGlow * u,
+			shape.windowHalo,
+			shape.windowHaloAlpha
+		)
+		light("CrownWindow", x, y, 5 * u, 6 * u, shape.window)
+	end
+	-- the lit doorway at the trunk's foot
+	local door = shape.door
+	onTree("DoorFrame", door.frame, shape.doorFrame)
+	glowAt(
+		"DoorGlow",
+		tree.x + (door.light[1] + door.light[3] / 2) * u,
+		tree.y + (door.light[2] + door.light[4] / 2) * u,
+		shape.doorGlow * u,
+		shape.windowHalo,
+		shape.windowHaloAlpha
+	)
+	light(
+		"Door",
+		tree.x + door.light[1] * u,
+		tree.y + door.light[2] * u,
+		door.light[3] * u,
+		door.light[4] * u,
+		shape.window
+	)
+	onTree("DoorStep", shape.doorStep, shape.doorFrame)
+	local awning = shape.awning
+	onTree("Awning", awning, shape.doorFrame)
+	light(
+		"AwningRim",
+		tree.x + awning[1] * u,
+		tree.y + awning[2] * u,
+		awning[3] * u,
+		1,
+		shape.crownLit,
+		0.5
+	)
+
+	--[[ The near ridge: its base runs to the bottom of the screen, and a
+	     step that touches the layout's side runs on to the screen's. ]]
+	local steps: { Config.Block } = {}
+	for index, step in design.ridge do
+		local x, y, w, h = step[1], step[2], step[3], step[4]
+		local x1 = if x + w >= wide then right else x + w
+		local x0 = if x <= 0 then left else x
+		local deep = if index == 1 then bottom - y else h
+		block("Ridge", x0, y, x1 - x0, deep, Config.ridge)
+		table.insert(steps, { x0, y, x1 - x0, deep })
+	end
+	-- the tree's light along the ridge's top
+	local ridgeRim = Config.ridgeRim
+	litTops("RidgeRim", steps, ridgeRim.tall, Config.rim, ridgeRim.alpha)
+	-- grass along every top of the ridge that shows
+	local fringe = Config.fringe
+	for _, blade in TitleLayout.blades(steps) do
+		block(
+			"Blade",
+			blade.x,
+			blade.foot - blade.tall,
+			fringe.wide,
+			blade.tall + 0.5,
+			Config.ridge
+		)
+		if blade.flower then
+			local bloom = Config.flower
+			light(
+				"Flower",
+				blade.x + (fringe.wide - bloom.size) / 2,
+				blade.foot - blade.tall - bloom.size * 0.7,
+				bloom.size,
+				bloom.size,
+				Config.rim,
+				bloom.alpha
+			)
+		end
+	end
+	-- grass on the ridge, and a lantern post with a mint light
+	for _, tuft in design.tufts do
+		for _, blade in Config.tuft do
+			block("Grass", tuft[1] + blade[1], tuft[2] - blade[2], 2, blade[2] + 1, Config.ridge)
+		end
+	end
+	local post, stands = Config.post, design.post
+	block("Post", stands.x, stands.y - post.tall, 2, post.tall + 1, Config.figure)
+	block("Post", stands.x, stands.y - post.tall, post.arm, 2, Config.figure)
+	local hang = stands.x + post.arm - post.lantern / 2 - 1
+	light(
+		"PostString",
+		hang + post.lantern / 2 - 0.5,
+		stands.y - post.tall + 2,
+		1,
+		3,
+		Config.figure
+	)
+	glowAt(
+		"PostGlow",
+		hang + post.lantern / 2,
+		stands.y - post.tall + 5 + post.lantern / 2,
+		post.lantern * shape.lanternGlow,
+		shape.lanternHalo,
+		shape.lanternHaloAlpha
+	)
+	light("PostLantern", hang, stands.y - post.tall + 5, post.lantern, post.lantern, shape.lantern)
+	-- glowing mushrooms: a pale stem under a mint cap, in a soft round light
+	local cap = Config.glowcap
+	for _, at in design.glowcaps do
+		local x, foot, size = at[1], at[2], at[3]
+		local soft = glowImage("GlowcapGlow", shape.lanternHalo, cap.glowAlpha)
+		layer(soft)
+		soft.Position = UDim2.fromScale((x + size / 2) / wide, (foot - size * 0.8) / tall)
+		soft.Size = UDim2.fromScale(size * cap.glow / wide, size * cap.glow / tall)
+		light(
+			"GlowcapStem",
+			x + size * 0.35,
+			foot - size * 0.7,
+			size * 0.3,
+			size * 0.7 + 0.5,
+			cap.stem,
+			0.8
+		)
+		light("Glowcap", x, foot - size * 1.1, size, size * 0.5, shape.lantern)
+	end
+	-- the signpost, its board pointing at the tree
+	local sign, signAt = Config.sign, design.sign
+	block("Sign", signAt.x, signAt.y - sign.tall, 2, sign.tall + 1, Config.figure)
+	block("Sign", signAt.x - 2, signAt.y - sign.tall, sign.wide, sign.board, Config.figure)
+	block(
+		"Sign",
+		signAt.x - 2 + sign.wide,
+		signAt.y - sign.tall + 1.5,
+		3,
+		sign.board - 3,
+		Config.figure
+	)
+	light("SignRim", signAt.x - 2, signAt.y - sign.tall, sign.wide, 1, Config.rim, 0.5)
+	-- stones: a block with a smaller one on it, its top catching the light
+	for _, stone in design.stones do
+		local x, foot, w = stone[1], stone[2], stone[3]
+		block("Stone", x, foot - w * 0.5, w, w * 0.5 + 0.5, Config.ridge)
+		block("Stone", x + w * 0.2, foot - w * 0.85, w * 0.55, w * 0.35 + 0.5, Config.ridge)
+		light(
+			"StoneRim",
+			x + w * 0.2,
+			foot - w * 0.85,
+			w * 0.55,
+			1,
+			Config.rim,
+			ridgeRim.alpha + 0.1
+		)
+		light("StoneRim", x, foot - w * 0.5, w * 0.2, 1, Config.rim, ridgeRim.alpha)
+		light("StoneRim", x + w * 0.75, foot - w * 0.5, w * 0.25, 1, Config.rim, ridgeRim.alpha)
+	end
+	-- fences: posts and two rails
+	local fence = Config.fence
+	for _, run in design.fences do
+		local x, foot, count = run[1], run[2], run[3]
+		for _, rail in fence.rails do
+			block("Fence", x, foot - rail, (count - 1) * fence.every + 2, 1.2, Config.figure)
+		end
+		for n = 0, count - 1 do
+			local across = x + n * fence.every
+			block("Fence", across, foot - fence.tall, 2, fence.tall + 0.5, Config.figure)
+			light("FenceRim", across, foot - fence.tall, 2, 1, Config.rim, fence.rim)
+		end
+	end
+
+	-- the hero from behind, bow across the back, and the pet at their heel
+	local function figure(
+		name: string,
+		at: { x: number, y: number, unit: number },
+		body: { Config.Block },
+		rims: { Config.Block }
+	)
+		for _, part in body do
+			block(
+				name,
+				at.x + part[1] * at.unit,
+				at.y + part[2] * at.unit,
+				part[3] * at.unit,
+				part[4] * at.unit,
+				Config.figure
+			)
+		end
+		for _, rim in rims do
+			light(
+				`{name}Rim`,
+				at.x + rim[1] * at.unit,
+				at.y + rim[2] * at.unit,
+				rim[3] * at.unit,
+				rim[4] * at.unit,
+				Config.rim,
+				rim[5]
+			)
+		end
+	end
+	local hero, heroLook = design.hero, Config.hero
+	-- a pool of the tree's light behind the hero, so the dark shape stands out
+	local pool = glowImage("HeroGlow", Config.glow.colour, heroLook.glow.alpha)
+	layer(pool)
+	pool.Position = UDim2.fromScale(hero.x / wide, (hero.y - heroLook.glow.rise * hero.unit) / tall)
+	pool.Size = UDim2.fromScale(
+		2 * heroLook.glow.radius * hero.unit / wide,
+		2 * heroLook.glow.radius * hero.unit / tall
+	)
+	-- the scarf, which sways (`step`): the further along it, the more
+	local sways: { Sway } = {}
+	local scarf = heroLook.scarf
+	for index, piece in scarf.pieces do
+		local x, y = hero.x + piece[1] * hero.unit, hero.y + piece[2] * hero.unit
+		local wide0 = piece[3] * hero.unit
+		-- the hero's own colour, with a line of light along its top
+		local pair = {
+			light("Scarf", x, y, wide0, piece[4] * hero.unit, Config.figure),
+			light("ScarfRim", x, y, wide0, scarf.rim * hero.unit, Config.rim, scarf.rimAlpha),
+		}
+		for _, frame in pair do
+			table.insert(sways, {
+				frame = frame,
+				x = x,
+				y = y,
+				reach = scarf.sway * hero.unit * index / #scarf.pieces,
+				phase = index * 0.9,
+			})
+		end
+	end
+	--[[ A line on the hero, as straight pieces: the bow's curve, the light
+	     along it, and its string. ]]
+	local bow = heroLook.bow
+	local function stroke(
+		name: string,
+		pieces: { TitleLayout.Piece },
+		colour: Color3,
+		thick: number,
+		alpha: number
+	)
+		for _, piece in pieces do
+			local frame = Instance.new("Frame")
+			frame.Name = name
+			frame.BorderSizePixel = 0
+			frame.BackgroundColor3 = colour
+			frame.BackgroundTransparency = 1 - alpha
+			frame.AnchorPoint = Vector2.new(0.5, 0.5)
+			frame.Position = UDim2.fromScale(
+				(hero.x + piece.x * hero.unit) / wide,
+				(hero.y + piece.y * hero.unit) / tall
+			)
+			frame.Size = UDim2.fromOffset(
+				math.ceil(piece.long * hero.unit * k) + 1,
+				math.max(1, round(thick * hero.unit * k))
+			)
+			frame.Rotation = piece.turn
+			layer(frame)
+		end
+	end
+	local arc = TitleLayout.curve(bow.from, bow.bend, bow.to, bow.pieces)
+	stroke("Bow", arc, Config.figure, bow.thick, 1)
+	figure("Hero", hero, heroLook.body, heroLook.rims)
+	stroke("BowRim", arc, Config.rim, heroLook.bowRim.thick, heroLook.bowRim.alpha)
+	local middle = { (bow.from[1] + bow.to[1]) / 2, (bow.from[2] + bow.to[2]) / 2 }
+	stroke(
+		"BowString",
+		TitleLayout.curve(bow.from, middle, bow.to, 1),
+		Config.rim,
+		heroLook.bowString.thick,
+		heroLook.bowString.alpha
+	)
+	figure("Pet", design.pet, Config.pet.body, Config.pet.rims)
+
+	local fading: { Fading } = {}
+	local logoAt = TitleLayout.logo(design)
+
+	-- the motes, over the picture and under the logo
+	local motes: { Mote } = {}
+	local look = Config.mote
+	for _, mote in TitleLayout.motes(design) do
+		local function square(name: string, side: number): Frame
+			local frame = Instance.new("Frame")
+			frame.Name = name
+			frame.BorderSizePixel = 0
+			frame.BackgroundColor3 = look.colour
+			frame.BackgroundTransparency = 1
+			frame.AnchorPoint = Vector2.new(0.5, 0.5)
+			frame.Size =
+				UDim2.fromOffset(math.max(1, round(side * k)), math.max(1, round(side * k)))
+			layer(frame)
+			return frame
+		end
+		local function moteGlow(across: number): ImageLabel
+			local image = glowImage("MoteHalo", look.colour, 0)
+			image.Size =
+				UDim2.fromOffset(math.max(1, round(across * k)), math.max(1, round(across * k)))
+			layer(image)
+			return image
+		end
+		table.insert(motes, {
+			halo = moteGlow(mote.size * look.haloSize),
+			frame = square("Mote", mote.size),
+			x = mote.x + mote.size / 2,
+			y = mote.y + mote.size / 2,
+			delay = mote.delay,
+			loop = mote.loop,
+		})
+	end
+
+	--[[ The logo is scaled inside a holder that is placed in pixels, so the
+	     scale sizes the logo and never moves it. ]]
+	local logoHolder = Instance.new("Frame")
+	logoHolder.Name = "LogoHolder"
+	logoHolder.BackgroundTransparency = 1
+	logoHolder.Position = UDim2.fromOffset(round(logoAt.left * k), round(logoAt.top * k))
+	logoHolder.Size =
+		UDim2.fromOffset(round(logoAt.width * k), round((logoAt.bottom - logoAt.top) * k))
+	layer(logoHolder)
+	local logo = Instance.new("Frame")
+	logo.Name = "Logo"
+	logo.BackgroundTransparency = 1
+	logo.Size = UDim2.fromOffset(
+		round(logoAt.width * LOGO_INNER),
+		round((logoAt.bottom - logoAt.top) * LOGO_INNER)
+	)
+	-- held by its middle, so it lands (`step`) about its own centre
+	logo.AnchorPoint = Vector2.new(0.5, 0.5)
+	logo.Position = UDim2.fromScale(0.5, 0.5)
+	logo.Parent = logoHolder
+	local size = Instance.new("UIScale")
+	size.Scale = k / LOGO_INNER
+	size.Parent = logo
+	local logoParts = buildLogo(logo, design, logoAt, size)
+	-- a few small gold sparkles about the words, twinkling as the stars do
+	for index, spark in TitleLayout.sparkles(design) do
+		table.insert(twinkles, {
+			frames = cross(
+				"Twinkle",
+				spark.x,
+				spark.y,
+				spark.size,
+				spark.alpha,
+				Config.logo.sparkle
+			),
+			base = spark.alpha,
+			phase = 40 + index * 2.1,
+		})
+	end
+
+	collect(root, fading)
+	-- the motes and the twinkling stars fade on their own loops (`step`)
+	for index = #fading, 1, -1 do
+		local name = fading[index].item.Name
+		if name == "Mote" or name == "MoteHalo" or name == "Twinkle" then
+			table.remove(fading, index)
+		end
+	end
+
+	root.Parent = parent
+	local scene: Scene = {
+		root = root,
+		view = view,
+		design = design,
+		motes = motes,
+		twinkles = twinkles,
+		sways = sways,
+		shooting = shooting,
+		logo = logoParts,
+		fading = fading,
+		shown = 1,
+		still = reducedMotion(),
+	}
+	TitleScene.step(scene, 0, 1)
+	return scene
+end
+
+--[[ Poses the picture `t` seconds after it appeared; `shown` is 1 until
+     BEGIN ADVENTURE is pressed, then down to 0 as the title leaves. ]]
+function TitleScene.step(scene: Scene, t: number, shown: number)
+	if shown ~= scene.shown then
+		scene.shown = shown
+		fade(scene.fading, shown)
+	end
+	--[[ The logo lands on the cut, its streak shoots in arrowhead first, and
+	     a band of light crosses the gold now and then. ]]
+	local logo = scene.logo
+	logo.scale.Scale = logo.base * (if scene.still then 1 else TitleLayout.logoPop(t))
+	local grow = if scene.still then 1 else TitleLayout.streakGrow(t)
+	logo.bar.Size = UDim2.fromScale(logo.barWide * grow, logo.bar.Size.Y.Scale)
+	local tip = logo.tipFrom + logo.travel * grow
+	logo.glow.Position = UDim2.fromScale(tip - logo.glowWide * grow / 2, logo.glow.Position.Y.Scale)
+	logo.glow.Size = UDim2.fromScale(logo.glowWide * grow, logo.glow.Size.Y.Scale)
+	logo.head.Position = UDim2.fromScale(-logo.travel * (1 - grow), 0)
+	logo.head.Visible = grow > 0
+	local across = if scene.still then nil else TitleLayout.shine(t)
+	for _, band in logo.shines do
+		band.Offset = Vector2.new(if across then across * 1.2 - 0.6 else -1, 0)
+	end
+
+	local look = Config.mote
+	local wide, tall = scene.design.width, scene.design.height
+	for _, mote in scene.motes do
+		local share = if scene.still then look.ease else ((t + mote.delay) / mote.loop) % 1
+		local alpha = TitleLayout.moteAlpha(share) * shown
+		local drift = if scene.still then 0 else share
+		local at = UDim2.fromScale(
+			(mote.x + look.drift.x * drift) / wide,
+			(mote.y + look.drift.y * drift) / tall
+		)
+		mote.frame.Position = at
+		mote.frame.BackgroundTransparency = 1 - alpha
+		mote.halo.Position = at
+		mote.halo.ImageTransparency = 1 - alpha * look.haloAlpha
+	end
+	-- the scarf's end lifts and falls
+	local scarf = Config.hero.scarf
+	for _, piece in scene.sways do
+		local lift = if scene.still
+			then 0
+			else piece.reach * math.sin(2 * math.pi * scarf.speed * t + piece.phase)
+		piece.frame.Position = UDim2.fromScale(piece.x / wide, (piece.y + lift) / tall)
+	end
+	-- a shooting star crosses now and then
+	local streak, path = Config.shooting, scene.design.shooting
+	local since = (t - streak.first) % streak.every
+	if scene.still or t < streak.first or since > streak.lasts then
+		scene.shooting.BackgroundTransparency = 1
+	else
+		local share = since / streak.lasts
+		scene.shooting.Position = UDim2.fromScale(
+			(path.from[1] + (path.to[1] - path.from[1]) * share) / wide,
+			(path.from[2] + (path.to[2] - path.from[2]) * share) / tall
+		)
+		scene.shooting.BackgroundTransparency = 1 - 0.9 * math.sin(math.pi * share) * shown
+	end
+	local twinkle = Config.twinkle
+	for _, star in scene.twinkles do
+		local dim = if scene.still
+			then 0
+			else twinkle.depth * (0.5 + 0.5 * math.sin(
+				2 * math.pi * twinkle.speed * t + star.phase
+			))
+		for _, bar in star.frames do
+			bar.BackgroundTransparency = 1 - star.base * (1 - dim) * shown
+		end
+	end
+end
+
+--[[
+	BEGIN ADVENTURE: the kit's green "go" button (`Chunky.button`, so it takes
+	whatever colours the kit gives that role) with a small play triangle left
+	of its words and the kit's shine, sitting `gap` above the bottom of
+	`parent`. `scale` on the returned button is its pulse.
+]]
+function TitleScene.button(parent: Instance, view: Vector2, words: string, action: () -> ()): Button
+	local design = TitleLayout.design(view.X, view.Y)
+	local at = TitleLayout.button(design, TitleLayout.fit(design, view.X, view.Y))
+	local look = Config.button
+
+	local group = Instance.new("Frame")
+	group.Name = "BeginAdventure"
+	group.BackgroundTransparency = 1
+	group.AnchorPoint = Vector2.new(0.5, 1)
+	group.Position = UDim2.new(0.5, 0, 1, -round(at.gap))
+	group.Size = UDim2.fromOffset(round(at.width), round(at.height))
+	group.ZIndex = 20
+	group.Parent = parent
+
+	local sheet = Chunky.pointSheet(group, design.button.width, design.button.height)
+	local holder = Chunky.button(sheet, words, Chunky.green, 0, 0, sheet.w, sheet.h, action)
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Position = UDim2.fromScale(0.5, 0.5)
+	local scale = Instance.new("UIScale")
+	scale.Parent = holder
+	local hit = holder:FindFirstChildWhichIsA("TextButton", true) :: TextButton
+	local label = holder:FindFirstChild("Words", true) :: TextLabel
+	local face = label.Parent :: Frame
+
+	--[[ The words at the reference's size with the triangle to their left,
+	     the pair centred on the face; smaller only if they would not fit. ]]
+	local faceWide, faceTall = at.width, at.height * face.Size.Y.Scale
+	-- the letters' own size, and the line Roblox measures a TextSize by
+	local letters = at.words
+	local line = math.max(1, round(letters * Config.letterLine))
+	local ok, bounds = pcall(function()
+		return TextService:GetTextSize(words, line, Chunky.font, Vector2.new(1e4, 1e4))
+	end)
+	local wordsWide = if ok then bounds.X else letters * #words * 0.62
+	local iconWide, gap = look.icon.wide * letters, look.icon.gap * letters
+	local room = faceWide * 0.9
+	local shrink = math.min(1, room / (iconWide + gap + wordsWide))
+	line = math.max(1, math.floor(line * shrink))
+	letters *= shrink
+	iconWide, gap, wordsWide = iconWide * shrink, gap * shrink, wordsWide * shrink
+	local start = (faceWide - (iconWide + gap + wordsWide)) / 2
+	local slack = wordsWide * 0.04
+	label.Position = UDim2.fromScale((start + iconWide + gap - slack) / faceWide, 0.16)
+	label.Size = UDim2.fromScale((wordsWide + 2 * slack) / faceWide, 0.66)
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = line
+	limit.Parent = label
+
+	local icon = Instance.new("Frame")
+	icon.Name = "Play"
+	icon.BackgroundTransparency = 1
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.Position = UDim2.fromScale(start / faceWide, 0.49)
+	icon.Size = UDim2.fromScale(iconWide / faceWide, look.icon.tall * letters / faceTall)
+	icon.ZIndex = label.ZIndex
+	icon.Parent = face
+	local stroke = label:FindFirstChildOfClass("UIStroke")
+	local columns = 12
+	local function triangle(colour: Color3, growX: number, growY: number, z: number)
+		for column = 0, columns - 1 do
+			local high = math.max(0.1, 1 - column / columns)
+			local piece = Instance.new("Frame")
+			piece.Name = "Column"
+			piece.BorderSizePixel = 0
+			piece.BackgroundColor3 = colour
+			piece.Position = UDim2.fromScale(column / columns - growX, (1 - high) / 2 - growY)
+			piece.Size = UDim2.fromScale(1.4 / columns + 2 * growX, high + 2 * growY)
+			piece.ZIndex = z
+			piece.Parent = icon
+		end
+	end
+	if stroke and stroke.Enabled then
+		-- the words' own dark edge, round the triangle too
+		local thick = letters * 0.085
+		triangle(stroke.Color, thick / iconWide, thick / (look.icon.tall * letters), label.ZIndex)
+	end
+	triangle(label.TextColor3, 0, 0, label.ZIndex + 1)
+
+	local still = reducedMotion()
+	if not still then
+		Chunky.gleam(face)
+	end
+
+	local fading: { Fading } = {}
+	collect(group, fading)
+	return {
+		group = group,
+		hit = hit,
+		scale = scale,
+		view = view,
+		gap = round(at.gap),
+		fading = fading,
+		shown = 1,
+		still = still,
+	}
+end
+
+--[[ Poses the button: `rise` 0 to 1 as it comes up from under the screen,
+     `shown` as for the picture, `pulsing` while it waits to be pressed. ]]
+function TitleScene.poseButton(
+	button: Button,
+	t: number,
+	rise: number,
+	shown: number,
+	pulsing: boolean
+)
+	button.group.Visible = rise > 0 and shown > 0
+	button.group.Position = UDim2.new(0.5, 0, 1 + 0.25 * (1 - rise), -button.gap)
+	local pulse = if pulsing and not button.still then TitleLayout.pulse(t) else 1
+	button.scale.Scale = pulse * (0.9 + 0.1 * shown)
+	if shown ~= button.shown then
+		button.shown = shown
+		fade(button.fading, shown)
+	end
+end
+
+return TitleScene

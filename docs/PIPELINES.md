@@ -127,11 +127,13 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 3. **One upload per batch:** join the picks into one sprite (`assets/audio/sprite.py`; each sound a `region` of it in `Config/Sounds`). Roblox allows 20 audio uploads a day and 100 a month, and the owner's are scarce: see the budget below.
 4. Owner uploads the sprite to Roblox; Claude finds the id (`search_asset`, scope user) and puts it in `Config/Sounds`. An empty id is silent, so hooks are wired first.
 
-**Audio upload budget** (owner, 2026-10-25: "i only have 27 audio uploads left so make sure you keep track of that"): **24 left** (2026-10-25, after the story cutscene's music `story.ogg`, its yawn mixed in). Before asking for an upload, say what it costs and what would be left; after it, update this line in the same PR. Bundle pending sounds into one upload rather than uploading as each is picked.
+**Audio upload budget** (owner, 2026-10-25: "i only have 27 audio uploads left so make sure you keep track of that"): **15 left** (2026-11-26, after `attack_sprite_r35.mp3`, round 35's 45 pet and enemy attack sounds; 16 on 2026-11-19, after `dagger_sprite_r34.mp3`, the themed daggers' eight sounds and Thornwood's two; 17 on 2026-11-17, after `assassin_sprite_r33.mp3`, the Assassin's nine sounds; 18 on 2026-11-13, after `class_cards_sprite_r32.mp3`, the class upgrades' fourteen sounds; 19 after the night title theme `title_moonrise.ogg` on 2026-11-12, 20 before it, counted 2026-11-04 after the card sprite). Before asking for an upload, say what it costs and what would be left; after it, update this line in the same PR. Bundle pending sounds into one upload rather than uploading as each is picked.
 
 ## 8. Concept art and images
 
 Codex image generation, always (owner's rule): `codex exec` with the prompt on stdin and `-i` for reference images, signed in with the owner's account. Sheets go in `assets/concepts/`. The look is the **blocky** style (owner, 2026-10-23) for everything new.
+
+**The Assassin's sounds** were picked on 2026-11-17 (round 33) and are one sprite, `assassin_sprite_r33.mp3`: nothing is owed.
 
 **Uploading images needs no owner step** (2026-10-24): serve the PNGs from localhost (`python -m http.server <port> --bind 127.0.0.1` in their folder) and call Studio MCP's `upload_image` with `http://localhost:<port>/<file>.png` paths; it returns the `rbxassetid://` ids. Codex's own sandbox cannot write into a worktree: its image lands in `~/.codex/generated_images/<id>/exec-*.png`, named in its log. Animated icons are 2x2 sheets of 512 px frames (1024 px, Roblox's largest), played with `ImageRectOffset` (`UI/BossBanner`).
 
@@ -179,3 +181,10 @@ Every model and room's numbers, and what was done about them: [PERFORMANCE.md](P
 
 **Pitfalls seen:** Studio renders nothing while its window is in the background, so frame counts read zero and captures come back black. A long execute_luau call on the Play client that never yields fails with "Target is not reachable". The script profiler's numbers compare two runs of one scene; they are not milliseconds.
 
+## 12. A class armour set (scrapped)
+
+Scrapped on 2026-11-13 (owner, 2026-11-13: "scrap the models on the player entirely"): the sets, `Config/ClassOutfits`,
+`Util/ClassOutfit`, the models in `assets/models/armour/` and `tools/class_armour/` were
+removed, and every player wears their own avatar. The pipeline as it was (block plan, Codex
+sheet, Claude Design, `split_set.py`, the owner's import, mesh ids) is in git history at
+`8deec1f1`, if a class is ever dressed again.

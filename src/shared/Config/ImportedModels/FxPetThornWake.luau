@@ -1,0 +1,123 @@
+--!strict
+--[[
+	FxPetThornWake as the owner imported it (fx_pet_thorn_wake, a baked import). Generated
+	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
+	and the GLB; regenerate after a re-import, never hand-edit.
+
+	Each part: its GLB node's name (which Config/ModelClips keys on), mesh
+	and texture ids, colour, material, transparency, size, and its rest
+	place relative to the model's pivot (12 CFrame components), and the name of its GLB material (`surface`).
+]]
+
+return table.freeze({
+	{
+		name = "pet_thorn_wake_ring_blocks_Mesh1",
+		meshId = "rbxassetid://119795150754236",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 24, 0.8, 24 },
+		cframe = { 0, 0.4, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_ring_glow_Mesh1",
+		meshId = "rbxassetid://125638348996506",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 13, 0.2, 13 },
+		cframe = { 0, 0.1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_1_Mesh1",
+		meshId = "rbxassetid://140629981343583",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.4, 0.4, 0.4 },
+		cframe = { 7.8, 0.45, 7.8, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_2_Mesh1",
+		meshId = "rbxassetid://82754638954217",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.3, 0.3, 0.3 },
+		cframe = { 3.2, 0.4, 3.2, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_3_Mesh1",
+		meshId = "rbxassetid://112951928117203",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.4, 0.4, 0.4 },
+		cframe = { 7.8, 0.45, -7.8, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_4_Mesh1",
+		meshId = "rbxassetid://81850775283352",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.3, 0.3, 0.3 },
+		cframe = { 3.2, 0.4, -3.2, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_5_Mesh1",
+		meshId = "rbxassetid://125474709510242",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.4, 0.4, 0.4 },
+		cframe = { -7.8, 0.45, 7.8, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_6_Mesh1",
+		meshId = "rbxassetid://79967450451489",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.3, 0.3, 0.3 },
+		cframe = { -3.2, 0.4, 3.2, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_7_Mesh1",
+		meshId = "rbxassetid://124920882454186",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.4, 0.4, 0.4 },
+		cframe = { -7.8, 0.45, -7.8, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+	{
+		name = "pet_thorn_wake_spark_8_Mesh1",
+		meshId = "rbxassetid://78164048273675",
+		textureId = "",
+		color = { 1, 1, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.3, 0.3, 0.3 },
+		cframe = { -3.2, 0.4, -3.2, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
+	},
+})

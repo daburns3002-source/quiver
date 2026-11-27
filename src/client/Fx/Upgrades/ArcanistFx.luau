@@ -7,20 +7,19 @@
 	- Twin Cast: the twin orbs and their link as the cast leaves.
 	- Arcane Echo: the pale ghost that follows the cast.
 	- Spell Pierce: lance, puncture and shards at each body passed through.
-	- Chain Lightning: a zig-zag bolt of cubes to the next enemy, and the
-	  spiked node where it lands. The bolt has to reach a real enemy, so it
-	  is built here, not imported.
+	- Chain Lightning: a jagged, forked bolt that snaps from the enemy struck
+	  to the next, one hop after another (`LightningFx`, built in code: the
+	  bolt has to reach between two real enemies).
 	- Meteor: the faceted rock and its arcane trail, in place of the
 	  glowing ball.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
+local LightningFx = require(script.Parent.LightningFx)
 local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
@@ -42,144 +41,24 @@ local function atStaff(aim: Vector3): CFrame?
 	return CFrame.lookAt(at, at + heading)
 end
 
---[[ Chain Lightning's bolt: segments of cubes, pooled, kinked off the line. ]]
-local boltParts: { BasePart } = {}
-local boltFolder: Folder? = nil
-local function boltPart(): BasePart
-	local part = table.remove(boltParts)
-	if part then
-		return part
+--[[ Chain Lightning: one arc of it, as the server sends each hop (`origin`
+     and `direction` are the arc's own, `from` and `to` the enemy it leaves
+     and the one it was sent at, `speed` how fast it gets there). Drawn body
+     to body, over their heads, for every player's arcs. ]]
+local function onArc(origin: Vector3, direction: Vector3, from: Model?, to: Model?, speed: number)
+	local height = origin.Y + K.bolt.lift
+	local function over(at: Vector3): Vector3
+		return Vector3.new(at.X, height, at.Z)
 	end
-	local made = Instance.new("Part")
-	made.Name = "ChainBolt"
-	made.Anchored = true
-	made.CanCollide = false
-	made.CanQuery = false
-	made.CanTouch = false
-	made.CastShadow = false
-	made.Material = Enum.Material.Neon
-	return made
-end
-
-local function bolt(from: Vector3, to: Vector3)
-	local folder = boltFolder
-	if not folder then
-		return
-	end
-	local count = K.boltSegments
-	local pieces: { { core: BasePart, rim: BasePart } } = {}
-	for _ = 1, count do
-		local core = boltPart()
-		core.Color = K.boltCore
-		core.Parent = folder
-		local rim = boltPart()
-		rim.Color = K.boltRim
-		rim.Material = Enum.Material.SmoothPlastic
-		rim.Transparency = 0.15
-		rim.Parent = folder
-		table.insert(pieces, { core = core, rim = rim })
-	end
-	local function kink()
-		local span = to - from
-		local side = UpgradeFx.flat(span):Cross(Vector3.yAxis)
-		local points = { from }
-		for i = 1, count - 1 do
-			local along = from + span * (i / count)
-			local push = (math.random() * 2 - 1) * K.boltKink
-			table.insert(
-				points,
-				along + side * push + Vector3.new(0, (math.random() - 0.5) * K.boltKink * 0.5, 0)
-			)
-		end
-		table.insert(points, to)
-		for i, piece in pieces do
-			local a, b = points[i], points[i + 1]
-			local length = (b - a).Magnitude
-			-- fattest where it leaves and arrives, thinnest across the middle
-			local u = (i - 0.5) / count
-			local width = K.boltWidth * (0.6 + 0.4 * math.abs(u - 0.5) * 2)
-			local frame = CFrame.lookAt((a + b) / 2, b)
-			piece.core.CFrame = frame
-			piece.core.Size = Vector3.new(width * 0.35, width * 0.35, length)
-			piece.rim.CFrame = frame
-			piece.rim.Size = Vector3.new(width, width, length)
-		end
-	end
-	kink()
-	local started = os.clock()
-	local lastKink = started
-	local connection: RBXScriptConnection
-	connection = RunService.RenderStepped:Connect(function()
-		local now = os.clock()
-		if now - started >= K.boltLife then
-			connection:Disconnect()
-			for _, piece in pieces do
-				piece.core.Parent = nil
-				piece.rim.Parent = nil
-				table.insert(boltParts, piece.core)
-				table.insert(boltParts, piece.rim)
-			end
-			return
-		end
-		if now - lastKink >= K.boltCrackle then
-			lastKink = now
-			kink()
-		end
-	end)
-end
-
---[[ The enemy the server sent the chain at: the server aims it straight at
-     its target from the hit, so it is the one most nearly along the aim,
-     within the ricochet's reach. The body it leaves is skipped, or the
-     bolt is drawn to the centre of the enemy just hit, inside its body. ]]
-local function chainTarget(from: Vector3, heading: Vector3, leaving: Model): Vector3?
-	local enemies = Workspace:FindFirstChild("Enemies")
-	if not enemies then
-		return nil
-	end
-	local best, pick = K.boltAimed, nil
-	for _, enemy in enemies:GetChildren() do
-		if enemy:IsA("Model") and enemy ~= leaving then
-			local at = enemy:GetPivot().Position
-			local offset = UpgradeFx.flat(at - from)
-			local d = Vector3.new(at.X - from.X, 0, at.Z - from.Z).Magnitude
-			local along = offset:Dot(heading)
-			if
-				d > 1
-				and d <= Balance.Projectile.ricochetRange + K.boltReachSlack
-				and along > best
-			then
-				best, pick = along, at
-			end
-		end
-	end
-	return pick
-end
-
-local function onLaunched(part: BasePart, pool: string, aim: Vector3, from: Model?)
-	if pool ~= "PlayerOrb" or not from or UpgradeFx.level("ChainLightning") <= 0 then
-		return
-	end
-	do
-		-- enemy to enemy, at the orb's height
-		local height = part.Position.Y
-		local left = from:GetPivot().Position
-		local start = Vector3.new(left.X, height, left.Z)
-		local heading = UpgradeFx.flat(aim)
-		local target = chainTarget(part.Position, heading, from)
-		local to = if target
-			then Vector3.new(target.X, height, target.Z)
-			else part.Position + heading * Balance.Projectile.ricochetRange * 0.6
-		bolt(start, to)
-		SoundFx.play("fx_chain_lightning")
-		for _, at in { start, to } do
-			UpgradeFx.play("FxChainLightning", {
-				at = CFrame.new(at + Vector3.new(0, K.nodeLift, 0)),
-				life = K.boltLife + 0.1,
-				motion = UpgradeFx.pop(1, 0.1),
-			})
-		end
-	end
+	local a = over(if from and from.Parent then from:GetPivot().Position else origin)
+	--[[ An enemy this client no longer has (it died on the way) still gets
+	     its bolt, along the arc's aim. ]]
+	local b = over(
+		if to and to.Parent
+			then to:GetPivot().Position
+			else origin + UpgradeFx.flat(direction) * Balance.Projectile.ricochetRange * 0.6
+	)
+	LightningFx.strike(a, b, (b - a).Magnitude / math.max(speed, 1), from, to)
 end
 
 local function onFired(aim: Vector3)
@@ -277,11 +156,8 @@ local function onMeteor(rock: BasePart)
 end
 
 function ArcanistFx.start(parent: Instance)
-	local folder = Instance.new("Folder")
-	folder.Name = "ChainBolts"
-	folder.Parent = parent
-	boltFolder = folder
-	FxEvents.launched:connect(onLaunched)
+	LightningFx.start(parent)
+	FxEvents.arc:connect(onArc)
 	FxEvents.fired:connect(onFired)
 	FxEvents.contact:connect(onContact)
 	FxEvents.meteor:connect(onMeteor)

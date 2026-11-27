@@ -25,8 +25,16 @@ return table.freeze({
 		{ name = "EmberCluster3", parent = "Embers", rest = { 0, 1.98, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "EmberCluster4", parent = "Embers", rest = { 0, 2.88, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Chevrons", parent = "FxPetHowlAura", rest = { 0, 2.6, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "Chevron1", parent = "Chevrons", rest = { 4.1, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "Chevron2", parent = "Chevrons", rest = { 5.2, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
+		{
+			name = "Chevron1",
+			parent = "Chevrons",
+			rest = { 4.1, 0, 0, 0.7071, 0, 0, 0.7071, 1, 1, 1 },
+		},
+		{
+			name = "Chevron2",
+			parent = "Chevrons",
+			rest = { 5.2, 0, 0, 0.7071, 0, 0, 0.7071, 1, 1, 1 },
+		},
 	},
 	parts = {
 		["pet_howl_aura_AuraRing_Glow1"] = {
@@ -41,22 +49,22 @@ return table.freeze({
 		},
 		["pet_howl_aura_Chevron1_Glow1"] = {
 			joint = "Chevron1",
-			cframe = { 4.1, 2.6, 0, 0, 0, 0, 1 },
+			cframe = { 4.1, 2.6, 0, 0.7071, 0, 0, 0.7071 },
 			size = { 0.42, 0.42, 0.42 },
 		},
 		["pet_howl_aura_Chevron1_Glow2"] = {
 			joint = "Chevron1",
-			cframe = { 3.42, 2.6, 0, 0, 0, 0, 1 },
+			cframe = { 3.42, 2.6, 0, 0.7071, 0, 0, 0.7071 },
 			size = { 1.1, 2.46, 0.42 },
 		},
 		["pet_howl_aura_Chevron2_Glow1"] = {
 			joint = "Chevron2",
-			cframe = { 5.2, 2.6, 0, 0, 0, 0, 1 },
+			cframe = { 5.2, 2.6, 0, 0.7071, 0, 0, 0.7071 },
 			size = { 0.42, 0.42, 0.42 },
 		},
 		["pet_howl_aura_Chevron2_Glow2"] = {
 			joint = "Chevron2",
-			cframe = { 4.52, 2.6, 0, 0, 0, 0, 1 },
+			cframe = { 4.52, 2.6, 0, 0.7071, 0, 0, 0.7071 },
 			size = { 1.1, 2.46, 0.42 },
 		},
 		["pet_howl_aura_EmberCluster1_Glow1"] = {

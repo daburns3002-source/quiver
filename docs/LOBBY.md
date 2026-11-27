@@ -14,8 +14,25 @@ rows of portals (owner, 2026-10-25: "make sure there are 2 rows of portals with 
 locked, there should be at least 10 portals for now"; `lobby_portal_rows.png`). A forest
 clearing in the Mossy Glade's style: the Egg Hatchery in the west grove; the Blacksmith, Gear
 Station and Dex Hall in the east grove; the campfire spawn in the middle; two portal terraces
-across the north edge, ten arches in two rows of five (the back row a step up): Mossy Glade and
-Thornwood lit at the front row's west end, eight locked for the areas to come; trees, cliffs and waterfalls round the edge.
+across the north edge, ten arches in two rows of five: areas 1-5 in the front row, 6-10 in the
+back row, which stands high over the front row's wall so every arch shows from the lobby's camera,
+with steep stairs at either end of the front ledge (owner, 2026-11-19: "make the first 5 areas on
+the bottom row, then the next 5 in the next row ... the second 5 area portals should be raised so
+they are all visible"; `Config/Lobby` `perRow`, `rowRise`, `backStep`). Endless stands apart, in
+neither row (owner, same day: "endless should be off to the side"): on the courtyard floor by the
+east balustrade, in the open gap between the Hatch Eggs and the Dex Hall, turned toward the fountain
+(`portals[11].aside`), with a clear walk up to its door (`tests/Lobby.spec`). Its index stays 11, which `Remotes.PortalStart`
+carries. Its arch is its own: the **Endless Rift Gate**, built in Claude Design and approved by the
+owner as v2 ("Yes, lock v2", 2026-11-19), with a cracked obsidian frame in violet trim, cyan runes, an infinity
+sign over the door, crystals and a floating Soulstone on top. In game it is three meshes
+(`portalModels["Endless"].parts`: the stone; its runes, infinity sign and crystals drawn Neon;
+and the Soulstone, plain, since Neon turned its lilac white and its purple pink; bundled by
+`assets/models/lobby/gate_bundle.py`), with its own vortex sheet in the gate's violet and cyan
+(`assets/ui/portals/vortex_endless.png`), which stands just in front of the dark slab the build
+fills its door with (`vortexForward`). Since it stands alone and not in a row's wall, it gets
+invisible jambs and a veil so nobody walks through its sides. Where every arch stands is worked out once, in `Config/Lobby` (`archAt`, `archFoot`,
+`archTurn`, `mouthAt`), for the builder, the specs and the Studio bots. Trees, cliffs and waterfalls
+round the edge.
 
 **The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
 opens its screen (`UI/PortalScreen`, owner 2026-10-26: "need screen for portal entry with the
@@ -28,7 +45,8 @@ its levels, and a level that player has opened (`Run/Lobby.startFor`, `Util/Leve
 `SaveSchema` v2 `levelsBeaten`), locked ones dimmed under a lock, beaten ones CLEARED in gold, the
 picked one's rooms or waves on the line under them. Thornwood keeps its single card (its level, its
 boss, two COMING SOON slots up to `levelSlots`). From a run the end screen's NEXT LEVEL goes on to
-the portal's next level, and back here after its last (1-10, Thornwood); TRY AGAIN replays. Data in `Config/Lobby`, built by
+the portal's next level, and after an area's last to the next area's first (2-1 after 1-10; back here
+only after the last area built, where the button says CONTINUE; since 2026-11-16); TRY AGAIN replays. Data in `Config/Lobby`, built by
 `Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
 a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
 the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads
@@ -225,3 +243,17 @@ streaked water down each tier with a foam lip, streaming particles and spray, a 
 ledge, and a rock-ringed pool that mists), a taller bare ring behind them to close the horizon, and glowing cyan mushrooms on the
 forest floor (`Config/Lobby.backdrop`). The ruined tower and aqueduct that stood on the highest
 cliff were removed (owner: "get rid of the castle looking object completely"). The lobby is about 5,460 parts with it (the blocky trees are 8 parts each, 284 of them), not measured on a phone.
+
+**Spread out (2026-11-12).** The owner: "i want the lobby to be a little bigger and more spread
+out". Every place on the courtyard in `Config/Lobby` is now written in the plan's studs through
+`plan(x, z)`, which multiplies it by `spread` (1.3) from the lobby's centre: the clearing, the
+balustrade's outline, the four stations, the fountain, the spawn and arrival circle, the terrace,
+the leaderboards, the columns, the ruined arches and the waterfalls. The things themselves keep their
+size. The arches are `spread` further apart too (`archSpacing` 23.4), on a terrace as much wider
+(`terraceAcross` 171.6) with broader steps (`terraceSteps`). The terrace's front corners are worked
+out from the terrace, not spread, because its depth is the steps' and does not grow; `Lobby.spec`
+holds the floor to the ledge's front. Past the balustrade, the cliffs, the far ring and the
+mushrooms move out by what the clearing grew (33 studs), so the wood keeps its depth, and the motes'
+box and rate grow with the floor. The walk from the spawn to the portal steps is about 140 studs (110
+before). About 6,750 parts (5,350 before), most of the new ones trees in the wider wood; not measured
+on a phone. To make it bigger or smaller again, change `spread` alone.

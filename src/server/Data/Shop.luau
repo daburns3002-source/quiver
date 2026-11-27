@@ -7,8 +7,11 @@
 	says sets a total, a roll or an owned weapon.
 
 	- `Remotes.ShopOpenCrate(index, count, class)`: pays the chest, rolls
-	  among that class's weapons, grants it or pays back `duplicateRefund`,
-	  and answers `ShopCrateOpened`.
+	  among that class's weapons, grants it (a duplicate is one more C copy
+	  to merge, `Util/MergeRules`), and answers `ShopCrateOpened`.
+	- `Remotes.MergeItem(kind, key, tier)`: three copies of a weapon or pet
+	  at one tier into one of the next, checked here; the held weapon's new
+	  damage applies at once.
 	- `Remotes.ShopBuy(weapon)`: pays the store's price and grants it.
 	- `Remotes.ShopEquip(weapon)`: holds an owned weapon in runs (its class
 	  with it), saved; applied at once in the lobby, else from the next run.
@@ -17,20 +20,27 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
+local Analytics = require(script.Parent.Analytics)
+local EndlessPrizes = require(script.Parent.EndlessPrizes)
 local Hatchery = require(script.Parent.Hatchery)
 local Lobby = require(script.Parent.Parent.Run.Lobby)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
+local Rewards = require(script.Parent.Rewards)
 local RoomController = require(script.Parent.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Shoutouts = require(script.Parent.Shoutouts)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Shop")
@@ -65,6 +75,11 @@ local function hold(player: Player, weapon: string?)
 	RunSession.applyLoadout(session)
 end
 
+--[[ Weapons just gained: one stronger than what the player holds, for the
+     class they play, goes in hand by itself (`ShopRules.upgrade`). Set
+     below, once `classOf` is. ]]
+local takeUp: (player: Player, gained: { string }) -> ()
+
 local function openCrate(player: Player, index: unknown, count: unknown, class: unknown)
 	if
 		type(index) ~= "number"
@@ -83,14 +98,19 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 	end
 	local crate = Shop.crates[index]
 	local pool = if crate then ShopRules.cratePool(index, chest.class) else {}
-	if not crate or #pool == 0 then
+	local profile = PlayerData.get(player)
+	if
+		not crate
+		or #pool == 0
+		or not profile
+		or not ShopRules.crateOpen(index :: number, profile.bossesBeaten)
+	then
 		return
 	end
 	local n = count :: number
-	if not Wallet.pay(player, { coins = crate.price * n }) then
+	if not Wallet.pay(player, { coins = crate.price * n }, nil, "Crate", crate.name) then
 		return
 	end
-	local profile = PlayerData.get(player)
 	local mythics = Pity.mythics(pool)
 	local results = {}
 	for _ = 1, n do
@@ -103,8 +123,9 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			if profile then
 				profile.pity.crates = Pity.after(since, entry.rarity == "Mythic")
 			end
-			-- a duplicate is a C copy to merge (owner, 2026-10-28), so no refund
+			-- a duplicate is a saved C copy to merge (owner, 2026-10-28), so no refund
 			local new = Wallet.grantWeapon(player, entry.weapon)
+			Shoutouts.rolled(player, "Weapon", entry.weapon)
 			log.info(
 				"%s opened the %s %s chest: %s%s",
 				player.Name,
@@ -116,6 +137,15 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			table.insert(results, { weapon = entry.weapon, new = new })
 		end
 	end
+	local gained: { string } = {}
+	for _, result in results do
+		table.insert(gained, result.weapon)
+	end
+	takeUp(player, gained)
+	Rewards.note(player, "crates", #results)
+	if #results > 0 then
+		Analytics.cratePulled(player, crate.name, chest.class, #results)
+	end
 	crateOpened:FireClient(player, index, results, chest.class)
 end
 
@@ -125,11 +155,19 @@ local function buy(player: Player, weapon: unknown)
 	end
 	local entry = ShopRules.find(weapon)
 	local price = entry and ShopRules.price(entry)
-	if not entry or not price or Wallet.owns(player, weapon) then
+	local profile = PlayerData.get(player)
+	if
+		not entry
+		or not price
+		or Wallet.owns(player, weapon)
+		or not profile
+		or not ShopRules.buyable(entry, profile.bossesBeaten, nil, LiveState.now())
+	then
 		return
 	end
-	if Wallet.pay(player, price) then
+	if Wallet.pay(player, price, entry.rarity, "Weapon", entry.weapon) then
 		Wallet.grantWeapon(player, weapon)
+		takeUp(player, { weapon })
 	end
 end
 
@@ -151,6 +189,34 @@ local function classOf(player: Player): string?
 	return entry and entry.class
 end
 
+function takeUp(player: Player, gained: { string })
+	local profile = PlayerData.get(player)
+	if not profile then
+		return
+	end
+	local best = ShopRules.upgrade(gained, classOf(player), profile.equipped, function(weapon)
+		return Wallet.weaponTier(player, weapon)
+	end)
+	if not best then
+		return
+	end
+	Wallet.equip(player, best)
+	if RoomController.inLobby() then
+		hold(player, best)
+	else
+		--[[ Won during a run (an Endless milestone's crate, Victory's chest,
+		     a class level's): in hand from the next card or the next run,
+		     whichever comes first, since both apply the loadout
+		     (`RunSession.applyLoadout`, `resetRun`). Not applied here: that
+		     would give a fallen player health. ]]
+		local session = RunSession.get(player)
+		if session then
+			session.loadout.weapon = best
+		end
+	end
+	log.info("%s takes up the %s", player.Name, best)
+end
+
 local function equip(player: Player, weapon: unknown)
 	if type(weapon) ~= "string" or not allowed(player) then
 		return
@@ -166,12 +232,12 @@ local function equip(player: Player, weapon: unknown)
 end
 
 --[[ The class select screen's CHOOSE: the class's own weapon in hand (the
-     class with it), and the look saved. Only the playable classes. ]]
-local PLAYABLE = { Ranger = true, Arcanist = true, Warden = true }
+     class with it), and the look saved. Only a class that is open
+     (`Util/ClassList`): never one still locked on its card. ]]
 local function chooseClass(player: Player, class: unknown, look: unknown)
 	if
 		type(class) ~= "string"
-		or not PLAYABLE[class]
+		or not ClassList.isOpen(class)
 		or type(look) ~= "string"
 		or not allowed(player)
 	then
@@ -181,11 +247,9 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 	if not starter or not Wallet.owns(player, starter) then
 		return
 	end
-	--[[ The look is remembered, not worn. The player keeps their own Roblox
-	     avatar in game (owner, 2026-10-30: "own avatar is fine"), so there are
-	     no class bodies to build and nothing applies this to the character.
-	     `look` is read in one place only — `UI/ClassScreen`, to decide whether
-	     the class screen has already been answered. ]]
+	--[[ The look is saved only: the class bodies were taken out (owner,
+	     2026-11-07, "get rid of the class models entirely"), so every
+	     player wears their own Roblox avatar. ]]
 	Wallet.setLook(player, look)
 	Wallet.equip(player, starter)
 	if RoomController.inLobby() then
@@ -195,6 +259,7 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 			Lobby.place(player.Character)
 		end
 	end
+	Analytics.step(player, "ClassSelect")
 	log.info("%s chose the %s (%s)", player.Name, class, look)
 end
 
@@ -204,7 +269,7 @@ end
      class's own weapon in hand, the class with it, and both pet slots
      emptied. In the lobby only. ]]
 local function switchClass(player: Player, class: unknown)
-	if type(class) ~= "string" or not PLAYABLE[class] or not allowed(player) then
+	if type(class) ~= "string" or not ClassList.isOpen(class) or not allowed(player) then
 		return
 	end
 	local starter = Classes[class] and Classes[class].weapon
@@ -223,14 +288,39 @@ local function switchClass(player: Player, class: unknown)
 	log.info("%s switched to the %s", player.Name, class)
 end
 
+--[[ The item card's MERGE (owner, 2026-10-28: "the player has to get 3 of 1
+     tier and then they can merge into the next tier"). `Data/Wallet.merge`
+     checks the three; a merged weapon in hand gets its damage now. ]]
+local function merge(player: Player, kind: unknown, key: unknown, tier: unknown)
+	if
+		type(kind) ~= "string"
+		or type(key) ~= "string"
+		or type(tier) ~= "string"
+		or not allowed(player)
+	then
+		return
+	end
+	if Wallet.merge(player, kind, key, tier) then
+		-- for the merge goal (`Config/Goals`)
+		Rewards.note(player, "merges", 1)
+		local session = RunSession.get(player)
+		if session and RoomController.inLobby() then
+			RunSession.applyLoadout(session)
+		end
+	end
+end
+
 function ShopServer.start()
-	Remotes.event(Remotes.ChooseClass).OnServerEvent:Connect(chooseClass)
-	Remotes.event(Remotes.SwitchClass).OnServerEvent:Connect(switchClass)
-	Remotes.event(Remotes.ShopOpenCrate).OnServerEvent:Connect(openCrate)
-	Remotes.event(Remotes.ShopBuy).OnServerEvent:Connect(buy)
-	Remotes.event(Remotes.ShopEquip).OnServerEvent:Connect(equip)
+	-- a free crate's weapon goes in hand as a bought one's does
+	EndlessPrizes.takeUp = takeUp
+	Inbound.on(Remotes.ChooseClass, chooseClass)
+	Inbound.on(Remotes.SwitchClass, switchClass)
+	Inbound.on(Remotes.ShopOpenCrate, openCrate)
+	Inbound.on(Remotes.ShopBuy, buy)
+	Inbound.on(Remotes.ShopEquip, equip)
+	Inbound.on(Remotes.MergeItem, merge)
 	-- Studio only: fill the wallet to test the shop
-	Remotes.event(Remotes.DebugWallet).OnServerEvent:Connect(function(player, coins, gems, items)
+	Inbound.debug(Remotes.DebugWallet, function(player, coins, gems, items)
 		if not RunService:IsStudio() then
 			return
 		end

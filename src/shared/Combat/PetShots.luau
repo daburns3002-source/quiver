@@ -24,9 +24,9 @@ local PetShots = {}
 PetShots.MIN_FLIGHT = 0.15
 PetShots.DEFAULT_SPEED = 25
 --[[ Where `Fx/PetPreview` stands a lone pet, in its owner's root frame
-     (a column to the left, `BEHIND` back): the server measures flights from
+     (straight behind, `BEHIND` back): the server measures flights from
      here. ]]
-PetShots.HEEL = Vector3.new(-4.2, 0, 4)
+PetShots.HEEL = Vector3.new(0, 0, 2.5)
 
 --[[ The pet's first piece, if it is a projectile: its blows wait for it. ]]
 function PetShots.projectile(pet: string): Shot?

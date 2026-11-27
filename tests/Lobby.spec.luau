@@ -4,15 +4,17 @@
 	working portals lead to Mossy Glade's and Thornwood's runs, the rest are
 	locked, ten or more in two rows; the campfire spawn stands in the clearing clear of the stations;
 	the stations stand apart (2026-10-26: the gear station "almost overlaps with the blacksmith");
-	only a portal's mouth opens its screen, never the spawn or the lawn; and START on it is
-	the server's to grant (`Lobby.startFor`): only that portal, only its levels, only while
-	the player stands there.
+	only a portal's mouth opens its screen, never the spawn or the lawn; a start is the
+	server's to grant (`Lobby.levelOpen`): only an area and a level the player has opened,
+	from the portal or from the lobby's PLAY screen; and a party is only those standing in
+	that portal (`Lobby.startFor`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local Lobby = require(ServerScriptService.Server.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local LobbyCourtyard = require(ServerScriptService.Server.Run.LobbyCourtyard)
@@ -171,29 +173,79 @@ return function(t: TestRunner.Helper)
 		t.equal(bobbing[1], "EggHatchery.FloatingEgg", "which piece bobs")
 	end)
 
-	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
-		local open = {}
-		for _, portal in LobbyConfig.portals do
-			if portal.levels then
-				t.isTrue(#portal.levels >= 1, `{portal.name}'s portal has no levels`)
-				for _, index in portal.levels do
-					local stage = Balance.Stages[index]
-					t.notNil(stage, `{portal.name}'s portal names a stage that does not exist`)
-					t.isTrue(not stage.tutorial, `{portal.name}'s portal plays the tutorial`)
+	t.test(
+		"the working portals are Mossy Glade, Thornwood, Drowned Village, Bogheart Caverns and Endless",
+		function()
+			local open = {}
+			for _, portal in LobbyConfig.portals do
+				if portal.levels then
+					t.isTrue(#portal.levels >= 1, `{portal.name}'s portal has no levels`)
+					for _, index in portal.levels do
+						local stage = Balance.Stages[index]
+						t.notNil(stage, `{portal.name}'s portal names a stage that does not exist`)
+						t.isTrue(not stage.tutorial, `{portal.name}'s portal plays the tutorial`)
+					end
+					-- more than the cards hold are a grid, its rows full but the last
+					if #portal.levels > LobbyConfig.levelSlots then
+						t.isTrue(LobbyConfig.levelColumns >= 1, "a grid needs columns")
+					end
+					table.insert(open, portal.name)
 				end
-				-- more than the cards hold are a grid, its rows full but the last
-				if #portal.levels > LobbyConfig.levelSlots then
-					t.isTrue(LobbyConfig.levelColumns >= 1, "a grid needs columns")
-				end
-				table.insert(open, portal.name)
 			end
+			t.equal(
+				table.concat(open, ","),
+				"Mossy Glade,Thornwood,Drowned Village,Bogheart Caverns,Endless"
+			)
 		end
-		t.equal(table.concat(open, ","), "Mossy Glade,Thornwood,Endless")
+	)
+
+	t.test("a portal model fits between its neighbours", function()
+		for name, spec in LobbyConfig.portalModels do
+			t.isTrue(spec.size.X < LobbyConfig.archSpacing, name)
+		end
+	end)
+
+	--[[ The courtyard's floor ends where the terrace's ledge begins: a gap
+	     between them would be a hole down to the forest floor, and the
+	     ledge must be wide enough for its row of arches and their piers. ]]
+	t.test("the courtyard's floor meets the terrace's front", function()
+		local outline = LobbyConfig.courtyard.outline
+		local front = LobbyConfig.terrace.Y + LobbyConfig.rowDepth / 2
+		local edge = LobbyConfig.courtyard.terraceEdge
+		local a, b = outline[edge], outline[edge % #outline + 1]
+		for _, corner in { a, b } do
+			t.near(corner.Y, front, 1e-3, "a terrace corner is off the ledge's front")
+			t.near(
+				math.abs(corner.X),
+				LobbyConfig.terraceAcross / 2,
+				1e-3,
+				"a corner is off the ledge's end"
+			)
+		end
+		t.isTrue(
+			LobbyConfig.terraceAcross >= LobbyConfig.perRow * LobbyConfig.archSpacing + 3.4,
+			"the arcade overhangs its ledge"
+		)
+		t.isTrue(
+			LobbyConfig.terraceSteps < LobbyConfig.terraceAcross,
+			"the steps are wider than the ledge"
+		)
+	end)
+
+	--[[ The spread (owner, 2026-11-12: "a little bigger and more spread
+	     out"): the stations stand further from the fountain than the plan's
+	     first measure, and not so far that the walk between them is empty. ]]
+	t.test("the lobby is spread a little, not a lot", function()
+		t.isTrue(LobbyConfig.spread > 1 and LobbyConfig.spread <= 1.4, "the spread")
+		local blacksmith = LobbyConfig.stations[1]
+		t.equal(blacksmith.piece, "Blacksmith")
+		t.near(blacksmith.at.X, -51 * LobbyConfig.spread, 1e-3, "the Blacksmith is not spread")
+		t.near(LobbyConfig.spawn.Y, 54 * LobbyConfig.spread, 1e-3, "the spawn is not spread")
 	end)
 
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
 		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")
-		t.equal(Lobby.rowOf(#LobbyConfig.portals), 2)
+		t.equal(LobbyConfig.rows(), 2)
 		local half = LobbyConfig.size / 2
 		for index in LobbyConfig.portals do
 			local at = Lobby.archAt(index)
@@ -210,6 +262,135 @@ return function(t: TestRunner.Helper)
 				end
 			end
 		end
+	end)
+
+	--[[ The owner's layout (2026-11-19): "make the first 5 areas on the
+	     bottom row, then the next 5 in the next row. endless should be off
+	     to the side". Endless keeps index 11, which `PortalStart` carries. ]]
+	t.test("areas 1-5 stand in the front row, 6-10 in the back, Endless in neither", function()
+		local rows: { { string } } = { {}, {} }
+		local aside: { string } = {}
+		for index, portal in LobbyConfig.portals do
+			local row = Lobby.rowOf(index)
+			table.insert(if row == 0 then aside else rows[row], portal.name or "?")
+			if index > 1 and row ~= 0 and row == Lobby.rowOf(index - 1) then
+				t.isTrue(
+					Lobby.archAt(index).X > Lobby.archAt(index - 1).X,
+					`portal {index} is out of order`
+				)
+			end
+		end
+		t.equal(
+			table.concat(rows[1], ","),
+			"Mossy Glade,Thornwood,Drowned Village,Bogheart Caverns,Windswept Cliffs"
+		)
+		t.equal(
+			table.concat(rows[2], ","),
+			"Frostpeak Pass,Ember Mines,Obsidian Forge,Shattered Kingdom,Void Rift"
+		)
+		t.equal(table.concat(aside, ","), "Endless")
+		t.equal(LobbyConfig.portals[11].name, "Endless")
+	end)
+
+	--[[ "the second 5 area portals should be raised so they are all
+	     visible": the back row's ledge stands over the front row's wall,
+	     its gold cornice and the leaves along it, and its stairs fit the
+	     front ledge with treads a player can stand on. ]]
+	t.test(
+		"the back row stands clear above the front row's wall, its stairs on the front ledge",
+		function()
+			local _, front = LobbyConfig.rowCentre(1)
+			local _, back = LobbyConfig.rowCentre(2)
+			t.isTrue(
+				back > front + LobbyConfig.archWall + 2.5,
+				"the back row is hidden behind the front's wall"
+			)
+			local count = math.ceil((back - front) / LobbyConfig.backStep)
+			t.isTrue(
+				(LobbyConfig.rowDepth - 0.5) / count >= 0.9,
+				"the back stairs' treads are too narrow"
+			)
+		end
+	)
+
+	t.test(
+		"Endless stands aside on the courtyard floor, clear of the terrace and the buildings",
+		function()
+			for index, portal in LobbyConfig.portals do
+				if portal.aside then
+					t.equal(LobbyConfig.archFoot(index), 0)
+					-- its footprint, a stud spare all round: the gate from its
+					-- line out to its front, or the stone arch's backing
+					local spec = LobbyConfig.portalModels[portal.name :: string]
+					local across = if spec then spec.size.X else LobbyConfig.archWidth + 6
+					local deep = if spec then 1 + spec.size.Z else 0.8
+					local at, turn = Lobby.archAt(index), LobbyConfig.archTurn(index)
+					local right = Vector2.new(math.cos(turn), -math.sin(turn))
+					local ahead = Vector2.new(math.sin(turn), math.cos(turn))
+					-- the gate, then a walk up to its door 10 studs wide and
+					-- 16 out, so its front faces open floor, not a wall (it
+					-- stood first behind the Hatch Eggs, its door to that
+					-- building's back wall)
+					local spots = {}
+					for x = -across / 2 - 1, across / 2 + 1, 0.5 do
+						for z = -1, deep + 1, 0.5 do
+							table.insert(spots, at + right * x + ahead * z)
+						end
+					end
+					for x = -5, 5, 0.5 do
+						for z = deep + 1, deep + 16, 0.5 do
+							table.insert(spots, at + right * x + ahead * z)
+						end
+					end
+					for _, spot in spots do
+						t.isTrue(
+							LobbyCourtyard.inside(spot, 0),
+							`{portal.name} reaches the balustrade or the terrace`
+						)
+						for _, station in LobbyConfig.stations do
+							local building = LobbyConfig.buildings[station.piece]
+							if building then
+								local yaw = LobbyConfig.facing(station.at)
+								local s, c = math.sin(yaw), math.cos(yaw)
+								local d = spot - station.at
+								local size = building.size * LobbyConfig.buildingScale
+								local out = math.max(
+									math.abs(d.X * c - d.Y * s) - size.X / 2,
+									math.abs(d.X * s + d.Y * c) - size.Z / 2
+								)
+								t.isTrue(out > 0, `{portal.name} stands in {station.piece}`)
+							end
+						end
+					end
+				end
+			end
+		end
+	)
+
+	--[[ A mesh id that is wrong (or a stand-in left from before an import)
+	     leaves the stone arch where a portal's model should be. ]]
+	t.test("every portal model names real meshes and pictures", function()
+		local function real(id: string): boolean
+			return id:match("^rbxassetid://%d+$") ~= nil
+		end
+		for name, spec in LobbyConfig.portalModels do
+			t.isTrue(real(spec.mesh), `{name}'s mesh {spec.mesh}`)
+			t.isTrue(real(spec.vortex), `{name}'s vortex {spec.vortex}`)
+			if spec.parts then
+				t.equal(spec.texture, "", `{name} is in its own colours`)
+				t.equal(spec.parts[1].mesh, spec.mesh, `{name}'s mesh is its first part's`)
+				for _, piece in spec.parts do
+					t.isTrue(real(piece.mesh), `{name}'s part {piece.mesh}`)
+					t.isTrue(
+						piece.middle.Y + piece.size.Y / 2 <= spec.size.Y + 1e-3,
+						`{name}'s part pokes out`
+					)
+				end
+			else
+				t.isTrue(real(spec.texture), `{name}'s texture {spec.texture}`)
+			end
+		end
+		t.notNil(LobbyConfig.portalModels["Endless"], "Endless has its own gate")
 	end)
 
 	t.test("the spawn is in the clearing, clear of every station", function()
@@ -336,7 +517,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("each row of arches is centred on the carpet", function()
-		for row = 1, Lobby.rowOf(#LobbyConfig.portals) do
+		for row = 1, LobbyConfig.rows() do
 			local sum = 0
 			for index in LobbyConfig.portals do
 				if Lobby.rowOf(index) == row then
@@ -368,8 +549,10 @@ return function(t: TestRunner.Helper)
 
 	local origin = LobbyConfig.origin
 	local function mouthOf(index: number, ahead: number?): Vector3
-		local at = Lobby.archAt(index)
-		return origin + Vector3.new(at.X, 3, at.Y + LobbyConfig.mouthAhead + (ahead or 0))
+		local turn = LobbyConfig.archTurn(index)
+		local at = LobbyConfig.mouthAt(index)
+			+ Vector2.new(math.sin(turn), math.cos(turn)) * (ahead or 0)
+		return origin + Vector3.new(at.X, 3, at.Y)
 	end
 
 	t.test("only a portal's mouth opens its screen", function()
@@ -403,27 +586,41 @@ return function(t: TestRunner.Helper)
 	     no cards and no gear it is a death at floor 6). The server is the
 	     one that decides, so this goes through `Lobby.startFor` rather
 	     than the screen. ]]
-	t.test("Endless is open in playtest, and only from its own mouth", function()
-		local index, portal = nil, nil
-		for i, p in LobbyConfig.portals do
-			if p.name == "Endless" then
-				index, portal = i, p
+	t.test(
+		"Endless is open in playtest, after 1-10 at launch, and only from its own mouth",
+		function()
+			local index, portal = nil, nil
+			for i, p in LobbyConfig.portals do
+				if p.name == "Endless" then
+					index, portal = i, p
+				end
 			end
-		end
-		assert(index and portal, "no Endless portal")
-		t.equal(portal.requires, nil)
-		local levels = portal.levels :: { number }
-		t.equal(#levels, 1)
-		t.equal(Balance.Stages[levels[1]].mode, "Endless")
+			assert(index and portal, "no Endless portal")
+			t.equal(portal.requires, nil)
+			local levels = portal.levels :: { number }
+			t.equal(#levels, 1)
+			t.equal(Balance.Stages[levels[1]].mode, "Endless")
 
-		local at = mouthOf(index)
-		t.equal(Lobby.startFor(at, index, 1, nil), levels[1])
-		t.equal(Lobby.startFor(at, index, 1, { ["1-1"] = true }), levels[1])
-		t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
-		-- and still only from its own mouth
-		local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
-		t.isTrue(Lobby.startFor(spawn, index, 1, nil) == nil, "Endless started from the campfire")
-	end)
+			local at = mouthOf(index)
+			-- the launch switch off (playtest): open to anyone
+			t.equal(Lobby.levelOpen(index, 1, nil, nil, false), levels[1])
+			t.equal(Lobby.levelOpen(index, 1, { ["1-1"] = true }, nil, false), levels[1])
+			-- on (as released, since 2026-11-19): only once 1-10 is beaten
+			t.isTrue(
+				Lobby.levelOpen(index, 1, { ["1-1"] = true }, nil, true) == nil,
+				"Endless before 1-10"
+			)
+			t.equal(Lobby.levelOpen(index, 1, { ["1-10"] = true }, nil, true), levels[1])
+			-- started from its mouth with 1-10 beaten, whichever way the switch is
+			t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
+			-- and only from its own mouth
+			local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
+			t.isTrue(
+				Lobby.startFor(spawn, index, 1, { ["1-10"] = true }) == nil,
+				"Endless started from the campfire"
+			)
+		end
+	)
 
 	t.test("START is granted only for a level the player has opened", function()
 		local glade = LobbyConfig.portals[1]
@@ -479,5 +676,62 @@ return function(t: TestRunner.Helper)
 				t.isTrue(Lobby.startFor(mouthOf(index), index, 1) == nil, `started locked {index}`)
 			end
 		end
+	end)
+
+	--[[ The lobby's PLAY screen starts a run from anywhere in the lobby
+	     (owner, 2026-11-14), so the start itself is granted by
+	     `Lobby.levelOpen`, with no place in it: only the saved profile
+	     decides. A forged area or level gets nothing. ]]
+	t.test("PLAY's screen starts only an area and a level the player has opened", function()
+		local glade = LobbyConfig.portals[1].levels :: { number }
+		-- nothing beaten: 1-1 and no further
+		t.equal(Lobby.levelOpen(1, 1, {}, {}), glade[1])
+		t.equal(Lobby.levelOpen(1, 1, nil, nil), glade[1])
+		t.isTrue(Lobby.levelOpen(1, 2, {}, {}) == nil, "started 1-2 with 1-1 unbeaten")
+		t.isTrue(Lobby.levelOpen(1, #glade, nil, nil) == nil, "started the boss level unbeaten")
+		t.equal(Lobby.levelOpen(1, 2, { ["1-1"] = true }, {}), glade[2])
+		-- not numbers, not whole, not there
+		t.isTrue(Lobby.levelOpen(1, #glade + 1, {}, {}) == nil, "started a level past the last")
+		t.isTrue(Lobby.levelOpen(1, 0, {}, {}) == nil, "started level 0")
+		t.isTrue(Lobby.levelOpen(1, 1.5, {}, {}) == nil, "started level 1.5")
+		t.isTrue(Lobby.levelOpen(1, 0 / 0, {}, {}) == nil, "started a NaN level")
+		t.isTrue(Lobby.levelOpen("1", 1, {}, {}) == nil, "started a string portal")
+		t.isTrue(Lobby.levelOpen(1, "1", {}, {}) == nil, "started a string level")
+		t.isTrue(Lobby.levelOpen(nil, nil, {}, {}) == nil, "started nothing")
+		t.isTrue(Lobby.levelOpen(0, 1, {}, {}) == nil, "started portal 0")
+		t.isTrue(Lobby.levelOpen(99, 1, {}, {}) == nil, "started a portal that does not exist")
+		for index, portal in LobbyConfig.portals do
+			if not portal.levels then
+				t.isTrue(
+					Lobby.levelOpen(index, 1, {}, {}) == nil,
+					`started the unbuilt area {index}`
+				)
+			end
+		end
+	end)
+
+	t.test("at launch a locked area cannot be started, whatever the client asks", function()
+		for index, portal in LobbyConfig.portals do
+			local levels = portal.levels
+			local gate = LaunchLocks.portalGate(portal, true)
+			if levels and (gate.requires or gate.boss) then
+				local name = portal.name or tostring(index)
+				t.isTrue(
+					Lobby.levelOpen(index, 1, {}, {}, true) == nil,
+					`{name} started while locked`
+				)
+				t.isTrue(
+					Lobby.levelOpen(index, 1, nil, nil, true) == nil,
+					`{name} started with no profile`
+				)
+				-- what it waits on beaten, its first level opens
+				local beaten = if gate.requires then { [gate.requires] = true } else {}
+				local bosses = if gate.boss then { [gate.boss] = true } else {}
+				t.equal(Lobby.levelOpen(index, 1, beaten, bosses, true), levels[1])
+			end
+		end
+		-- and the first area waits on nothing
+		local glade = LobbyConfig.portals[1].levels :: { number }
+		t.equal(Lobby.levelOpen(1, 1, {}, {}, true), glade[1])
 	end)
 end

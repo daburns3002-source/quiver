@@ -13,7 +13,7 @@
 	sides, round grey boulders, puffy round trees, waterfalls, cottages with
 	coloured roofs, wooden signs and round wooden egg platforms. Everything is
 	built at boot from plain smooth parts (`Run/Lobby`); the words alone are
-	in the blocky font. The one exception is the Dex Hall's two books
+	in the game's font. The one exception is the Dex Hall's two books
 	(`dex` below), which the owner modelled and imported himself
 	(2026-11-01: "i made the book that goes on the roof and also the book
 	stand that is on the ground in front of it") -- an open book's pages
@@ -42,6 +42,36 @@ export type DexPiece = {
 	across: number,
 }
 
+--[[ One mesh of a portal built from a Claude Design bundle: its size in studs,
+     and its middle from the middle of the portal's foot, as the bundle
+     prints them. A `neon` one is drawn Neon, its colours in the mesh. ]]
+export type PortalPart = {
+	mesh: string,
+	size: Vector3,
+	middle: Vector3,
+	neon: boolean?,
+}
+
+--[[ An area's portal as its doorway is built from the area itself: the frame's
+     import, and its vortex's sheet (`portalVortex`). A Claude Design build
+     comes as `parts` in its own vertex colours (no `texture`): `mesh` is then
+     its first part's, and `size` the whole portal's. `vortexFoot` stands its
+     vortex at another height than `portalVortex.foot`, for a taller doorway,
+     and `vortexForward` further forward than `portalVortex.forward`, in front
+     of a dark slab the build fills its door with. `signLift` raises the name
+     sign over something that stands on the doorway's top. ]]
+export type PortalModel = {
+	mesh: string,
+	texture: string,
+	size: Vector3,
+	vortex: string,
+	glow: Color3,
+	parts: { PortalPart }?,
+	vortexFoot: number?,
+	vortexForward: number?,
+	signLift: number?,
+}
+
 export type Portal = {
 	--[[ The area's name on its sign, and its levels: the `Balance.Stages`
 	     index each plays, in order, offered on the portal's screen
@@ -57,6 +87,18 @@ export type Portal = {
 	     boss is the proof the mode is worth opening (`docs/ENDLESS.md`).
 	     Nil for a portal that needs nothing. ]]
 	requires: string?,
+	--[[ What this portal waits on once the game is locked for launch
+	     (`Config/Launch.locks`, read through `Util/LaunchLocks`): a level
+	     that must be beaten, as `requires`, or an area whose boss must be.
+	     Nil for the first area, which nothing gates. While the switch is
+	     off this is not read, and the portal is as open as it is today. ]]
+	atLaunch: { requires: string?, boss: string? }?,
+	--[[ A portal that stands apart from the areas' two rows (Endless, owner,
+	     2026-11-19: "endless should be off to the side"): the middle of its
+	     foot on the courtyard floor, in plan studs, and how far it is turned
+	     from facing south, radians about Y (negative turns its front west).
+	     Nil for an area's arch, which stands in its row on the terrace. ]]
+	aside: { at: Vector2, turn: number }?,
 }
 
 --[[ A station's footprint and height, which the spacing between stations is
@@ -83,7 +125,49 @@ export type Building = {
 
 	A station standing on the middle line is left unturned.
 ]]
-local MIDDLE = Vector2.new(0, 6)
+--[[
+	How far the plan is spread out (owner, 2026-11-12: "i want the lobby to be
+	a little bigger and more spread out"). Every place on the courtyard below
+	is written in the plan's studs, as the layout sheet measured them, through
+	`plan`, which spreads it from the lobby's centre; the things themselves
+	(the buildings, the fountain, the arches, the circles) keep their size.
+	The terrace's front and its corners are worked out from the terrace rather
+	than spread, since its depth is the steps' and does not grow. Past the
+	balustrade the wood and the cliffs move out by what the clearing grew
+	(`OUTWARD`), so the forest round it keeps its depth.
+]]
+--[[ `count` stages from `first` on, in order: an area's levels
+     (`Balance.Stages`, `tools/area_levels.py`). ]]
+local function stageRun(first: number, count: number): { number }
+	local list = {}
+	for index = first, first + count - 1 do
+		table.insert(list, index)
+	end
+	return list
+end
+
+local SPREAD = 1.3
+local function plan(x: number, z: number): Vector2
+	return Vector2.new(x, z) * SPREAD
+end
+local OUTWARD = 110 * (SPREAD - 1)
+local function pushed(range: NumberRange): NumberRange
+	return NumberRange.new(range.Min + OUTWARD, range.Max + OUTWARD)
+end
+
+local MIDDLE = plan(0, 6)
+local SPAWN = plan(0, 54)
+local TERRACE = plan(0, -66)
+local ROW_DEPTH = 19.2
+local PER_ROW = 5
+local ARCH_SPACING = 18 * SPREAD
+--[[ The portal terraces' width, the arches and a margin either side, and the
+     line of its front, where the courtyard's floor meets it. It keeps the
+     width it had at six to a row, one arch more than a row holds now, so
+     the courtyard's outline is unchanged and the back row's stairs have
+     room beyond the ends of the front row's wall. ]]
+local TERRACE_ACROSS = (PER_ROW + 1) * ARCH_SPACING + 24 * SPREAD
+local TERRACE_FRONT = TERRACE.Y + ROW_DEPTH / 2
 local TURN_IN = 0.25
 
 local function facingSouth(at: Vector2): number
@@ -107,40 +191,54 @@ end
 local GREEN = Color3.fromRGB(80, 230, 70)
 local PURPLE = Color3.fromRGB(140, 60, 235)
 local CYAN = Color3.fromRGB(70, 220, 224)
+local BLUE = Color3.fromRGB(60, 150, 235)
 
 local Lobby = {
 	--[[ Which way a building faces, and where a thing placed in front of
 	     it lands once it is turned. See `facingSouth` above. ]]
 	facing = facingSouth,
 	turnedOffset = turnedOffset,
+	--[[ How far the plan is spread out. See `SPREAD` above. ]]
+	spread = SPREAD,
 
 	--[[ Where the lobby's centre stands in the world: well away from the
 	     arena at the origin. ]]
 	origin = Vector3.new(0, 0, 1000),
 	--[[ The walkable clearing, studs across (X) and deep (Z). ]]
-	size = Vector2.new(220, 192),
+	size = plan(220, 192),
 	--[[ The fountain, which all four buildings face, halfway between their
 	     rows. ]]
 	middle = MIDDLE,
 	--[[ Where a player appears: the middle of the arrival circle. ]]
-	spawn = Vector2.new(0, 54),
+	spawn = SPAWN,
 
 	--[[ The portal terraces across the north edge: two rows of arches
 	     (owner, 2026-10-25: "make sure there are 2 rows of portals"), each
 	     on a marble ledge with broad marble steps up its front. `terrace` is the front row's centre; the back row stands
 	     `rowDepth` studs behind it and `rowRise` higher. `ledge` is the
-	     front row's height above the lawn. ]]
-	terrace = Vector2.new(0, -66),
-	rowDepth = 19.2,
-	rowRise = 7,
+	     front row's height above the lawn. The back row stands clear above
+	     the front row's wall, its cornice and the leaves on it (owner,
+	     2026-11-19: "the second 5 area portals should be raised so they are
+	     all visible"), and its stairs climb at the ends of the front ledge,
+	     steeper than the front's (`backStep`, the most a step rises) so they
+	     fit its depth. ]]
+	terrace = TERRACE,
+	rowDepth = ROW_DEPTH,
+	rowRise = 22,
 	ledge = 9,
-	--[[ Six to a row since 2026-10-27, so the eleventh arch (Endless) joins
-	     the areas without opening a third row — the owner's "make sure there
-	     are 2 rows of portals" stands. ]]
-	perRow = 6,
-	archSpacing = 18,
-	--[[ The arches, front row west to east, then the back row: the two
-	     areas built so far, then eight locked, and Endless last. ]]
+	backStep = 1.1,
+	--[[ Five to a row (owner, 2026-11-19: "make the first 5 areas on the
+	     bottom row, then the next 5 in the next row"): areas 1-5 in front,
+	     6-10 behind and above. Endless is in neither (its `aside`). ]]
+	perRow = PER_ROW,
+	archSpacing = ARCH_SPACING,
+	--[[ The terraces' width, which the courtyard's corners at their front
+	     meet, and the front row's broad steps up the middle. ]]
+	terraceAcross = TERRACE_ACROSS,
+	terraceSteps = 52 * SPREAD,
+	--[[ The arches, front row west to east, then the back row, the areas in
+	     order, then Endless, which stands aside. The index is what
+	     `Remotes.PortalStart` carries, so Endless stays 11. ]]
 	portals = {
 		{
 			name = "Mossy Glade",
@@ -149,9 +247,33 @@ local Lobby = {
 			levels = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
 			tint = GREEN,
 		},
-		{ name = "Thornwood", levels = { 4 }, tint = PURPLE },
-		{ name = "Drowned Village" },
-		{ name = "Bogheart Caverns" },
+		--[[ Thornwood 2-1..2-10 (owner, 2026-11-13: "there is 10 levels for
+		     area 1, there should also be 10 for area 2, 15 for 3, 15 for 4"),
+		     the Broodmother only at the end of 2-10. Each area's levels are
+		     `Balance.Stages` in a run (`tools/area_levels.py`). ]]
+		{
+			name = "Thornwood",
+			levels = stageRun(20, 10),
+			tint = PURPLE,
+			atLaunch = { requires = "1-10" },
+		},
+		--[[ The Drowned Village (2026-11-07, owner: "MAKE SURE ARENA 3 AND 4
+		     ARE PLAYABLE"): 3-1..3-15 since 2026-11-13, the Old Tollcrab only
+		     at the end of 3-15. ]]
+		{
+			name = "Drowned Village",
+			levels = stageRun(30, 15),
+			tint = BLUE,
+			atLaunch = { boss = "Thornwood" },
+		},
+		--[[ Bogheart Caverns (2026-11-06): 4-1..4-15 since 2026-11-13,
+		     Grandmother Gulp only at the end of 4-15. ]]
+		{
+			name = "Bogheart Caverns",
+			levels = stageRun(45, 15),
+			tint = CYAN,
+			atLaunch = { boss = "DrownedVillage" },
+		},
 		{ name = "Windswept Cliffs" },
 		{ name = "Frostpeak Pass" },
 		{ name = "Ember Mines" },
@@ -160,13 +282,25 @@ local Lobby = {
 		{ name = "Void Rift" },
 		--[[ Endless (`docs/ENDLESS.md`, `Balance.endlessStage`): one
 		     "level", opened by beating Mossy Glade 1-10 (`requires`). Last
-		     of the arches so the ten areas keep their order in the rows. ]]
+		     of the arches so the ten areas keep their order in the rows.
+		     It stands apart (owner, 2026-11-19: "endless should be off to
+		     the side"): on the courtyard floor by the east balustrade, in
+		     the open gap between the Hatch Eggs and the Dex Hall, turned
+		     toward the fountain, so it shows from the spawn when a player
+		     turns east. (Tucked behind the Hatch Eggs at first, its door
+		     faced that building's back wall and only its sign showed.) ]]
 		--[[ Open to everyone while the game is in playtest (owner,
 		     2026-10-28: "since its still in playtest phase, that should
-		     just be unlocked for now"). Before launch this takes
-		     `requires = "1-10"` back: with no cards and no gear Endless
-		     is a death at floor 6 (`docs/ENDLESS.md`). ]]
-		{ name = "Endless", levels = { 17 }, tint = CYAN },
+		     just be unlocked for now"). At launch (`Config/Launch.locks`)
+		     it waits on 1-10 again: with no cards and no gear Endless is
+		     a death at floor 6 (`docs/ENDLESS.md`). ]]
+		{
+			name = "Endless",
+			levels = { 17 },
+			tint = CYAN,
+			atLaunch = { requires = "1-10" },
+			aside = { at = plan(61.5, 4.6), turn = -1.65 },
+		},
 	} :: { Portal },
 	--[[
 		The owner's imported lobby models (2026-11-01). `native` is each
@@ -217,6 +351,115 @@ local Lobby = {
 	archWidth = 11,
 	archSides = 7.5,
 	archWall = 19,
+	--[[ The first six areas' portals (owner, 2026-11-09: "these portals should
+	     make the player want to go into them"), built in Claude Design from
+	     `assets/concepts/blocky/lobby/portals/all_portals_sheet.png`. An area
+	     with none here, or whose mesh fails to load, keeps the stone arch. ]]
+	portalModels = {
+		["Mossy Glade"] = {
+			mesh = "rbxassetid://138140072246137",
+			texture = "rbxassetid://85684207475910",
+			size = Vector3.new(14, 16, 4.11),
+			vortex = "rbxassetid://115423428634010",
+			glow = Color3.fromRGB(98, 255, 82),
+		},
+		["Thornwood"] = {
+			mesh = "rbxassetid://84206817791982",
+			texture = "rbxassetid://100841004022404",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://127070896945127",
+			glow = Color3.fromRGB(255, 92, 240),
+		},
+		["Drowned Village"] = {
+			mesh = "rbxassetid://88110060463725",
+			texture = "rbxassetid://98345996998810",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://121845901049381",
+			glow = Color3.fromRGB(82, 255, 216),
+		},
+		["Bogheart Caverns"] = {
+			mesh = "rbxassetid://108435223996759",
+			texture = "rbxassetid://103828695589809",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://85884628214680",
+			glow = Color3.fromRGB(82, 243, 255),
+		},
+		["Windswept Cliffs"] = {
+			mesh = "rbxassetid://132513326915749",
+			texture = "rbxassetid://105533971775105",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://93801931241590",
+			glow = Color3.fromRGB(92, 176, 255),
+		},
+		["Frostpeak Pass"] = {
+			mesh = "rbxassetid://132514192792899",
+			texture = "rbxassetid://73042383764143",
+			size = Vector3.new(14, 15.9, 4),
+			vortex = "rbxassetid://89240563088907",
+			glow = Color3.fromRGB(154, 223, 255),
+		},
+		--[[ The Endless Rift Gate (owner, 2026-11-19: "make the portal for
+		     endless look cooler"), Claude Design v2 bundled by
+		     `assets/models/lobby/gate_bundle.py`: its stone, and its runes,
+		     crystals and Soulstone glowing. Its vortex is Design's colours on
+		     the shared sheet, its heart 5.5 studs up as in the build. ]]
+		["Endless"] = {
+			mesh = "rbxassetid://103147511344651",
+			texture = "",
+			size = Vector3.new(18.087, 20, 5.024),
+			vortex = "rbxassetid://71023668996508",
+			glow = Color3.fromRGB(154, 77, 255),
+			parts = {
+				{
+					mesh = "rbxassetid://103147511344651",
+					size = Vector3.new(18.087, 16.077, 5.024),
+					middle = Vector3.new(0, 8.039, 0),
+				},
+				-- runes, the infinity sign, the crystals
+				{
+					mesh = "rbxassetid://97862318394495",
+					size = Vector3.new(18.087, 15.072, 5.024),
+					middle = Vector3.new(0, 8.039, 0),
+					neon = true,
+				},
+				--[[ The floating Soulstone, apart and not Neon: Neon drew its
+				     lilac white and its purple pink or blue under any tint
+				     (seen in Studio, 2026-11-19). Plain, in the lobby's light,
+				     it reads as the build's lilac top and purple middle, as
+				     the gate's own lilac trim does. ]]
+				{
+					mesh = "rbxassetid://92473744736948",
+					size = Vector3.new(7.536, 3.768, 5.024),
+					middle = Vector3.new(0, 18.116, 0),
+				},
+			},
+			vortexFoot = 1.4,
+			--[[ The build's door is a near-black slab (`Abyss`) a stud thick
+			     through the middle, which its 3D vortex reached through; the
+			     sheet stands just in front of it. ]]
+			vortexForward = 0.75,
+			--[[ Clear of the floating Soulstone, which reaches the top. ]]
+			signLift = 1.5,
+		},
+	} :: { [string]: PortalModel },
+	--[[ Every portal's vortex is Bogheart Caverns's, cell for cell, recoloured
+	     (owner, 2026-11-09: "take the exact inner portal for bogheart and put
+	     it into the rest"): `assets/ui/portals/`, four rows of four frames of
+	     its stepped spin. Studs across and high, its foot above the portal's,
+	     how far forward of the portal's middle it stands, and the height of
+	     the spiral's heart, which pulses. `step` is seconds a frame. ]]
+	portalVortex = {
+		size = Vector2.new(7, 8),
+		foot = 1,
+		forward = 0.2,
+		heart = 5.1,
+		cell = Vector2.new(224, 256),
+		columns = 4,
+		frames = 16,
+		step = 0.11,
+		pulse = "rbxassetid://72053512669132",
+		tag = "PortalVortex",
+	},
 	--[[ The dark of a locked arch, and each open arch's plaque, by its name. ]]
 	archDark = Color3.fromRGB(32, 26, 34),
 	plaques = {
@@ -228,7 +471,7 @@ local Lobby = {
 	--[[ Studs from an active arch's mouth a player must come within for its
 	     screen to open (`UI/PortalScreen`), and how much further the server
 	     still grants START from, for the time the press takes to arrive. ]]
-	portalReach = 7,
+	portalReach = 8.5,
 	startSlack = 4,
 	--[[ The level selector's slots per area: its levels, then locked ones
 	     (COMING SOON) up to this many. ]]
@@ -259,21 +502,22 @@ local Lobby = {
 		and the portals beyond it.
 
 		The two northern ones stand clear of the portal terraces, whose
-		front ledge reaches z = -56.4: grown by `buildingScale` and turned in,
-		they reach about z = -51. The rows stand 68 studs apart, so a northern
-		building is not hidden behind a southern one's roof from the camera,
-		and x = 51 north and 56 south keeps their outer corners inside the
-		balustrade, whose northern corners are cut on the slant.
+		front ledge reaches z = -76.2: grown by `buildingScale` and turned in,
+		they reach about z = -59. The rows stand 68 plan studs apart (88 once
+		spread), so a northern building is not hidden behind a southern one's
+		roof from the camera, and x = 51 north and 56 south keeps their outer
+		corners inside the balustrade, whose northern corners are cut on the
+		slant.
 
 		The spawn's fountain keeps its old name `SpawnCampfire`, for the
 		screens that look it up. `Lobby.spec` keeps every footprint apart,
 		measured as each one is actually turned.
 	]]
 	stations = {
-		{ piece = "Blacksmith", at = Vector2.new(-51, -28) },
-		{ piece = "EggHatchery", at = Vector2.new(51, -28) },
-		{ piece = "GearStation", at = Vector2.new(-56, 40) },
-		{ piece = "DexHall", at = Vector2.new(56, 40) },
+		{ piece = "Blacksmith", at = plan(-51, -28) },
+		{ piece = "EggHatchery", at = plan(51, -28) },
+		{ piece = "GearStation", at = plan(-56, 40) },
+		{ piece = "DexHall", at = plan(56, 40) },
 		{ piece = "SpawnCampfire", at = MIDDLE },
 	} :: { Placed },
 
@@ -345,19 +589,20 @@ local Lobby = {
 		Lobby B's ground and ruins (`Run/LobbyCourtyard`), measured off the
 		sheet's plan: the outline the balustrade follows, clockwise from the
 		terrace's south-west corner, its corners cut as the plan cuts them.
+		The first and last points are the terrace's front corners.
 	]]
 	courtyard = {
 		outline = {
-			Vector2.new(-66, -56.4),
-			Vector2.new(-86, -36),
-			Vector2.new(-86, 58),
-			Vector2.new(-58, 88),
-			Vector2.new(-14, 88),
-			Vector2.new(14, 88),
-			Vector2.new(58, 88),
-			Vector2.new(86, 58),
-			Vector2.new(86, -36),
-			Vector2.new(66, -56.4),
+			Vector2.new(-TERRACE_ACROSS / 2, TERRACE_FRONT),
+			plan(-86, -36),
+			plan(-86, 58),
+			plan(-58, 88),
+			plan(-14, 88),
+			plan(14, 88),
+			plan(58, 88),
+			plan(86, 58),
+			plan(86, -36),
+			Vector2.new(TERRACE_ACROSS / 2, TERRACE_FRONT),
 		},
 		--[[ Which edges have no balustrade: the south stairs' top (5) and the
 		     terrace's foot (10, which also has no wall: players walk onto it). ]]
@@ -381,23 +626,25 @@ local Lobby = {
 		plazaInner = 33,
 		lilies = 9,
 		hedge = 22,
-		arrival = { at = Vector2.new(0, 54), across = 30, inner = 17, walk = 6 },
+		arrival = { at = SPAWN, across = 30, inner = 17, walk = 6 },
 		southGap = 14,
 		balustrade = { bay = 11, tall = 5.2, balusters = 3, broken = 0.2, rubble = 0.08 },
+		--[[ Each column stands about as far in from the balustrade as it
+		     did before the plan was spread, so it stays at the wall. ]]
 		columns = {
-			{ at = Vector2.new(-82, -34), tall = 18 },
-			{ at = Vector2.new(82, -34), tall = 15 },
-			{ at = Vector2.new(-83, 2), tall = 13 },
-			{ at = Vector2.new(83, 8), tall = 20 },
-			{ at = Vector2.new(-83, 44), tall = 21 },
-			{ at = Vector2.new(83, 42), tall = 14 },
-			{ at = Vector2.new(-56, 84), tall = 12 },
-			{ at = Vector2.new(56, 84), tall = 16 },
-			{ at = Vector2.new(-62, -53), tall = 11 },
-			{ at = Vector2.new(62, -53), tall = 10 },
+			{ at = plan(-86, -34) + Vector2.new(4, 0), tall = 18 },
+			{ at = plan(86, -34) - Vector2.new(4, 0), tall = 15 },
+			{ at = plan(-86, 2) + Vector2.new(3, 0), tall = 13 },
+			{ at = plan(86, 8) - Vector2.new(3, 0), tall = 20 },
+			{ at = plan(-86, 44) + Vector2.new(3, 0), tall = 21 },
+			{ at = plan(86, 42) - Vector2.new(3, 0), tall = 14 },
+			{ at = plan(-56, 88) - Vector2.new(0, 4), tall = 12 },
+			{ at = plan(56, 88) - Vector2.new(0, 4), tall = 16 },
+			{ at = Vector2.new(-TERRACE_ACROSS / 2 + 4, TERRACE_FRONT + 3.4), tall = 11 },
+			{ at = Vector2.new(TERRACE_ACROSS / 2 - 4, TERRACE_FRONT + 3.4), tall = 10 },
 		} :: { { at: Vector2, tall: number } },
 		ruinArch = {
-			at = { Vector2.new(-88, -70), Vector2.new(88, -70) },
+			at = { plan(-88, -70), plan(88, -70) },
 			across = 16,
 			tall = 30,
 		},
@@ -408,13 +655,18 @@ local Lobby = {
 	     negative latitude is what puts Roblox's sun north. These are the
 	     fields of `Balance.Lighting`, for `Arena/Atmosphere`. ]]
 	light = {
-		ambient = Color3.fromRGB(170, 122, 114),
-		outdoorAmbient = Color3.fromRGB(216, 160, 148),
-		brightness = 1.9,
+		--[[ The owner's lighting, set by hand in Studio (2026-11-08): these
+		     two ambients, the brightness, the shadow softness, the grade's
+		     brightness and the three `glow`, `colour` and `sunRays` effects. ]]
+		--[[ Then about a quarter off (owner, 2026-11-08: "take some lighting
+		     off of the objects"): was 124/155/184, 157/178/255 and 4. ]]
+		ambient = Color3.fromRGB(99, 124, 147),
+		outdoorAmbient = Color3.fromRGB(126, 142, 204),
+		brightness = 3,
 		clockTime = 9.5,
 		geographicLatitude = -20,
 		sunTint = Color3.fromRGB(255, 186, 128),
-		shadowSoftness = 0.4,
+		shadowSoftness = 1,
 		environmentDiffuse = 0.8,
 		environmentSpecular = 0.2,
 		bloomIntensity = 0.3,
@@ -422,8 +674,19 @@ local Lobby = {
 		bloomThreshold = 1.6,
 		saturation = 0.08,
 		contrast = 0.08,
-		gradeBrightness = 0,
+		gradeBrightness = -0.06,
 		gradeTint = Color3.fromRGB(255, 238, 226),
+		--[[ On top of the bloom and grade above, in the lobby only. ]]
+		glow = { intensity = 1, size = 56, threshold = 2 },
+		--[[ 0.5 and 0.5 until 2026-11-15: the floor was nearly white and the
+		     colours shouted (the run-through, 2026-11-14). ]]
+		colour = {
+			saturation = 0.2,
+			contrast = 0.15,
+			brightness = 0,
+			tint = Color3.fromRGB(243, 234, 255),
+		},
+		sunRays = { intensity = 0.01, spread = 0.1 },
 		--[[ Thin and blue: the warm haze this used to be turned the whole sky
 		     grey, and its glare whitened the trees towards the sun. ]]
 		hazeDensity = 0.1,
@@ -436,12 +699,34 @@ local Lobby = {
 	--[[ The sky stays blue, with clouds and a sun (owner, 2026-11-05: "make
 	     sure the sky is blue still with clouds and a sun"), over the sheet's
 	     warm floor. No moon: at this hour it would hang beside the sun. ]]
-	sky = { cloudCover = 0.62, cloudDensity = 0.72, sunSize = 16 },
+	--[[ The picture on the sky is the owner's Toolbox pick (2026-11-08, "Anime
+	     Sky", asset 72835926026092). It has its clouds painted on, so the
+	     3D ones are off: at this cover they would hide it. ]]
+	sky = {
+		cloudsShown = false,
+		cloudCover = 0.62,
+		cloudDensity = 0.72,
+		sunSize = 16,
+		skybox = {
+			SkyboxBk = "rbxassetid://18351376859",
+			SkyboxDn = "rbxassetid://18351374919",
+			SkyboxFt = "rbxassetid://18351376800",
+			SkyboxLf = "rbxassetid://18351376469",
+			SkyboxRt = "rbxassetid://18351376457",
+			SkyboxUp = "rbxassetid://18351377189",
+		},
+	},
 
 	--[[ The life in the air (`Fx/LobbyMotes`), each scaled by the device's
 	     `ambienceShare`: gold motes drifting over the courtyard, and mist at
-	     the foot of each waterfall. ]]
-	motes = { rate = 26, lifetime = NumberRange.new(5, 9), size = 0.32, high = 22 },
+	     the foot of each waterfall. The motes' rate grows with the floor they
+	     drift over, so the air is as full as it was before the spread. ]]
+	motes = {
+		rate = 26 * SPREAD * SPREAD,
+		lifetime = NumberRange.new(5, 9),
+		size = 0.32,
+		high = 22,
+	},
 	mist = { rate = 5, lifetime = NumberRange.new(3, 5), size = 9 },
 
 	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`), south of
@@ -459,7 +744,7 @@ local Lobby = {
 	     draws them (owner, 2026-11-05); they read north from 2026-11-01, which
 	     showed the camera their backs. ]]
 	leaderboard = {
-		at = Vector2.new(-22, 78),
+		at = plan(-22, 78),
 		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
@@ -468,7 +753,17 @@ local Lobby = {
 	     of the path south from the spawn, so the two still flank a walk and
 	     a player sees both at once. Same build, same face, same turn. ]]
 	endlessLeaderboard = {
-		at = Vector2.new(22, 78),
+		at = plan(22, 78),
+		turn = 0,
+		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
+	},
+
+	--[[ The THIS WEEK'S DELVERS board (`Run/WeeklyTournament`, the weekly
+	     Endless tournament, 2026-11-18) past DEEPEST DELVERS on the same
+	     side, so the two Endless boards stand together: all time, then this
+	     week. Same build, same face, same turn. ]]
+	weeklyLeaderboard = {
+		at = plan(52, 78),
 		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
@@ -485,21 +780,21 @@ local Lobby = {
 	     completely"). ]]
 	backdrop = {
 		cliffs = 18,
-		reach = NumberRange.new(235, 300),
+		reach = pushed(NumberRange.new(235, 300)),
 		tall = NumberRange.new(60, 105),
 		wide = NumberRange.new(90, 130),
 		--[[ A second ring past the first, bare and taller, that fills the
 		     horizon between the near cliffs. ]]
 		far = {
 			cliffs = 14,
-			reach = NumberRange.new(400, 470),
+			reach = pushed(NumberRange.new(400, 470)),
 			tall = NumberRange.new(90, 140),
 			wide = NumberRange.new(150, 210),
 		},
 		treesOnTop = 4,
 		falls = 4,
 		shrooms = 28,
-		shroomReach = NumberRange.new(110, 190),
+		shroomReach = pushed(NumberRange.new(110, 190)),
 		stone = Color3.fromRGB(112, 126, 128),
 		stoneDark = Color3.fromRGB(88, 100, 104),
 		grass = Color3.fromRGB(104, 160, 58),
@@ -574,10 +869,10 @@ local Lobby = {
 	     each kind as likely as its weight. ]]
 	ringSpacing = 16,
 	waterfalls = {
-		Vector2.new(-102, -40),
-		Vector2.new(102, -40),
-		Vector2.new(-90, 84),
-		Vector2.new(90, 84),
+		plan(-102, -40),
+		plan(102, -40),
+		plan(-90, 84),
+		plan(90, 84),
 	},
 	--[[ All of it past the balustrade now (the sheet's floor is open marble):
 	     chunky green trees and bushes, a few boulders. ]]
@@ -601,5 +896,87 @@ local Lobby = {
 	--[[ A stand's platform, studs across. ]]
 	standSize = 10,
 }
+
+--[[
+	Where the portals stand, shared by the lobby's builder (`Run/Lobby`), its
+	specs and the Studio bots, so the sums are written once. The areas'
+	arches fill the rows in order, `perRow` to a row, front row west to
+	east, then the back, each row centred on the carpet however many it
+	holds; a portal with an `aside` stands where that says, in no row.
+]]
+local function inRows(): number
+	local count = 0
+	for _, portal in Lobby.portals do
+		if not portal.aside then
+			count += 1
+		end
+	end
+	return count
+end
+
+--[[ Which row arch `index` stands in, 1 the front and 2 the back, and its
+     place along it, counted west to east; 0, 0 for a portal set aside. ]]
+function Lobby.slotOf(index: number): (number, number)
+	if Lobby.portals[index].aside then
+		return 0, 0
+	end
+	local count = 0
+	for k = 1, index do
+		if not Lobby.portals[k].aside then
+			count += 1
+		end
+	end
+	return math.ceil(count / PER_ROW), (count - 1) % PER_ROW + 1
+end
+
+--[[ How many rows of arches there are. ]]
+function Lobby.rows(): number
+	return math.ceil(inRows() / PER_ROW)
+end
+
+--[[ How many arches stand in row `row`. ]]
+function Lobby.rowCount(row: number): number
+	return math.clamp(inRows() - (row - 1) * PER_ROW, 0, PER_ROW)
+end
+
+--[[ The centre of row `row`'s ledge, and how high its top stands. ]]
+function Lobby.rowCentre(row: number): (Vector2, number)
+	return TERRACE - Vector2.new(0, (row - 1) * ROW_DEPTH), Lobby.ledge + (row - 1) * Lobby.rowRise
+end
+
+--[[ The middle of arch `index`'s foot, in the lobby's plan. ]]
+function Lobby.archAt(index: number): Vector2
+	local aside = Lobby.portals[index].aside
+	if aside then
+		return aside.at
+	end
+	local row, column = Lobby.slotOf(index)
+	local centre = Lobby.rowCentre(row)
+	return centre + Vector2.new((column - (Lobby.rowCount(row) + 1) / 2) * ARCH_SPACING, 0)
+end
+
+--[[ How high above the lawn arch `index`'s foot stands: its row's ledge, or
+     the courtyard floor for one set aside. ]]
+function Lobby.archFoot(index: number): number
+	local row = Lobby.slotOf(index)
+	if row == 0 then
+		return 0
+	end
+	local _, height = Lobby.rowCentre(row)
+	return height
+end
+
+--[[ How far arch `index` is turned from facing south, radians about Y. ]]
+function Lobby.archTurn(index: number): number
+	local aside = Lobby.portals[index].aside
+	return if aside then aside.turn else 0
+end
+
+--[[ Where arch `index`'s mouth is: `mouthAhead` in front of it, whichever
+     way it is turned. ]]
+function Lobby.mouthAt(index: number): Vector2
+	local turn = Lobby.archTurn(index)
+	return Lobby.archAt(index) + Vector2.new(math.sin(turn), math.cos(turn)) * Lobby.mouthAhead
+end
 
 return table.freeze(Lobby)

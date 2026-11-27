@@ -544,6 +544,124 @@ local hollowFisherman: Design = {
 	},
 }
 
+--[[
+	Bogheart Caverns' three (the low-poly Tripo meshes, 2026-11-06,
+	`Workspace/TripoImports/Enemies` in the owner's place): one textured
+	mesh each, like the Hollow Fisherman, with the colour map as its texture
+	and its face painted on. Each is its import x its scale, stood on the
+	floor of its box. Their whole bodies hop and breathe (`Balance.SlimeHop`)
+	since a single mesh has nothing to swing.
+
+	Facing: left untruned, facing -Z, as every Tripo import checked so far
+	has stood (the Drowned and Bogheart pets). If one walks backwards in a
+	playtest, a `rotation = Vector3.new(0, 180, 0)` here is the fix.
+]]
+local sporePuff: Design = {
+	shadow(2.7, 2.4, 2.7),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://111693995619653",
+		textureId = "rbxassetid://86786943496634",
+		size = Vector3.new(2.645, 2.631, 2.164),
+		offset = Vector3.new(0, -0.037, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+local glowcap: Design = {
+	shadow(3.2, 3.1, 3.6),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://109232644386740",
+		textureId = "rbxassetid://137629051699538",
+		size = Vector3.new(3.085, 3.528, 3.067),
+		offset = Vector3.new(0, -0.034, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+local shellback: Design = {
+	shadow(5, 5, 4.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://128552243150970",
+		textureId = "rbxassetid://123424247086989",
+		size = Vector3.new(4.906, 4.69, 4.59),
+		offset = Vector3.new(0, -0.047, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+--[[
+	Grandmother Gulp (the low-poly Tripo mesh, `TripoImports/Enemies/
+	GrandmotherGulp`): her import x10, stood on the floor of her box, posed
+	whole by `Enemies/BossBody`. `Arm_Tongue` is her tongue's tip, tucked at
+	her mouth: `BossBody` throws it as the lash's fist and draws the pink
+	tube to it from there (the tube takes the arm's colour). Unturned, facing
+	-Z, as the other Tripo imports are; if she lashes over her shoulder, a
+	180 degree `rotation` on both parts is the fix.
+]]
+local GULP_TONGUE = Color3.fromRGB(240, 116, 156)
+local grandmotherGulp: Design = {
+	shadow(9.8, 10, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://87267193224097",
+		textureId = "rbxassetid://124939475424728",
+		size = Vector3.new(9.804, 9.754, 9.504),
+		offset = Vector3.new(0, -0.07, 0),
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_Tongue",
+		shape = "Ball",
+		size = Vector3.one * 1.8,
+		offset = Vector3.new(0, -1.9, -4),
+		shade = 1,
+		color = GULP_TONGUE,
+	},
+}
+
+--[[
+	The Old Tollcrab (the Tripo mesh `crab_arena_3`, uploaded in the owner's
+	place at `ServerStorage.Imports.crab_arena_3`): its 0.97 x 1.00 x 0.88
+	import x10, stood on the floor of his box, posed whole by
+	`Enemies/BossBody`. `Arm_Claw` is a claw tucked at his front, thrown as
+	the lash's fist. Unturned, facing -Z, as the other Tripo imports are; if
+	he snaps over his shoulder, a 180 degree `rotation` on both parts is the
+	fix.
+]]
+local TOLLCRAB_CLAW = Color3.fromRGB(214, 112, 60)
+local oldTollcrab: Design = {
+	shadow(9.8, 9, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://102620947888543",
+		textureId = "rbxassetid://80440252726483",
+		size = Vector3.new(9.702, 9.995, 8.823),
+		offset = Vector3.new(0, 0, 0),
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_Claw",
+		shape = "Ball",
+		size = Vector3.one * 2,
+		offset = Vector3.new(0, -3, -3.4),
+		shade = 1,
+		color = TOLLCRAB_CLAW,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -569,6 +687,12 @@ local EnemyDesigns = {
 	Thornling = thornling,
 	-- Drowned Village
 	HollowFisherman = hollowFisherman,
+	OldTollcrab = oldTollcrab,
+	-- Bogheart Caverns
+	SporePuff = sporePuff,
+	Glowcap = glowcap,
+	Shellback = shellback,
+	GrandmotherGulp = grandmotherGulp,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {

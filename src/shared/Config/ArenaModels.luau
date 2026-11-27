@@ -149,9 +149,11 @@ local function thornwood(): ArenaModel
 		     2026-10-25: "make the lighting for thornwood a little darker"):
 		     about a fifth less light, and a cooler, dimmer ambient. ]]
 		lighting = {
-			brightness = 1.7,
-			ambient = Color3.fromRGB(98, 98, 84),
-			outdoorAmbient = Color3.fromRGB(116, 120, 96),
+			--[[ About a quarter off (owner, 2026-11-08: "take some lighting
+			     off of the objects"): was 1.7, 98/98/84 and 116/120/96. ]]
+			brightness = 1.3,
+			ambient = Color3.fromRGB(78, 78, 67),
+			outdoorAmbient = Color3.fromRGB(93, 96, 77),
 			gradeBrightness = -0.08,
 		},
 	}
@@ -202,9 +204,11 @@ local function bogheart(): ArenaModel
 		outerShade = OUTER_SHADE,
 		outerGlow = OUTER_GLOW,
 		lighting = {
-			brightness = 1.4,
-			ambient = Color3.fromRGB(84, 92, 112),
-			outdoorAmbient = Color3.fromRGB(96, 106, 128),
+			--[[ About a quarter off (owner, 2026-11-08: "take some lighting
+			     off of the objects"): was 1.4, 84/92/112 and 96/106/128. ]]
+			brightness = 1.05,
+			ambient = Color3.fromRGB(67, 74, 90),
+			outdoorAmbient = Color3.fromRGB(77, 85, 102),
 			gradeBrightness = -0.06,
 		},
 	}

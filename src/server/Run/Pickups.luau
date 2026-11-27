@@ -166,8 +166,14 @@ end
 --[[ Takes `player`'s own crystals within reach of `position` that have
      landed, and returns the XP they carried. Someone else's crystals stay
      where they are, and so does one still popping out of its kill. `now`
-     is for tests; it defaults to the clock. ]]
-function Pickups.takeCrystals(player: Player, position: Vector3, now: number?): number
+     is for tests; it defaults to the clock. `anyOwner` takes every
+     player's crystals, for co-op. ]]
+function Pickups.takeCrystals(
+	player: Player,
+	position: Vector3,
+	now: number?,
+	anyOwner: boolean?
+): number
 	local config = Balance.Pickups
 	local reach = config.crystalRadius
 	local landed = (now or os.clock()) - config.popTime
@@ -175,7 +181,9 @@ function Pickups.takeCrystals(player: Player, position: Vector3, now: number?): 
 	local xp = 0
 
 	for id, pickup in pickups do
-		if pickup.kind ~= "Crystal" or pickup.owner ~= player then
+		--[[ In co-op any crystal is anyone's (`anyOwner`): one pickup
+		     credits the whole party (`docs/COOP.md`). ]]
+		if pickup.kind ~= "Crystal" or (pickup.owner ~= player and not anyOwner) then
 			continue
 		end
 		if pickup.droppedAt > landed then

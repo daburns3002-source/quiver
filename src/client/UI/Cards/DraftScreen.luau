@@ -3,9 +3,13 @@
 	The level-up draft, as the owner's card design has it
 	(design_handoff_upgrade_cards; README "Draft", "Touch", "Motion spec").
 
-	Three cards dealt in on a blue panel. Pick one: a click or tap selects
-	it, and Choose! — or, with a mouse, clicking the selected card again —
-	confirms. Reroll redeals the hand while the run has rerolls left.
+	Three cards dealt in on a blue panel. Pick one: a click or tap takes it
+	(since 2026-11-14; before, it selected and Choose! confirmed), so the
+	panel's Choose! is drawn for a gamepad only (`RunHudRules.draftChoose`). Where the
+	tray reads the cards out (a phone held upright, below), the first tap
+	selects and reads, and a second tap on the card, or Choose!, takes it.
+	A gamepad selects with the stick and confirms with A, on Choose! as
+	before. Reroll redeals the hand while the run has rerolls left.
 
 	It decides nothing. The server dealt the hand; this sends back an index
 	into it, or asks for a redeal, and the server checks both. See CLAUDE.md,
@@ -15,6 +19,15 @@
 	touch screen the cards sit closer together, as the design's phone layout
 	does, and the lower rarities draw over the higher so the big crystal
 	wings tuck behind their neighbours.
+
+	**A phone held upright** gets a tray under the panel (`Config/Hud`
+	`draftUpright`, `Util/RunHudRules.draftTray`; the 2026-11-11 loop and
+	UI review). The hand is fitted to the screen's width there, about half
+	size, which left Choose! and Reroll some 87 x 27 points and the bottom
+	half of the screen empty. The tray reads out the selected card's name
+	and description in large words and carries REROLL and CHOOSE! as the
+	chunky kit's fat buttons (`UI/Chunky`), 56 points tall across the
+	width. The cards keep their size: nothing about them springs or pops.
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -29,13 +42,17 @@ local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardBuilder = require(script.Parent.CardBuilder)
 local CardPanel = require(ReplicatedStorage.Shared.Config.CardPanel)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
+local Chunky = require(script.Parent.Parent.Chunky)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
+local FirstTips = require(script.Parent.Parent.FirstTips)
 local FxEvents = require(script.Parent.Parent.Parent.Fx.Upgrades.FxEvents)
+local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 local Motion = require(script.Parent.Motion)
 local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local SkillBar = require(script.Parent.SkillBar)
 local SoundFx = require(script.Parent.Parent.Parent.Fx.SoundFx)
 
@@ -106,6 +123,22 @@ local buttonsList: UIListLayout? = nil
      and both of those were costing the cards their size. ]]
 local PHONE_BUTTON_COLUMN = 210
 local PHONE_MARGIN = 8
+--[[ The tray under the panel on a phone held upright: the selected card
+     read out in large words, and the two big buttons. ]]
+local tray: Frame? = nil
+local trayTitle: TextLabel? = nil
+local trayWords: TextLabel? = nil
+local trayChoose: Frame? = nil
+local trayReroll: Frame? = nil
+--[[ REROLL and CHOOSE! on every other screen: the same chunky buttons, in
+     the panel, under the hand or beside it (owner, 2026-11-11: everything
+     the player clicks is in the reference's look). They replaced the
+     picture-plate buttons, which are still built and still hold whether a
+     press counts (`Active`), but are no longer shown. ]]
+local panelButtons: Frame? = nil
+local panelChoose: Frame? = nil
+local panelReroll: Frame? = nil
+local TRAY_HINT = "TAP A CARD TO READ IT"
 local cardRow: Frame? = nil
 local title: TextLabel? = nil
 local subtitle: TextLabel? = nil
@@ -121,7 +154,9 @@ local dealToken = 0
 local slots: { Slot } = {}
 local selected: number? = nil
 --[[ While cards are flying off, nothing else may be pressed. ]]
-local leaving: { kind: "Reroll" | "Celebrate", at: number, picked: number? }? = nil
+--[[ `speed`: how fast a celebration's clock runs against the 1.56 s it
+     was drawn at (`TIMING.celebrateLength`). ]]
+local leaving: { kind: "Reroll" | "Celebrate", at: number, picked: number?, speed: number? }? = nil
 local locked = false
 local mode: Mode = "Mouse"
 --[[ With a gamepad, the card the stick is on. ]]
@@ -286,7 +321,7 @@ end
 --[[ The Glow Toy buttons (`CardAssets.buttons`): the plate is 713 x 230 of
      the 804 x 324 art, from (45, 48); the art is drawn so that plate fills
      the button. The plates are blank: the words (and Reroll's dice) are
-     written live in the blocky font (CLAUDE.md rule 11), centred on the
+     written live in the game's font (CLAUDE.md rule 11), centred on the
      plate's face, rows 9..159 of its 230, and move down with the pressed
      art, which sits 30 lower. ]]
 local ART_SIZE = Vector2.new(804, 324)
@@ -571,6 +606,34 @@ local function setChooseEnabled(enabled: boolean)
 			wobble(b, 6)
 		end
 	end
+	local tone = if enabled then Chunky.green else Chunky.grey
+	if trayChoose then
+		Chunky.repaint(trayChoose, tone)
+	end
+	if panelChoose then
+		Chunky.repaint(panelChoose, tone)
+	end
+end
+
+--[[ Says the selected card in the tray, or how to select one. ]]
+local function readOut(id: string?)
+	local name, words = trayTitle, trayWords
+	if not name or not words then
+		return
+	end
+	local ability = if id then Abilities.byId[id] else nil
+	if not ability then
+		name.Text = TRAY_HINT
+		name.TextColor3 = Chunky.ink
+		words.Text = ""
+		return
+	end
+	local rarity = Rarities.byName[ability.rarity]
+	name.Text = string.upper(ability.name)
+	name.TextColor3 = if rarity
+		then Chunky.shade(rarity.color):Lerp(rarity.color, 0.45)
+		else Chunky.ink
+	words.Text = ability.description
 end
 
 --[[
@@ -618,6 +681,8 @@ local function pick(index: number?)
 		end
 	end
 	setChooseEnabled(index ~= nil)
+	local chosen = if index then slots[index] else nil
+	readOut(if chosen then chosen.id else nil)
 end
 
 local function confirm()
@@ -627,6 +692,13 @@ local function confirm()
 	end
 
 	locked = true
+	-- The buttons step aside for the celebration.
+	if tray then
+		tray.Visible = false
+	end
+	if panelButtons then
+		panelButtons.Visible = false
+	end
 	SoundFx.play("card_choose")
 	local chosen = slots[index]
 	if chosen then
@@ -636,7 +708,15 @@ local function confirm()
 	--[[ Every pick is a celebration: the card takes the stage, and its icon
 	     flies into the skill bar before the pick is applied. The design drew
 	     this for phones; the owner asked for it on every device. ]]
-	leaving = { kind = "Celebrate", at = os.clock(), picked = index }
+	local taken = slots[index]
+	local mythic = taken ~= nil and Abilities.byId[taken.id].rarity == "Mythic"
+	local length = if mythic then TIMING.celebrateLength else TIMING.pickApplyAt
+	leaving = {
+		kind = "Celebrate",
+		at = os.clock(),
+		picked = index,
+		speed = TIMING.celebrateLength / length,
+	}
 	-- A phone's bar was kept off the draft; it comes up now for the icon.
 	if Device.isPhone() then
 		SkillBar.toCombat()
@@ -666,7 +746,7 @@ local function confirm()
 
 	--[[ The pick is applied as the cards finish leaving, as the design
 	     times it, so the screen never closes on a frame still moving. ]]
-	task.delay(TIMING.pickApplyAt, function()
+	task.delay(length, function()
 		local handler = onChosen
 		if handler then
 			handler(index)
@@ -707,6 +787,18 @@ local function reroll()
 	end)
 end
 
+--[[ Something standing in for the panel's heading (`DraftScreen.setHeading`,
+     the tutorial's prompt over the first hand): how tall it is and the
+     highest its top may go, in this gui's pixels; nil for the panel's own
+     heading. `standLine` is where its bottom edge then goes. ]]
+local stand: { height: number, ceiling: number }? = nil
+local standLine: number? = nil
+--[[ Design pixels down the panel to the cards' room: past the heading's 110,
+     less the rise of a picked card, so no crown is ever under the stand-in. ]]
+local HEAD_CLEAR = 40 + 70 + CARD_SELECT_LIFT
+--[[ Pixels between the stand-in and that room. ]]
+local STAND_GAP = 8
+
 local function layoutPanel(count: number)
 	local p = panel
 	local row = cardRow
@@ -720,21 +812,78 @@ local function layoutPanel(count: number)
 	--[[ Held sideways the buttons go beside the hand, for height; held
 	     upright they stay under it, for width. ]]
 	local column = phone and viewport.X >= viewport.Y
+	--[[ Held upright the buttons leave the panel for the tray under it. ]]
+	local stack = phone and not column and tray ~= nil
+	--[[ REROLL is drawn only when the hand has a redeal to give
+	     (`RunHudRules.draftReroll`), and CHOOSE! only for a gamepad
+	     (`RunHudRules.draftChoose`: a click or a tap takes a card by
+	     itself). Whichever is alone takes the middle; with neither, the
+	     panel gives their room back. ]]
+	local hand = shown
+	local offered = hand ~= nil and RunHudRules.draftReroll(hand.source, hand.rerolls)
+	local choosing = RunHudRules.draftChoose(mode)
+	local buttons = offered or choosing
+	--[[ The sideways phone's column of buttons, only while it holds one. ]]
+	local beside = column and buttons
 	-- A phone keeps little padding at the panel's sides (room for the NEW
 	-- sticker over the last card); a computer 70.
 	local sidePad = if phone then 36 else 70
 	local width = count * CARD.X + (count - 1) * gap() + 2 * sidePad
 	local panelWidth = math.max(width, if phone then 400 else 460)
-		+ (if column then PHONE_BUTTON_COLUMN else 0)
-	local height = 40 + 70 + CROWN_ROOM + CARD.Y + (if column then 40 else 50 + 76 + 30)
+		+ (if beside then PHONE_BUTTON_COLUMN else 0)
+	local height = 40
+		+ 70
+		+ CROWN_ROOM
+		+ CARD.Y
+		-- with no button under the hand, room for the cards' hanging crystals
+		+ (if column or stack then 40 elseif not buttons then 76 else 50 + 76 + 30)
 	p.Size = UDim2.fromOffset(panelWidth, height)
 	row.Size = UDim2.fromOffset(width, CARD.Y)
 	row.Position =
-		UDim2.new(0.5, if column then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
+		UDim2.new(0.5, if beside then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
 	rowWidth = width
 
+	local pair, pairReroll, pairChoose = panelButtons, panelReroll, panelChoose
+	if pair and pairReroll and pairChoose then
+		pair.Visible = not stack and buttons
+		pairReroll.Visible = offered
+		pairChoose.Visible = choosing
+		if column then
+			-- beside the hand, one over the other
+			pair.AnchorPoint = Vector2.new(1, 0.5)
+			pair.Position = UDim2.new(1, -24, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
+			pair.Size = UDim2.fromOffset(182, 140)
+			pair:SetAttribute("SheetW", 364)
+			pairChoose.Position, pairChoose.Size =
+				UDim2.fromScale(0, if offered then 0 else 0.27), UDim2.fromScale(1, 0.46)
+			pairReroll.Position, pairReroll.Size =
+				UDim2.fromScale(0, if choosing then 0.54 else 0.27), UDim2.fromScale(1, 0.46)
+		else
+			-- under the hand, side by side
+			pair.AnchorPoint = Vector2.new(0.5, 1)
+			pair.Position = UDim2.new(0.5, 0, 1, -40)
+			pair.Size = UDim2.fromOffset(440, 62)
+			pair:SetAttribute("SheetW", 880)
+			pairReroll.Position, pairReroll.Size =
+				UDim2.fromScale(if choosing then 0 else 0.3, 0), UDim2.fromScale(0.4, 1)
+			pairChoose.Position, pairChoose.Size =
+				UDim2.fromScale(if offered then 0.44 else 0.22, 0), UDim2.fromScale(0.56, 1)
+		end
+	end
+	local underReroll, underChoose = trayReroll, trayChoose
+	if underReroll and underChoose then
+		-- the phone's tray, in its sheet's own pixels (`Config/Hud` `draftUpright`)
+		local d = Hud.draftUpright
+		local wide = d.sheet.X - d.rerollWidth - d.gap
+		underReroll.Visible = offered
+		underChoose.Position = UDim2.fromScale(
+			(if offered then d.rerollWidth + d.gap else (d.sheet.X - wide) / 2) / d.sheet.X,
+			(d.sheet.Y - d.buttonsHeight) / d.sheet.Y
+		)
+	end
 	local b, list = buttonsFrame, buttonsList
 	if b and list then
+		b.Visible = false
 		if column then
 			b.AnchorPoint = Vector2.new(1, 0.5)
 			b.Position = UDim2.new(1, -30, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
@@ -752,15 +901,61 @@ local function layoutPanel(count: number)
 	-- Fit the whole panel to the screen, never above design size.
 	local margin = if phone then PHONE_MARGIN else 32
 	local barRoom = if phone then 0 else BAR_ROOM
-	local scale =
-		math.min(1, (viewport.X - margin) / panelWidth, (viewport.Y - margin - barRoom) / height)
+	local under = if stack then RunHudRules.draftTray(viewport.X) else nil
+	local trayRoom = if under then under.height + Hud.draftUpright.rowGap else 0
+	local scale = math.min(
+		1,
+		(viewport.X - margin) / panelWidth,
+		(viewport.Y - margin - barRoom - trayRoom) / height
+	)
 	scale = math.max(scale, 0.3)
+	--[[ The panel's own place: with its tray, centred as one stack; without,
+	     lifted clear of the skill bar beneath it, where there is one. ]]
+	local top = if under
+		then math.max(0, (viewport.Y - height * scale - trayRoom) / 2)
+		else (viewport.Y - barRoom * scale - height * scale) / 2
+	--[[ Something stands in for the heading: the panel's own is put away
+	     (never the same words twice) and the panel moves down, shrinking
+	     only if it must, until its cards are clear of the stand-in. ]]
+	local standing = stand
+	if standing then
+		local place = RunHudRules.draftUnder({
+			scale = scale,
+			top = top,
+			height = height,
+			clear = HEAD_CLEAR,
+			stand = standing.height,
+			gap = STAND_GAP,
+			ceiling = standing.ceiling,
+			floor = viewport.Y - margin / 2 - barRoom,
+			below = trayRoom,
+		})
+		scale, top = place.scale, place.top
+		standLine = place.line
+	else
+		standLine = nil
+	end
+	if title then
+		title.Visible = standing == nil
+	end
+	if subtitle then
+		subtitle.Visible = standing == nil
+	end
 	local s = panelScale
 	if s then
 		s.Scale = scale
 	end
-	-- Lifted clear of the skill bar beneath it, where there is one.
-	p.Position = UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
+	p.Position = if standing or under
+		then UDim2.new(0.5, 0, 0, top + height * scale / 2)
+		else UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
+	local t = tray
+	if under and t then
+		t.Size = UDim2.fromOffset(under.width, under.height)
+		t.Position = UDim2.new(0.5, 0, 0, top + height * scale + Hud.draftUpright.rowGap)
+		t.Visible = true
+	elseif t then
+		t.Visible = false
+	end
 	if phone then
 		SkillBar.setVisible(false)
 	else
@@ -915,10 +1110,17 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 			heldOpen = false
 			return
 		end
-		--[[ With a mouse, clicking the selected card again confirms it. On
-		     a touch screen only Choose! confirms: a tap is too easy to
-		     land twice by accident. ]]
-		if selected == index and mode == "Mouse" then
+		--[[ A press takes the card, once it has lain dealt for a moment
+		     (`tapGuard`): a tap is too easy to land by accident as the hand
+		     arrives. Where the tray reads cards out (a phone held upright:
+		     the cards are too small to read there), the first press selects
+		     and reads it, and a second takes it. ]]
+		local reading = tray ~= nil and tray.Visible
+		local settled = os.clock() >= slot.dealAt + TIMING.dealDuration + TIMING.tapGuard
+		if selected == index or (settled and not reading) then
+			if selected ~= index then
+				pick(index)
+			end
 			confirm()
 		else
 			if selected ~= index then
@@ -974,7 +1176,7 @@ stepOverlay = function(now: number)
 	local centre: Vector2? = nil
 
 	if away and away.kind == "Celebrate" and away.picked then
-		local t = now - away.at
+		local t = (now - away.at) * (away.speed or 1)
 		local slot = slots[away.picked]
 		if slot then
 			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2 - origin
@@ -1149,10 +1351,21 @@ local function step(deltaTime: number)
 
 		-- Held in the deck until dealt, then chasing its place.
 		if now >= slot.dealAt then
-			local frames = math.clamp(math.floor(deltaTime * 60 + 0.5), 1, 4)
-			for _ = 1, frames do
+			--[[ The design's 60 fps spring, run for this frame's real
+			     length: whole steps, then the part left over, as
+			     `Motion.step` does. Rounding to whole steps ran it fast on a
+			     120 Hz screen and jerked between one and two steps at 40. ]]
+			local frames = math.clamp(deltaTime * 60, 0, 4)
+			local whole = math.floor(frames)
+			for _ = 1, whole do
 				slot.vel = (slot.vel + (target - slot.pos) * FOLLOW_K) * FOLLOW_D
 				slot.pos += slot.vel
+			end
+			local part = frames - whole
+			if part > 0 then
+				local vel = (slot.vel + (target - slot.pos) * FOLLOW_K) * FOLLOW_D
+				slot.pos += vel * part
+				slot.vel += (vel - slot.vel) * part
 			end
 		end
 		local leanTarget = math.clamp(slot.vel.X * LEAN_PER_PX, -LEAN_MAX, LEAN_MAX)
@@ -1223,7 +1436,7 @@ local function step(deltaTime: number)
 
 		if away then
 			if away.kind == "Celebrate" then
-				local t = now - away.at
+				local t = (now - away.at) * (away.speed or 1)
 				if away.picked == i then
 					-- To the middle, bigger, then into its icon.
 					local e = Motion.backOut(math.clamp(t / 0.38, 0, 1))
@@ -1276,6 +1489,8 @@ end
 
 function DraftScreen.stop()
 	clearSlots()
+	tray, trayTitle, trayWords, trayChoose, trayReroll = nil, nil, nil, nil, nil
+	panelButtons, panelChoose, panelReroll = nil, nil, nil
 	table.clear(buttonFeels)
 	if connection then
 		connection:Disconnect()
@@ -1454,11 +1669,13 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	heading.Size = UDim2.new(1, -40, 0, 48)
 	title = heading
 
-	local sub = stroked(root, "", CardTheme.fonts.body, 16, WHITE, 4)
+	--[[ 22, not the 16 the wide blocky font needed: the rounded one is
+	     narrower and read small at that size (Studio, 2026-11-12). ]]
+	local sub = stroked(root, "", CardTheme.fonts.body, 22, WHITE, 4)
 	sub.Name = "Subtitle"
 	sub.AnchorPoint = Vector2.new(0.5, 0)
-	sub.Position = UDim2.new(0.5, 0, 0, 84)
-	sub.Size = UDim2.new(1, -40, 0, 20)
+	sub.Position = UDim2.new(0.5, 0, 0, 82)
+	sub.Size = UDim2.new(1, -40, 0, 28)
 	subtitle = sub
 
 	local row = Instance.new("Frame")
@@ -1527,6 +1744,92 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 		disabled = CardAssets.buttons.chooseDisabled,
 		words = "CHOOSE!",
 	})
+
+	--[[ The phone's tray (see the top of the file): a `UI/Chunky` sheet of
+	     `Config/Hud` `draftUpright`, sized as one piece by `layoutPanel`. ]]
+	local d = Hud.draftUpright
+	local under = Instance.new("Frame")
+	under.Name = "Tray"
+	under.BackgroundTransparency = 1
+	under.AnchorPoint = Vector2.new(0.5, 0)
+	under.Visible = false
+	under.ZIndex = 2
+	under.Parent = created
+	tray = under
+	local sheet = Chunky.pointSheet(under, d.sheet.X / 2, d.sheet.Y / 2)
+	local box = Chunky.card(sheet, 0, 0, d.sheet.X, d.wordsHeight)
+	local name = Chunky.text(box, TRAY_HINT, Chunky.ink, 0)
+	name.Name = "Name"
+	name.Position = UDim2.fromScale(0.04, 0.08)
+	name.Size = UDim2.fromScale(0.92, 0.3)
+	local nameCap = Instance.new("UITextSizeConstraint")
+	nameCap.MaxTextSize = d.titleSize
+	nameCap.Parent = name
+	trayTitle = name
+	local readout = Chunky.text(box, "", Chunky.ink, 0)
+	readout.Name = "Words"
+	readout.Position = UDim2.fromScale(0.04, 0.4)
+	readout.Size = UDim2.fromScale(0.92, 0.52)
+	readout.TextWrapped = true
+	readout.TextYAlignment = Enum.TextYAlignment.Top
+	local wordsCap = Instance.new("UITextSizeConstraint")
+	wordsCap.MaxTextSize = d.wordsSize
+	wordsCap.Parent = readout
+	trayWords = readout
+	local buttonsTop = d.sheet.Y - d.buttonsHeight
+	trayReroll = Chunky.button(
+		sheet,
+		"REROLL",
+		Chunky.blue,
+		0,
+		buttonsTop,
+		d.rerollWidth,
+		d.buttonsHeight,
+		reroll,
+		CardAssets.buttons.dice
+	)
+	trayChoose = Chunky.button(
+		sheet,
+		"CHOOSE!",
+		Chunky.grey,
+		d.rerollWidth + d.gap,
+		buttonsTop,
+		d.sheet.X - d.rerollWidth - d.gap,
+		d.buttonsHeight,
+		confirm
+	)
+
+	--[[ The panel's own pair, in the panel's design pixels (`layoutPanel`
+	     places and shapes it): a sheet two pixels to each of them. ]]
+	local pair = Instance.new("Frame")
+	pair.Name = "ChunkyButtons"
+	pair.BackgroundTransparency = 1
+	pair.Size = UDim2.fromOffset(440, 62)
+	pair.ZIndex = 5
+	pair.Parent = root
+	panelButtons = pair
+	local pairSheet = Chunky.pointSheet(pair, 440, 62)
+	panelReroll = Chunky.button(
+		pairSheet,
+		"REROLL",
+		Chunky.blue,
+		0,
+		0,
+		pairSheet.w * 0.4,
+		pairSheet.h,
+		reroll,
+		CardAssets.buttons.dice
+	)
+	panelChoose = Chunky.button(
+		pairSheet,
+		"CHOOSE!",
+		Chunky.grey,
+		pairSheet.w * 0.44,
+		0,
+		pairSheet.w * 0.56,
+		pairSheet.h,
+		confirm
+	)
 
 	-- The overlay: rays, a flash, a shockwave ring, words and a flying icon.
 	local over = Instance.new("Frame")
@@ -1671,11 +1974,15 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 		glyph.Size = UDim2.fromOffset(22, 22)
 		glyph.Image = UserInputService:GetImageForKeyCode(key)
 		glyph.Parent = promptRow
+		-- put away with REROLL when the hand has no redeal (`DraftScreen.show`)
+		local isReroll = key == Enum.KeyCode.ButtonX
+		glyph:SetAttribute("Reroll", isReroll)
 		if captions[index] ~= "" then
 			local word = stroked(promptRow, captions[index], CardTheme.fonts.display, 14, WHITE, 3)
 			word.LayoutOrder = index * 2
 			word.AutomaticSize = Enum.AutomaticSize.X
 			word.Size = UDim2.fromOffset(0, 22)
+			word:SetAttribute("Reroll", isReroll)
 		end
 	end
 	prompts = promptRow
@@ -1729,7 +2036,8 @@ local function bindGamepad()
 	ContextActionService:BindActionAtPriority(
 		"DraftChoose",
 		function(_name: string, state: Enum.UserInputState): Enum.ContextActionResult
-			if state == Enum.UserInputState.Begin then
+			-- an A that closes a first-time tip over the draft picks nothing
+			if state == Enum.UserInputState.Begin and not FirstTips.takesKeys() then
 				confirm()
 			end
 			return Enum.ContextActionResult.Sink
@@ -1776,10 +2084,13 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 
 	local left = rerolls or 0
+	--[[ No REROLL without a redeal to give (`RunHudRules.draftReroll`):
+	     `layoutPanel` puts the chunky ones away and centres CHOOSE!. ]]
+	local offered = RunHudRules.draftReroll(source, rerolls)
 	local rerollB = rerollButton
 	if rerollB then
 		local shadow = rerollB.Parent :: Frame
-		shadow.Visible = source ~= "Angel"
+		shadow.Visible = offered
 		setButton(
 			rerollB,
 			left > 0,
@@ -1790,6 +2101,27 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 		if count then
 			count.Text = tostring(left)
 			count.Visible = left > 0
+		end
+	end
+	local function count(bigReroll: Frame?)
+		if bigReroll then
+			bigReroll.Visible = offered
+			Chunky.repaint(
+				bigReroll,
+				if left > 0 then Chunky.blue else Chunky.grey,
+				if left > 0 then `REROLL {left}` else "REROLL"
+			)
+		end
+	end
+	count(trayReroll)
+	count(panelReroll)
+	-- and no X on a gamepad's strip for a redeal that is not there
+	local padRow = prompts
+	if padRow then
+		for _, child in padRow:GetChildren() do
+			if child:IsA("GuiObject") and child:GetAttribute("Reroll") == true then
+				child.Visible = offered
+			end
 		end
 	end
 
@@ -1864,6 +2196,42 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	created.Enabled = true
 end
 
+--[[ Something `height` pixels tall stands in for the panel's heading, its
+     top no higher than `ceiling` (AbsolutePosition's y): the tutorial's
+     prompt over the first hand (`UI/TutorialPrompts`), which used to sit on
+     the heading and the tops of the cards. The panel puts its own heading
+     away and makes room (`layoutPanel`). nil gives the heading back. ]]
+function DraftScreen.setHeading(height: number?, ceiling: number?)
+	local created = gui
+	local top = if created then created.AbsolutePosition.Y else 0
+	local next = if height and height > 0
+		then { height = height, ceiling = (ceiling or top) - top }
+		else nil
+	local was = stand
+	if
+		(next == nil and was == nil)
+		or (next and was and next.height == was.height and next.ceiling == was.ceiling)
+	then
+		return
+	end
+	stand = next
+	local hand = shown
+	if created and created.Enabled and hand then
+		layoutPanel(#hand.offer)
+	end
+end
+
+--[[ Where that stand-in's bottom edge goes, as AbsolutePosition's y: just
+     over the cards' room. nil with no hand up or nothing standing in. ]]
+function DraftScreen.headingLine(): number?
+	local created = gui
+	local line = standLine
+	if not created or not created.Enabled or not line then
+		return nil
+	end
+	return created.AbsolutePosition.Y + line
+end
+
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()
@@ -1872,6 +2240,9 @@ function DraftScreen.hide()
 	clearSlots()
 	if gui then
 		gui.Enabled = false
+	end
+	if tray then
+		tray.Visible = false
 	end
 	--[[ The bar stays up through the fight, back at its combat size; after
 	     a pick it waits a moment first, so the icon landing and its slot

@@ -1,0 +1,19 @@
+Roblox game effects in blocky voxel style, built from stepped cubes like Steal an Egg / Minecraft, no round shapes.
+
+Thornwood pet attack pieces, Common to Epic: build the eleven pieces on the attached sheet as animated 3D models, matching its shapes and colours one to one. One page with a button per piece; the selected piece is shown alone, so Download GLB exports just that piece with its clip.
+
+Every piece: its own root group named as on the sheet; 1 unit = 1 Roblox stud; front toward +Z; ground pieces rest on y = 0. ONE baked animation clip per piece (keyframe tracks on the root's animations), named and timed as below; a clip that does not loop ends with the piece gone (scaled to nothing). Under 2,000 triangles a piece. No clipping: no part pokes through another, every cube sits flush on what it touches, no two faces share a plane.
+
+1 Tusk Gouge: flat, 3 long along +Z, 1.5 wide. Clip "Slash", 0.35 s: torn open, chips flying, gone.
+2 Cling Burr: 0.8 wide, centred on the origin. Clip "Spin", 0.3 s loop.
+3 Thorn Pop: needle 1.6 long, its point at the origin facing +Z. Clip "Fly", 0.3 s loop, rolling.
+4 Berry Heal: round the player's feet, 3 wide, sparkles rising to 3 high. Clip "Play", 0.9 s: lands, bursts, sparkles rise and vanish.
+5 Thistle Burst: flat ring round the player. Clip "Play", 0.8 s: spikes thrown out from 2 wide to 20 wide, gone at the end.
+6 Briar Vine: flat zigzag vine from the origin along +Z, 5 long. Clip "Slash", 0.45 s: whipping out, full length, sinking.
+7 Briar Snare: round an enemy's feet, 3.5 wide, 1.6 high. Clip "Snare", 1.6 s: bursting up in 0.3 s, holding, sinking in the last 0.3 s.
+8 Blood Berry: 0.7 wide, centred on the origin. Clip "Fly", 0.3 s loop, tumbling.
+9 Berry Splat: flat. Clip "Splat", 0.8 s: burst out to 2.5 wide, fading.
+10 Bramble Slam: 4 wide, spikes up to 2 high. Clip "Play", 0.6 s: ground cracking, spikes up, sinking.
+11 Thorn Shear: curved blade 1.6 long, its edge facing +Z. Clip "Fly", 0.3 s loop, spinning flat.
+
+Show front, side and 3/4 view on a plain background.

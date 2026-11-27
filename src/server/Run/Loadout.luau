@@ -147,7 +147,8 @@ end
 
 --[[
 	The skills that may legally be dealt right now: under their cap, not
-	excluded by something held, and not a filler card. `chosen` is a hand
+	excluded by something held, and not a filler card, a benched one or a
+	weapon's own (`weaponOnly`, carried only by its weapon). `chosen` is a hand
 	dealt on purpose (the tutorial's fixed hands), which may hold a rarity the
 	run's rolls are banned from: Multishot on the tutorial's room 3.
 ]]
@@ -155,7 +156,7 @@ local function candidates(state: State, chosen: boolean?): { Ability }
 	local out: { Ability } = {}
 
 	for _, ability in Abilities.all do
-		if ability.filler or ability.benched then
+		if ability.filler or ability.benched or ability.weaponOnly then
 			continue
 		end
 
@@ -381,27 +382,41 @@ end
 
 --[[
 	An Angel's offer, as Archero 2 has it: a minor stat boost or a heal. The
-	stat is any Stats ability still under its cap and not excluded; the heal
-	is the Heal card. The stat may be missing late in a run — the heal is
-	still offered alone rather than nothing at all.
+	stat is any Stats ability the draft itself could deal (`candidates`:
+	under its cap, not excluded, not benched, and the player's own class's:
+	a Ranger was offered the Warden's HEAVY BLADE, 2026-11-14); the heal is
+	the Heal card. The stat is drawn as the draft draws a card, with a chance
+	in proportion to its rarity's weight (`Loadout.weight`): drawn evenly,
+	one Angel in eight handed a Ranger the Mythic DUAL BOWS (seen in Studio,
+	2026-11-15), which is no minor boost. The stat may be missing late in a
+	run — the heal is still offered alone rather than nothing at all.
 ]]
 function Loadout.openAngel(state: State, random: Random): { string }?
 	if state.offer then
 		return nil
 	end
 
-	local stats: { string } = {}
-	for _, ability in Abilities.all do
-		if ability.category == "Stats" and Loadout.remaining(state, ability) > 0 then
-			if not Loadout.excluded(state, ability) then
-				table.insert(stats, ability.id)
-			end
+	local stats: { Ability } = {}
+	local total = 0
+	for _, ability in candidates(state) do
+		if ability.category == "Stats" then
+			table.insert(stats, ability)
+			total += Loadout.weight(ability)
 		end
 	end
 
 	local offer: { string } = {}
 	if #stats > 0 then
-		table.insert(offer, stats[random:NextInteger(1, #stats)])
+		local roll = random:NextNumber() * total
+		local chosen = #stats
+		for index, ability in stats do
+			roll -= Loadout.weight(ability)
+			if roll <= 0 then
+				chosen = index
+				break
+			end
+		end
+		table.insert(offer, stats[chosen].id)
 	end
 
 	table.insert(offer, Abilities.byId.Heal.id)

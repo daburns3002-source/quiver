@@ -24,6 +24,10 @@ export type Egg = {
 	area: string,
 	price: number,
 	unlock: string?,
+	--[[ The area whose boss must be beaten before this egg can be bought
+	     once the game is locked for launch (`Config/Launch.locks`, read
+	     through `Util/LaunchLocks`). Not read while the switch is off. ]]
+	atLaunch: string?,
 }
 
 local Eggs = {
@@ -36,8 +40,21 @@ local Eggs = {
 			area = "Thornwood",
 			price = 1000,
 			-- open from the start for now (owner, 2026-10-27: "the mossy glade
-			-- egg and thornwood egg should be unlocked for now"); its unlock
-			-- once that ends: unlock = "MossyGlade"
+			-- egg and thornwood egg should be unlocked for now"); at launch
+			-- it waits on King Bloblin
+			atLaunch = "MossyGlade",
+		},
+		--[[ Bogheart Caverns, area 4 (2026-11-06): its eight Tripo pets
+		     imported. Priced off the area's crate (`Config/Shop`, 4000), a
+		     placeholder like the others. Open from the start while the game
+		     is in playtest, as Thornwood's is. At launch it waits on the
+		     Drowned Village's boss. ]]
+		{
+			key = "BogheartEgg",
+			name = "BOGHEART EGG",
+			area = "BogheartCaverns",
+			price = 4000,
+			atLaunch = "DrownedVillage",
 		},
 	} :: { Egg },
 
@@ -55,9 +72,11 @@ local Eggs = {
 	--[[ How many eggs one press can hatch: HATCH 1 and HATCH 3. ]]
 	counts = { 1, 3 },
 
-	--[[ Pets a player can take into a run at once (the gear screen's PET 1
-	     and PET 2), and the Player attributes the server sets for them. ]]
-	slots = { "Pet", "Pet2" },
+	--[[ Pets a player can take into a run at once (the gear screen's PET 1,
+	     PET 2 and, with the Extra Pet Slot pass, PET 3), and the Player
+	     attributes the server sets for them; the third stays empty without
+	     the pass (`Data/Hatchery.apply`, `Util/StoreRules.petSlots`). ]]
+	slots = { "Pet", "Pet2", "Pet3" },
 }
 
 return table.freeze(Eggs)

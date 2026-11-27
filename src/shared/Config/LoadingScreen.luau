@@ -58,10 +58,12 @@ local LoadingScreen = {
 	     against. ]]
 	size = Vector2.new(1672, 941),
 	columns = 2,
-	tip = { x = 80, y = 836, w = 1500, h = 40 } :: Box,
+	--[[ The tip's words; a plate stands out round them (`Util/TipPlate`),
+	     clear of the bar above. Two lines tall, so a long tip is still a
+	     readable size on a phone held sideways. ]]
+	tip = { x = 98, y = 842, w = 1474, h = 60 } :: Box,
 	--[[ The bar's trough, to the pixel, so the fill sits flush in it. ]]
 	bar = { x = 81, y = 808, w = 1508, h = 13 } :: Box,
-	tipText = Color3.fromRGB(236, 232, 214),
 	barFill = Color3.fromRGB(110, 200, 60),
 	--[[ How long the screen waits for the player's save before choosing
 	     the picture from what every player has met. ]]
@@ -96,7 +98,7 @@ local LoadingScreen = {
 			["MOSS SLIME"] = { x = 47, y = 1442, w = 846, h = 19 },
 			["SPLITTER SPITTER"] = { x = 69, y = 1487, w = 803, h = 16 },
 		} :: { [string]: Box },
-		tip = { x = 60, y = 1520, w = 821, h = 40 } :: Box,
+		tip = { x = 78, y = 1521, w = 785, h = 116 } :: Box,
 		bar = { x = 60, y = 1480, w = 821, h = 13 } :: Box,
 	},
 }
@@ -113,7 +115,8 @@ function LoadingScreen.pick(viewport: Vector2, name: string): (Layout, { string 
 			spotlights = upright.spotlights,
 			columns = upright.columns,
 			bar = bar,
-			tip = { x = bar.x, y = bar.y + bar.h + 22, w = bar.w, h = 80 },
+			-- three lines tall: the picture is narrow on a phone
+			tip = { x = bar.x + 18, y = bar.y + bar.h + 28, w = bar.w - 36, h = 116 },
 		},
 			upright.spotlights[name]
 	end

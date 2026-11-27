@@ -24,6 +24,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CoverPush = require(ReplicatedStorage.Shared.Util.CoverPush)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local HitSquash = require(script.Parent.HitSquash)
 local HopCurve = require(ReplicatedStorage.Shared.Util.HopCurve)
@@ -50,6 +51,9 @@ type Slime = {
 	still: number,
 	clock: number,
 	last: Vector3,
+	--[[ How far the body reaches from its centre at rest, across and
+	     along, so the drawn body can be kept out of cover. ]]
+	reach: Vector2,
 }
 
 local slimes: { [Model]: Slime } = {}
@@ -87,6 +91,7 @@ local function setup(model: Model)
 		still = 0,
 		clock = math.random() * 10,
 		last = hitbox.Position,
+		reach = Vector2.zero,
 	}
 	for _, child in model:GetChildren() do
 		if
@@ -106,6 +111,18 @@ local function setup(model: Model)
 				slime.shadow = piece
 			else
 				table.insert(slime.pieces, piece)
+				local offset = piece.offset
+				local half = child.Size / 2
+				local across = math.abs(offset.Position.X)
+					+ math.abs(offset.RightVector.X) * half.X
+					+ math.abs(offset.UpVector.X) * half.Y
+					+ math.abs(offset.LookVector.X) * half.Z
+				local along = math.abs(offset.Position.Z)
+					+ math.abs(offset.RightVector.Z) * half.X
+					+ math.abs(offset.UpVector.Z) * half.Y
+					+ math.abs(offset.LookVector.Z) * half.Z
+				slime.reach =
+					Vector2.new(math.max(slime.reach.X, across), math.max(slime.reach.Y, along))
 			end
 		end
 	end
@@ -116,10 +133,36 @@ local function setup(model: Model)
 	slimes[model] = slime
 end
 
+--[[ The room's cover boxes, seen from above (`Workspace.Arena.Blockers`),
+     gathered again when the room is rebuilt. ]]
+local coverFolder: Instance? = nil
+local cover: { CoverPush.Box } = {}
+
+local function coverBoxes(): { CoverPush.Box }
+	local arena = Workspace:FindFirstChild("Arena")
+	local folder = arena and arena:FindFirstChild("Blockers")
+	if folder ~= coverFolder then
+		coverFolder = folder
+		table.clear(cover)
+		if folder then
+			for _, part in folder:GetChildren() do
+				if part:IsA("BasePart") and string.sub(part.Name, 1, 8) == "Obstacle" then
+					table.insert(cover, {
+						centre = Vector2.new(part.Position.X, part.Position.Z),
+						half = Vector2.new(part.Size.X / 2, part.Size.Z / 2),
+					})
+				end
+			end
+		end
+	end
+	return cover
+end
+
 local function step(dt: number)
 	local config = Balance.SlimeHop
 	local camera = Workspace.CurrentCamera
 	local eye = if camera then camera.CFrame.Position else Vector3.zero
+	local boxes = coverBoxes()
 
 	for model, s in slimes do
 		local hitbox = s.hitbox
@@ -168,6 +211,21 @@ local function step(dt: number)
 		--[[ Behind the hitbox while crouching, ahead of it in the lurch. ]]
 		local ahead = s.hop * (hop.ease - through)
 		local floor = hitbox.CFrame * CFrame.new(0, -hitbox.Size.Y / 2, -ahead)
+		--[[ Drawn ahead of its hitbox and squashed wider, the body could
+		     reach into cover the hitbox is kept out of (`rg-cover`): it is
+		     pushed back out by its own footprint (`Util/CoverPush`). ]]
+		if #boxes > 0 then
+			local look = hitbox.CFrame.LookVector
+			local half = CoverPush.turned(
+				Vector2.new(s.reach.X * wide, s.reach.Y * deep),
+				math.atan2(look.X, look.Z)
+			)
+			local centre = Vector2.new(floor.Position.X, floor.Position.Z)
+			local out = CoverPush.out(centre, half, boxes)
+			if out ~= centre then
+				floor = floor + Vector3.new(out.X - centre.X, 0, out.Y - centre.Y)
+			end
+		end
 		local frame = floor * CFrame.new(0, hop.lift * s.height, 0) * CFrame.Angles(-hop.tilt, 0, 0)
 		local scale = Vector3.new(wide, tall, deep)
 		for _, piece in s.pieces do

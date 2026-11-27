@@ -31,6 +31,11 @@ local LOBBY_ZOOM = 45
 
 local shakeMagnitude = 0
 local shakeDecay = 0
+--[[ What a tutorial prompt above or below the room asks of the camera on a
+     phone held upright (`keepClear`), and how far the camera has pulled back
+     for it: 0 at the phone's own framing, 1 at `Camera.phone.promptFitWidth`. ]]
+local clearing: CameraFit.Clear? = nil
+local pull = 0
 
 --[[ How far above the ground the player last stood the lobby camera must
      stay, studs (owner, 2026-11-05: "make sure that the player cant look
@@ -91,10 +96,12 @@ local function cameraOffset(camera: Camera): Vector3
 	local config = Balance.Camera
 	local viewport = camera.ViewportSize
 	local phone = Device.isPhone()
+	local phoneWidth = config.phone.fitWidth
+		+ (config.phone.promptFitWidth - config.phone.fitWidth) * pull
 	return CameraFit.offset(viewport, {
 		pitch = config.pitch,
 		fieldOfView = config.fieldOfView,
-		fitWidth = if phone then config.phone.fitWidth else config.fitWidth,
+		fitWidth = if phone then phoneWidth else config.fitWidth,
 		minVisibleDepth = if phone then config.phone.minVisibleDepth else config.minVisibleDepth,
 	})
 end
@@ -118,6 +125,35 @@ local function viewSpan(camera: Camera, offset: Vector3): (number, number)
 	local far = if pitch - half > 1e-3 then back - height / math.tan(pitch - half) else -math.huge
 
 	return far, near
+end
+
+--[[ Roblox's own camera fades the player's character when it comes close to
+     the head (zoomed to first person in the lobby, or just spawned on a
+     run's server), and that fade stays on once this camera takes over: the
+     player ran a whole room as a ring with no body (owner, 2026-11-25:
+     "where is the player model"). Taken off each time the top-down camera
+     takes over, and again on any frame the head is found faded: Roblox's
+     camera hears of the switch to Scriptable a moment late (deferred
+     signals), so it can run one more frame after the switch and fade the
+     body again, which is what live servers still showed after a one-time
+     unfade (version 1151, 2026-11-25). Roblox fades every part of the
+     character by the same amount, so the head stands for all of them. A
+     part that hides itself on purpose (the bow's live string,
+     `Fx/BowString`) is left alone. ]]
+local unfadePending = true
+local function faded(character: Instance): boolean
+	local head = character:FindFirstChild("Head")
+	return head ~= nil and head:IsA("BasePart") and head.LocalTransparencyModifier > 0
+end
+local function unfade(character: Instance)
+	for _, item in character:GetDescendants() do
+		if item:GetAttribute("LiveString") then
+			continue
+		end
+		if item:IsA("BasePart") or item:IsA("Decal") then
+			(item :: any).LocalTransparencyModifier = 0
+		end
+	end
 end
 
 local function step(deltaTime: number, getRoot: () -> BasePart?)
@@ -163,11 +199,17 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	if camera.CameraType ~= Enum.CameraType.Scriptable then
 		camera.CameraType = Enum.CameraType.Scriptable
 		camera.FieldOfView = Balance.Camera.fieldOfView
+		unfadePending = true
 	end
 
 	local root = getRoot()
 	if not root then
 		return
+	end
+	local character = root.Parent
+	if character and (unfadePending or faded(character)) then
+		unfadePending = false
+		unfade(character)
 	end
 
 	--[[
@@ -187,6 +229,17 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	     `Camera.longViewFollow` either way, showing the forest past the end
 	     the player is not at (owner, 2026-10-22: "the camera should move to
 	     follow the player just like it does on the desktop version"). ]]
+	--[[ Out a little, and back, while a prompt asks it to keep an end of the
+	     room clear (owner, 2026-11-19: "Pull camera back"): only on a phone
+	     held upright, whose floor fills the width. ]]
+	local viewport = camera.ViewportSize
+	local upright = Device.isPhone() and viewport.Y > viewport.X
+	local want = clearing
+	local pulled = if want and upright then 1 else 0
+	pull += (pulled - pull) * (1 - math.exp(-Balance.Camera.phone.promptEase * deltaTime))
+	if math.abs(pulled - pull) < 1e-3 then
+		pull = pulled
+	end
 	local offset = cameraOffset(camera)
 	local far, near = viewSpan(camera, offset)
 	local half = Balance.Arena.size.Z / 2
@@ -194,9 +247,35 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local lowest = -(half + Balance.Camera.gateMargin) - far
 	local highest = half + Balance.Camera.wallMargin - near
 	local reach = Balance.Camera.longViewFollow
+	--[[ Following, the view may go `gateHud` further north than the gate's
+	     own margin: enough to bring the gate out from under the HUD's bars
+	     at the top of the screen. ]]
 	local target = if lowest > highest
 		then Vector3.new(0, 0, (lowest + highest) / 2 + math.clamp(root.Position.Z, -reach, reach))
-		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))
+		else Vector3.new(
+			0,
+			0,
+			math.clamp(root.Position.Z, lowest - Balance.Camera.gateHud, highest)
+		)
+	--[[ The forest past the end wall the prompt stands by, and the player
+	     well on screen (`CameraFit.clearFocus`). ]]
+	if want and upright then
+		local wallZ = (half + Balance.Arena.wallThickness)
+			* (if want.side == "Below" then 1 else -1)
+		target = Vector3.new(
+			0,
+			0,
+			CameraFit.clearFocus(
+				target.Z,
+				want,
+				wallZ,
+				root.Position.Z,
+				viewport.Y,
+				offset,
+				camera.FieldOfView
+			)
+		)
+	end
 	if currentFocus and (currentFocus - target).Magnitude > 200 then
 		-- a jump from the lobby back to the room is a cut, not a pan
 		currentFocus = target
@@ -255,10 +334,19 @@ function TopDownCamera.stop()
 	end
 	RunService:UnbindFromRenderStep(FLOOR_GUARD)
 	lastGround = nil
+	pull = 0
 
 	currentFocus = nil
 	shakeMagnitude = 0
 	shakeDecay = 0
+end
+
+--[[ Asks the camera, on a phone held upright, to pull back a little and keep
+     an end of the room clear for a card past its wall (`CameraFit.Clear`,
+     screen rows), or, with nil, to go back to its own framing. Eased both
+     ways. ]]
+function TopDownCamera.keepClear(clear: CameraFit.Clear?)
+	clearing = clear
 end
 
 --[[ Snaps the camera to the character, for respawns. ]]

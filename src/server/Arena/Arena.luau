@@ -26,6 +26,8 @@ local log = Log.forTag("Arena")
 type Box = {
 	centre: Vector2,
 	halfExtents: Vector2,
+	--[[ Studs tall: low cover (a ledge) can be slid over (`resolveOverLow`). ]]
+	height: number,
 }
 
 local Arena = {}
@@ -660,6 +662,7 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		table.insert(roomBoxes, {
 			centre = obstacle.offset,
 			halfExtents = Vector2.new(obstacle.size.X / 2, obstacle.size.Z / 2),
+			height = obstacle.size.Y,
 		})
 	end
 
@@ -723,7 +726,8 @@ function Arena.prepare(
 	obstacles: { Balance.Obstacle },
 	arena: string?,
 	roster: { string }?,
-	park: Instance?
+	park: Instance?,
+	preloads: { Instance }?
 )
 	local current = prepared
 	if current and current.obstacles == obstacles and current.arena == arena then
@@ -733,6 +737,18 @@ function Arena.prepare(
 
 	local made = construct(obstacles, arena)
 	made.root:SetAttribute("Roster", table.concat(roster or {}, ","))
+	--[[ Unseen copies of the room's enemy meshes, so a client fetches them with
+	     the room; `Arena.build` drops them before the room is shown. ]]
+	if preloads and #preloads > 0 then
+		local folder = Instance.new("Folder")
+		folder.Name = "Preloads"
+		for _, item in preloads do
+			item.Parent = folder
+		end
+		folder.Parent = made.root
+	end
+	-- how much a client must have received before the room counts as arrived
+	made.root:SetAttribute("Parts", #made.root:GetDescendants())
 	local holder = park or ReplicatedStorage:FindFirstChild("NextArena")
 	if not holder then
 		local folder = Instance.new("Folder")
@@ -770,6 +786,10 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	if ready and ready.obstacles == obstacles and ready.arena == arena then
 		prepared = nil
 		made = ready
+		local preloads = made.root:FindFirstChild("Preloads")
+		if preloads then
+			preloads:Destroy()
+		end
 	else
 		dropPrepared()
 		made = construct(obstacles, arena)
@@ -862,6 +882,40 @@ function Arena.resolveBox(position: Vector3, half: Vector2): Vector3
 	point = Vector2.new(math.clamp(point.X, -limitX, limitX), math.clamp(point.Y, -limitZ, limitZ))
 
 	return Vector3.new(point.X, position.Y, point.Y)
+end
+
+--[[ Studs of cover a body on its belly slides over (`resolveOverLow`). ]]
+local LOW_COVER = 1
+
+--[[ `resolve` that slides over low cover (under `LOW_COVER` tall, such as
+     the Bogheart Heart's ledges) and stops only at taller cover and the
+     walls: Grandmother Gulp's Belly Slide. ]]
+function Arena.resolveOverLow(position: Vector3, radius: number): Vector3
+	local point = Vector2.new(position.X, position.Z)
+	for _, box in boxes do
+		if box.height < LOW_COVER then
+			continue
+		end
+		local delta = point - box.centre
+		local overlapX = (box.halfExtents.X + radius) - math.abs(delta.X)
+		local overlapZ = (box.halfExtents.Y + radius) - math.abs(delta.Y)
+		if overlapX > 0 and overlapZ > 0 then
+			if overlapX < overlapZ then
+				local sign = if delta.X >= 0 then 1 else -1
+				point = Vector2.new(box.centre.X + sign * (box.halfExtents.X + radius), point.Y)
+			else
+				local sign = if delta.Y >= 0 then 1 else -1
+				point = Vector2.new(point.X, box.centre.Y + sign * (box.halfExtents.Y + radius))
+			end
+		end
+	end
+	local limitX = math.max(halfSize.X - radius, 0)
+	local limitZ = math.max(halfSize.Y - radius, 0)
+	return Vector3.new(
+		math.clamp(point.X, -limitX, limitX),
+		position.Y,
+		math.clamp(point.Y, -limitZ, limitZ)
+	)
 end
 
 --[[ `resolveBox` for something the same width on both axes — a body that

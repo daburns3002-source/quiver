@@ -7,7 +7,7 @@
 	vine-wrapped broken columns. `Run/Lobby` calls these in turn and builds the
 	buildings and the portal terrace itself.
 
-	Every piece is a plain smooth part, the words alone being in the blocky font
+	Every piece is a plain smooth part, the words alone being in the game's font
 	(owner, 2026-10-27). Flat things are stacked by height: the `LAYER` table is
 	the whole order, because two flat parts level with each other flicker.
 ]]
@@ -938,11 +938,18 @@ function LobbyCourtyard.sky()
 	sky.CelestialBodiesShown = true
 	sky.SunAngularSize = spec.sunSize
 	sky.MoonAngularSize = 0
+	sky.SkyboxBk = spec.skybox.SkyboxBk
+	sky.SkyboxDn = spec.skybox.SkyboxDn
+	sky.SkyboxFt = spec.skybox.SkyboxFt
+	sky.SkyboxLf = spec.skybox.SkyboxLf
+	sky.SkyboxRt = spec.skybox.SkyboxRt
+	sky.SkyboxUp = spec.skybox.SkyboxUp
 	sky.Parent = Lighting
 	local clouds = Workspace.Terrain:FindFirstChildOfClass("Clouds") or Instance.new("Clouds")
 	clouds.Cover = spec.cloudCover
 	clouds.Density = spec.cloudDensity
 	clouds.Color = Color3.new(1, 1, 1)
+	clouds.Enabled = spec.cloudsShown
 	clouds.Parent = Workspace.Terrain
 end
 

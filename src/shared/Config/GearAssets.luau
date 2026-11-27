@@ -4,53 +4,59 @@
 	`assets/ui/gear/` (cut by `assets/ui/gear/cutout.py` from Codex's sheets in
 	`assets/concepts/blocky/ui/pixel/` and `reveal/`).
 
-	- `weapons` and `pets`: the mini pixel icons ("i like the mini pixel
-	  versions of the weapons and pets"), keyed by `Config/WeaponStats` and
-	  `Config/Pets` names. A weapon or pet with none falls back to its shop
-	  picture or a silhouette; `tests/GearAssets.spec` wants one for each.
+	- `pets`: each pet's one picture, keyed by `Config/Pets` name. Screens
+	  read it through `Util/ItemIcons`, never here (`tests/ItemIcons.spec`).
+	  A weapon's one picture is `ShopAssets.weapons`; the outlined copies
+	  that used to sit here were dropped on 2026-11-19 (owner: "MAKE SURE
+	  THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE SAME").
 	- `crates` (pixel art: `closed` with its two padlocks for the shop, `bare`
 	  without them for the reveal, which draws its own to pop off, and `open`,
 	  per `Config/Shop` area) and `eggs` (whole,
 	  two cracked stages and the burst, per `Config/Eggs` key): the reveals'
 	  frames.
-	- `models`: the egg's and the chest's Tripo models, shown by `UI/Reveal` in
-	  a viewport in place of the frames above.
+	- `models`: each area's egg and chest as Tripo models, shown by `UI/Reveal`
+	  in a viewport in place of the frames above.
 	- `fx`: white shapes the reveals tint by rarity.
 	  An empty id is not drawn.
 ]]
 
 --[[ One reveal's model: its mesh, its texture, and whether it tips open
      like a lid. The size is the mesh's own, read off the loaded part. ]]
+export type RevealPiece = {
+	mesh: string,
+	texture: string,
+	size: Vector3,
+	--[[ Its centre from the whole chest's. ]]
+	offset: Vector3,
+}
+--[[ A chest as a base and a lid, built together in Claude Design (owner,
+     2026-11-09) and measured in
+     `assets/concepts/blocky/eggs_chests/design_final/assembly.json`. `size` is
+     the closed chest's and `hinge` the line the lid turns on, from its centre.
+     With these the model's own `mesh` is never loaded: a chest whose piece
+     fails plays its pictures. ]]
+export type RevealParts = {
+	size: Vector3,
+	hinge: Vector3,
+	base: RevealPiece,
+	lid: RevealPiece,
+}
 export type RevealModel = {
 	mesh: string,
 	texture: string,
 	tips: boolean,
+	parts: RevealParts?,
 }
 
 local GearAssets = {
-	--[[ The crate's INSIDE tiles cut whole from the chosen mockup (owner,
+	--[[ The back and arrow buttons, cut from the chosen mockup (owner,
 	     2026-10-26: "make the icons actually from the option C";
-	     `assets/ui/gear/optc/`), its chance band cleared for the game's own. ]]
-	--[[ The back and arrow buttons, cut from the same mockup. ]]
+	     `assets/ui/gear/optc/`). ]]
 	buttons = {
 		back = "rbxassetid://108896071664277",
 		left = "rbxassetid://83943438986636",
 		right = "rbxassetid://118687850481288",
 	},
-	crateTiles = {
-		HootmossStaff = "rbxassetid://80030543863014",
-		ThornBlade = "rbxassetid://123784490682545",
-		AcornBow = "rbxassetid://95876371507095",
-		FireflyBow = "rbxassetid://133209449661927",
-		MossSlimeBow = "rbxassetid://118564451999252",
-		WorldrootStaff = "rbxassetid://140600630838336",
-		BroodsplitBlade = "rbxassetid://80045144092728",
-		GladeSpiritBow = "rbxassetid://122509292380004",
-		LanternStaff = "rbxassetid://136857707110473",
-		ToadstoolStaff = "rbxassetid://138209734091526",
-		GladeheartBlade = "rbxassetid://82640059295910",
-		MossstoneBlade = "rbxassetid://83971051827860",
-	} :: { [string]: string },
 	--[[ Full-screen backdrops behind the screens (Codex, 2026-10-26). ]]
 	--[[ Small pixel icons for the gear screen's tabs and stats (drawn by
 	     Claude, `assets/ui/gear/icons/`; owner, 2026-10-27: "the icon next
@@ -78,135 +84,301 @@ local GearAssets = {
 		sheet = "rbxassetid://94508718061923",
 		holds = { 0.45, 0.08, 0.16, 0.14 },
 	},
-	-- with a bold dark outline round each (owner, 2026-10-26: "they need to
-	-- have a border around them"; `assets/ui/gear/outlined/`)
-	weapons = {
-		TwigBow = "rbxassetid://132113785090505",
-		AcornBow = "rbxassetid://96318150998975",
-		FireflyBow = "rbxassetid://128990046825154",
-		MossSlimeBow = "rbxassetid://92732102970465",
-		EmberFangBow = "rbxassetid://125485507262589",
-		GladeSpiritBow = "rbxassetid://95914330923781",
-		BranchStaff = "rbxassetid://110028919919148",
-		ToadstoolStaff = "rbxassetid://103846762012524",
-		LanternStaff = "rbxassetid://87882166814803",
-		HootmossStaff = "rbxassetid://77705980987654",
-		SlimeCrownStaff = "rbxassetid://121120504602308",
-		WorldrootStaff = "rbxassetid://78284498913317",
-		TimberBlade = "rbxassetid://107410998322331",
-		MossstoneBlade = "rbxassetid://76992176147383",
-		ThornBlade = "rbxassetid://134376839588123",
-		BroodsplitBlade = "rbxassetid://118527389116413",
-		EmberfangBlade = "rbxassetid://81277734347197",
-		GladeheartBlade = "rbxassetid://124288097242577",
-	} :: { [string]: string },
 	pets = {
-		Mosslet = "rbxassetid://88216505031993",
+		Mosslet = "rbxassetid://90863911704588",
 		Babacorn = "rbxassetid://76501430507544",
-		FernFrog = "rbxassetid://100347167089648",
+		FernFrog = "rbxassetid://133132247820472",
 		ToadstoolTot = "rbxassetid://110117240407269",
-		MossbackSnail = "rbxassetid://136748884579366",
+		MossbackSnail = "rbxassetid://102332993002493",
 		FireflyBun = "rbxassetid://112201723878493",
 		Stumpy = "rbxassetid://93282671939278",
-		GladeFox = "rbxassetid://113054935053277",
+		GladeFox = "rbxassetid://94095091677547",
 		Hootmoss = "rbxassetid://133339489384185",
 		SlimePrince = "rbxassetid://105364611490161",
-		EmberWilfPet = "rbxassetid://84054404368414",
-		Glimmerhorn = "rbxassetid://107274566383470",
+		-- the three remade 2026-11-11, cut from the art each remake was built from
+		-- (assets/ui/pets/remake_icons.py), so the picture matches the model
+		EmberWilfPet = "rbxassetid://135750847822945",
+		Glimmerhorn = "rbxassetid://71541557210495",
 		-- Thornwood
 		BarkHoglet = "rbxassetid://85158712161429",
-		Burrball = "rbxassetid://105030144351437",
-		Budbulb = "rbxassetid://104866742117871",
-		BerryMouse = "rbxassetid://125833278452238",
-		ThistleMole = "rbxassetid://91789981690252",
-		BriarBeetle = "rbxassetid://98768787211375",
-		BerryBat = "rbxassetid://120671172614168",
-		BrambleBear = "rbxassetid://124199226628429",
-		BriarLynx = "rbxassetid://123457827044688",
-		BrambleWilf = "rbxassetid://100817787910788",
-		ThornPrincess = "rbxassetid://77091667536130",
-		Thornwake = "rbxassetid://85430024402506",
+		Burrball = "rbxassetid://132475844312007",
+		Budbulb = "rbxassetid://129302109169568",
+		BerryMouse = "rbxassetid://129907274141283",
+		ThistleMole = "rbxassetid://137326575980464",
+		BriarBeetle = "rbxassetid://92531841301355",
+		BerryBat = "rbxassetid://101511303102569",
+		BrambleBear = "rbxassetid://70373537383448",
+		BriarLynx = "rbxassetid://123920723768844",
+		BrambleWilf = "rbxassetid://121840326738596",
+		ThornPrincess = "rbxassetid://136102772247481",
+		Thornwake = "rbxassetid://75237550354527",
 		-- Drowned Village. Rendered from the models rather than drawn, since
 		-- these five came out of Tripo with no art of their own
 		-- (assets/concepts/pets/drowned/README.md)
-		SlateTurtle = "rbxassetid://96863657817087",
-		BuoyPuffer = "rbxassetid://98931444417689",
-		Inkpot = "rbxassetid://83913732789136",
-		TideWilf = "rbxassetid://95828713798755",
-		AbyssJelly = "rbxassetid://86884247547888",
+		SlateTurtle = "rbxassetid://93629127395703",
+		BuoyPuffer = "rbxassetid://138169861363295",
+		Inkpot = "rbxassetid://118912345465564",
+		TideWilf = "rbxassetid://126851107750395",
+		AbyssJelly = "rbxassetid://127216427421276",
+		-- Bogheart Caverns: Codex's 2D art each Tripo model was made from,
+		-- keyed out (assets/ui/shop/bogheart_icons.py, assets/ui/pets/icons)
+		CaveCricket = "rbxassetid://71981670304520",
+		LichenGecko = "rbxassetid://85124134290575",
+		BogBeaver = "rbxassetid://112831862812693",
+		Lanternfin = "rbxassetid://123390657742964",
+		Olm = "rbxassetid://109387352166966",
+		GlowcapWilf = "rbxassetid://86027144186651",
+		Gulpling = "rbxassetid://97124284184604",
+		PrismLeviathan = "rbxassetid://113063820686924",
 	} :: { [string]: string },
 	crates = {
 		MossyGlade = {
-			closed = "rbxassetid://115732608547127",
+			closed = "rbxassetid://120544977723441",
 			bare = "rbxassetid://132518924413005",
 			open = "rbxassetid://110805001270540",
 		},
 		Thornwood = {
-			closed = "rbxassetid://139411907605270",
+			closed = "rbxassetid://124847317110705",
 			bare = "rbxassetid://130462577945262",
 			open = "rbxassetid://132986191598031",
 		},
 		DrownedVillage = {
-			closed = "rbxassetid://129406927323412",
+			closed = "rbxassetid://78250046012977",
 			bare = "rbxassetid://93374148317621",
 			open = "rbxassetid://78736767331636",
 		},
 		BogheartCaverns = {
-			closed = "rbxassetid://74264485531007",
+			closed = "rbxassetid://86834655328819",
 			bare = "rbxassetid://88397231327506",
 			open = "rbxassetid://100424663327388",
 		},
 		WindsweptCliffs = {
-			closed = "rbxassetid://109820030254804",
+			closed = "rbxassetid://93546563759704",
 			bare = "rbxassetid://123984843499980",
 			open = "rbxassetid://126672295487581",
 		},
 		FrostpeakPass = {
-			closed = "rbxassetid://84025185082724",
+			closed = "rbxassetid://125278204199154",
 			bare = "rbxassetid://94739226508814",
 			open = "rbxassetid://96625859132471",
 		},
 	} :: { [string]: { closed: string, bare: string, open: string } },
 	eggs = {
 		MossyEgg = {
-			whole = "rbxassetid://106270870780677",
+			whole = "rbxassetid://71290289361540",
 			crack1 = "rbxassetid://83969750477878",
 			crack2 = "rbxassetid://71861915568555",
 			burst = "rbxassetid://140609227414793",
 		},
 		ThornwoodEgg = {
-			whole = "rbxassetid://104439505138184",
+			whole = "rbxassetid://93626599138369",
 			crack1 = "rbxassetid://114936238157331",
 			crack2 = "rbxassetid://116737796954527",
 			burst = "rbxassetid://80786736493750",
 		},
 	} :: { [string]: { whole: string, crack1: string, crack2: string, burst: string } },
-	--[[ The egg and the chest as the models the owner generated in Tripo
-	     (2026-10-31: "i also want it to play with the new egg and chest
-	     models that were created"). Shown in a viewport by `UI/Reveal`, so
-	     they tip, turn and squash in three dimensions where the pictures
-	     above could only swap one frame for the next.
-
-	     Keyed as `eggs` and `crates` are, and a key with no model here
-	     still plays with its pictures: Thornwood's egg is imported but
-	     came out of Tripo with no texture, so it stays on its art until
-	     there is one.
-	     `tips` is the chest's: a lid swings, so it rocks open and stays
-	     on screen while the weapon rises out of it. An egg has none and
-	     is gone on the burst. Both are single meshes, so no shell half
-	     and no lid can move by itself -- the light does that work. ]]
+	--[[ Each area's egg and chest as its low-poly Tripo model (imported
+	     2026-11-06 into the TEST place's `Workspace/TripoImports/EggsChests`;
+	     owner: "Yes, wire them in"), keyed by `Config/Economy` area: an
+	     egg's hatch plays its area's egg (`Config/Eggs.area`), a crate opens
+	     as its area's chest. Shown in a viewport by `UI/Reveal`; the texture
+	     is the import's colour map (a SurfaceAppearance cannot be built at
+	     runtime). An area with none here, or one that failed to load, plays
+	     its pictures.
+	     `tips` would rock a lid open, but each chest is one mesh with no lid
+	     of its own, so it is false: the whole chest hops and bursts. ]]
 	models = {
-		MossyEgg = {
-			mesh = "rbxassetid://103640048972307",
-			texture = "rbxassetid://132312157850854",
-			tips = false,
-		},
-		MossyGlade = {
-			mesh = "rbxassetid://113614951993286",
-			texture = "rbxassetid://81554242221614",
-			tips = true,
-		},
-	} :: { [string]: RevealModel },
+		eggs = {
+			MossyGlade = {
+				mesh = "rbxassetid://125867266786213",
+				texture = "rbxassetid://88101998773359",
+				tips = false,
+			},
+			Thornwood = {
+				mesh = "rbxassetid://102746537804804",
+				texture = "rbxassetid://98814346500854",
+				tips = false,
+			},
+			DrownedVillage = {
+				mesh = "rbxassetid://77063469221556",
+				texture = "rbxassetid://105911424244162",
+				tips = false,
+			},
+			BogheartCaverns = {
+				mesh = "rbxassetid://93989135243338",
+				texture = "rbxassetid://71557278954501",
+				tips = false,
+			},
+			WindsweptCliffs = {
+				mesh = "rbxassetid://76453930741578",
+				texture = "rbxassetid://126548549316247",
+				tips = false,
+			},
+			FrostpeakPass = {
+				mesh = "rbxassetid://123593322311810",
+				texture = "rbxassetid://116560519897545",
+				tips = false,
+			},
+		} :: { [string]: RevealModel },
+		chests = {
+			MossyGlade = {
+				mesh = "rbxassetid://113330487163741",
+				texture = "rbxassetid://114390284272834",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3),
+					hinge = Vector3.new(0, 0.25, 1.5),
+					base = {
+						mesh = "rbxassetid://130752466705335",
+						texture = "rbxassetid://118659036648689",
+						size = Vector3.new(4, 2, 3),
+						offset = Vector3.new(0, -0.75, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://92889930221372",
+						texture = "rbxassetid://137302986213494",
+						size = Vector3.new(4, 1.5, 3),
+						offset = Vector3.new(0, 1, 0),
+					},
+				},
+			},
+			Thornwood = {
+				mesh = "rbxassetid://78975216964906",
+				texture = "rbxassetid://130024333307677",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3),
+					hinge = Vector3.new(0, 0.25, 1.5),
+					base = {
+						mesh = "rbxassetid://113145363130337",
+						texture = "rbxassetid://101483984978368",
+						size = Vector3.new(4, 2, 3),
+						offset = Vector3.new(0, -0.75, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://127189648048829",
+						texture = "rbxassetid://102489753663183",
+						size = Vector3.new(4, 1.5, 3),
+						offset = Vector3.new(0, 1, 0),
+					},
+				},
+			},
+			DrownedVillage = {
+				mesh = "rbxassetid://73700749705895",
+				texture = "rbxassetid://134194978002263",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3.21),
+					hinge = Vector3.new(0, 0.25, 1.605),
+					base = {
+						mesh = "rbxassetid://82256826623765",
+						texture = "rbxassetid://108148697134016",
+						size = Vector3.new(4, 2, 3.21),
+						offset = Vector3.new(0, -0.75, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://86294519988548",
+						texture = "rbxassetid://136138267036495",
+						size = Vector3.new(4, 1.5, 3),
+						offset = Vector3.new(0, 1, 0.105),
+					},
+				},
+			},
+			BogheartCaverns = {
+				mesh = "rbxassetid://98295346767225",
+				texture = "rbxassetid://115463165012046",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3),
+					hinge = Vector3.new(0, 0.25, 1.44),
+					base = {
+						mesh = "rbxassetid://116852065169105",
+						texture = "rbxassetid://108740786294660",
+						size = Vector3.new(4, 2.61, 3),
+						offset = Vector3.new(0, -0.445, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://101346606989503",
+						texture = "rbxassetid://114142866356979",
+						size = Vector3.new(3.924, 1.5, 2.88),
+						offset = Vector3.new(0, 1, 0),
+					},
+				},
+			},
+			WindsweptCliffs = {
+				mesh = "rbxassetid://124902873841536",
+				texture = "rbxassetid://108531951634378",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3),
+					hinge = Vector3.new(0, 0.25, 1.5),
+					base = {
+						mesh = "rbxassetid://88929376486856",
+						texture = "rbxassetid://127388349162489",
+						size = Vector3.new(4, 2, 3),
+						offset = Vector3.new(0, -0.75, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://132574906092548",
+						texture = "rbxassetid://90634676993640",
+						size = Vector3.new(4, 1.5, 3),
+						offset = Vector3.new(0, 1, 0),
+					},
+				},
+			},
+			FrostpeakPass = {
+				mesh = "rbxassetid://116730027578371",
+				texture = "rbxassetid://81088159126838",
+				tips = false,
+				parts = {
+					size = Vector3.new(4, 3.5, 3),
+					hinge = Vector3.new(0, 0.25, 1.5),
+					base = {
+						mesh = "rbxassetid://81921698392602",
+						texture = "rbxassetid://108029949591313",
+						size = Vector3.new(4, 2, 3),
+						offset = Vector3.new(0, -0.75, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://100200811768448",
+						texture = "rbxassetid://115714602118044",
+						size = Vector3.new(4, 1.5, 3),
+						offset = Vector3.new(0, 1, 0),
+					},
+				},
+			},
+		} :: { [string]: RevealModel },
+	},
+	--[[ The eggs' and chests' pictures here and each `closed` / `whole` above
+	     are rendered from their Claude Design models (owner, 2026-11-09;
+	     `assets/ui/reveal/design/`), so a screen shows the model that opens.
+	     Each area's egg and chest as one picture (Codex's per-area art,
+	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
+	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model
+	     and no cut frames above: `UI/Reveal` draws its cracks and light over
+	     it (cut by assets/ui/shop/bogheart_icons.py into assets/ui/reveal/).
+	     "" until uploaded, and then the reveal draws its own in the
+	     area's colours (`Config/Reveal.shells`; a chest falls back to
+	     Victory's first). A Tripo model, once imported, goes in `models`
+	     under the egg's key or the chest's area and wins over all of it. ]]
+	areaPictures = {
+		eggs = {
+			MossyGlade = "rbxassetid://71290289361540",
+			Thornwood = "rbxassetid://93626599138369",
+			DrownedVillage = "rbxassetid://98073349929486",
+			BogheartCaverns = "rbxassetid://137492703455068",
+			WindsweptCliffs = "rbxassetid://140562721549375",
+			FrostpeakPass = "rbxassetid://91258746426854",
+		} :: { [string]: string },
+		chests = {
+			MossyGlade = "rbxassetid://120544977723441",
+			Thornwood = "rbxassetid://124847317110705",
+			DrownedVillage = "rbxassetid://78250046012977",
+			BogheartCaverns = "rbxassetid://86834655328819",
+			WindsweptCliffs = "rbxassetid://93546563759704",
+			FrostpeakPass = "rbxassetid://125278204199154",
+		} :: { [string]: string },
+	},
 	--[[ The showcase behind a pulled prize (owner, 2026-10-26: option 4, "the
 	     showcase pedestal with the rarity banner and confetti"): white, tinted
 	     by rarity. The banner is 748 x 297, the pedestal 642 x 318. ]]
@@ -219,6 +391,7 @@ local GearAssets = {
 		rays = "rbxassetid://123315883761316",
 		glow = "rbxassetid://72053512669132",
 		sparkle = "rbxassetid://140286080633760",
+		star = "rbxassetid://75276390003946",
 		ring = "rbxassetid://119651633511726",
 		confetti = "rbxassetid://86883153796302",
 		badge = "rbxassetid://108895879713593",

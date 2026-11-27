@@ -25,6 +25,7 @@
 
 local Bleed = require(script.Parent.Parent.Combat.Bleed)
 local PetCombat = require(script.Parent.Parent.Config.PetCombat)
+local PetCrowd = require(script.Parent.Parent.Util.PetCrowd)
 local PetWake = require(script.Parent.Parent.Util.PetWake)
 local WeaponStats = require(script.Parent.Parent.Config.WeaponStats)
 
@@ -51,7 +52,8 @@ function PetPower.band(rarity: string, area: number): number?
 	if aimed == nil or scale == nil then
 		return nil
 	end
-	return aimed * scale
+	-- every pet's `damageScale` raises the bands with them (1.5 since 2026-11-13)
+	return aimed * scale * PetCombat.damageScale
 end
 
 --[[ How many enemies a beam or a ring is credited with. Both reach as far
@@ -60,6 +62,11 @@ end
      of a player at once. ]]
 local LINE = 2
 local RING = 2
+
+--[[ The Bogheart pets' crowds (`Shared/Util/PetCrowd`) are credited the
+     same way: a sneeze, a flop or a burst catches two, a crowd bite has two
+     beside its target, and a prism's shards find two others. ]]
+local CROWD = 2
 
 --[[ Damage a second against a full room, as the comment above defines it.
      Zero for a pet that does no damage of its own, which three of the
@@ -78,6 +85,9 @@ function PetPower.dps(spec: PetCombat.Spec): number
 	if spec.beam then
 		targets = LINE
 	end
+	if spec.cone or spec.flop or spec.burst then
+		targets = CROWD
+	end
 
 	local out = 0
 
@@ -90,6 +100,19 @@ function PetPower.dps(spec: PetCombat.Spec): number
 		local payback = spec.payback
 		if payback then
 			hit *= payback.scale
+		end
+		--[[ One lick in `every` is `scale` times as hard. ]]
+		local combo = spec.combo
+		if combo then
+			hit *= PetCrowd.comboAverage(combo)
+		end
+		local crowd = spec.crowd
+		if crowd then
+			hit *= PetCrowd.crowdScale(crowd, CROWD)
+		end
+		local split = spec.split
+		if split then
+			hit *= 1 + split.share * math.min(split.shards, CROWD)
 		end
 		out += hit / every
 	end
@@ -123,7 +146,7 @@ function PetPower.dps(spec: PetCombat.Spec): number
 		out += PetWake.total(wake) / every
 	end
 
-	return out
+	return out * PetCombat.damageScale
 end
 
 return table.freeze(PetPower)

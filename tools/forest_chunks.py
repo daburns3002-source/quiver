@@ -3,7 +3,7 @@ about ten draws instead of one per tree (docs/PERFORMANCE.md, option 2,
 owner 2026-11-27; the outer trees stop being separate, so they can never
 sway one by one).
 
-    python -I tools/forest_chunks.py build glade      # -> assets/models/arenas/forest_chunks/glade_chunks.glb
+    python -I tools/forest_chunks.py build glade      # -> ~/Downloads/forest_chunks/glade_chunks.glb
     python -I tools/forest_chunks.py luau <ids.json>  # -> src/shared/Config/ForestChunks.luau
 
 `build` reads the forest as the game draws it today (its per-part config,
@@ -38,6 +38,10 @@ import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "assets/models/arenas/forest_chunks"
 TARGET = ROOT / "src/shared/Config/ForestChunks.luau"
+# The chunks' GLBs, rebuilt on demand (not kept in git): by default where
+# Studio's Open Cloud uploads may read them (Downloads, approved by the
+# owner 2026-11-27); `build --glbs <dir>` puts them elsewhere.
+GLB_DIR = pathlib.Path.home() / "Downloads" / "forest_chunks"
 
 FORESTS = {
     "glade": {
@@ -349,7 +353,8 @@ def build(forest_name):
     print(f"  {len(parts)} parts -> {len(chunks)} chunks, {tris} triangles")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out = OUT_DIR / f"{forest_name}_chunks.glb"
+    GLB_DIR.mkdir(parents=True, exist_ok=True)
+    out = GLB_DIR / f"{forest_name}_chunks.glb"
     write_glb(out, chunks)
     crowns = [
         {
@@ -379,7 +384,7 @@ def build(forest_name):
         "crowns": crowns,
     }
     (OUT_DIR / f"{forest_name}_chunks.json").write_text(json.dumps(layout, indent=1) + "\n", newline="\n")
-    print(f"  wrote {out.relative_to(ROOT)}")
+    print(f"  wrote {out}")
 
 
 # ---------------------------------------------------------------- GLB out
@@ -521,7 +526,11 @@ def luau(ids_path):
 
 if __name__ == "__main__":
     if sys.argv[1] == "build":
-        for name in sys.argv[2:] or list(FORESTS):
+        names = sys.argv[2:]
+        if names[:1] == ["--glbs"]:
+            GLB_DIR = pathlib.Path(names[1])
+            names = names[2:]
+        for name in names or list(FORESTS):
             build(name)
     elif sys.argv[1] == "luau":
         luau(sys.argv[2])

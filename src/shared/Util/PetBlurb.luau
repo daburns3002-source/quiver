@@ -442,7 +442,12 @@ function PetBlurb.lines(key: string): { string }
 		)
 	end
 	if spec.lift then
-		add(string.format("Updraft: lifts each enemy it hits off its feet for %g seconds.", spec.lift))
+		add(
+			string.format(
+				"Updraft: lifts each enemy it hits off its feet for %g seconds.",
+				spec.lift
+			)
+		)
 	end
 	if spec.strongest and spec.fuse then
 		add(
@@ -453,7 +458,12 @@ function PetBlurb.lines(key: string): { string }
 		)
 	end
 	if spec.gust then
-		add(string.format("Tailwind: everything within %g studs is struck and blown back.", spec.range))
+		add(
+			string.format(
+				"Tailwind: everything within %g studs is struck and blown back.",
+				spec.range
+			)
+		)
 	end
 
 	return out

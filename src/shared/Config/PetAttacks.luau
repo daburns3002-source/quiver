@@ -53,7 +53,7 @@ export type Shot = {
 	--[[ Which enemy goes first, for a pet that does not pick the nearest
 	     (`Shared/Util/PetCrowd`): the furthest (the Cave Cricket), or the
 	     one with the most others within `aimRadius` (the Gulpling). ]]
-	aim: ("Farthest" | "Densest")?,
+	aim: ("Farthest" | "Densest" | "Strongest")?,
 	aimRadius: number?,
 }
 
@@ -541,6 +541,108 @@ local PetAttacks: { [string]: { Shot } } = {
 			arc = 1,
 			homing = true,
 			impact = { effect = "FxPetPrismShards", clip = "Play", life = 0.6 },
+		},
+	},
+	--[[ The Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md, 2026-11-27): until
+	     their own pieces are drawn, older pieces stand in, timed on each
+	     pet's Attack clip. ]]
+	--[[ Alarm Whistle: a ring of sound at the nearest as it whistles. ]]
+	WhistleMarmot = {
+		{
+			effect = "FxPetChirpRing",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.35,
+			speed = 46,
+			arc = 1,
+			homing = true,
+		},
+	},
+	--[[ Pebble Drop: a pebble lobbed high from its beak as it tips. ]]
+	CliffPuffin = {
+		{
+			effect = "FxPetAcornPellet",
+			clip = "Spin",
+			kind = "Projectile",
+			at = 0.4,
+			speed = 30,
+			arc = 6,
+			homing = true,
+		},
+	},
+	--[[ Wool Wall: the wool round its owner for the wall's 3 s. ]]
+	WoollyAlpaca = {
+		{
+			effect = "FxPetMudCoat",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.45,
+			life = 3,
+		},
+	},
+	--[[ Updraft: a streak down the line through the nearest. ]]
+	GaleGlider = {
+		{
+			effect = "FxPetPrismBeam",
+			clip = "Fire",
+			kind = "Reach",
+			at = 0.3,
+			life = 0.4,
+		},
+	},
+	--[[ Flag Spin: three flags flung out from the spin. ]]
+	FlagtailPanda = {
+		{
+			effect = "FxPetFeatherDart",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.4,
+			count = 3,
+			spread = 35,
+			speed = 38,
+			arc = 2,
+			homing = true,
+		},
+	},
+	--[[ Glide: the swoop through the first three on the line. ]]
+	GaleWilf = {
+		{
+			effect = "FxPetLeafSlash",
+			clip = "Slash",
+			kind = "Reach",
+			at = 0.5,
+			life = 0.4,
+		},
+	},
+	--[[ Little Thunder: the mark over the toughest enemy, and the strike
+	     under it 0.6 s later, when `Combat/PetCombat` lands it. ]]
+	Rocling = {
+		{
+			effect = "FxPetLureMark",
+			clip = "Spin",
+			kind = "Overhead",
+			at = 0.4,
+			lift = 1.4,
+			life = 0.6,
+			aim = "Strongest",
+		},
+		{
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Ground",
+			at = 1.0,
+			life = 0.6,
+			aim = "Strongest",
+		},
+	},
+	--[[ Tailwind: a ring round its owner as the tail sweeps. ]]
+	ZephyrWhale = {
+		{
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.45,
+			life = 0.8,
 		},
 	},
 }

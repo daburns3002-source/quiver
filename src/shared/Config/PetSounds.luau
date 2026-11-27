@@ -71,6 +71,15 @@ local PetSounds: { [string]: { Cue } } = {
 	GlowcapWilf = { { sound = "pet_glowcap_wilf", at = 0.5 } },
 	Gulpling = { { sound = "pet_gulpling", at = 0.55 } },
 	PrismLeviathan = { { sound = "pet_prism_leviathan", at = 0.45 } },
+	-- the Windswept Cliffs: stand-ins until the area's own sounds
+	WhistleMarmot = { { sound = "pet_berry_mouse", at = 0.35 } },
+	CliffPuffin = { { sound = "pet_hootmoss", at = 0.4 } },
+	WoollyAlpaca = { { sound = "pet_bog_beaver", at = 0.45 } },
+	GaleGlider = { { sound = "fx_wind_gust", at = 0.3 } },
+	FlagtailPanda = { { sound = "fx_whirlwind", at = 0.4 } },
+	GaleWilf = { { sound = "pet_glowcap_wilf", at = 0.5 } },
+	Rocling = { { sound = "fx_chain_lightning", at = 1.0 } },
+	ZephyrWhale = { { sound = "fx_wind_gust", at = 0.45 } },
 }
 
 return table.freeze(PetSounds)

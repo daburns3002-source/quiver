@@ -61,6 +61,11 @@ local PetAuras = {
 		GlowcapWilf = "Legendary",
 		Gulpling = "Legendary",
 		PrismLeviathan = "MythicLake",
+		-- the Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md): the Wilf and the
+		-- boss heir in the gold; the Zephyr Whale glows the sky's pale cyan
+		GaleWilf = "Legendary",
+		Rocling = "Legendary",
+		ZephyrWhale = "MythicSky",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {
@@ -119,6 +124,26 @@ local PetAuras = {
 			sparkleLife = 1.1,
 			sparkleSize = 0.32,
 			trail = 0.6,
+		},
+		--[[ The Zephyr Whale's: the Windswept Cliffs' pale sky cyan and
+		     cloud white, not rainbow (a Mythic need not be, 2026-11-06). ]]
+		MythicSky = {
+			rainbow = nil,
+			glow = Color3.fromRGB(170, 236, 255),
+			colours = {
+				Color3.fromRGB(255, 255, 255),
+				Color3.fromRGB(190, 240, 255),
+				Color3.fromRGB(120, 210, 250),
+				Color3.fromRGB(150, 180, 255),
+			},
+			fill = 0.72,
+			outline = 0.1,
+			lightRange = 10,
+			lightBrightness = 2.5,
+			sparkleRate = 18,
+			sparkleLife = 1.1,
+			sparkleSize = 0.32,
+			trail = 0.7,
 		},
 		--[[ The Legendary aura in the Bramble Wilf's purple. ]]
 		LegendaryPurple = {

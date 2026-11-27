@@ -109,10 +109,10 @@ StoryBeats.pictures = {
 	b4c = { left = "rbxassetid://107160632018196", right = "rbxassetid://127133838770273" },
 	b4d = { left = "rbxassetid://92744465655031", right = "rbxassetid://88952928826693" },
 	-- the Windswept Cliffs' (2026-11-26, assets/ui/story/beats/b5*.jpg)
-	b5a = { left = "B5A_LEFT", right = "B5A_RIGHT" },
-	b5b = { left = "B5B_LEFT", right = "B5B_RIGHT" },
-	b5c = { left = "B5C_LEFT", right = "B5C_RIGHT" },
-	b5d = { left = "B5D_LEFT", right = "B5D_RIGHT" },
+	b5a = { left = "rbxassetid://90747476094606", right = "rbxassetid://73875066713483" },
+	b5b = { left = "rbxassetid://90659247795315", right = "rbxassetid://82660565267978" },
+	b5c = { left = "rbxassetid://83211541394967", right = "rbxassetid://120632893141591" },
+	b5d = { left = "rbxassetid://135938713408422", right = "rbxassetid://107459413929187" },
 } :: { [string]: { left: string, right: string } }
 
 local glade: Beat = {

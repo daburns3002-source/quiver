@@ -33,7 +33,7 @@ local BossBadges = {
 		{ area = "DrownedVillage", image = "rbxassetid://128643943546396" },
 		{ area = "BogheartCaverns", image = "rbxassetid://129454169242172" },
 		-- the Tempest Roc (2026-11-27, assets/ui/badges/WindsweptCliffs.png)
-		{ area = "WindsweptCliffs", image = "WINDSWEPT_BADGE" },
+		{ area = "WindsweptCliffs", image = "rbxassetid://123285732917821" },
 	} :: { Badge },
 }
 

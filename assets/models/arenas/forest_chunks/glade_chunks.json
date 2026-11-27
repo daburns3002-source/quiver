@@ -1,0 +1,882 @@
+{
+ "key": "Glade",
+ "chunks": [
+  {
+   "name": "GladeGlow_1",
+   "glow": true,
+   "matte": false,
+   "tint": [
+    13,
+    183,
+    233
+   ],
+   "centre": [
+    -15.373944334268568,
+    1.3650000002980232,
+    -0.3051495103836075
+   ],
+   "size": [
+    118.41001903009413,
+    1.6119999874830242,
+    117.70042938232422
+   ],
+   "tris": 638,
+   "members": [
+    "GlowCap_001",
+    "GlowCap_002",
+    "GlowCap_003",
+    "GlowCap_004",
+    "GlowCap_005",
+    "GlowCap_006",
+    "GlowCap_007",
+    "GlowCap_008",
+    "GlowCap_009",
+    "GlowCap_010",
+    "GlowCap_011",
+    "GlowCap_012",
+    "GlowCap_013",
+    "GlowCap_014",
+    "GlowCap_015",
+    "GlowCap_016",
+    "GlowCap_017",
+    "GlowCap_018",
+    "GlowCap_019",
+    "GlowCap_020",
+    "GlowCap_021",
+    "GlowCap_022",
+    "GlowCap_023",
+    "GlowCap_024",
+    "GlowCap_025",
+    "GlowCap_026",
+    "GlowCap_027",
+    "GlowCap_028",
+    "GlowCap_029"
+   ]
+  },
+  {
+   "name": "GladeMatte_1",
+   "glow": false,
+   "matte": true,
+   "tint": null,
+   "centre": [
+    0.0,
+    -0.7,
+    0.0
+   ],
+   "size": [
+    150.0,
+    1.0000000447034836,
+    120.0
+   ],
+   "tris": 6856,
+   "members": [
+    "Ground"
+   ]
+  },
+  {
+   "name": "GladePlain_1",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -37.497910831809044,
+    7.516454265087844,
+    -28.28596561539173
+   ],
+   "size": [
+    74.45417805027962,
+    15.433877450048923,
+    63.19052458405494
+   ],
+   "tris": 17112,
+   "members": [
+    "CanopyMesh",
+    "Trunk",
+    "CanopyMesh7",
+    "Trunk7",
+    "CanopyMesh8",
+    "Trunk8",
+    "Rocks_NW",
+    "CanopyMesh12",
+    "Trunk12",
+    "Bush_034_Leaves",
+    "CanopyMesh15",
+    "Trunk15",
+    "Trunk19",
+    "CanopyMesh19",
+    "CanopyMesh20",
+    "Trunk20",
+    "CanopyMesh22",
+    "Trunk22",
+    "Logs_NW",
+    "Plants_NW",
+    "Stumps_NW",
+    "Undergrowth_NW",
+    "CanopyMesh25",
+    "Trunk25",
+    "CanopyMesh26",
+    "Trunk26",
+    "CanopyMesh31",
+    "Trunk31",
+    "CanopyMesh33",
+    "CanopyMesh32",
+    "Trunk32",
+    "Trunk33",
+    "Trunk39",
+    "CanopyMesh39",
+    "CanopyMesh40",
+    "Trunk40",
+    "Trunk41",
+    "CanopyMesh41"
+   ]
+  },
+  {
+   "name": "GladePlain_2",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -37.14942318165302,
+    7.619209589004517,
+    29.705961012601854
+   ],
+   "size": [
+    75.62612873148919,
+    15.63942060470581,
+    60.54877832984924
+   ],
+   "tris": 16820,
+   "members": [
+    "CanopyMesh47",
+    "Trunk47",
+    "CanopyMesh48",
+    "Trunk48",
+    "CanopyMesh52",
+    "Trunk52",
+    "CanopyMesh53",
+    "Trunk53",
+    "Bush_040_Leaves",
+    "Trunk57",
+    "Plants_SW",
+    "Undergrowth_SW",
+    "CanopyMesh58",
+    "Trunk58",
+    "Trunk60",
+    "CanopyMesh60",
+    "CanopyMesh62",
+    "Trunk62",
+    "Stumps_SW",
+    "Rocks_SW",
+    "CanopyMesh70",
+    "Trunk70",
+    "Trunk71",
+    "CanopyMesh71",
+    "CanopyMesh72",
+    "Trunk72",
+    "CanopyMesh78",
+    "Trunk78"
+   ]
+  },
+  {
+   "name": "GladePlain_3",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    21.684194136738775,
+    7.4749059290587905,
+    -29.848242538303136
+   ],
+   "size": [
+    105.99073038697243,
+    15.350708222448826,
+    60.18574309378862
+   ],
+   "tris": 17220,
+   "members": [
+    "Bush_035_Leaves",
+    "Trunk2",
+    "CanopyMesh2",
+    "CanopyMesh3",
+    "Trunk3",
+    "CanopyMesh5",
+    "Trunk4",
+    "CanopyMesh4",
+    "Trunk5",
+    "Trunk6",
+    "CanopyMesh6",
+    "CanopyMesh9",
+    "Trunk9",
+    "CanopyMesh10",
+    "Trunk10",
+    "CanopyMesh11",
+    "Trunk11",
+    "Bush_031_Leaves",
+    "Stumps_NE",
+    "CanopyMesh13",
+    "Trunk13",
+    "Trunk14",
+    "CanopyMesh14",
+    "CanopyMesh16",
+    "Trunk16",
+    "CanopyMesh17",
+    "Trunk17",
+    "Rocks_NE",
+    "CanopyMesh18",
+    "Trunk18",
+    "Bush_033_Leaves",
+    "Bush_036_Leaves",
+    "Bush_011_Leaves",
+    "Bush_022_Leaves",
+    "Bush_023_Leaves",
+    "CanopyMesh21",
+    "Trunk21",
+    "Trunk23",
+    "CanopyMesh23",
+    "Undergrowth_NE",
+    "Plants_NE",
+    "Logs_NE"
+   ]
+  },
+  {
+   "name": "GladePlain_4",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    20.01592941653729,
+    7.564694247961045,
+    15.560800511066804
+   ],
+   "size": [
+    109.14111406302453,
+    15.530336609363555,
+    88.68905712355115
+   ],
+   "tris": 18536,
+   "members": [
+    "CanopyMesh44",
+    "Trunk44",
+    "CanopyMesh57",
+    "Trunk37",
+    "CanopyMesh37",
+    "CanopyMesh50",
+    "Trunk50",
+    "CanopyMesh64",
+    "CanopyMesh29",
+    "Trunk29",
+    "Trunk64",
+    "CanopyMesh81",
+    "Trunk81",
+    "Bush_037_Leaves",
+    "Bush_021_Leaves",
+    "Bush_019_Leaves",
+    "Bush_012_Leaves",
+    "Bush_016_Leaves",
+    "Bush_020_Leaves",
+    "Bush_013_Leaves",
+    "Bush_014_Leaves",
+    "Bush_017_Leaves",
+    "Bush_018_Leaves",
+    "Bush_015_Leaves",
+    "Bush_024_Leaves",
+    "Logs_SW",
+    "Trunk66",
+    "CanopyMesh66",
+    "Bush_025_Leaves",
+    "Bush_026_Leaves",
+    "Trunk65",
+    "CanopyMesh65",
+    "Bush_027_Leaves",
+    "CanopyMesh80",
+    "Trunk80",
+    "Bush_028_Leaves",
+    "CanopyMesh68",
+    "Trunk68",
+    "Trunk76",
+    "CanopyMesh76",
+    "Bush_029_Leaves",
+    "Bush_030_Leaves",
+    "Trunk67",
+    "CanopyMesh67",
+    "Trunk79",
+    "CanopyMesh79",
+    "Bush_004_Leaves",
+    "Bush_010_Leaves",
+    "Bush_005_Leaves",
+    "Bush_002_Leaves",
+    "Bush_008_Leaves",
+    "Bush_009_Leaves",
+    "Bush_001_Leaves",
+    "Bush_003_Leaves",
+    "Bush_006_Leaves",
+    "Bush_007_Leaves",
+    "CanopyMesh43",
+    "Trunk43",
+    "Trunk56",
+    "CanopyMesh56",
+    "Trunk36",
+    "CanopyMesh36",
+    "Trunk49",
+    "CanopyMesh49",
+    "CanopyMesh28",
+    "CanopyMesh63",
+    "Trunk28",
+    "Trunk63",
+    "Trunk75",
+    "CanopyMesh75",
+    "Logs_SE",
+    "Bush_032_Leaves",
+    "Plants_SE"
+   ]
+  },
+  {
+   "name": "GladePlain_5",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    37.616,
+    7.598788818359375,
+    13.379189992398022
+   ],
+   "size": [
+    74.72393676638603,
+    15.598506355285645,
+    93.28152479833363
+   ],
+   "tris": 15340,
+   "members": [
+    "Undergrowth_SE",
+    "Trunk46",
+    "CanopyMesh46",
+    "CanopyMesh55",
+    "Trunk55",
+    "CanopyMesh74",
+    "Trunk74",
+    "CanopyMesh34",
+    "Trunk34",
+    "Trunk61",
+    "CanopyMesh61",
+    "Stumps_SE",
+    "CanopyMesh51",
+    "Trunk51",
+    "CanopyMesh27",
+    "Trunk27",
+    "Bush_038_Leaves",
+    "CanopyMesh42",
+    "Trunk42",
+    "CanopyMesh35",
+    "Trunk35",
+    "Trunk77",
+    "CanopyMesh77",
+    "Trunk69",
+    "CanopyMesh69",
+    "Rocks_SE",
+    "Trunk24",
+    "CanopyMesh24",
+    "CanopyMesh54",
+    "Trunk54",
+    "CanopyMesh45",
+    "Trunk45",
+    "Bush_039_Leaves",
+    "CanopyMesh38",
+    "Trunk38",
+    "Trunk59",
+    "CanopyMesh59",
+    "CanopyMesh30",
+    "Trunk30",
+    "CanopyMesh73",
+    "Trunk73"
+   ]
+  }
+ ],
+ "crowns": [
+  {
+   "x": -56.972,
+   "z": -54.869,
+   "reach": 9.05,
+   "top": 13.751999999999999
+  },
+  {
+   "x": 27.304,
+   "z": -54.484,
+   "reach": 9.074,
+   "top": 14.611
+  },
+  {
+   "x": 10.597,
+   "z": -54.195,
+   "reach": 9.719,
+   "top": 14.864
+  },
+  {
+   "x": 58.144,
+   "z": -53.722,
+   "reach": 9.05,
+   "top": 14.667
+  },
+  {
+   "x": 45.439,
+   "z": -54.017,
+   "reach": 9.05,
+   "top": 13.814
+  },
+  {
+   "x": -26.102,
+   "z": -53.16,
+   "reach": 10.089,
+   "top": 13.485999999999999
+  },
+  {
+   "x": -68.386,
+   "z": -53.609,
+   "reach": 9.05,
+   "top": 14.781500000000001
+  },
+  {
+   "x": -45.712,
+   "z": -52.538,
+   "reach": 9.05,
+   "top": 13.958499999999999
+  },
+  {
+   "x": -13.697,
+   "z": -50.523,
+   "reach": 9.322,
+   "top": 14.828
+  },
+  {
+   "x": 69.106,
+   "z": -49.089,
+   "reach": 9.521,
+   "top": 14.338000000000001
+  },
+  {
+   "x": -2.022,
+   "z": -48.599,
+   "reach": 9.05,
+   "top": 13.362
+  },
+  {
+   "x": -60.901,
+   "z": -44.052,
+   "reach": 9.41,
+   "top": 13.0515
+  },
+  {
+   "x": 25.366,
+   "z": -43.454,
+   "reach": 9.05,
+   "top": 14.432500000000001
+  },
+  {
+   "x": 49.343,
+   "z": -42.826,
+   "reach": 9.32,
+   "top": 13.7305
+  },
+  {
+   "x": -39.367,
+   "z": -41.932,
+   "reach": 9.05,
+   "top": 13.128499999999999
+  },
+  {
+   "x": 10.134,
+   "z": -41.743,
+   "reach": 9.203,
+   "top": 14.8715
+  },
+  {
+   "x": -20.465,
+   "z": -40.813,
+   "reach": 9.123,
+   "top": 13.876999999999999
+  },
+  {
+   "x": 60.881,
+   "z": -39.304,
+   "reach": 9.05,
+   "top": 13.993
+  },
+  {
+   "x": -50.747,
+   "z": -36.756,
+   "reach": 9.05,
+   "top": 13.709
+  },
+  {
+   "x": -61.86,
+   "z": -32.382,
+   "reach": 9.809,
+   "top": 14.3355
+  },
+  {
+   "x": 28.335,
+   "z": -32.475,
+   "reach": 9.05,
+   "top": 15.150500000000001
+  },
+  {
+   "x": -30.716,
+   "z": -31.74,
+   "reach": 10.422,
+   "top": 15.2335
+  },
+  {
+   "x": 40.207,
+   "z": -31.454,
+   "reach": 9.287,
+   "top": 13.943
+  },
+  {
+   "x": 61.244,
+   "z": -28.323,
+   "reach": 9.552,
+   "top": 15.16
+  },
+  {
+   "x": -51.75,
+   "z": -25.565,
+   "reach": 9.05,
+   "top": 15.162
+  },
+  {
+   "x": -40.852,
+   "z": -25.379,
+   "reach": 9.05,
+   "top": 14.992999999999999
+  },
+  {
+   "x": 50.888,
+   "z": -23.638,
+   "reach": 9.05,
+   "top": 14.455
+  },
+  {
+   "x": 29.94,
+   "z": -21.166,
+   "reach": 9.05,
+   "top": 13.884
+  },
+  {
+   "x": -27.65,
+   "z": -19.428,
+   "reach": 9.05,
+   "top": 13.190999999999999
+  },
+  {
+   "x": 69.963,
+   "z": -18.56,
+   "reach": 9.05,
+   "top": 14.185
+  },
+  {
+   "x": -63.602,
+   "z": -16.348,
+   "reach": 9.05,
+   "top": 14.895
+  },
+  {
+   "x": -39.529,
+   "z": -13.914,
+   "reach": 9.117,
+   "top": 13.334999999999999
+  },
+  {
+   "x": -51.374,
+   "z": -13.968,
+   "reach": 10.405,
+   "top": 13.854
+  },
+  {
+   "x": 45.311,
+   "z": -12.749,
+   "reach": 9.05,
+   "top": 13.374500000000001
+  },
+  {
+   "x": 57.016,
+   "z": -11.703,
+   "reach": 10.341,
+   "top": 15.354000000000001
+  },
+  {
+   "x": 28.913,
+   "z": -9.644,
+   "reach": 9.05,
+   "top": 13.213000000000001
+  },
+  {
+   "x": -28.975,
+   "z": -8.112,
+   "reach": 9.142,
+   "top": 14.27
+  },
+  {
+   "x": 68.574,
+   "z": -6.087,
+   "reach": 9.05,
+   "top": 13.9495
+  },
+  {
+   "x": -70.2,
+   "z": -4.622,
+   "reach": 9.05,
+   "top": 14.6455
+  },
+  {
+   "x": -58.276,
+   "z": -3.153,
+   "reach": 9.05,
+   "top": 15.027000000000001
+  },
+  {
+   "x": -44.792,
+   "z": -1.828,
+   "reach": 10.275,
+   "top": 13.7195
+  },
+  {
+   "x": 53.116,
+   "z": 0.296,
+   "reach": 9.05,
+   "top": 15.228
+  },
+  {
+   "x": 28.497,
+   "z": 1.949,
+   "reach": 9.05,
+   "top": 13.118
+  },
+  {
+   "x": -29.756,
+   "z": 2.834,
+   "reach": 9.05,
+   "top": 15.2945
+  },
+  {
+   "x": 65.893,
+   "z": 5.792,
+   "reach": 9.05,
+   "top": 13.9665
+  },
+  {
+   "x": 39.579,
+   "z": 7.16,
+   "reach": 9.05,
+   "top": 15.2315
+  },
+  {
+   "x": -63.623,
+   "z": 7.685,
+   "reach": 9.05,
+   "top": 15.439
+  },
+  {
+   "x": -50.17,
+   "z": 11.328,
+   "reach": 9.05,
+   "top": 15.036000000000001
+  },
+  {
+   "x": 29.292,
+   "z": 13.397,
+   "reach": 9.248,
+   "top": 14.1815
+  },
+  {
+   "x": -28.621,
+   "z": 13.969,
+   "reach": 9.301,
+   "top": 14.433
+  },
+  {
+   "x": 50.513,
+   "z": 15.985,
+   "reach": 9.05,
+   "top": 15.183499999999999
+  },
+  {
+   "x": -60.545,
+   "z": 19.278,
+   "reach": 10.76,
+   "top": 13.18
+  },
+  {
+   "x": -44.748,
+   "z": 22.302,
+   "reach": 9.05,
+   "top": 14.448
+  },
+  {
+   "x": 61.381,
+   "z": 21.873,
+   "reach": 10.565,
+   "top": 15.398
+  },
+  {
+   "x": 40.722,
+   "z": 23.753,
+   "reach": 9.05,
+   "top": 13.864
+  },
+  {
+   "x": 28.854,
+   "z": 25.365,
+   "reach": 9.215,
+   "top": 13.601500000000001
+  },
+  {
+   "x": -29.579,
+   "z": 25.749,
+   "reach": 9.05,
+   "top": 14.524000000000001
+  },
+  {
+   "x": -55.448,
+   "z": 31.058,
+   "reach": 9.05,
+   "top": 14.227500000000001
+  },
+  {
+   "x": 69.924,
+   "z": 32.595,
+   "reach": 9.31,
+   "top": 13.3385
+  },
+  {
+   "x": -67.187,
+   "z": 32.841,
+   "reach": 9.459,
+   "top": 14.501999999999999
+  },
+  {
+   "x": 47.682,
+   "z": 34.591,
+   "reach": 9.05,
+   "top": 14.2455
+  },
+  {
+   "x": -44.383,
+   "z": 35.416,
+   "reach": 9.05,
+   "top": 13.6265
+  },
+  {
+   "x": 29.987,
+   "z": 36.934,
+   "reach": 9.05,
+   "top": 15.33
+  },
+  {
+   "x": -27.659,
+   "z": 37.437,
+   "reach": 9.05,
+   "top": 13.582
+  },
+  {
+   "x": -3.852,
+   "z": 41.011,
+   "reach": 9.05,
+   "top": 15.323
+  },
+  {
+   "x": -15.663,
+   "z": 40.445,
+   "reach": 9.05,
+   "top": 13.5775
+  },
+  {
+   "x": 18.753,
+   "z": 41.231,
+   "reach": 9.753,
+   "top": 13.2805
+  },
+  {
+   "x": 7.245,
+   "z": 40.884,
+   "reach": 9.05,
+   "top": 14.9245
+  },
+  {
+   "x": 58.873,
+   "z": 41.768,
+   "reach": 9.05,
+   "top": 14.189
+  },
+  {
+   "x": -68.681,
+   "z": 44.606,
+   "reach": 9.444,
+   "top": 13.807500000000001
+  },
+  {
+   "x": -45.096,
+   "z": 47.088,
+   "reach": 9.05,
+   "top": 14.6985
+  },
+  {
+   "x": -34.246,
+   "z": 47.196,
+   "reach": 9.05,
+   "top": 15.2835
+  },
+  {
+   "x": 70.207,
+   "z": 47.221,
+   "reach": 9.508,
+   "top": 14.552999999999999
+  },
+  {
+   "x": 43.98,
+   "z": 47.479,
+   "reach": 9.05,
+   "top": 14.4645
+  },
+  {
+   "x": 32.926,
+   "z": 48.163,
+   "reach": 9.05,
+   "top": 15.317
+  },
+  {
+   "x": 9.387,
+   "z": 52.028,
+   "reach": 9.098,
+   "top": 13.4225
+  },
+  {
+   "x": 58.46,
+   "z": 53.179,
+   "reach": 9.184,
+   "top": 14.2425
+  },
+  {
+   "x": -55.715,
+   "z": 53.115,
+   "reach": 10.195,
+   "top": 13.876999999999999
+  },
+  {
+   "x": 20.791,
+   "z": 53.67,
+   "reach": 9.05,
+   "top": 13.109
+  },
+  {
+   "x": -2.435,
+   "z": 54.294,
+   "reach": 9.751,
+   "top": 13.9965
+  },
+  {
+   "x": -24.89,
+   "z": 54.885,
+   "reach": 9.05,
+   "top": 13.7965
+  }
+ ]
+}

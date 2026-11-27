@@ -692,6 +692,9 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		--[[ The client draws the scenery's life from this
 		     (`Fx/ForestAmbience`). ]]
 		root:SetAttribute("Ambience", model.ambience)
+		--[[ Its outer forest's crowns, for the same (the merged chunks
+		     carry no tree names). ]]
+		root:SetAttribute("Forest", model.forest)
 		--[[ Its floor is shallow water: the client splashes every step
 		     (`Fx/WaterSteps`). ]]
 		root:SetAttribute("ShallowWater", model.shallowWater == true)

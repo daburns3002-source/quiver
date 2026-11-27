@@ -84,6 +84,11 @@ export type ArenaModel = {
 	     push over one is a fall (`Shared/Util/CliffEdges`; the Windswept
 	     Cliffs, owner 2026-11-26). ]]
 	edges: boolean?,
+	--[[ The `Config/ForestChunks` entry its outer forest is drawn from,
+	     stamped on the room (the `Forest` attribute) so the scenery's life
+	     can settle on the trees' crowns, which the merged chunks no longer
+	     name (`Fx/ForestAmbience`). ]]
+	forest: string?,
 }
 
 --[[
@@ -94,14 +99,23 @@ export type ArenaModel = {
 	blocky outer forest.
 ]]
 
+local ForestChunks = require(script.Parent.ForestChunks)
 local GladeForest = require(script.Parent.GladeForest)
+
+--[[ An area's outer forest as a room draws it: its merged chunks
+     (`Config/ForestChunks`, about ten draws, docs/PERFORMANCE.md), or every
+     part of its layout one by one where it has none yet. ]]
+local function outer(key: string, layout: { ArenaPart }): { ArenaPart }
+	local chunks = ForestChunks[key]
+	return if chunks then chunks.parts else layout
+end
 
 --[[ Every area's outer forest a little darker and its glow dimmer, the
      same share for each so each keeps its own look (`outerShade`). ]]
 local OUTER_SHADE = 0.72
 local OUTER_GLOW = 0.8
 
-local GLADE_FOREST: { ArenaPart } = GladeForest
+local GLADE_FOREST: { ArenaPart } = outer("Glade", GladeForest)
 
 --[[ The forest floor past the outer forest's own edge (75 studs out to
      either side, 60 north and south): its ground's darkest green
@@ -121,6 +135,7 @@ local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 		parts = GLADE_FOREST,
 		outsideColor = GLADE_FLOOR,
 		ambience = "Forest",
+		forest = "Glade",
 		kit = "Mossy",
 		lowCover = lowCover,
 		outerShade = OUTER_SHADE,
@@ -130,7 +145,7 @@ end
 
 local ThornwoodForest = require(script.Parent.ThornwoodForest)
 
-local THORNWOOD_FOREST: { ArenaPart } = ThornwoodForest
+local THORNWOOD_FOREST: { ArenaPart } = outer("Thornwood", ThornwoodForest)
 
 --[[ Past the wood's own edge, its ground's darkest green, as the glade's. ]]
 local THORNWOOD_FLOOR = Color3.fromRGB(10, 36, 3)
@@ -145,6 +160,7 @@ local function thornwood(): ArenaModel
 		parts = THORNWOOD_FOREST,
 		outsideColor = THORNWOOD_FLOOR,
 		ambience = "Thornwood",
+		forest = "Thornwood",
 		kit = "Thornwood",
 		lowCover = "Thicket",
 		outerShade = OUTER_SHADE,
@@ -166,8 +182,8 @@ end
 local BogheartForest = require(script.Parent.BogheartForest)
 local DrownedForest = require(script.Parent.DrownedForest)
 
-local DROWNED_OUTER: { ArenaPart } = DrownedForest
-local BOGHEART_OUTER: { ArenaPart } = BogheartForest
+local DROWNED_OUTER: { ArenaPart } = outer("Drowned", DrownedForest)
+local BOGHEART_OUTER: { ArenaPart } = outer("Bogheart", BogheartForest)
 
 --[[ Act 1, area 3: the Drowned Village, built from the owner's kit
      (`Config/ArenaKits.Drowned`), inside its own outer flood
@@ -183,6 +199,7 @@ local function drowned(): ArenaModel
 		parts = DROWNED_OUTER,
 		outsideColor = DROWNED_FLOOD,
 		ambience = "Drowned",
+		forest = "Drowned",
 		kit = "Drowned",
 		lowCover = "Water",
 		outerShade = OUTER_SHADE,
@@ -203,6 +220,7 @@ local function bogheart(): ArenaModel
 		parts = BOGHEART_OUTER,
 		outsideColor = CAVERN_ROCK,
 		ambience = "Bogheart",
+		forest = "Bogheart",
 		kit = "Bogheart",
 		lowCover = "Water",
 		outerShade = OUTER_SHADE,

@@ -79267,8 +79267,8 @@
  "fx_pet_spore_sneeze": {
   "parts": [
    {
-    "name": "pet_spore_sneeze_spore_pink_1_Mesh1",
-    "meshId": "rbxassetid://76728577032912",
+    "name": "pet_spore_sneeze_spore_near_Mesh1",
+    "meshId": "rbxassetid://80410448063042",
     "textureId": "",
     "color": [
      1,
@@ -79278,14 +79278,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.16,
-     0.16,
-     0.16
+     4.09,
+     1.31,
+     4.82
     ],
     "cframe": [
-     0,
-     0,
-     -0.08,
+     -0.06,
+     0.39,
+     -2.41,
      1,
      0,
      0,
@@ -79298,8 +79298,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_yellow_2_Glow1",
-    "meshId": "rbxassetid://101699522925840",
+    "name": "pet_spore_sneeze_spore_near_Glow2",
+    "meshId": "rbxassetid://72963514341586",
     "textureId": "",
     "color": [
      1,
@@ -79309,417 +79309,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.1,
-     0.1,
-     0.1
+     2.84,
+     0.64,
+     4.35
     ],
     "cframe": [
-     -1.18,
-     0.16,
-     -2.37,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_3_Mesh1",
-    "meshId": "rbxassetid://127728311484188",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.37,
-     0.37,
-     0.37
-    ],
-    "cframe": [
-     1.8,
-     0.3,
-     -3.88,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_4_Glow1",
-    "meshId": "rbxassetid://95734517948214",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.3,
-     0.3,
-     0.3
-    ],
-    "cframe": [
-     0.53,
-     0,
-     -1.38,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_5_Mesh1",
-    "meshId": "rbxassetid://134118347220564",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.34,
-     0.34,
-     0.34
-    ],
-    "cframe": [
-     -0.97,
-     0.34,
-     -2.67,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_6_Mesh1",
-    "meshId": "rbxassetid://95286622650597",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.27,
-     0.27,
-     0.27
-    ],
-    "cframe": [
-     -1.97,
-     0.36,
-     -3.84,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_7_Mesh1",
-    "meshId": "rbxassetid://97432740515747",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.18,
-     0.18,
-     0.18
-    ],
-    "cframe": [
-     -0.15,
-     0.02,
-     -0.54,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_8_Mesh1",
-    "meshId": "rbxassetid://97255873146721",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.34,
-     0.34,
-     0.34
-    ],
-    "cframe": [
-     1.78,
-     0.59,
-     -4.65,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_9_Mesh1",
-    "meshId": "rbxassetid://137213769215668",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.33,
-     0.33,
-     0.33
-    ],
-    "cframe": [
-     -0.05,
-     0.04,
-     -3.08,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_10_Mesh1",
-    "meshId": "rbxassetid://108936603669971",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.21,
-     0.21,
-     0.21
-    ],
-    "cframe": [
-     0.09,
-     0.07,
-     -2.75,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_11_Mesh1",
-    "meshId": "rbxassetid://96757440085353",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.27,
-     0.27,
-     0.27
-    ],
-    "cframe": [
-     0.36,
-     0.51,
-     -2.94,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_12_Glow1",
-    "meshId": "rbxassetid://92590738932491",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.29,
-     0.29,
-     0.29
-    ],
-    "cframe": [
-     -0.52,
-     0.25,
-     -1.48,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_13_Mesh1",
-    "meshId": "rbxassetid://84829661142704",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.28,
-     0.28,
-     0.28
-    ],
-    "cframe": [
-     -0.28,
-     0.4,
-     -2.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_14_Mesh1",
-    "meshId": "rbxassetid://97047905694869",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.25,
-     0.25,
-     0.25
-    ],
-    "cframe": [
-     -0.95,
-     0.1,
-     -3.18,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_15_Mesh1",
-    "meshId": "rbxassetid://105052557823522",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
+     -0.32,
      0.17,
-     0.17,
-     0.17
-    ],
-    "cframe": [
-     -0.17,
-     0.23,
-     -1.21,
+     -2.425,
      1,
      0,
      0,
@@ -79732,8 +79329,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_pink_16_Mesh1",
-    "meshId": "rbxassetid://118018770852115",
+    "name": "pet_spore_sneeze_spore_near_Glow3",
+    "meshId": "rbxassetid://83410093665645",
     "textureId": "",
     "color": [
      1,
@@ -79743,14 +79340,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.27,
-     0.27,
-     0.27
+     1.785,
+     0.695,
+     1.095
     ],
     "cframe": [
-     -0.56,
-     0.15,
-     -1.86,
+     -0.2125,
+     0.1975,
+     -1.7775,
      1,
      0,
      0,
@@ -79763,8 +79360,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_pink_17_Mesh1",
-    "meshId": "rbxassetid://131177993831521",
+    "name": "pet_spore_sneeze_spore_mid_Mesh1",
+    "meshId": "rbxassetid://92631955250846",
     "textureId": "",
     "color": [
      1,
@@ -79774,14 +79371,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.32,
-     0.32,
-     0.32
+     8.745,
+     1.905,
+     4.5
     ],
     "cframe": [
-     -0.12,
-     -0.08,
-     -2.43,
+     0.1425,
+     0.4675,
+     -7.525,
      1,
      0,
      0,
@@ -79794,8 +79391,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_pink_18_Mesh1",
-    "meshId": "rbxassetid://121004123189760",
+    "name": "pet_spore_sneeze_spore_mid_Glow2",
+    "meshId": "rbxassetid://123194184024680",
     "textureId": "",
     "color": [
      1,
@@ -79805,14 +79402,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.3,
-     0.3,
-     0.3
+     0.965,
+     1.475,
+     3.835
     ],
     "cframe": [
-     -0.53,
-     0.05,
-     -2.69,
+     1.9475,
+     0.2875,
+     -7.7775,
      1,
      0,
      0,
@@ -79825,8 +79422,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_yellow_19_Glow1",
-    "meshId": "rbxassetid://138329040603639",
+    "name": "pet_spore_sneeze_spore_mid_Glow3",
+    "meshId": "rbxassetid://97498344464819",
     "textureId": "",
     "color": [
      1,
@@ -79836,571 +79433,13 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.12,
-     0.12,
-     0.12
+     6.58,
+     1,
+     3.18
     ],
     "cframe": [
-     -0.75,
-     -0.09,
-     -4.54,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_20_Mesh1",
-    "meshId": "rbxassetid://107391726475807",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.35,
-     0.35,
-     0.35
-    ],
-    "cframe": [
-     -0.84,
-     0.87,
-     -4.4,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_21_Mesh1",
-    "meshId": "rbxassetid://89791484472827",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.2,
-     0.2,
-     0.2
-    ],
-    "cframe": [
-     0.11,
-     0.01,
-     -0.78,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_22_Glow1",
-    "meshId": "rbxassetid://101789192226606",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.27,
-     0.27,
-     0.27
-    ],
-    "cframe": [
-     -0.97,
-     0.41,
-     -2.19,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_23_Glow1",
-    "meshId": "rbxassetid://84410355345609",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.1,
-     0.1,
-     0.1
-    ],
-    "cframe": [
-     0.79,
-     0.13,
-     -1.89,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_24_Mesh1",
-    "meshId": "rbxassetid://88872216720363",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.21,
-     0.21,
-     0.21
-    ],
-    "cframe": [
-     0.61,
-     0.07,
-     -2.44,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_25_Mesh1",
-    "meshId": "rbxassetid://106433346404868",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.37,
-     0.37,
-     0.37
-    ],
-    "cframe": [
-     1.44,
-     -0.08,
-     -3.39,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_26_Glow1",
-    "meshId": "rbxassetid://140531260199456",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.1,
-     0.1,
-     0.1
-    ],
-    "cframe": [
-     1.05,
-     0.44,
-     -2.48,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_27_Mesh1",
-    "meshId": "rbxassetid://119712327142256",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
      0.22,
-     0.22,
-     0.22
-    ],
-    "cframe": [
-     0.12,
-     -0.03,
-     -1.23,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_28_Glow1",
-    "meshId": "rbxassetid://119874788000024",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.12,
-     0.12,
-     0.12
-    ],
-    "cframe": [
-     -1.68,
-     0.05,
-     -3.83,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_29_Glow1",
-    "meshId": "rbxassetid://120701259620648",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.11,
-     0.11,
-     0.11
-    ],
-    "cframe": [
-     -0.99,
-     0.37,
-     -4.37,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_30_Glow1",
-    "meshId": "rbxassetid://119276641980808",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.1,
-     0.1,
-     0.1
-    ],
-    "cframe": [
-     -0.05,
-     0.05,
-     -0.3,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_31_Mesh1",
-    "meshId": "rbxassetid://134024527194730",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.57,
-     0.57,
-     0.57
-    ],
-    "cframe": [
-     -0.72,
-     -0.11,
-     -8.69,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_32_Mesh1",
-    "meshId": "rbxassetid://118038799362202",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.53,
-     0.53,
-     0.53
-    ],
-    "cframe": [
-     0.24,
-     0.8,
-     -6.04,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_33_Mesh1",
-    "meshId": "rbxassetid://136389219148935",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.63,
-     0.63,
-     0.63
-    ],
-    "cframe": [
-     -1.78,
-     0.91,
-     -8.56,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_34_Mesh1",
-    "meshId": "rbxassetid://127347985894281",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.33,
-     0.33,
-     0.33
-    ],
-    "cframe": [
-     -0.94,
-     0.5,
-     -6.02,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_35_Mesh1",
-    "meshId": "rbxassetid://72007549576606",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.46,
-     0.46,
-     0.46
-    ],
-    "cframe": [
-     -4,
-     1.12,
-     -8.4,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_36_Mesh1",
-    "meshId": "rbxassetid://120635626371005",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.42,
-     0.42,
-     0.42
-    ],
-    "cframe": [
-     2.5,
-     -0.17,
-     -7.63,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_37_Mesh1",
-    "meshId": "rbxassetid://121693026783425",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.69,
-     0.69,
-     0.69
-    ],
-    "cframe": [
-     3.33,
-     0.83,
+     1.04,
      -8.32,
      1,
      0,
@@ -80414,8 +79453,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_light_38_Mesh1",
-    "meshId": "rbxassetid://90561656154448",
+    "name": "pet_spore_sneeze_spore_far_Glow1",
+    "meshId": "rbxassetid://74288737473256",
     "textureId": "",
     "color": [
      1,
@@ -80425,634 +79464,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.41,
-     0.41,
-     0.41
+     13.34,
+     2.66,
+     5.305
     ],
     "cframe": [
-     1.63,
-     0.45,
-     -6.99,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_39_Mesh1",
-    "meshId": "rbxassetid://96780784060471",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.44,
-     0.44
-    ],
-    "cframe": [
-     -2.66,
-     0.21,
-     -7.18,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_40_Mesh1",
-    "meshId": "rbxassetid://114043379368316",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.53,
-     0.53,
-     0.53
-    ],
-    "cframe": [
-     0.93,
-     1.13,
-     -7.45,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_41_Glow1",
-    "meshId": "rbxassetid://83964570281232",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.62,
-     0.62,
-     0.62
-    ],
-    "cframe": [
-     2.12,
-     -0.14,
-     -6.17,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_42_Mesh1",
-    "meshId": "rbxassetid://126181773284824",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.51,
-     0.51,
-     0.51
-    ],
-    "cframe": [
-     -2.27,
-     -0.13,
-     -5.53,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_43_Mesh1",
-    "meshId": "rbxassetid://124558839863711",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.51,
-     0.51,
-     0.51
-    ],
-    "cframe": [
-     -1.91,
-     0.33,
-     -6.2,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_44_Mesh1",
-    "meshId": "rbxassetid://96303442880678",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.56,
-     0.56
-    ],
-    "cframe": [
-     3.03,
-     0.63,
-     -6.86,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_45_Mesh1",
-    "meshId": "rbxassetid://119690785789305",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.66,
-     0.66,
-     0.66
-    ],
-    "cframe": [
-     -1.95,
-     0.82,
-     -9.35,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_46_Mesh1",
-    "meshId": "rbxassetid://79051593132048",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.65,
-     0.65,
-     0.65
-    ],
-    "cframe": [
-     -0.57,
-     0.33,
-     -9.45,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_47_Mesh1",
-    "meshId": "rbxassetid://118325912755233",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.64,
-     0.64
-    ],
-    "cframe": [
-     -1.99,
-     1.1,
-     -7.8,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_48_Glow1",
-    "meshId": "rbxassetid://79830439895786",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.12,
-     0.12,
-     0.12
-    ],
-    "cframe": [
-     -3.01,
-     0.6,
-     -6.79,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_49_Glow1",
-    "meshId": "rbxassetid://118317068613792",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.16,
-     0.16,
-     0.16
-    ],
-    "cframe": [
-     3.43,
-     1.46,
-     -9.83,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_50_Mesh1",
-    "meshId": "rbxassetid://138320109257796",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.41,
-     0.41,
-     0.41
-    ],
-    "cframe": [
-     4.31,
-     0.79,
-     -8.06,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_51_Mesh1",
-    "meshId": "rbxassetid://72068377142435",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.43,
-     0.43,
-     0.43
-    ],
-    "cframe": [
-     -3.25,
-     -0.27,
-     -7.43,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_52_Mesh1",
-    "meshId": "rbxassetid://72772432555815",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.49,
-     0.49,
-     0.49
-    ],
-    "cframe": [
-     -1.51,
-     -0.22,
-     -8.41,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_53_Glow1",
-    "meshId": "rbxassetid://77932882097197",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.85,
-     0.85,
-     0.85
-    ],
-    "cframe": [
-     1.89,
-     0.6,
-     -9.27,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_54_Mesh1",
-    "meshId": "rbxassetid://77147663890346",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.36,
-     0.36,
-     0.36
-    ],
-    "cframe": [
-     -2.39,
-     0.92,
-     -5.53,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_55_Mesh1",
-    "meshId": "rbxassetid://90641806733322",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.5,
-     0.5,
-     0.5
-    ],
-    "cframe": [
-     -2.51,
-     0.15,
-     -6.34,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_56_Mesh1",
-    "meshId": "rbxassetid://88815619529923",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.45,
-     0.45,
-     0.45
-    ],
-    "cframe": [
-     2.44,
-     0.12,
-     -5.53,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_57_Mesh1",
-    "meshId": "rbxassetid://113670900291858",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.49,
-     0.49,
-     0.49
-    ],
-    "cframe": [
-     1.08,
-     0.56,
-     -8.31,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_58_Mesh1",
-    "meshId": "rbxassetid://106670589847008",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
+     0.965,
      0.42,
-     0.42,
-     0.42
-    ],
-    "cframe": [
-     -0.42,
-     0.74,
-     -6.67,
+     -13.3475,
      1,
      0,
      0,
@@ -81065,8 +79484,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_cyan_59_Glow1",
-    "meshId": "rbxassetid://74614347252033",
+    "name": "pet_spore_sneeze_spore_far_Mesh2",
+    "meshId": "rbxassetid://95664722644917",
     "textureId": "",
     "color": [
      1,
@@ -81076,14 +79495,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     1.1,
-     1.1,
-     1.1
+     16.4,
+     3.81,
+     5.75
     ],
     "cframe": [
-     -0.8,
-     1.2,
-     -15.45,
+     0,
+     0.99,
+     -13.125,
      1,
      0,
      0,
@@ -81096,8 +79515,8 @@
     ]
    },
    {
-    "name": "pet_spore_sneeze_spore_pink_60_Mesh1",
-    "meshId": "rbxassetid://137137192262019",
+    "name": "pet_spore_sneeze_spore_far_Glow3",
+    "meshId": "rbxassetid://129692554355456",
     "textureId": "",
     "color": [
      1,
@@ -81107,820 +79526,14 @@
     "material": "SmoothPlastic",
     "transparency": 0,
     "size": [
-     0.8,
-     0.8,
-     0.8
-    ],
-    "cframe": [
-     -7.8,
-     0.9,
-     -14.6,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_61_Mesh1",
-    "meshId": "rbxassetid://127644388933091",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.8,
-     0.8,
-     0.8
-    ],
-    "cframe": [
-     7.8,
-     1.6,
-     -14.6,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_62_Glow1",
-    "meshId": "rbxassetid://109779563685165",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     1.07,
-     1.07,
-     1.07
-    ],
-    "cframe": [
-     -5.17,
-     1.15,
-     -11.23,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_63_Glow1",
-    "meshId": "rbxassetid://86042454000402",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.2,
-     0.2,
-     0.2
-    ],
-    "cframe": [
-     -4.46,
-     0.21,
-     -11.45,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_64_Mesh1",
-    "meshId": "rbxassetid://97037528388069",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     1.05,
-     1.05,
-     1.05
-    ],
-    "cframe": [
-     -5.76,
-     2.24,
-     -15.27,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_65_Mesh1",
-    "meshId": "rbxassetid://93391203494871",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.64,
-     0.64
-    ],
-    "cframe": [
-     -6.32,
-     -0.25,
-     -13.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_66_Mesh1",
-    "meshId": "rbxassetid://117548106212508",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.81,
-     0.81,
-     0.81
-    ],
-    "cframe": [
-     -5.79,
-     2.02,
-     -13.86,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_67_Mesh1",
-    "meshId": "rbxassetid://100263714102302",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.71,
-     0.71,
-     0.71
-    ],
-    "cframe": [
-     0.81,
      2.09,
-     -10.94,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_68_Glow1",
-    "meshId": "rbxassetid://127513429682665",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     1.31,
-     1.31,
-     1.31
+     0.6,
+     4.65
     ],
     "cframe": [
-     2.97,
-     0.32,
-     -13.67,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_69_Mesh1",
-    "meshId": "rbxassetid://80520040590634",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.66,
-     0.66,
-     0.66
-    ],
-    "cframe": [
-     -5.1,
-     -0.09,
-     -11.48,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_70_Mesh1",
-    "meshId": "rbxassetid://113475393584565",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     1.07,
-     1.07,
-     1.07
-    ],
-    "cframe": [
-     5.95,
-     0.59,
-     -14.95,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_71_Mesh1",
-    "meshId": "rbxassetid://76048464228376",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.72,
-     0.72,
-     0.72
-    ],
-    "cframe": [
-     5.98,
-     2.11,
-     -15.29,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_72_Mesh1",
-    "meshId": "rbxassetid://94557665797338",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.7,
-     0.7,
-     0.7
-    ],
-    "cframe": [
-     -1.97,
-     0.3,
-     -10.77,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_73_Mesh1",
-    "meshId": "rbxassetid://125133360659651",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.73,
-     0.73,
-     0.73
-    ],
-    "cframe": [
-     -0.55,
-     -0.05,
-     -11.18,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_74_Mesh1",
-    "meshId": "rbxassetid://102659196732744",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.73,
-     0.73,
-     0.73
-    ],
-    "cframe": [
-     1.63,
-     0.03,
-     -13.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_75_Mesh1",
-    "meshId": "rbxassetid://95727868438044",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.79,
-     0.79,
-     0.79
-    ],
-    "cframe": [
-     -0.4,
-     2.5,
-     -12.98,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_76_Mesh1",
-    "meshId": "rbxassetid://82264035954071",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.97,
-     0.97,
-     0.97
-    ],
-    "cframe": [
-     -1.8,
-     -0.43,
-     -15.5,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_77_Mesh1",
-    "meshId": "rbxassetid://133259402865130",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.82,
-     0.82,
-     0.82
-    ],
-    "cframe": [
-     3.61,
-     0.09,
-     -11.38,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_78_Glow1",
-    "meshId": "rbxassetid://91956947564303",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     1.26,
-     1.26,
-     1.26
-    ],
-    "cframe": [
-     -3.73,
-     -0.28,
-     -12.36,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_79_Mesh1",
-    "meshId": "rbxassetid://123056359329652",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.81,
-     0.81,
-     0.81
-    ],
-    "cframe": [
-     1.94,
-     0.21,
-     -11.14,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_cyan_80_Glow1",
-    "meshId": "rbxassetid://134570777415841",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.91,
-     0.91,
-     0.91
-    ],
-    "cframe": [
-     7.18,
-     0.08,
-     -14.06,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_81_Mesh1",
-    "meshId": "rbxassetid://101946973815401",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.86,
-     0.86,
-     0.86
-    ],
-    "cframe": [
-     5.8,
-     0.87,
-     -11.63,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_82_Mesh1",
-    "meshId": "rbxassetid://104549481265083",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.58,
-     0.58,
-     0.58
-    ],
-    "cframe": [
-     -3.16,
-     1.38,
-     -11.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_83_Mesh1",
-    "meshId": "rbxassetid://70445984232457",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.85,
-     0.85,
-     0.85
-    ],
-    "cframe": [
-     -3.5,
-     1.67,
-     -13.94,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_light_84_Mesh1",
-    "meshId": "rbxassetid://84961691314949",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.56,
-     0.56
-    ],
-    "cframe": [
-     0.21,
-     1.22,
-     -10.53,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_yellow_85_Glow1",
-    "meshId": "rbxassetid://90751517523568",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.28,
-     0.28,
-     0.28
-    ],
-    "cframe": [
-     -6.31,
-     -0.15,
-     -15.86,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_spore_sneeze_spore_pink_86_Mesh1",
-    "meshId": "rbxassetid://106548703901822",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.84,
-     0.84,
-     0.84
-    ],
-    "cframe": [
-     -3.12,
-     -0.36,
-     -15.58,
+     -5.405,
+     0.01,
+     -13.675,
      1,
      0,
      0,
@@ -82658,6 +80271,502 @@
  "fx_pet_briar_cage": {
   "parts": [
    {
+    "name": "pet_briar_cage_post_1_Mesh1",
+    "meshId": "rbxassetid://84481750303838",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_1_Glow2",
+    "meshId": "rbxassetid://73474575370106",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_2_Mesh1",
+    "meshId": "rbxassetid://71464862689080",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.82,
+     3.5,
+     0.79
+    ],
+    "cframe": [
+     0.13,
+     1.75,
+     1.565,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_2_Glow2",
+    "meshId": "rbxassetid://91614568834128",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     0,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_3_Mesh1",
+    "meshId": "rbxassetid://134826488903081",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_3_Glow2",
+    "meshId": "rbxassetid://87559982686494",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_4_Mesh1",
+    "meshId": "rbxassetid://93623075994809",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     -0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_4_Glow2",
+    "meshId": "rbxassetid://132716215602215",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_5_Mesh1",
+    "meshId": "rbxassetid://104709609079134",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_5_Glow2",
+    "meshId": "rbxassetid://100827784782455",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_6_Mesh1",
+    "meshId": "rbxassetid://79859629559422",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     1.565,
+     1.75,
+     -1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_6_Glow2",
+    "meshId": "rbxassetid://112395551892053",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     1.68,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_7_Mesh1",
+    "meshId": "rbxassetid://125678039610705",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.82,
+     3.5,
+     0.79
+    ],
+    "cframe": [
+     -0.13,
+     1.75,
+     -1.565,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_7_Glow2",
+    "meshId": "rbxassetid://113271253720968",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     0,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_8_Mesh1",
+    "meshId": "rbxassetid://81521655541111",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.79,
+     3.5,
+     0.82
+    ],
+    "cframe": [
+     -1.565,
+     1.75,
+     -1.55,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
+    "name": "pet_briar_cage_post_8_Glow2",
+    "meshId": "rbxassetid://110420628813369",
+    "textureId": "",
+    "color": [
+     1,
+     1,
+     1
+    ],
+    "material": "SmoothPlastic",
+    "transparency": 0,
+    "size": [
+     0.64,
+     1.36,
+     0.64
+    ],
+    "cframe": [
+     -1.68,
+     1.68,
+     -1.68,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ]
+   },
+   {
     "name": "pet_briar_cage_ground_glow_1_Glow1",
     "meshId": "rbxassetid://76622237908454",
     "textureId": "",
@@ -82721,7 +80830,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_3_Glow1",
-    "meshId": "rbxassetid://72316577098166",
+    "meshId": "rbxassetid://76622237908454",
     "textureId": "",
     "color": [
      1,
@@ -82752,7 +80861,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_4_Glow1",
-    "meshId": "rbxassetid://83716424709307",
+    "meshId": "rbxassetid://94558163731590",
     "textureId": "",
     "color": [
      1,
@@ -82783,7 +80892,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_5_Glow1",
-    "meshId": "rbxassetid://116986715674189",
+    "meshId": "rbxassetid://76622237908454",
     "textureId": "",
     "color": [
      1,
@@ -82814,7 +80923,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_6_Glow1",
-    "meshId": "rbxassetid://124026690526523",
+    "meshId": "rbxassetid://94558163731590",
     "textureId": "",
     "color": [
      1,
@@ -82845,7 +80954,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_7_Glow1",
-    "meshId": "rbxassetid://135189472279927",
+    "meshId": "rbxassetid://76622237908454",
     "textureId": "",
     "color": [
      1,
@@ -82876,7 +80985,7 @@
    },
    {
     "name": "pet_briar_cage_ground_glow_8_Glow1",
-    "meshId": "rbxassetid://83913883892343",
+    "meshId": "rbxassetid://94558163731590",
     "textureId": "",
     "color": [
      1,
@@ -83031,7 +81140,7 @@
    },
    {
     "name": "pet_briar_cage_spark_5_Glow1",
-    "meshId": "rbxassetid://132347642219334",
+    "meshId": "rbxassetid://75842995915806",
     "textureId": "",
     "color": [
      1,
@@ -83062,7 +81171,7 @@
    },
    {
     "name": "pet_briar_cage_spark_6_Glow1",
-    "meshId": "rbxassetid://94009300839765",
+    "meshId": "rbxassetid://99811059718871",
     "textureId": "",
     "color": [
      1,
@@ -83080,1494 +81189,6 @@
      0.84,
      2.4,
      1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_base_Mesh1",
-    "meshId": "rbxassetid://91051557368819",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     1.68,
-     0.5,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_band_lo_Glow1",
-    "meshId": "rbxassetid://80544763661597",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     1.09,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_mid_Mesh1",
-    "meshId": "rbxassetid://113958554743499",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     1.55,
-     1.68,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_band_hi_Glow1",
-    "meshId": "rbxassetid://81378598442608",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     2.27,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_top_Mesh1",
-    "meshId": "rbxassetid://108350577072620",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     1.68,
-     2.78,
-     1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_1_cap_Mesh1",
-    "meshId": "rbxassetid://84060390285285",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     1.68,
-     3.35,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_base_Mesh1",
-    "meshId": "rbxassetid://94399535163247",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     0,
-     0.5,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_band_lo_Glow1",
-    "meshId": "rbxassetid://106651313193586",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     0,
-     1.09,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_mid_Mesh1",
-    "meshId": "rbxassetid://112481286429422",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.5,
-     1,
-     0.76
-    ],
-    "cframe": [
-     0,
-     1.68,
-     1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_band_hi_Glow1",
-    "meshId": "rbxassetid://128217194995805",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     0,
-     2.27,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_top_Mesh1",
-    "meshId": "rbxassetid://137997437749966",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.82,
-     0.84,
-     0.56
-    ],
-    "cframe": [
-     0.13,
-     2.78,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_2_cap_Mesh1",
-    "meshId": "rbxassetid://71924721616269",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     0,
-     3.35,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_base_Mesh1",
-    "meshId": "rbxassetid://119080098150290",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     -1.68,
-     0.5,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_band_lo_Glow1",
-    "meshId": "rbxassetid://107489303249081",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     1.09,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_mid_Mesh1",
-    "meshId": "rbxassetid://134003640055832",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     -1.55,
-     1.68,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_band_hi_Glow1",
-    "meshId": "rbxassetid://83946570956311",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     2.27,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_top_Mesh1",
-    "meshId": "rbxassetid://102674918846673",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     -1.68,
-     2.78,
-     1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_3_cap_Mesh1",
-    "meshId": "rbxassetid://123701447800784",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     -1.68,
-     3.35,
-     1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_base_Mesh1",
-    "meshId": "rbxassetid://72645444277001",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     1.68,
-     0.5,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_band_lo_Glow1",
-    "meshId": "rbxassetid://120131663381231",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     1.09,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_mid_Mesh1",
-    "meshId": "rbxassetid://114523944237469",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     1.55,
-     1.68,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_band_hi_Glow1",
-    "meshId": "rbxassetid://137095701508404",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     2.27,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_top_Mesh1",
-    "meshId": "rbxassetid://99876552203292",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     1.68,
-     2.78,
-     -0.13,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_4_cap_Mesh1",
-    "meshId": "rbxassetid://124109740073729",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     1.68,
-     3.35,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_base_Mesh1",
-    "meshId": "rbxassetid://97518918103308",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     -1.68,
-     0.5,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_band_lo_Glow1",
-    "meshId": "rbxassetid://105085835518432",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     1.09,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_mid_Mesh1",
-    "meshId": "rbxassetid://106853892912784",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     -1.55,
-     1.68,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_band_hi_Glow1",
-    "meshId": "rbxassetid://90060683739186",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     2.27,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_top_Mesh1",
-    "meshId": "rbxassetid://96674962431893",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     -1.68,
-     2.78,
-     0.13,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_5_cap_Mesh1",
-    "meshId": "rbxassetid://97348597767982",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     -1.68,
-     3.35,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_base_Mesh1",
-    "meshId": "rbxassetid://111814988202448",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     1.68,
-     0.5,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_band_lo_Glow1",
-    "meshId": "rbxassetid://83165971960362",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     1.09,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_mid_Mesh1",
-    "meshId": "rbxassetid://71882923442805",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     1.55,
-     1.68,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_band_hi_Glow1",
-    "meshId": "rbxassetid://71335258984999",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     1.68,
-     2.27,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_top_Mesh1",
-    "meshId": "rbxassetid://80221138150700",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     1.68,
-     2.78,
-     -1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_6_cap_Mesh1",
-    "meshId": "rbxassetid://138869829726171",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     1.68,
-     3.35,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_base_Mesh1",
-    "meshId": "rbxassetid://111257699027115",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     0,
-     0.5,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_band_lo_Glow1",
-    "meshId": "rbxassetid://94189936511733",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     0,
-     1.09,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_mid_Mesh1",
-    "meshId": "rbxassetid://107316547504806",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.5,
-     1,
-     0.76
-    ],
-    "cframe": [
-     0,
-     1.68,
-     -1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_band_hi_Glow1",
-    "meshId": "rbxassetid://106672018541184",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     0,
-     2.27,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_top_Mesh1",
-    "meshId": "rbxassetid://102030733942406",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.82,
-     0.84,
-     0.56
-    ],
-    "cframe": [
-     -0.13,
-     2.78,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_7_cap_Mesh1",
-    "meshId": "rbxassetid://118662943387861",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     0,
-     3.35,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_base_Mesh1",
-    "meshId": "rbxassetid://129001390033019",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     1,
-     0.56
-    ],
-    "cframe": [
-     -1.68,
-     0.5,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_band_lo_Glow1",
-    "meshId": "rbxassetid://134963327758078",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     1.09,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_mid_Mesh1",
-    "meshId": "rbxassetid://83754222499068",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.76,
-     1,
-     0.5
-    ],
-    "cframe": [
-     -1.55,
-     1.68,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_band_hi_Glow1",
-    "meshId": "rbxassetid://97440487177419",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.64,
-     0.18,
-     0.64
-    ],
-    "cframe": [
-     -1.68,
-     2.27,
-     -1.68,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_top_Mesh1",
-    "meshId": "rbxassetid://81576295792047",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.56,
-     0.84,
-     0.82
-    ],
-    "cframe": [
-     -1.68,
-     2.78,
-     -1.55,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ]
-   },
-   {
-    "name": "pet_briar_cage_post_8_cap_Mesh1",
-    "meshId": "rbxassetid://95285849785807",
-    "textureId": "",
-    "color": [
-     1,
-     1,
-     1
-    ],
-    "material": "SmoothPlastic",
-    "transparency": 0,
-    "size": [
-     0.44,
-     0.3,
-     0.44
-    ],
-    "cframe": [
-     -1.68,
-     3.35,
-     -1.68,
      1,
      0,
      0,

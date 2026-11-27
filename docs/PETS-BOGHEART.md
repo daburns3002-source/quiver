@@ -101,5 +101,8 @@ its import into `Config/ImportedModels`, and its name into `Config/PetAttacks`.
 | **Prism Bolt** | Prism Leviathan | `FxPetPrismBolt`, Fly (loop) | a 2.4-stud dark-teal crystal shard with a glowing cyan core and trail | `FxPetEmberBolt` |
 | **Prism Shards** | Prism Leviathan | `FxPetPrismShards`, Play | the bolt's impact: a flash and teal and cyan crystal cubes flying out | `FxPetCrownShockwave` |
 
-The Spore Sneeze is the heaviest piece in the game's pet set (86 parts, each
-spore moving on its own). It lives for 0.45 s every 4 s and is drawn by one pet.
+Two exports came out over the 40-part cap phones are held to
+(`Balance.UpgradeFx.maxParts`, `tests/UpgradeFx.spec`): the Spore Sneeze (86, one
+part per spore) and Thornwood's Briar Cage (62). `optimise_effect.py`'s new
+`still_children` option merges each animated group's children into it, so a
+spore band (near, mid, far) or a cage post moves as one piece: 9 and 30 parts.

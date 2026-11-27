@@ -964,8 +964,16 @@ function ClassUpgrades.afterBlow(session: Session, origin: Vector3, direction: V
 	upgradeFx:FireAllClients("BladeStorm", session.player, start, flat, length, config.duration)
 end
 
---[[ Counter Strike: a hit really landed on the player (`RunSession.onHurt`). ]]
+--[[ Counter Strike and Blood Pact: a hit really landed on the player
+     (`RunSession.onHurt`). ]]
 function ClassUpgrades.onHurt(session: Session)
+	--[[ Blood Pact is watched in `step`, which walks the states: a hit
+	     taken is the only way under the threshold, so the state is made
+	     here, or a player holding nothing else of this module never sees
+	     the pact engage (seen in Studio, 2026-11-27). ]]
+	if session.melee.bloodPact > 0 then
+		state(session)
+	end
 	if session.melee.counterStrike <= 0 then
 		return
 	end

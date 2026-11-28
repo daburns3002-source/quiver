@@ -33,9 +33,17 @@ parts) took a playtest from 60 FPS to 26, with a 323 ms worst frame
 So the moment a dump has read an import, it moves to **`ServerStorage.Imports`**:
 not replicated, not drawn, and still there to dump again. Both dump scripts
 read `ServerStorage.Imports` as well as the Workspace, so a dump after the move
-still finds everything — which matters, because `imports_to_luau.py` prunes
-every module it does not regenerate. Only fresh, not-yet-dumped imports belong
-in the Workspace.
+still finds everything. Only fresh, not-yet-dumped imports belong in the
+Workspace.
+
+The folder does not stay either. Once its imports' ids are in the code, it is
+saved to **`assets/imports/<date>.rbxm`** and deleted from the place: on
+2026-11-27 it held 319 models (47,280 instances), 9.2 MB of a 24.3 MB place,
+loaded by every server and never read (`docs/PERFORMANCE.md`). To dump an old
+import again, put the file back with File > Insert from File.
+`assets/models/model_imports.json` keeps every dump ever taken, so a new dump
+is added to it, never written over it, and `imports_to_luau.py` deletes a
+module it did not write only when run with `--prune`.
 
 ## 0. The loop every change goes through
 

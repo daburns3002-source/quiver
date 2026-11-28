@@ -162,6 +162,18 @@ task.spawn(function()
 	end
 end)
 
+--[[ Shadows: the place casts them for everyone; the lowest tier turns its
+     own copy off (the server never sets `GlobalShadows`, but if it ever
+     does, this keeps a phone's off). ]]
+if not Device.tier().enableShadows then
+	Lighting.GlobalShadows = false
+	Lighting:GetPropertyChangedSignal("GlobalShadows"):Connect(function()
+		if Lighting.GlobalShadows then
+			Lighting.GlobalShadows = false
+		end
+	end)
+end
+
 --[[
 	Health lives on the run session, not the Humanoid, so the built-in bar would
 	show a meaningless number.

@@ -166,14 +166,32 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
 2. **Merge the outer forest into a few chunks.** 100 of a room's ~190
    draws are the forest's trees, each its own mesh. A few merged chunks would
    draw in about ten, but that gives up the planned per-tree sway.
-3. **Shadows off on the Low tier.** `DeviceTiers.enableShadows` exists but
-   nothing reads it; shadows draw on every tier. Turning them off on phones
-   is cheaper but visible. (Roblox's own graphics quality already drops
-   shadows on weak phones.)
+3. **Shadows off on the Low tier.** Done 2026-11-27 (the owner's pick):
+   see [Shadows on the Low tier](#shadows-on-the-low-tier-2026-11-27).
 4. **Clean out `ServerStorage.Imports`.** About 100 import models (the
    pet effects imported twice) ship with the place and load on every server,
    though the game builds from mesh ids and never reads them. Keep a copy in
    a separate place file for the dump scripts, then delete the folder.
+
+## Shadows on the Low tier (2026-11-27)
+
+`DeviceTiers.enableShadows` existed but nothing read it, so the sun cast
+shadows on every device. Now `Main.client` turns its own copy of
+`Lighting.GlobalShadows` off on the Low tier only (a touch-only screen whose
+short side is under 700 pixels: a phone) and keeps it off; Medium (tablets,
+consoles) and High keep shadows, so only phones look different: no shadow
+under the player, the enemies, the trees or the walls. Roblox's own graphics
+quality already drops shadows on its lowest levels, so a weak phone on
+automatic quality looked like this before.
+
+Checked in a Studio Play with `DevTier` "Low": the client's
+`GlobalShadows` is off from the start and turned straight back off when
+forced on; the server's stays on. **Not measured yet:** what the shadow pass
+costs a frame. That needs Studio drawing on screen, and on 2026-11-27 it was
+minimized for the whole session. To take it: `DevTier` "Low", Play, and
+`tools/studio/perf_room.luau` once with `Lighting.GlobalShadows` forced on
+and once as the tier leaves it, same room (the shadow pass does not show in
+`RenderBreakdown`'s draws, so compare GPU and render-thread ms).
 
 ## Loading ahead: the next room and the cards (2026-10-26)
 

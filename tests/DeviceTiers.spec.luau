@@ -109,8 +109,9 @@ return function(t: TestRunner.Helper)
 		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
 	end)
 
-	t.test("shadows are only ever enabled at the top tier", function()
+	t.test("shadows are off on the lowest tier only", function()
 		t.isFalse(low.enableShadows, "a low tier should not pay for shadows")
-		t.isTrue(high.enableShadows, "the high tier should be allowed them")
+		t.isTrue(medium.enableShadows, "the middle tier should keep them")
+		t.isTrue(high.enableShadows, "the high tier should keep them")
 	end)
 end

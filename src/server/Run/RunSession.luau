@@ -138,6 +138,13 @@ export type Session = {
 	     they reach health. A pool, not a cut or a block. ]]
 	petCoat: number,
 	petCoatUntil: number,
+	--[[ The Woolly Alpaca's Wool Wall (`Config/PetCombat` `wall`): until
+	     `woolWallUntil` (os.clock) an enemy shot coming from within
+	     `woolWallAngle` degrees of `woolWallDir` (flat, from the owner
+	     toward the enemy it faced) stops at the wool (`Combat/ProjectileSystem`). ]]
+	woolWallUntil: number,
+	woolWallDir: Vector3,
+	woolWallAngle: number,
 	--[[ `os.clock()` the owner last actually lost health, which is what
 	     arms the Buoy Puffer's Payback Puff (`Combat/PetCombat`). Set only
 	     where damage landed: a dodge, a guard and a shelter that took it
@@ -440,6 +447,9 @@ function RunSession.create(player: Player): Session
 		petShelterUntil = 0,
 		petCoat = 0,
 		petCoatUntil = 0,
+		woolWallUntil = 0,
+		woolWallDir = Vector3.zAxis,
+		woolWallAngle = 0,
 		lastHurtAt = 0,
 		swingCount = 0,
 		battleCryStacks = 0,

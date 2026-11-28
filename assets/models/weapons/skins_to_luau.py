@@ -204,6 +204,37 @@ NEON_CIRCUIT = [
 # Cinderforge, 28 Legendaries listed in blocky/themed_sets/sets.py with their
 # Studio ids (its skin_imports.json), cards and glow colours.
 THEMED_IMPORTS = HERE / "blocky" / "themed_sets" / "skin_imports.json"
+# Area 5, the Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md, 2026-11-26): Tripo
+# models of the Codex front views in
+# assets/concepts/blocky/weapons/skins/windswept, imported from
+# `Downloads\windswept_import` and read in Studio into
+# blocky/windswept/skin_imports.json under their keys. One textured mesh each,
+# so a Legendary's or Mythic's glow is an `aura`; none is rainbow. Grips and
+# the bows' turns measured by blocky/windswept/measure_grips.py.
+WINDSWEPT_IMPORTS = HERE / "blocky" / "windswept" / "skin_imports.json"
+# key, label, class, import, projectile, glow colour, tier
+WINDSWEPT = [
+    ("SlatewoodBow", "SLATEWOOD BOW", "Ranger", "SlatewoodBow", None, None, 1),
+    ("HarpyBow", "HARPY BOW", "Ranger", "HarpyBow", None, None, 2),
+    ("GalestringLongbow", "GALESTRING LONGBOW", "Ranger", "GalestringLongbow", None, None, 3),
+    ("RocsWingBow", "ROC'S WING BOW", "Ranger", "RocsWingBow", None, (255, 205, 56), 4),
+    ("SkyrenderBow", "SKYRENDER BOW", "Ranger", "SkyrenderBow", None, (255, 236, 96), 5),
+    ("CloudspunStaff", "CLOUDSPUN STAFF", "Arcanist", "CloudspunStaff", None, None, 1),
+    ("GustcallerStaff", "GUSTCALLER STAFF", "Arcanist", "GustcallerStaff", None, None, 2),
+    ("PrayerflagStaff", "PRAYERFLAG STAFF", "Arcanist", "PrayerflagStaff", None, None, 3),
+    ("TempestStaff", "TEMPEST STAFF", "Arcanist", "TempestStaff", None, (255, 205, 56), 4),
+    ("EyeOfTheStorm", "EYE OF THE STORM", "Arcanist", "EyeOfTheStorm", None, (150, 230, 255), 5),
+    ("LedgestoneBlade", "LEDGESTONE BLADE", "Warden", "LedgestoneBlade", None, None, 1),
+    ("RamhornCleaver", "RAMHORN CLEAVER", "Warden", "RamhornCleaver", None, None, 2),
+    ("WindcutterBlade", "WINDCUTTER BLADE", "Warden", "WindcutterBlade", None, None, 3),
+    ("StormtalonBlade", "STORMTALON BLADE", "Warden", "StormtalonBlade", None, (255, 205, 56), 4),
+    ("ThunderheadBlade", "THUNDERHEAD BLADE", "Warden", "ThunderheadBlade", None, (255, 236, 96), 5),
+    ("FlintTalon", "FLINT TALON", "Assassin", "FlintTalon", None, None, 1),
+    ("HarpyClaw", "HARPY CLAW", "Assassin", "HarpyClaw", None, None, 2),
+    ("StormQuill", "STORM QUILL", "Assassin", "StormQuill", None, None, 3),
+    ("ThunderbeakDagger", "THUNDERBEAK DAGGER", "Assassin", "ThunderbeakDagger", None, (255, 205, 56), 4),
+    ("ZephyrFang", "ZEPHYR FANG", "Assassin", "ZephyrFang", None, (150, 240, 255), 5),
+]
 
 
 def themed_rows():
@@ -257,6 +288,12 @@ YAW = {
     "OrbitBow": "-math.pi / 2",
     "BlossomBow": "-math.pi / 2",
     "CinderstringBow": "-math.pi / 2",
+    # the Windswept Cliffs' five, every riser on -X (windswept/measure_grips.py)
+    "SlatewoodBow": "-math.pi / 2",
+    "HarpyBow": "-math.pi / 2",
+    "GalestringLongbow": "-math.pi / 2",
+    "RocsWingBow": "-math.pi / 2",
+    "SkyrenderBow": "-math.pi / 2",
 }
 YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.pi": math.pi}
 # Where the hand closes on each one-mesh model, measured from its mesh's cross
@@ -266,6 +303,29 @@ YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.p
 # 16% to 26% up (one grip for all put some hands on the guard); a staff's shaft
 # 43% up. A model not listed is gripped at its class's `grip`, centred.
 GRIPS = {
+    # the Windswept Cliffs' twenty (windswept/measure_grips.py); the
+    # Stormtalon Blade's and Thunderbeak Dagger's handles set from their
+    # pictures, the measure taking each pommel's waist for the guard
+    "SlatewoodBow": (-0.0582, 0.5, 0.0004),
+    "HarpyBow": (-0.0849, 0.5, 0.0074),
+    "GalestringLongbow": (-0.1392, 0.5, 0.0),
+    "RocsWingBow": (-0.0411, 0.5, 0.0004),
+    "SkyrenderBow": (-0.0905, 0.5, 0.0006),
+    "CloudspunStaff": (0.003, 0.43, 0.0063),
+    "GustcallerStaff": (-0.0126, 0.43, -0.0081),
+    "PrayerflagStaff": (0.0001, 0.43, -0.0003),
+    "TempestStaff": (-0.0004, 0.43, 0.0004),
+    "EyeOfTheStorm": (-0.0003, 0.43, -0.0001),
+    "LedgestoneBlade": (0.0007, 0.14, -0.0005),
+    "RamhornCleaver": (0.0009, 0.21, -0.0004),
+    "WindcutterBlade": (0.0003, 0.2, -0.0005),
+    "StormtalonBlade": (-0.0002, 0.2, 0.0008),
+    "ThunderheadBlade": (-0.0006, 0.19, 0.0004),
+    "FlintTalon": (0.0, 0.2, 0.0),
+    "HarpyClaw": (-0.002, 0.23, -0.0004),
+    "StormQuill": (-0.0011, 0.22, -0.0009),
+    "ThunderbeakDagger": (-0.0176, 0.24, 0.0006),
+    "ZephyrFang": (-0.0012, 0.22, 0.0),
     "AcornBow": (0.0377, 0.5, 0.0),
     "FireflyBow": (-0.066, 0.5, -0.0003),
     "MossSlimeBow": (-0.0258, 0.5, 0.1123),
@@ -524,6 +584,10 @@ def main():
         extra = themed_rows()
         rows += [(themed, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in extra]
         listed = listed + extra
+    if WINDSWEPT_IMPORTS.exists():
+        windswept = json.loads(WINDSWEPT_IMPORTS.read_text(encoding="utf-8"))
+        rows += [(windswept, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in WINDSWEPT]
+        listed = listed + WINDSWEPT
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
     menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in listed)

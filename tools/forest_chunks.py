@@ -66,6 +66,11 @@ FORESTS = {
         "config": "src/shared/Config/BogheartForest.luau",
         "glb": "assets/models/arenas/bogheart_caverns_outer_arena_roblox.glb",
     },
+    "windswept": {
+        "key": "Windswept",
+        "config": "src/shared/Config/WindsweptForest.luau",
+        "glb": "assets/models/arenas/windswept_cliffs_outer_arena_roblox.glb",
+    },
 }
 
 MAX_TRIS = 19000

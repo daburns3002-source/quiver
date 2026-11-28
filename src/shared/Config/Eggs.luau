@@ -56,6 +56,16 @@ local Eggs = {
 			price = 4000,
 			atLaunch = "DrownedVillage",
 		},
+		--[[ The Windswept Cliffs, area 5 (2026-11-26, docs/WINDSWEPT-
+		     CLIFFS.md): its eight pets, priced as its crate (`Config/Shop`).
+		     At launch it waits on Bogheart's boss. ]]
+		{
+			key = "WindsweptEgg",
+			name = "WINDSWEPT EGG",
+			area = "WindsweptCliffs",
+			price = 10000,
+			atLaunch = "BogheartCaverns",
+		},
 	} :: { Egg },
 
 	--[[ An egg's odds, by rarity (weights out of 100, shared evenly by the

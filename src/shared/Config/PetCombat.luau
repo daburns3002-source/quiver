@@ -175,6 +175,31 @@ export type Spec = {
 	--[[ The bolt breaks into shards on the enemies beside its target (the
 	     Prism Leviathan's Prism Split). ]]
 	split: PetCrowd.Split?,
+	--[[ The Windswept Cliffs' (docs/WINDSWEPT-CLIFFS.md, "The pets"). ]]
+	--[[ The Whistle Marmot's Alarm Whistle: an enemy winding up an attack
+	     has it cut short and takes `scale` times the blow. Bosses are not
+	     cut short. ]]
+	interrupt: { scale: number }?,
+	--[[ The Cliff Puffin's Pebble Drop: `scale` times on an enemy in the
+	     air (a flyer, or one still sliding from a knockback). ]]
+	aloft: { scale: number }?,
+	--[[ The Woolly Alpaca's Wool Wall: for `duration` seconds every enemy
+	     shot coming at its owner from the side of the nearest enemy, within
+	     `angle` degrees, is stopped. No damage of its own. ]]
+	wall: { duration: number, angle: number }?,
+	--[[ The Gale Glider's Updraft: each enemy it hits is lifted off its
+	     feet for this many seconds (no moving, no attacking). Bosses stand. ]]
+	lift: number?,
+	--[[ A line attack (`beam`) runs on this many studs past the nearest
+	     enemy, rather than out to `range`. ]]
+	past: number?,
+	--[[ The Rocling's Little Thunder: the enemy with the most health is the
+	     target, and the bolt lands `fuse` seconds after it is marked. ]]
+	strongest: boolean?,
+	fuse: number?,
+	--[[ The Zephyr Whale's Tailwind: every enemy within `range` of its
+	     owner is struck and blown back, `push` times its own knockback. ]]
+	gust: { push: number }?,
 }
 
 local PetCombat: { damageScale: number, pets: { [string]: Spec } } = {
@@ -496,6 +521,33 @@ local PetCombat: { damageScale: number, pets: { [string]: Spec } } = {
 			damage = 116,
 			split = { shards = 3, share = 0.5, radius = 12 },
 		},
+		--[[ The Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md, 2026-11-26), on
+		     area 5's bands (1.5x area 1's: Common 24, Rare 36, Epic 51,
+		     Legendary 66, Mythic 84 a second; `Util/PetPower`). PLACEHOLDER
+		     NUMBERS until the owner plays them. The area is about where a hit
+		     leaves you, so most of these are about position too. ]]
+		-- Alarm Whistle: an enemy winding up is cut short and takes double. 72 / 3 is 24.
+		WhistleMarmot = { every = 3, range = 60, damage = 72, interrupt = { scale = 2 } },
+		-- Pebble Drop: double on anything in the air. 60 / 2.5 is 24.
+		CliffPuffin = { every = 2.5, range = 60, damage = 60, aloft = { scale = 2 } },
+		--[[ Wool Wall: the egg's shelter, a wall this time: shots from the
+		     nearest enemy's side stop at the wool for 3 s every 12. ]]
+		WoollyAlpaca = { every = 12, range = 60, wall = { duration = 3, angle = 120 } },
+		--[[ Updraft: glides through the line toward the nearest and 10
+		     studs on, lifting each it passes. Credited two on the line:
+		     72 x 2 / 4 is 36. ]]
+		GaleGlider = { every = 4, range = 40, damage = 72, beam = 3, past = 10, lift = 0.6 },
+		-- Flag Spin: three flags out to the three nearest within 14. 52 x 3 / 3 is 52.
+		FlagtailPanda = { every = 3, range = 14, damage = 52, targets = 3 },
+		--[[ Glide (docs/PETS-WILFS.md #5): through the first three on a line
+		     toward the nearest. Credited two: 132 x 2 / 4 is 66. ]]
+		GaleWilf = { every = 4, range = 40, damage = 132, beam = 4, targets = 3 },
+		--[[ Little Thunder (heir to the Tempest Roc's storm): the enemy with
+		     the most health is marked, and struck 0.6 s later. 330 / 5 is 66. ]]
+		Rocling = { every = 5, range = 60, damage = 330, strongest = true, fuse = 0.6 },
+		--[[ Tailwind: everything within 12 of its owner struck and blown
+		     back. Credited two: 126 x 2 / 3 is 84. ]]
+		ZephyrWhale = { every = 3, range = 12, damage = 126, gust = { push = 2 } },
 	},
 }
 

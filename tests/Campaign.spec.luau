@@ -57,7 +57,9 @@ return function(t: TestRunner.Helper)
 	--[[ Owner, 2026-11-13: "10 for area 2, 15 for 3, 15 for 4". ]]
 	t.test("each area's levels, in its portal's order, area after area", function()
 		local position = 0
-		for portal, area in { "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns" } do
+		for portal, area in
+			{ "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns", "WindsweptCliffs" }
+		do
 			for _, index in LobbyConfig.portals[portal].levels :: { number } do
 				position += 1
 				t.equal(Balance.campaign[position], index)
@@ -65,6 +67,6 @@ return function(t: TestRunner.Helper)
 			end
 		end
 		t.equal(#Balance.campaign, position)
-		t.equal(position, 10 + 10 + 15 + 15)
+		t.equal(position, 10 + 10 + 15 + 15 + 15)
 	end)
 end

@@ -36,6 +36,7 @@ local AREA: { [string]: number } = {
 	ThornwoodEgg = 2,
 	-- Bogheart Caverns is area 4 (the egg opened 2026-11-06; this line was missing until 2026-11-16)
 	BogheartEgg = 4,
+	WindsweptEgg = 5,
 }
 
 --[[ How far off its band a pet may sit. A fifth either way: enough room for

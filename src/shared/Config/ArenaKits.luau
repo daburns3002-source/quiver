@@ -506,6 +506,105 @@ local ArenaKits: { [string]: Kit } = {
 		thicketSpacing = 2.4,
 		southGate = true,
 	},
+	--[[ The Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md, 2026-11-28): slate
+	     rims and pillars on a plateau in the sky, boulders for cover, the
+	     drops into the cloud (`void` boxes, lowCover "Water") drawn as the
+	     cloud gap with a plank bridge over the middle, slate tiles up the
+	     middle, grass tufts, prayer flags and glowing wind streaks along
+	     the walls, a stone gate. Built in Python from the sheet
+	     (assets/concepts/blocky/arenas/area05_windswept_cliffs.jpg,
+	     `windswept_kit/`), bundled by kit_bundle.py, uploaded through Open
+	     Cloud. ]]
+	Windswept = {
+		scale = 3,
+		pieces = {
+			RimWall = {
+				meshId = "rbxassetid://134906625503709",
+				size = Vector3.new(1.3, 1.2, 0.7),
+				centre = Vector3.new(0, 0.6, 0),
+			},
+			CornerPillar = {
+				meshId = "rbxassetid://87795848692483",
+				size = Vector3.new(0.8, 1.8, 0.8),
+				centre = Vector3.new(0, 0.9, 0),
+			},
+			Boulder = {
+				meshId = "rbxassetid://132051884591720",
+				size = Vector3.new(1.4, 1.1, 1.28),
+				centre = Vector3.new(0, 0.55, 0),
+			},
+			FlagPost = {
+				meshId = "rbxassetid://125424907430831",
+				size = Vector3.new(2, 1.6, 0.2),
+				centre = Vector3.new(0, 0.8, 0),
+			},
+			GrassTuft = {
+				meshId = "rbxassetid://139383356811290",
+				size = Vector3.new(0.4, 0.3, 0.228),
+				centre = Vector3.new(0, 0.15, 0),
+			},
+			FloorTile = {
+				meshId = "rbxassetid://125362468061257",
+				size = Vector3.new(1.35, 0.12, 1.35),
+				centre = Vector3.new(0, 0.06, 0),
+			},
+			--[[ A drop into the cloud: the cloud far below, seen through
+			     the gap. ]]
+			CloudGap = {
+				meshId = "rbxassetid://124308136910993",
+				size = Vector3.new(1.35, 0.5, 1.35),
+				centre = Vector3.new(0, 0.25, 0),
+			},
+			Bridge = {
+				meshId = "rbxassetid://79424933504111",
+				size = Vector3.new(1.6, 0.96, 2.6),
+				centre = Vector3.new(0, 0.48, 0),
+			},
+			StoneGate = {
+				meshId = "rbxassetid://137496019355491",
+				size = Vector3.new(2.4, 2.2, 0.66),
+				centre = Vector3.new(0, 1.1, 0),
+			},
+			--[[ A streak of wind on the stone, all glow, the sky's pale
+			     blue. ]]
+			WindStreak = {
+				meshId = "rbxassetid://111267991188319",
+				size = Vector3.new(1.6, 0.016, 0.715),
+				centre = Vector3.new(0, 0.008, 0),
+				neon = true,
+				tint = Color3.fromRGB(200, 236, 255),
+			},
+		},
+		roles = {
+			WallBlock = "RimWall",
+			TallCover = "Boulder",
+			TreeStump = "Boulder",
+			FallenLog = "Boulder",
+			FernBush = "GrassTuft",
+			SteppingStone = "FloorTile",
+			StreamTile = "CloudGap",
+			Door = "StoneGate",
+		},
+		keepShape = { TallCover = true },
+		streamFlatten = 0.4,
+		bridgeFlatten = 0.6,
+		tile = 3.5,
+		--[[ The sheet's grey-blue slate. ]]
+		lawn = {
+			Color3.fromRGB(112, 122, 146),
+			Color3.fromRGB(118, 128, 150),
+			Color3.fromRGB(106, 118, 140),
+			Color3.fromRGB(120, 126, 152),
+		},
+		water = Color3.fromRGB(226, 234, 246),
+		bank = Color3.fromRGB(92, 104, 132),
+		pathSpacing = 3.6,
+		pathSway = 0.5,
+		edgeDepth = 2.4,
+		plants = { GrassTuft = 3, FlagPost = 1, WindStreak = 2 },
+		thicketSpacing = 2.4,
+		southGate = true,
+	},
 }
 
 return table.freeze(ArenaKits)

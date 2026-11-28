@@ -192,6 +192,7 @@ local GREEN = Color3.fromRGB(80, 230, 70)
 local PURPLE = Color3.fromRGB(140, 60, 235)
 local CYAN = Color3.fromRGB(70, 220, 224)
 local BLUE = Color3.fromRGB(60, 150, 235)
+local SKY = Color3.fromRGB(120, 196, 255)
 
 local Lobby = {
 	--[[ Which way a building faces, and where a thing placed in front of
@@ -274,7 +275,15 @@ local Lobby = {
 			tint = CYAN,
 			atLaunch = { boss = "DrownedVillage" },
 		},
-		{ name = "Windswept Cliffs" },
+		--[[ The Windswept Cliffs (2026-11-27, docs/WINDSWEPT-CLIFFS.md):
+		     5-1..5-15, the Tempest Roc only at the end of 5-15, opened at
+		     launch by Grandmother Gulp's fall. ]]
+		{
+			name = "Windswept Cliffs",
+			levels = stageRun(60, 15),
+			tint = SKY,
+			atLaunch = { boss = "BogheartCaverns" },
+		},
 		{ name = "Frostpeak Pass" },
 		{ name = "Ember Mines" },
 		{ name = "Obsidian Forge" },

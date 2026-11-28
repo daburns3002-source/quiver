@@ -417,6 +417,54 @@ function PetBlurb.lines(key: string): { string }
 			)
 		)
 	end
+	--[[ The Windswept Cliffs' (docs/WINDSWEPT-CLIFFS.md). ]]
+	local interrupt = spec.interrupt
+	if interrupt then
+		add(
+			string.format(
+				"Alarm Whistle: an enemy winding up an attack has it cut short and takes %gx.",
+				interrupt.scale
+			)
+		)
+	end
+	local aloft = spec.aloft
+	if aloft then
+		add(string.format("Pebble Drop: %gx on anything in the air.", aloft.scale))
+	end
+	local wall = spec.wall
+	if wall then
+		add(
+			string.format(
+				"Wool Wall: every %g seconds, for %g seconds, enemy shots from the nearest enemy's side stop at the wool.",
+				spec.every,
+				wall.duration
+			)
+		)
+	end
+	if spec.lift then
+		add(
+			string.format(
+				"Updraft: lifts each enemy it hits off its feet for %g seconds.",
+				spec.lift
+			)
+		)
+	end
+	if spec.strongest and spec.fuse then
+		add(
+			string.format(
+				"Little Thunder: marks the toughest enemy and strikes it %g seconds later.",
+				spec.fuse
+			)
+		)
+	end
+	if spec.gust then
+		add(
+			string.format(
+				"Tailwind: everything within %g studs is struck and blown back.",
+				spec.range
+			)
+		)
+	end
 
 	return out
 end

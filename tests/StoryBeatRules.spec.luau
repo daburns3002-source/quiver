@@ -58,7 +58,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("one beat per area, in the story's order, each ending on a poster", function()
-		t.equal(#StoryBeats.order, 4)
+		t.equal(#StoryBeats.order, 5)
 		for _, area in StoryBeats.order do
 			local beat = StoryBeats.beats[area]
 			t.notNil(beat, `{area} has no beat`)

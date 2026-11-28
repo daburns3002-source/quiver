@@ -1,7 +1,7 @@
 --!strict
 --[[
-	Thornwood 2-1..2-10, the Drowned Village 3-1..3-15 and Bogheart Caverns
-	4-1..4-15 (`tools/area_levels.py`). The owner, 2026-11-13: "there is 10
+	Thornwood 2-1..2-10, the Drowned Village 3-1..3-15, Bogheart Caverns
+	4-1..4-15 and the Windswept Cliffs 5-1..5-15 (`tools/area_levels.py`). The owner, 2026-11-13: "there is 10
 	levels for area 1, there should also be 10 for area 2, 15 for 3, 15 for
 	4", and "bosses should be in the last room of the last level".
 	Relationships, not values: retuning the rooms never fails this, but
@@ -19,6 +19,7 @@ local AREAS = {
 	{ portal = 2, area = "Thornwood", prefix = "2", count = 10 },
 	{ portal = 3, area = "DrownedVillage", prefix = "3", count = 15 },
 	{ portal = 4, area = "BogheartCaverns", prefix = "4", count = 15 },
+	{ portal = 5, area = "WindsweptCliffs", prefix = "5", count = 15 },
 }
 
 local function stages(portal: number): { Balance.StageConfig }
@@ -39,17 +40,20 @@ local function hasBoss(room: Balance.RoomConfig): boolean
 end
 
 return function(t: TestRunner.Helper)
-	t.test("10 levels for Thornwood, 15 each for the Drowned Village and Bogheart", function()
-		for _, spec in AREAS do
-			local list = stages(spec.portal)
-			t.equal(#list, spec.count, spec.area)
-			for position, stage in list do
-				t.equal(stage.level, `{spec.prefix}-{position}`)
-				t.equal(stage.area, spec.area)
-				t.equal(stage.mode, "Rooms")
+	t.test(
+		"10 levels for Thornwood, 15 each for the Drowned Village, Bogheart and the Cliffs",
+		function()
+			for _, spec in AREAS do
+				local list = stages(spec.portal)
+				t.equal(#list, spec.count, spec.area)
+				for position, stage in list do
+					t.equal(stage.level, `{spec.prefix}-{position}`)
+					t.equal(stage.area, spec.area)
+					t.equal(stage.mode, "Rooms")
+				end
 			end
 		end
-	end)
+	)
 
 	t.test("each boss only in the last room of its area's last level, alone", function()
 		for _, spec in AREAS do
@@ -92,7 +96,8 @@ return function(t: TestRunner.Helper)
 					local want = if spec.area == "Thornwood"
 						then "Thorn"
 						elseif spec.area == "DrownedVillage" then "Drowned"
-						else "Bogheart"
+						elseif spec.area == "BogheartCaverns" then "Bogheart"
+						else "Cliffs"
 					t.equal(string.sub(arena, 1, #want), want, `room {index}`)
 				end
 			end
@@ -147,6 +152,38 @@ return function(t: TestRunner.Helper)
 					if angel then
 						t.equal(room.enemyCount, 0)
 					end
+				end
+			end
+		end
+	end)
+	--[[ The Wind Tunnel (docs/WINDSWEPT-CLIFFS.md, Levels): only on the
+	     Windswept Cliffs, from 5-6 on, about one fight in three, and never
+	     an Angel or a level's last room. ]]
+	t.test("Wind Tunnel rooms are the cliffs' later fights, one in three", function()
+		for _, area in AREAS do
+			for number, stage in stages(area.portal) do
+				local rooms: { number } = stage.rooms or {}
+				local gusts, fights = 0, 0
+				for position, index in rooms do
+					local room = Balance.Rooms[index]
+					if room.gust then
+						gusts += 1
+						t.isTrue(
+							area.prefix == "5" and number >= 6,
+							`{room.name} gusts outside 5-6..5-15`
+						)
+						t.isTrue(room.encounter == nil, `{room.name}: an Angel room gusts`)
+						t.isTrue(position < #rooms, `{room.name}: the last room gusts`)
+					end
+					if room.encounter == nil and position < #rooms then
+						fights += 1
+					end
+				end
+				if area.prefix == "5" and number >= 6 then
+					t.isTrue(
+						gusts >= math.floor(fights / 3) - 1 and gusts <= math.ceil(fights / 3) + 1,
+						`{area.prefix}-{number}: {gusts} gusts in {fights} fights`
+					)
 				end
 			end
 		end

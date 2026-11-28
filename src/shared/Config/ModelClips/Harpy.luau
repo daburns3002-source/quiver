@@ -110,6 +110,46 @@ return table.freeze({
 			cframe = { -0.105, 0.0375, 0.0375, 0, 0, 0, 1 },
 			size = { 0.12, 0.075, 0.225 },
 		},
+		["M_Wing_L_indigo"] = {
+			joint = "Wing_L",
+			cframe = { 0.5852, 0.567, -0.1275, 0, 0, 0, 1 },
+			size = { 0.4945, 0.6274, 0.225 },
+		},
+		["M_Wing_L_magenta"] = {
+			joint = "Wing_L",
+			cframe = { 0.9484, 0.6269, -0.15, 0, 0, 0, 1 },
+			size = { 0.6892, 1.0235, 0.18 },
+		},
+		["M_Wing_L_navy"] = {
+			joint = "Wing_L",
+			cframe = { 0.5904, 0.7363, -0.12, 0, 0, 0, 1 },
+			size = { 0.7896, 0.8352, 0.24 },
+		},
+		["M_Wing_L_purple"] = {
+			joint = "Wing_L",
+			cframe = { 0.765, 0.5939, -0.1275, 0, 0, 0, 1 },
+			size = { 0.5848, 0.8267, 0.225 },
+		},
+		["M_Wing_R_indigo"] = {
+			joint = "Wing_R",
+			cframe = { -0.5852, 0.567, -0.1275, 0, 0, 0, 1 },
+			size = { 0.4945, 0.6274, 0.225 },
+		},
+		["M_Wing_R_magenta"] = {
+			joint = "Wing_R",
+			cframe = { -0.9484, 0.6269, -0.15, 0, 0, 0, 1 },
+			size = { 0.6892, 1.0235, 0.18 },
+		},
+		["M_Wing_R_navy"] = {
+			joint = "Wing_R",
+			cframe = { -0.5904, 0.7363, -0.12, 0, 0, 0, 1 },
+			size = { 0.7896, 0.8352, 0.24 },
+		},
+		["M_Wing_R_purple"] = {
+			joint = "Wing_R",
+			cframe = { -0.765, 0.5939, -0.1275, 0, 0, 0, 1 },
+			size = { 0.5848, 0.8267, 0.225 },
+		},
 		["Tail_geo_indigo"] = {
 			joint = "Tail",
 			cframe = { 0, 0.2325, -0.165, 0, 0, 0, 1 },
@@ -129,196 +169,6 @@ return table.freeze({
 			joint = "Tail",
 			cframe = { 0, 0.2025, -0.2325, 0, 0, 0, 1 },
 			size = { 0.15, 0.075, 0.105 },
-		},
-		["Wing_L_arm_indigo"] = {
-			joint = "Wing_L",
-			cframe = { 0.6142, 0.6285, -0.0375, 0, 0, 0.342, 0.9397 },
-			size = { 0.57, 0.18, 0.045 },
-		},
-		["Wing_L_arm_navy"] = {
-			joint = "Wing_L",
-			cframe = { 0.6579, 0.7631, -0.03, 0, 0, 0.342, 0.9397 },
-			size = { 0.93, 0.33, 0.06 },
-		},
-		["Wing_L_arm_purple"] = {
-			joint = "Wing_L",
-			cframe = { 0.8323, 0.8703, -0.0375, 0, 0, 0.342, 0.9397 },
-			size = { 0.075, 0.09, 0.045 },
-		},
-		["Wing_L_feathers1_indigo"] = {
-			joint = "Wing_L",
-			cframe = { 0.6313, 0.6676, -0.0825, 0, 0, 0.2672, 0.9636 },
-			size = { 0.3, 0.27, 0.045 },
-		},
-		["Wing_L_feathers1_magenta"] = {
-			joint = "Wing_L",
-			cframe = { 1.0749, 0.9341, -0.0825, 0, 0, 0.2672, 0.9636 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_L_feathers1_navy"] = {
-			joint = "Wing_L",
-			cframe = { 0.4063, 0.5324, -0.0825, 0, 0, 0.2672, 0.9636 },
-			size = { 0.255, 0.27, 0.045 },
-		},
-		["Wing_L_feathers1_purple"] = {
-			joint = "Wing_L",
-			cframe = { 0.8563, 0.8028, -0.0825, 0, 0, 0.2672, 0.9636 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_L_feathers2_indigo"] = {
-			joint = "Wing_L",
-			cframe = { 0.6463, 0.5594, -0.1275, 0, 0, 0.0958, 0.9954 },
-			size = { 0.285, 0.27, 0.045 },
-		},
-		["Wing_L_feathers2_magenta"] = {
-			joint = "Wing_L",
-			cframe = { 1.1248, 0.6524, -0.1275, 0, 0, 0.0958, 0.9954 },
-			size = { 0.36, 0.27, 0.045 },
-		},
-		["Wing_L_feathers2_navy"] = {
-			joint = "Wing_L",
-			cframe = { 0.4254, 0.5165, -0.1275, 0, 0, 0.0958, 0.9954 },
-			size = { 0.225, 0.27, 0.045 },
-		},
-		["Wing_L_feathers2_purple"] = {
-			joint = "Wing_L",
-			cframe = { 0.8893, 0.6066, -0.1275, 0, 0, 0.0958, 0.9954 },
-			size = { 0.36, 0.27, 0.045 },
-		},
-		["Wing_L_feathers3_indigo"] = {
-			joint = "Wing_L",
-			cframe = { 0.6039, 0.4492, -0.1725, 0, 0, -0.0785, 0.9969 },
-			size = { 0.255, 0.27, 0.045 },
-		},
-		["Wing_L_feathers3_magenta"] = {
-			joint = "Wing_L",
-			cframe = { 1.0187, 0.3835, -0.1725, 0, 0, -0.0785, 0.9969 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_L_feathers3_navy"] = {
-			joint = "Wing_L",
-			cframe = { 0.4113, 0.4797, -0.1725, 0, 0, -0.0785, 0.9969 },
-			size = { 0.195, 0.27, 0.045 },
-		},
-		["Wing_L_feathers3_purple"] = {
-			joint = "Wing_L",
-			cframe = { 0.8187, 0.4152, -0.1725, 0, 0, -0.0785, 0.9969 },
-			size = { 0.33, 0.27, 0.045 },
-		},
-		["Wing_L_feathers4_indigo"] = {
-			joint = "Wing_L",
-			cframe = { 0.5249, 0.3786, -0.2175, 0, 0, -0.2504, 0.9681 },
-			size = { 0.24, 0.27, 0.045 },
-		},
-		["Wing_L_feathers4_magenta"] = {
-			joint = "Wing_L",
-			cframe = { 0.8135, 0.2187, -0.2175, 0, 0, -0.2504, 0.9681 },
-			size = { 0.33, 0.27, 0.045 },
-		},
-		["Wing_L_feathers4_navy"] = {
-			joint = "Wing_L",
-			cframe = { 0.3872, 0.455, -0.2175, 0, 0, -0.2504, 0.9681 },
-			size = { 0.165, 0.27, 0.045 },
-		},
-		["Wing_L_feathers4_purple"] = {
-			joint = "Wing_L",
-			cframe = { 0.6692, 0.2987, -0.2175, 0, 0, -0.2504, 0.9681 },
-			size = { 0.3, 0.27, 0.045 },
-		},
-		["Wing_R_arm_indigo"] = {
-			joint = "Wing_R",
-			cframe = { -0.6142, 0.6285, -0.0375, 0, 0, -0.342, 0.9397 },
-			size = { 0.57, 0.18, 0.045 },
-		},
-		["Wing_R_arm_navy"] = {
-			joint = "Wing_R",
-			cframe = { -0.6579, 0.7631, -0.03, 0, 0, -0.342, 0.9397 },
-			size = { 0.93, 0.33, 0.06 },
-		},
-		["Wing_R_arm_purple"] = {
-			joint = "Wing_R",
-			cframe = { -0.8323, 0.8703, -0.0375, 0, 0, -0.342, 0.9397 },
-			size = { 0.075, 0.09, 0.045 },
-		},
-		["Wing_R_feathers1_indigo"] = {
-			joint = "Wing_R",
-			cframe = { -0.6313, 0.6676, -0.0825, 0, 0, -0.2672, 0.9636 },
-			size = { 0.3, 0.27, 0.045 },
-		},
-		["Wing_R_feathers1_magenta"] = {
-			joint = "Wing_R",
-			cframe = { -1.0749, 0.9341, -0.0825, 0, 0, -0.2672, 0.9636 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_R_feathers1_navy"] = {
-			joint = "Wing_R",
-			cframe = { -0.4063, 0.5324, -0.0825, 0, 0, -0.2672, 0.9636 },
-			size = { 0.255, 0.27, 0.045 },
-		},
-		["Wing_R_feathers1_purple"] = {
-			joint = "Wing_R",
-			cframe = { -0.8563, 0.8028, -0.0825, 0, 0, -0.2672, 0.9636 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_R_feathers2_indigo"] = {
-			joint = "Wing_R",
-			cframe = { -0.6463, 0.5594, -0.1275, 0, 0, -0.0958, 0.9954 },
-			size = { 0.285, 0.27, 0.045 },
-		},
-		["Wing_R_feathers2_magenta"] = {
-			joint = "Wing_R",
-			cframe = { -1.1248, 0.6524, -0.1275, 0, 0, -0.0958, 0.9954 },
-			size = { 0.36, 0.27, 0.045 },
-		},
-		["Wing_R_feathers2_navy"] = {
-			joint = "Wing_R",
-			cframe = { -0.4254, 0.5165, -0.1275, 0, 0, -0.0958, 0.9954 },
-			size = { 0.225, 0.27, 0.045 },
-		},
-		["Wing_R_feathers2_purple"] = {
-			joint = "Wing_R",
-			cframe = { -0.8893, 0.6066, -0.1275, 0, 0, -0.0958, 0.9954 },
-			size = { 0.36, 0.27, 0.045 },
-		},
-		["Wing_R_feathers3_indigo"] = {
-			joint = "Wing_R",
-			cframe = { -0.6039, 0.4492, -0.1725, 0, 0, 0.0785, 0.9969 },
-			size = { 0.255, 0.27, 0.045 },
-		},
-		["Wing_R_feathers3_magenta"] = {
-			joint = "Wing_R",
-			cframe = { -1.0187, 0.3835, -0.1725, 0, 0, 0.0785, 0.9969 },
-			size = { 0.345, 0.27, 0.045 },
-		},
-		["Wing_R_feathers3_navy"] = {
-			joint = "Wing_R",
-			cframe = { -0.4113, 0.4797, -0.1725, 0, 0, 0.0785, 0.9969 },
-			size = { 0.195, 0.27, 0.045 },
-		},
-		["Wing_R_feathers3_purple"] = {
-			joint = "Wing_R",
-			cframe = { -0.8187, 0.4152, -0.1725, 0, 0, 0.0785, 0.9969 },
-			size = { 0.33, 0.27, 0.045 },
-		},
-		["Wing_R_feathers4_indigo"] = {
-			joint = "Wing_R",
-			cframe = { -0.5249, 0.3786, -0.2175, 0, 0, 0.2504, 0.9681 },
-			size = { 0.24, 0.27, 0.045 },
-		},
-		["Wing_R_feathers4_magenta"] = {
-			joint = "Wing_R",
-			cframe = { -0.8135, 0.2187, -0.2175, 0, 0, 0.2504, 0.9681 },
-			size = { 0.33, 0.27, 0.045 },
-		},
-		["Wing_R_feathers4_navy"] = {
-			joint = "Wing_R",
-			cframe = { -0.3872, 0.455, -0.2175, 0, 0, 0.2504, 0.9681 },
-			size = { 0.165, 0.27, 0.045 },
-		},
-		["Wing_R_feathers4_purple"] = {
-			joint = "Wing_R",
-			cframe = { -0.6692, 0.2987, -0.2175, 0, 0, 0.2504, 0.9681 },
-			size = { 0.3, 0.27, 0.045 },
 		},
 	},
 	clips = {

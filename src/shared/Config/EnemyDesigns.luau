@@ -723,7 +723,7 @@ local EnemyDesigns = {
 			clips = "Harpy",
 			eyes = "eyeglow",
 			eyeColor = EYE_ICE,
-			lift = 1.2,
+			lift = 1,
 		},
 		GustShaman = {
 			model = "GustShaman",
@@ -740,7 +740,8 @@ local EnemyDesigns = {
 		StormRoc = {
 			model = "StormRoc",
 			clips = "StormRoc",
-			eyes = "^eye_[LR]_glow$",
+			-- both eyes, one part since the merge per joint (docs/PERFORMANCE.md)
+			eyes = "^M_Head_glow$",
 			eyeColor = EYE_ICE,
 			lift = 1.6,
 		},

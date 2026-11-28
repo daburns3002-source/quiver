@@ -24,6 +24,51 @@ return table.freeze({
 		{ name = "Tail", parent = "Body", rest = { 0, -0.22, -0.38, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
+		["M_Body_blue"] = {
+			joint = "Body",
+			cframe = { 0, 1.16, -0.02, 0, 0, 0, 1 },
+			size = { 0.8, 0.8, 0.6 },
+		},
+		["M_Body_bluedark"] = {
+			joint = "Body",
+			cframe = { 0, 0.8, -0.08, 0, 0, 0, 1 },
+			size = { 0.8, 0.8, 0.64 },
+		},
+		["M_Body_ice"] = {
+			joint = "Body",
+			cframe = { 0, 1.16, 0.06, 0, 0, 0, 1 },
+			size = { 0.8, 0.72, 0.84 },
+		},
+		["M_Body_iceshade"] = {
+			joint = "Body",
+			cframe = { 0, 1.06, -0.02, 0, 0, 0, 1 },
+			size = { 0.8, 0.84, 0.76 },
+		},
+		["M_Body_navy"] = {
+			joint = "Body",
+			cframe = { 0, 0.82, -0.12, 0, 0, 0, 1 },
+			size = { 0.72, 1, 0.48 },
+		},
+		["M_Head_bluedark"] = {
+			joint = "Head",
+			cframe = { 0, 1.7, 0.02, 0, 0, 0, 1 },
+			size = { 0.56, 0.28, 0.52 },
+		},
+		["M_Head_glow"] = {
+			joint = "Head",
+			cframe = { 0, 1.72, 0.18, 0, 0, 0, 1 },
+			size = { 0.48, 0.08, 0.12 },
+		},
+		["M_Head_ice"] = {
+			joint = "Head",
+			cframe = { 0, 1.88, -0.14, 0, 0, 0, 1 },
+			size = { 0.56, 0.72, 0.84 },
+		},
+		["M_Head_iceshade"] = {
+			joint = "Head",
+			cframe = { 0, 1.9, -0.24, 0, 0, 0, 1 },
+			size = { 0.56, 0.76, 0.88 },
+		},
 		["beak_claw"] = {
 			joint = "Head",
 			cframe = { 0, 1.5, 0.34, 0, 0, 0, 1 },
@@ -33,71 +78,6 @@ return table.freeze({
 			joint = "Head",
 			cframe = { 0, 1.6, 0.36, 0, 0, 0, 1 },
 			size = { 0.16, 0.24, 0.24 },
-		},
-		["body_blue"] = {
-			joint = "Body",
-			cframe = { 0, 1.16, -0.02, 0, 0, 0, 1 },
-			size = { 0.8, 0.8, 0.6 },
-		},
-		["body_blue_dark"] = {
-			joint = "Body",
-			cframe = { 0, 0.8, -0.08, 0, 0, 0, 1 },
-			size = { 0.8, 0.8, 0.64 },
-		},
-		["body_navy"] = {
-			joint = "Body",
-			cframe = { 0, 0.82, -0.12, 0, 0, 0, 1 },
-			size = { 0.72, 1, 0.48 },
-		},
-		["chest_ice"] = {
-			joint = "Body",
-			cframe = { 0, 1.14, 0.2, 0, 0, 0, 1 },
-			size = { 0.64, 0.68, 0.56 },
-		},
-		["chest_ice_shade"] = {
-			joint = "Body",
-			cframe = { 0, 1.02, 0.24, 0, 0, 0, 1 },
-			size = { 0.72, 0.76, 0.24 },
-		},
-		["crest_blue_dark"] = {
-			joint = "Head",
-			cframe = { 0, 1.68, -0.2, 0, 0, 0, 1 },
-			size = { 0.4, 0.24, 0.08 },
-		},
-		["crest_ice"] = {
-			joint = "Head",
-			cframe = { 0, 1.98, -0.14, 0, 0, 0, 1 },
-			size = { 0.48, 0.52, 0.84 },
-		},
-		["crest_ice_shade"] = {
-			joint = "Head",
-			cframe = { 0, 2.04, -0.5, 0, 0, 0, 1 },
-			size = { 0.48, 0.48, 0.36 },
-		},
-		["eye_L_glow"] = {
-			joint = "Head",
-			cframe = { 0.18, 1.72, 0.18, 0, 0, 0, 1 },
-			size = { 0.12, 0.08, 0.12 },
-		},
-		["eye_R_glow"] = {
-			joint = "Head",
-			cframe = { -0.18, 1.72, 0.18, 0, 0, 0, 1 },
-			size = { 0.12, 0.08, 0.12 },
-		},
-		["head_blue_dark"] = {
-			joint = "Head",
-			cframe = { 0, 1.78, 0.2, 0, 0, 0, 1 },
-			size = { 0.56, 0.12, 0.16 },
-		},
-		["head_ice"] = {
-			joint = "Body",
-			cframe = { 0, 1.52, 0.02, 0, 0, 0, 1 },
-			size = { 0.48, 0, 0.44 },
-		},
-		["head_ice_shade"] = {
-			joint = "Head",
-			cframe = { 0, 1.6, 0.04, 0, 0, 0, 1 },
-			size = { 0.56, 0.16, 0.32 },
 		},
 		["leg_L_claw"] = {
 			joint = "Leg_L",
@@ -129,20 +109,10 @@ return table.freeze({
 			cframe = { -1.3, 1.68, -0.26, 0, 0, 0, 1 },
 			size = { 1.08, 1.36, 0.36 },
 		},
-		["ruff_ice"] = {
-			joint = "Body",
-			cframe = { 0, 1.42, -0.02, 0, 0, 0, 1 },
-			size = { 0.8, 0.2, 0.68 },
-		},
-		["ruff_ice_shade"] = {
-			joint = "Body",
-			cframe = { 0, 1.36, -0.02, 0, 0, 0, 1 },
-			size = { 0.8, 0.24, 0.76 },
-		},
 		["tail_blue_dark"] = {
-			joint = "Body",
-			cframe = { 0, 0.66, -0.3, 0, 0, 0, 1 },
-			size = { 0.8, 0.2, 0.12 },
+			joint = "Tail",
+			cframe = { 0, 0.66, -0.44, 0, 0, 0, 1 },
+			size = { 0.8, 0.2, 0.16 },
 		},
 		["tail_blue_light"] = {
 			joint = "Tail",
@@ -155,14 +125,14 @@ return table.freeze({
 			size = { 1.12, 0.16, 0.28 },
 		},
 		["tail_navy"] = {
-			joint = "Body",
-			cframe = { 0, 0.66, -0.3, 0, 0, 0, 1 },
-			size = { 0.48, 0.12, 0.12 },
+			joint = "Tail",
+			cframe = { 0, 0.62, -0.44, 0, 0, 0, 1 },
+			size = { 0.56, 0.2, 0.16 },
 		},
 		["wing_L_blue"] = {
-			joint = "Body",
-			cframe = { 0.32, 1.22, -0.26, 0, 0, 0, 1 },
-			size = { 0.16, 0.2, 0.12 },
+			joint = "Wing_L",
+			cframe = { 1, 1.64, -0.24, 0, 0, 0, 1 },
+			size = { 1.2, 1.2, 0.64 },
 		},
 		["wing_L_blue_dark"] = {
 			joint = "Wing_L",
@@ -180,9 +150,9 @@ return table.freeze({
 			size = { 1.28, 1.28, 0.36 },
 		},
 		["wing_R_blue"] = {
-			joint = "Body",
-			cframe = { -0.32, 1.22, -0.26, 0, 0, 0, 1 },
-			size = { 0.16, 0.2, 0.12 },
+			joint = "Wing_R",
+			cframe = { -1, 1.64, -0.24, 0, 0, 0, 1 },
+			size = { 1.2, 1.2, 0.64 },
 		},
 		["wing_R_blue_dark"] = {
 			joint = "Wing_R",

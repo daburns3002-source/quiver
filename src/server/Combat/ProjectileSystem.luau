@@ -979,6 +979,21 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		return false
 	end
 
+	--[[ The Woolly Alpaca's Wool Wall: a shot from the side it faces
+	     stops at the wool (`Config/PetCombat` `wall`), and the player is
+	     told it was guarded. ]]
+	if os.clock() < session.woolWallUntil then
+		local from = Vector3.new(-projectile.direction.X, 0, -projectile.direction.Z)
+		if
+			from.Magnitude > 1e-3
+			and from.Unit:Dot(session.woolWallDir)
+				>= math.cos(math.rad(session.woolWallAngle / 2))
+		then
+			Remotes.event(Remotes.PlayerDodged):FireClient(player, "Guard")
+			return true
+		end
+	end
+
 	local before = session.health
 	--[[ Riposte: a shot the swing's guard catches is thrown back. ]]
 	local caught = session.melee.riposte > 0 and session.alive and RunSession.guarding(session)

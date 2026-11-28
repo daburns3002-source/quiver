@@ -220,6 +220,9 @@ local function afflict(
 	if spec.healPerHit and touched then
 		RunSession.heal(session, spec.healPerHit)
 	end
+	if spec.lift then
+		EnemyManager.lift(model, spec.lift)
+	end
 end
 
 --[[ A piece leaves the pet for `model`, and its blow lands when it gets
@@ -276,13 +279,45 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 			targets[i], targets[n + 1 - i] = targets[n + 1 - i], targets[i]
 		end
 	end
+	--[[ The Rocling's Little Thunder: the toughest first. ]]
+	if spec.strongest then
+		table.sort(targets, function(a, b)
+			return EnemyManager.healthOf(a.model) > EnemyManager.healthOf(b.model)
+		end)
+	end
 	local nearest = targets[1]
 	local struck: { Model } = {}
 	local held = spec.targets or 1
 	local cone = spec.cone
 	local flop = spec.flop
 	if spec.beam and nearest then
-		struck = inLine(origin, nearest.position, spec.beam, spec.range)
+		--[[ The Gale Glider's Updraft runs `past` studs beyond the nearest;
+		     the Gale Wilf's Glide takes the first `targets` on the line. ]]
+		local reach = spec.range
+		if spec.past then
+			local flat =
+				Vector3.new(nearest.position.X - origin.X, 0, nearest.position.Z - origin.Z)
+			reach = math.min(reach, flat.Magnitude + spec.past)
+		end
+		struck = inLine(origin, nearest.position, spec.beam, reach)
+		if spec.targets then
+			local seen = EnemyManager.positions()
+			local function away(model: Model): number
+				local at = seen[model]
+				return if at then (at - origin).Magnitude else math.huge
+			end
+			table.sort(struck, function(a, b)
+				return away(a) < away(b)
+			end)
+			while #struck > spec.targets do
+				table.remove(struck)
+			end
+		end
+	elseif spec.gust then
+		--[[ The Zephyr Whale's Tailwind: everything within reach. ]]
+		for _, target in targets do
+			table.insert(struck, target.model)
+		end
 	elseif cone and nearest then
 		--[[ The Glowcap Wilf's Spore Sneeze: the whole wedge toward the
 		     nearest enemy, out to the pet's reach. ]]
@@ -350,6 +385,17 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		session.petCoat = coat.amount
 		session.petCoatUntil = now + coat.duration
 	end
+	--[[ The Woolly Alpaca plants itself toward the nearest enemy: shots
+	     from that side stop at the wool (`Combat/ProjectileSystem`). ]]
+	local wall = spec.wall
+	if wall and nearest then
+		local toward = Vector3.new(nearest.position.X - origin.X, 0, nearest.position.Z - origin.Z)
+		if toward.Magnitude > 1e-3 then
+			session.woolWallDir = toward.Unit
+			session.woolWallAngle = wall.angle
+			session.woolWallUntil = now + wall.duration
+		end
+	end
 
 	--[[ The Buoy Puffer's spine is the only blow in the game worth more
 	     than its own number, and only because it cost its owner health to
@@ -395,6 +441,16 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		if payback then
 			amount *= payback.scale
 		end
+		--[[ The Whistle Marmot cuts a wind-up short, and that one takes more;
+		     the Cliff Puffin's pebble hits anything in the air harder. ]]
+		local interrupt = spec.interrupt
+		if interrupt and EnemyManager.interrupt(model) then
+			amount *= interrupt.scale
+		end
+		local aloft = spec.aloft
+		if aloft and EnemyManager.aloft(model) then
+			amount *= aloft.scale
+		end
 		--[[ The Lichen Gecko's every fourth lick. ]]
 		if spec.combo then
 			amount *= PetCrowd.comboScale(spec.combo, state.attacks)
@@ -406,6 +462,24 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 				spec.crowd,
 				#PetCrowd.around(everyone, at, spec.crowd.radius, model)
 			)
+		end
+		local fuse = spec.fuse
+		if fuse then
+			--[[ The Rocling's bolt: marked now, struck `fuse` later wherever
+			     the enemy has walked, and not at all if it died first. ]]
+			local player = session.player
+			task.delay(fuse, function()
+				local live = RunSession.get(player)
+				if
+					live
+					and live.alive
+					and current(player, state)
+					and EnemyManager.positions()[model]
+				then
+					hit(live, model, amount, origin)
+				end
+			end)
+			continue
 		end
 		if shot then
 			-- each blow waits for the piece carrying it to leave, then to fly
@@ -425,6 +499,13 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		end
 	end
 
+	--[[ The Zephyr Whale's Tailwind blows everything it struck back. ]]
+	local gust = spec.gust
+	if gust then
+		for _, model in struck do
+			EnemyManager.knock(model, origin, gust.push)
+		end
+	end
 	if spec.heal then
 		state.patch = origin
 		state.patchUntil = now + spec.heal.duration

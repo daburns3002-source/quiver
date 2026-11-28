@@ -18,6 +18,7 @@ local LAYOUTS: { [string]: { ArenaModels.ArenaPart } } = {
 	Thornwood = require(ReplicatedStorage.Shared.Config.ThornwoodForest),
 	Drowned = require(ReplicatedStorage.Shared.Config.DrownedForest),
 	Bogheart = require(ReplicatedStorage.Shared.Config.BogheartForest),
+	Windswept = require(ReplicatedStorage.Shared.Config.WindsweptForest),
 }
 
 -- A Roblox mesh holds 20,000 triangles; the most chunks a forest may take.

@@ -117,8 +117,21 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 		for _, model in targets do
 			table.insert(spots, { model = model, position = model:GetPivot().Position })
 		end
+		--[[ The Rocling's Little Thunder strikes the toughest: the one
+		     with the most health left (`Health`, set by the server). ]]
+		local strongest: PetCrowd.Spot? = nil
+		if aim == "Strongest" then
+			for _, spot in spots do
+				local health = spot.model:GetAttribute("Health")
+				local best = strongest and strongest.model:GetAttribute("Health")
+				if type(health) == "number" and (type(best) ~= "number" or health > best) then
+					strongest = spot
+				end
+			end
+		end
 		local pick = if aim == "Farthest"
 			then PetCrowd.farthest(spots, from)
+			elseif aim == "Strongest" then strongest
 			else PetCrowd.densest(spots, shot.aimRadius or 7)
 		local at = pick and table.find(targets, pick.model)
 		if at then

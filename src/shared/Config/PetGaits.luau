@@ -445,6 +445,69 @@ local Gaits: { [string]: Gait } = {
 			{ axis = "Y", wave = "Sine", amount = 0.15, rate = 0.25 },
 		},
 	},
+	-- the Windswept Cliffs
+	WhistleMarmot = { -- scurries upright, stopping to stand tall and look round
+		pace = { kind = "Steps", period = 0.9, from = 0, to = 0.5, reach = 3.2 },
+		turn = 14,
+		moving = { { axis = "Pitch", wave = "Snap", amount = 6, rate = 1.1 } },
+		idle = { { axis = "Y", wave = "Snap", amount = 0.12, rate = 0.25 } },
+	},
+	CliffPuffin = { -- a rocking waddle, flapping to keep up
+		pace = { kind = "Surge", rate = 5, beat = 1.4 },
+		turn = 10,
+		moving = { { axis = "Roll", wave = "Saw", amount = 7, rate = 2.4 } },
+		idle = { { axis = "Pitch", wave = "Sine", amount = 4, rate = 0.5 } },
+	},
+	WoollyAlpaca = { -- a proud high-stepping trot, head held up
+		pace = { kind = "Chase", rate = 4.2 },
+		turn = 6,
+		moving = {
+			{ axis = "Y", wave = "Bounce", amount = 0.12, rate = 2 },
+			{ axis = "Pitch", wave = "Sine", amount = 3, rate = 2, phase = 0.5 },
+		},
+		idle = { { axis = "Yaw", wave = "Pulse", amount = 8, rate = 0.2 } },
+	},
+	GaleGlider = { -- glides low after its owner, banking into each turn
+		pace = { kind = "Chase", rate = 6 },
+		turn = 7,
+		float = 0.6,
+		moving = {
+			{ axis = "Roll", wave = "Wander", amount = 12, rate = 0.5 },
+			{ axis = "Y", wave = "Saw", amount = 0.2, rate = 0.6 },
+		},
+		idle = { { axis = "Y", wave = "Sine", amount = 0.15, rate = 0.4 } },
+	},
+	FlagtailPanda = { -- a bouncy trot, the tail streaming behind
+		pace = { kind = "Steps", period = 0.5, from = 0.05, to = 0.7, reach = 2.2 },
+		turn = 11,
+		moving = { { axis = "Yaw", wave = "Sine", amount = 5, rate = 2 } },
+		idle = { { axis = "Roll", wave = "Wander", amount = 4, rate = 0.3 } },
+	},
+	GaleWilf = { -- a light, quick lope, leaning into the wind
+		pace = { kind = "Chase", rate = 5.5 },
+		turn = 9,
+		moving = {
+			{ axis = "Pitch", wave = "Hold", amount = -4 },
+			{ axis = "Y", wave = "Bounce", amount = 0.08, rate = 1.6 },
+		},
+		idle = { { axis = "Yaw", wave = "Wander", amount = 7, rate = 0.25 } },
+	},
+	Rocling = { -- a puffed-up chick's hop-hop, crackling
+		pace = { kind = "Steps", period = 0.45, from = 0.1, to = 0.75, reach = 1.6 },
+		turn = 13,
+		moving = { { axis = "Pitch", wave = "Pulse", amount = 5, rate = 2.2 } },
+		idle = { { axis = "Roll", wave = "Snap", amount = 5, rate = 0.35 } },
+	},
+	ZephyrWhale = { -- drifts through the air in long slow swells
+		pace = { kind = "Creep", speed = 6, leash = 12 },
+		turn = 2.5,
+		float = 1.4,
+		moving = {
+			{ axis = "Y", wave = "Sine", amount = 0.35, rate = 0.3 },
+			{ axis = "Pitch", wave = "Sine", amount = 5, rate = 0.3, phase = 0.25 },
+		},
+		idle = { { axis = "Roll", wave = "Sine", amount = 4, rate = 0.2 } },
+	},
 }
 
 return table.freeze(Gaits)

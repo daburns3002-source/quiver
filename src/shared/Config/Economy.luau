@@ -80,6 +80,17 @@ local Economy = {
 			bossGems = 25,
 			firstClearEgg = "BogheartEgg",
 		},
+		--[[ The Windswept Cliffs (2026-11-27, docs/WINDSWEPT-CLIFFS.md):
+		     the next step of the curve, and the TEMPEST FEATHER from the
+		     Tempest Roc. ]]
+		WindsweptCliffs = {
+			killCoins = 95,
+			clearCoins = 2500,
+			bossItem = "StormFeather",
+			firstBossGems = 170,
+			bossGems = 30,
+			firstClearEgg = "WindsweptEgg",
+		},
 	} :: { [string]: Area },
 
 	items = {
@@ -87,6 +98,11 @@ local Economy = {
 		BroodSilk = { name = "BROOD SILK", boss = "The Broodmother", area = "Thornwood" },
 		TollBronze = { name = "BELL SHARD", boss = "Old Tollcrab", area = "DrownedVillage" },
 		BogPearl = { name = "BOGHEART PEARL", boss = "Grandmother Gulp", area = "BogheartCaverns" },
+		StormFeather = {
+			name = "TEMPEST FEATHER",
+			boss = "The Tempest Roc",
+			area = "WindsweptCliffs",
+		},
 	} :: { [string]: Item },
 }
 

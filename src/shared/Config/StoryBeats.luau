@@ -296,7 +296,7 @@ local cliffs: Beat = {
 			words = "But the wind turns cold... snow is falling on the pass.",
 			hold = 3.2,
 			from = WIDE,
-			to = { zoom = 1.1, x = 0.5, y = 0.44 },
+			to = { zoom = 1.1, x = 0.5, y = 0.46 },
 			sound = "fx_wind_gust",
 		},
 		{

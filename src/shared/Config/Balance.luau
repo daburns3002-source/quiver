@@ -1609,7 +1609,9 @@ local harpy: EnemyConfig = {
 	knockback = 3,
 	--[[ Its model (2.59 x 1.17 x 0.62) x2.31: wings 6 across, hovering
 	     1.2 over its shadow (`EnemyDesigns` lift). ]]
-	hitboxSize = Vector3.new(6, 3.9, 3),
+	-- the model fills it over its 1.0 hover (`EnemyDesigns` lift); thin
+	-- front to back, the wings spread side to side
+	hitboxSize = Vector3.new(6, 3.7, 2.2),
 	color = Color3.fromRGB(70, 64, 150),
 	xpReward = 16,
 	shot = nil,
@@ -1641,7 +1643,8 @@ local gustShaman: EnemyConfig = {
 	attackDamage = 50,
 	attackCooldown = 3,
 	knockback = 2.5,
-	hitboxSize = Vector3.new(3, 4.4, 3),
+	-- thin front to back, as the model is (robes and staff side by side)
+	hitboxSize = Vector3.new(3, 4.4, 2.2),
 	color = Color3.fromRGB(40, 120, 130),
 	xpReward = 18,
 	shot = {
@@ -1767,7 +1770,7 @@ local tempestRoc: EnemyConfig = {
 	knockback = 0,
 	--[[ His model (16.2 x 9.2 x 4.84) x0.99: wings 16 across, 9 tall,
 	     Grandmother Gulp's height. ]]
-	hitboxSize = Vector3.new(16, 10, 8),
+	hitboxSize = Vector3.new(16, 10, 7.2),
 	color = Color3.fromRGB(40, 60, 150),
 	xpReward = 130,
 	boss = {

@@ -64,6 +64,7 @@ local FallRescue = require(script.Parent.FallRescue)
 local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
 local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local Hatchery = require(script.Parent.Parent.Data.Hatchery)
+local IdlePick = require(ReplicatedStorage.Shared.Util.IdlePick)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
@@ -124,6 +125,7 @@ export type State =
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
 local endlessCheckpoint = Remotes.event(Remotes.EndlessCheckpoint)
+local idlePick = Remotes.event(Remotes.IdlePick)
 local shotsParried = Remotes.event(Remotes.ShotsParried)
 
 --[[ The stage being played, published for the clients and the enemies
@@ -196,6 +198,9 @@ local extraDraftOwed = false
 --[[ Which pick each player has made at the checkpoint now open; a living
      player missing from it is still being waited on. ]]
 local picked: { [Player]: boolean } = {}
+--[[ Co-op: `os.clock()` at which the open checkpoint is answered for
+     whoever has not picked (`stepIdlePicks`), nil while none is timed. ]]
+local checkpointBy: number? = nil
 --[[ The place (`progress`) whose clear was last counted towards the class
      levels (`noteClear`), 0 at the start of a stage. ]]
 local clearCounted = 0
@@ -1361,6 +1366,7 @@ function RoomController.endlessPick(player: Player, choice: unknown): boolean
 
 	--[[ BANK & LEAVE: the run ends here, a win, and everything vested at
 	     this and every earlier boss floor is already in the profile. ]]
+	player:SetAttribute(IdlePick.CHECKPOINT, nil)
 	if choice == 0 then
 		picked[player] = true
 		log.info("%s banks at floor %d", player.Name, progress)
@@ -1396,6 +1402,65 @@ function RoomController.endlessPick(player: Player, choice: unknown): boolean
 	end
 	closeCheckpoint()
 	return true
+end
+
+--[[
+	Co-op's idle clock on an Endless checkpoint (`Util/IdlePick`,
+	`docs/COOP.md`). The checkpoint holds the world until every living
+	player has picked, and one away from the keyboard held it for good.
+	With somebody else in the run, whoever has not picked
+	`Coop.idle.checkpoint` seconds after it opened is given the heal,
+	through `endlessPick` like any other pick: never BANK & LEAVE, which
+	ends the run for everybody. Alone, nothing is timed.
+
+	Called every frame by `Main`, held or not.
+]]
+function RoomController.stepIdlePicks(now: number)
+	local present = 0
+	for _ in RunSession.all() do
+		present += 1
+	end
+	-- testing only, Studio: as `RunSession.stepIdlePicks`
+	local timed = IdlePick.applies(present)
+		or (RunService:IsStudio() and workspace:GetAttribute("IdlePickSolo") == true)
+
+	if state ~= "Checkpoint" or not timed then
+		if checkpointBy then
+			checkpointBy = nil
+			for player in RunSession.all() do
+				player:SetAttribute(IdlePick.CHECKPOINT, nil)
+			end
+		end
+		return
+	end
+
+	if not checkpointBy then
+		checkpointBy = now + Coop.idle.checkpoint
+		local by = workspace:GetServerTimeNow() + Coop.idle.checkpoint
+		for player, session in RunSession.all() do
+			if session.alive and not picked[player] then
+				player:SetAttribute(IdlePick.CHECKPOINT, by)
+			end
+		end
+		return
+	end
+	if now < checkpointBy then
+		return
+	end
+
+	local picks = Balance.Endless.checkpoint.picks
+	local gift = IdlePick.gift(picks)
+	for player, session in RunSession.all() do
+		-- the last of these picks closes the checkpoint
+		if state == "Checkpoint" and session.alive and not picked[player] then
+			log.info("%s left the checkpoint open: picked for them", player.Name)
+			idlePick:FireClient(player, "Gift", picks[gift].name)
+			RoomController.endlessPick(player, gift)
+		end
+	end
+	--[[ Done with this clock either way: a checkpoint somehow still open
+	     starts a new one next frame, and nobody is told twice. ]]
+	checkpointBy = nil
 end
 
 --[[ A player who leaves at an open checkpoint is no longer waited on. With

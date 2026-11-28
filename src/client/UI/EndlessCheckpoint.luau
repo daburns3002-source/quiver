@@ -254,6 +254,29 @@ local function pose(p: Parts, now: number)
 	p.panel.Position = UDim2.fromScale(0.5, 0.56 - 0.06 * eased)
 end
 
+--[[ Shuts the screen without sending a pick: co-op's idle clock ran out
+     and the server has picked for this player (`Shared/Util/IdlePick`). ]]
+function EndlessCheckpoint.close()
+	local p = parts
+	if not p or not p.gui.Enabled then
+		return
+	end
+	sent = true
+	p.gui.Enabled = false
+	RunPaused.setCheckpoint(false)
+end
+
+--[[ Where the screen's heading is drawn, as AbsolutePosition and
+     AbsoluteSize; nil while it is shut. The idle clock's line stands over
+     it (`UI/IdleClock`). ]]
+function EndlessCheckpoint.headingBox(): (Vector2?, Vector2?)
+	local p = parts
+	if not p or not p.gui.Enabled then
+		return nil, nil
+	end
+	return p.title.AbsolutePosition, p.title.AbsoluteSize
+end
+
 function EndlessCheckpoint.start()
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
 	local existing = playerGui:FindFirstChild("EndlessCheckpoint")

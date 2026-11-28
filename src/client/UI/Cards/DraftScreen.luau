@@ -2236,6 +2236,18 @@ function DraftScreen.headingLine(): number?
 	return created.AbsolutePosition.Y + line
 end
 
+--[[ Where the panel's heading is drawn, as AbsolutePosition and
+     AbsoluteSize; nil with no hand up or the heading put away. Co-op's
+     idle clock counts its last seconds down over it (`UI/IdleClock`):
+     the one place on a card screen that covers no card on any screen. ]]
+function DraftScreen.headingBox(): (Vector2?, Vector2?)
+	local created, label = gui, title
+	if not created or not created.Enabled or not label or not label.Visible then
+		return nil, nil
+	end
+	return label.AbsolutePosition, label.AbsoluteSize
+end
+
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()

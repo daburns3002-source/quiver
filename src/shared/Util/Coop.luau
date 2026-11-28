@@ -57,6 +57,16 @@ Coop.revive = {
      long a run server waits for its whole party to arrive. ]]
 Coop.arrivalWait = 20
 
+--[[ The idle clock (`Util/IdlePick`): seconds a card screen, and an Endless
+     checkpoint, may stand open with a teammate waiting before the server
+     answers it, and the last of them counted down on the chooser's screen.
+     Long enough to read three cards twice. ]]
+Coop.idle = {
+	draft = 30,
+	checkpoint = 30,
+	warn = 10,
+}
+
 Coop.ATTRIBUTE = "PartySize"
 
 local function row(size: number)

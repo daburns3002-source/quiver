@@ -27,6 +27,7 @@ local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
+local IdlePick = require(ReplicatedStorage.Shared.Util.IdlePick)
 local Loadout = require(script.Parent.Loadout)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -38,6 +39,7 @@ local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Premium = require(script.Parent.Parent.Data.Premium)
+local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
@@ -184,6 +186,9 @@ export type Session = {
 	--[[ Until when a first-time tip holds the run for this player
 	     (`anyReadingTip`), nil when none is up. ]]
 	tipUntil: number?,
+	--[[ Co-op: `os.clock()` at which the open card screen is answered for
+	     this player (`stepIdlePicks`), nil while nothing is timed. ]]
+	pickBy: number?,
 	--[[ MENU's panel's hold on the world (`Util/MenuHold`), on os.clock. ]]
 	menu: MenuHold.State,
 	--[[ The tutorial's fixed hands dealt to this player so far this stage
@@ -296,6 +301,7 @@ local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local newEnemy = Remotes.event(Remotes.NewEnemy)
 local abilityOffer = Remotes.event(Remotes.AbilityOffer)
+local idlePick = Remotes.event(Remotes.IdlePick)
 local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 local playerRevived = Remotes.event(Remotes.PlayerRevived)
@@ -468,6 +474,7 @@ function RunSession.create(player: Player): Session
 		seenEnemies = {},
 		meeting = {},
 		tipUntil = nil,
+		pickBy = nil,
 		menu = MenuHold.new(CombatTuning.menuHold),
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
@@ -587,6 +594,9 @@ end
 	because one is reading three cards will not survive Phase 9. The decision
 	of what to do instead — per-player time, or a draft that does not stop the
 	fight — belongs with co-op rather than ahead of it.
+
+	What co-op has for now is a clock: a hand left open is picked for its
+	player (`stepIdlePicks`), so the hold is never longer than that.
 ]]
 function RunSession.anyChoosing(): boolean
 	for _, session in sessions do
@@ -747,6 +757,70 @@ end
 local function sendXp(session: Session)
 	local loadout = session.loadout
 	xpChanged:FireClient(session.player, loadout.xp, loadout.xpToNext, loadout.level)
+end
+
+--[[ The idle clock off for this player: nothing of theirs is being timed. ]]
+local function clearIdle(session: Session)
+	if session.pickBy then
+		session.pickBy = nil
+		session.player:SetAttribute(IdlePick.DRAFT, nil)
+	end
+end
+
+local function cardTier(id: string): number
+	local ability = Abilities.byId[id]
+	local rarity = ability and Rarities.byName[ability.rarity]
+	return if rarity then rarity.tier else 0
+end
+
+--[[
+	Co-op's idle clock on a card screen (`Util/IdlePick`, `docs/COOP.md`).
+
+	A card screen holds the world for everybody (`anyChoosing`), and one
+	left open by a player away from the keyboard held it for good. With
+	somebody else in the run, a hand left open `Coop.idle.draft` seconds is
+	picked from here: the rarest card, through `chooseAbility` like any
+	other pick. The clock starts the first frame the hand is seen open,
+	and again for a redeal or for the next hand. Alone, nothing is timed.
+
+	Called every frame by `Main`, held or not: it is also what takes the
+	clock off a hand that was closed any other way.
+]]
+function RunSession.stepIdlePicks(now: number)
+	local present = 0
+	for _ in sessions do
+		present += 1
+	end
+	--[[ Testing only, Studio: `IdlePickSolo` on Workspace times a lone
+	     player's screens too, since Studio's Play has one player. ]]
+	local timed = IdlePick.applies(present)
+		or (RunService:IsStudio() and Workspace:GetAttribute("IdlePickSolo") == true)
+
+	for _, session in sessions do
+		local offer = session.loadout.offer
+		if not offer or not timed then
+			clearIdle(session)
+		elseif not session.pickBy then
+			session.pickBy = now + Coop.idle.draft
+			session.player:SetAttribute(
+				IdlePick.DRAFT,
+				Workspace:GetServerTimeNow() + Coop.idle.draft
+			)
+		elseif now >= session.pickBy then
+			local index = IdlePick.card(offer, cardTier)
+			local ability = Abilities.byId[offer[index]]
+			clearIdle(session)
+			--[[ A hand with nothing to take is left as it is, on a new clock:
+			     the client is told only of a pick that will be made. ]]
+			if ability then
+				log.info("%s left a card screen open: picked for them", session.player.Name)
+				--[[ Told first, so the screen is shut before a hand owed
+				     straight after this one opens (`chooseAbility` deals it). ]]
+				idlePick:FireClient(session.player, "Card", ability.name)
+				RunSession.chooseAbility(session, index)
+			end
+		end
+	end
 end
 
 --[[ Opens a card screen if one is owed and none is open. Safe to call every
@@ -1215,6 +1289,8 @@ function RunSession.reroll(session: Session): boolean
 	if not offer then
 		return false
 	end
+	-- a new hand to read: the idle clock starts over (`stepIdlePicks`)
+	clearIdle(session)
 
 	abilityOffer:FireClient(
 		session.player,
@@ -1239,6 +1315,8 @@ function RunSession.chooseAbility(session: Session, index: number): boolean
 	if not ability then
 		return false
 	end
+	-- this hand's idle clock ends with it; one dealt below gets its own
+	clearIdle(session)
 	-- the tutorial's hands are fixed: its picks say nothing about the cards
 	if not tutorial then
 		Analytics.cardPicked(

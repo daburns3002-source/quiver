@@ -935,6 +935,13 @@ local wasHeld = false
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
+	--[[ Co-op: a card screen or an Endless checkpoint left open is answered
+	     for its player once the idle clock runs out, so one player away
+	     from the keyboard cannot hold the run for good (`Util/IdlePick`).
+	     Ahead of the holds below, which are what it ends. ]]
+	RunSession.stepIdlePicks(now)
+	RoomController.stepIdlePicks(now)
+
 	--[[ The world holds still while a card screen is up. A draft read under
 	     fire is not a choice, and a player who takes damage while reading one
 	     will stop reading them. ]]

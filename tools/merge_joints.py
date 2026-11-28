@@ -23,7 +23,8 @@ them alone:
   a part is posed as a box turned and sized along its own axes, so the
   bigger the box the further its ends drift (see `drifting`).
 A model is left whole if merging would change which of its parts
-`EnemyModel` draws as tucked-away blocks (under a hundredth of its largest).
+`EnemyModel` draws as tucked-away blocks (under a hundredth of its largest),
+or if it is in WHOLE (Glade Fox: its tail).
 
 Each merged mesh is a new node under its joint, named `M_<joint>_<material>`,
 which no eye pattern matches. Then: upload or import the merged GLB, read
@@ -55,6 +56,12 @@ ZERO = 1e-6
 # true pose than its pieces did, in the worst moment of any clip.
 DRIFT = 0.01
 SAMPLES = 21
+# Models left whole, and why.
+WHOLE = {
+    "GladeFox": "its tail shears in Attack; the old import's pieces sat on the "
+    "model's axes, which that squash leaves square (0.009 studs off the true "
+    "pose), and a merged or a rigged piece would not (0.084)",
+}
 
 
 def code_names():
@@ -421,6 +428,11 @@ def main():
                 print(f"{name:20} missing {entry['glb']}")
                 continue
             g, b, nodes, world_of, groups, alone, before, after = plan(path, spelled)
+            if name in WHOLE:
+                total_b += before
+                total_a += before
+                print(f"{name:20} {before:4d} -> {before:4d}  (left whole: {WHOLE[name][:60]}...)")
+                continue
             ok = tucked_unchanged(g, b, world_of, groups, alone)
             if not ok:
                 after = before
@@ -430,6 +442,9 @@ def main():
         print(f"{'all':20} {total_b:4d} -> {total_a:4d}")
         return
     for name in args:
+        if name in WHOLE:
+            print(f"{name}: left whole, {WHOLE[name]}")
+            continue
         entry = every[name]
         path = source(entry)
         g, b, nodes, world_of, groups, alone, before, after = plan(path, spelled)

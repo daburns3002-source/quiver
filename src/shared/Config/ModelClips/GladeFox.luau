@@ -65,6 +65,26 @@ return table.freeze({
 			cframe = { -0.095, 0.4375, 0.227, 0, 0, 0, 1 },
 			size = { 0.04, 0.013, 0.01 },
 		},
+		["Ear_L_inner"] = {
+			joint = "Head",
+			cframe = { 0.1845, 0.6153, 0.0788, -0.2292, 0.0161, -0.0681, 0.9709 },
+			size = { 0.085, 0.1075, 0.004 },
+		},
+		["Ear_L_outer"] = {
+			joint = "Head",
+			cframe = { 0.1855, 0.6218, 0.0375, 0, 0, -0.0699, 0.9976 },
+			size = { 0.15, 0.15, 0.15 },
+		},
+		["Ear_R_inner"] = {
+			joint = "Head",
+			cframe = { -0.1845, 0.6153, 0.0788, -0.2292, -0.0161, 0.0681, 0.9709 },
+			size = { 0.085, 0.1075, 0.004 },
+		},
+		["Ear_R_outer"] = {
+			joint = "Head",
+			cframe = { -0.1855, 0.6218, 0.0375, 0, 0, 0.0699, 0.9976 },
+			size = { 0.15, 0.15, 0.15 },
+		},
 		["Eye_L_dot"] = {
 			joint = "Head",
 			cframe = { 0.1475, 0.3213, 0.246, 0, 0, 0, 1 },
@@ -170,41 +190,6 @@ return table.freeze({
 			cframe = { -0.135, 0.1075, 0.1, 0, 0, 0, 1 },
 			size = { 0.1, 0.115, 0.1 },
 		},
-		["M_Head_Cream"] = {
-			joint = "Head",
-			cframe = { 0, 0.6123, 0.0788, 0, 0, 0, 1 },
-			size = { 0.4401, 0.1029, 0.0517 },
-		},
-		["M_Head_DarkMoss"] = {
-			joint = "Head",
-			cframe = { 0, 0.6165, 0.0375, 0, 0, 0, 1 },
-			size = { 0.4985, 0.159, 0.15 },
-		},
-		["M_Mouth_closed_Nose"] = {
-			joint = "Mouth_closed",
-			cframe = { 0, 0.2328, 0.266, 0, 0, 0, 1 },
-			size = { 0.0563, 0.0176, 0.005 },
-		},
-		["M_Muzzle_Nose"] = {
-			joint = "Muzzle",
-			cframe = { 0, 0.2531, 0.2655, 0, 0, 0, 1 },
-			size = { 0.0452, 0.0351, 0.009 },
-		},
-		["M_Rune_Cheek_L_RuneGlow"] = {
-			joint = "Rune_Cheek_L",
-			cframe = { 0.185, 0.25, 0.227, 0, 0, 0, 1 },
-			size = { 0.07, 0.07, 0.007 },
-		},
-		["M_Rune_Cheek_R_RuneGlow"] = {
-			joint = "Rune_Cheek_R",
-			cframe = { -0.185, 0.25, 0.227, 0, 0, 0, 1 },
-			size = { 0.07, 0.07, 0.007 },
-		},
-		["M_Tail_Moss"] = {
-			joint = "Tail",
-			cframe = { -0.0125, 0.3916, -0.4973, 0, 0, 0, 1 },
-			size = { 0.3958, 0.5677, 0.5765 },
-		},
 		["Mouth_open_inner"] = {
 			joint = "Mouth_open",
 			cframe = { 0, 0.2325, 0.225, 0, 0, 0, 1 },
@@ -215,10 +200,100 @@ return table.freeze({
 			cframe = { 0, 0.2325, 0.225, 0, 0, 0, 1 },
 			size = { 0, 0, 0 },
 		},
+		["Mouth_w_0"] = {
+			joint = "Mouth_closed",
+			cframe = { -0.0195, 0.233, 0.266, 0, 0, -0.3827, 0.9239 },
+			size = { 0.0224, 0.006, 0.005 },
+		},
+		["Mouth_w_1"] = {
+			joint = "Mouth_closed",
+			cframe = { -0.0065, 0.231, 0.266, 0, 0, 0.2982, 0.9545 },
+			size = { 0.0198, 0.006, 0.005 },
+		},
+		["Mouth_w_2"] = {
+			joint = "Mouth_closed",
+			cframe = { 0.0065, 0.231, 0.266, 0, 0, -0.2982, 0.9545 },
+			size = { 0.0198, 0.006, 0.005 },
+		},
+		["Mouth_w_3"] = {
+			joint = "Mouth_closed",
+			cframe = { 0.0195, 0.233, 0.266, 0, 0, 0.3827, 0.9239 },
+			size = { 0.0224, 0.006, 0.005 },
+		},
 		["Muzzle_block"] = {
 			joint = "Muzzle",
 			cframe = { 0, 0.2325, 0.225, 0, 0, 0, 1 },
 			size = { 0.135, 0.1, 0.08 },
+		},
+		["Muzzle_nose"] = {
+			joint = "Muzzle",
+			cframe = { 0, 0.2577, 0.2655, 0, 0, 0, 1 },
+			size = { 0.0452, 0.026, 0.009 },
+		},
+		["Muzzle_philtrum"] = {
+			joint = "Muzzle",
+			cframe = { 0, 0.2415, 0.266, 0, 0, -0.7071, 0.7071 },
+			size = { 0.012, 0.006, 0.005 },
+		},
+		["Rune_Cheek_L_0"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.185, 0.2795, 0.227, 0, 0, 1, 0 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_L_1"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.1555, 0.25, 0.227, 0, 0, -0.7071, 0.7071 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_L_2"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.185, 0.2205, 0.227, 0, 0, 0, 1 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_L_3"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.2145, 0.2376, 0.227, 0, 0, 0.7071, 0.7071 },
+			size = { 0.0452, 0.011, 0.007 },
+		},
+		["Rune_Cheek_L_4"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.1968, 0.2547, 0.227, 0, 0, 1, 0 },
+			size = { 0.0464, 0.011, 0.007 },
+		},
+		["Rune_Cheek_L_5"] = {
+			joint = "Rune_Cheek_L",
+			cframe = { 0.1791, 0.2465, 0.227, 0, 0, -0.7071, 0.7071 },
+			size = { 0.0275, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_0"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.185, 0.2795, 0.227, 0, 0, 0, 1 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_1"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.1555, 0.25, 0.227, 0, 0, -0.7071, 0.7071 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_2"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.185, 0.2205, 0.227, 0, 0, 1, 0 },
+			size = { 0.07, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_3"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.2145, 0.2376, 0.227, 0, 0, 0.7071, 0.7071 },
+			size = { 0.0452, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_4"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.1968, 0.2547, 0.227, 0, 0, 0, 1 },
+			size = { 0.0464, 0.011, 0.007 },
+		},
+		["Rune_Cheek_R_5"] = {
+			joint = "Rune_Cheek_R",
+			cframe = { -0.1791, 0.2465, 0.227, 0, 0, -0.7071, 0.7071 },
+			size = { 0.0275, 0.011, 0.007 },
 		},
 		["Rune_Tail_A_inner_0"] = {
 			joint = "Tail",
@@ -299,6 +374,16 @@ return table.freeze({
 			joint = "Tail",
 			cframe = { -0.0538, 0.3962, -0.4903, -0.4698, 0.228, -0.4698, 0.7117 },
 			size = { 0.1273, 0.0204, 0.012 },
+		},
+		["Tail_leaf_L"] = {
+			joint = "Tail",
+			cframe = { 0.0788, 0.3115, -0.5649, -0.341, 0.4195, -0.1738, 0.8231 },
+			size = { 0.2832, 0.7533, 0.075 },
+		},
+		["Tail_leaf_R"] = {
+			joint = "Tail",
+			cframe = { -0.0931, 0.4564, -0.4201, -0.3523, 0.3609, -0.1495, 0.8505 },
+			size = { 0.2832, 0.7533, 0.075 },
 		},
 		["Tail_midrib_A"] = {
 			joint = "Tail",

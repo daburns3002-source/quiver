@@ -82,7 +82,7 @@
   ]
  },
  "GladeFox": {
-  "glb": "assets/models/pets/forest/glade_fox_merged.glb",
+  "glb": "assets/models/pets/forest/glade_fox.glb",
   "loops": [
    "Idle",
    "Trot",

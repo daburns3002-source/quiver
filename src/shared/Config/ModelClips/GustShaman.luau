@@ -31,6 +31,61 @@ return table.freeze({
 		{ name = "Leg_R", parent = "Root", rest = { -0.12, 0.21, -0.015, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
+		["M_Body_creamlight"] = {
+			joint = "Body",
+			cframe = { 0, 0.2362, 0.135, 0, 0, 0, 1 },
+			size = { 0.18, 0.1875, 0.03 },
+		},
+		["M_Body_ribbonteal"] = {
+			joint = "Body",
+			cframe = { 0, 0.3187, 0.1575, 0, 0, 0, 1 },
+			size = { 0.06, 0.2625, 0.045 },
+		},
+		["M_Head_creamlight"] = {
+			joint = "Head",
+			cframe = { 0, 0.66, 0.1725, 0, 0, 0, 1 },
+			size = { 0.18, 0.24, 0.045 },
+		},
+		["M_Head_earpink"] = {
+			joint = "Head",
+			cframe = { 0, 0.615, 0.1695, 0, 0, 0, 1 },
+			size = { 0.78, 0.09, 0.009 },
+		},
+		["M_Head_horn"] = {
+			joint = "Head",
+			cframe = { 0, 0.6825, 0.045, 0, 0, 0, 1 },
+			size = { 0.675, 0.315, 0.36 },
+		},
+		["M_Head_horndark"] = {
+			joint = "Head",
+			cframe = { 0, 0.6825, 0.045, 0, 0, 0, 1 },
+			size = { 0.654, 0.294, 0.339 },
+		},
+		["M_Head_paleteal"] = {
+			joint = "Head",
+			cframe = { 0, 0.7088, 0.1875, 0, 0, 0, 1 },
+			size = { 0.36, 0.3975, 0.075 },
+		},
+		["M_Head_wool"] = {
+			joint = "Head",
+			cframe = { 0, 0.66, 0.0375, 0, 0, 0, 1 },
+			size = { 0.81, 0.24, 0.255 },
+		},
+		["M_Spiral_staffwood"] = {
+			joint = "Spiral",
+			cframe = { -0.5775, 1.1475, 0.03, 0, 0, 0, 1 },
+			size = { 0.135, 0.195, 0.06 },
+		},
+		["M_Staff_creamlight"] = {
+			joint = "Staff",
+			cframe = { -0.585, 0.9, 0.009, 0, 0, 0, 1 },
+			size = { 0.174, 0.3, 0.126 },
+		},
+		["M_Staff_ribbonteal"] = {
+			joint = "Staff",
+			cframe = { -0.5685, 0.9113, 0.0607, 0, 0, 0, 1 },
+			size = { 0.087, 0.2625, 0.1065 },
+		},
 		["arm_L_cream"] = {
 			joint = "Arm_L",
 			cframe = { 0.3075, 0.2962, 0.015, 0, 0, 0, 1 },
@@ -81,11 +136,6 @@ return table.freeze({
 			cframe = { 0, 0.345, 0.165, 0, 0, 0, 1 },
 			size = { 0.06, 0.06, 0.03 },
 		},
-		["belt_tassel"] = {
-			joint = "Body",
-			cframe = { 0, 0.2512, 0.165, 0, 0, 0, 1 },
-			size = { 0.06, 0.1275, 0.03 },
-		},
 		["boot_L_boot"] = {
 			joint = "Leg_L",
 			cframe = { 0.12, 0.06, 0.015, 0, 0, 0, 1 },
@@ -116,36 +166,6 @@ return table.freeze({
 			cframe = { -0.12, 0.0225, 0.135, 0, 0, 0, 1 },
 			size = { 0.12, 0.045, 0.03 },
 		},
-		["cloth_strip_L"] = {
-			joint = "Body",
-			cframe = { 0.0638, 0.2437, 0.135, 0, 0, 0, 1 },
-			size = { 0.0525, 0.1725, 0.03 },
-		},
-		["cloth_strip_R"] = {
-			joint = "Body",
-			cframe = { -0.0638, 0.2362, 0.135, 0, 0, 0, 1 },
-			size = { 0.0525, 0.1875, 0.03 },
-		},
-		["ear_L_ear_pink"] = {
-			joint = "Head",
-			cframe = { 0.3075, 0.615, 0.1695, 0, 0, 0, 1 },
-			size = { 0.165, 0.09, 0.009 },
-		},
-		["ear_L_wool"] = {
-			joint = "Head",
-			cframe = { 0.3075, 0.615, 0.12, 0, 0, 0, 1 },
-			size = { 0.195, 0.12, 0.09 },
-		},
-		["ear_R_ear_pink"] = {
-			joint = "Head",
-			cframe = { -0.3075, 0.615, 0.1695, 0, 0, 0, 1 },
-			size = { 0.165, 0.09, 0.009 },
-		},
-		["ear_R_wool"] = {
-			joint = "Head",
-			cframe = { -0.3075, 0.615, 0.12, 0, 0, 0, 1 },
-			size = { 0.195, 0.12, 0.09 },
-		},
 		["eyes_eye_glow"] = {
 			joint = "Head",
 			cframe = { 0, 0.675, 0.1613, 0, 0, 0, 1 },
@@ -171,45 +191,10 @@ return table.freeze({
 			cframe = { -0.5475, 0.4275, 0.0562, 0, 0, 0, 1 },
 			size = { 0.075, 0.075, 0.0675 },
 		},
-		["head"] = {
-			joint = "Head",
-			cframe = { 0, 0.66, 0.03, 0, 0, 0, 1 },
-			size = { 0.3, 0.24, 0.24 },
-		},
 		["hood"] = {
 			joint = "Head",
 			cframe = { 0, 0.7687, -0.0375, 0, 0, 0, 1 },
 			size = { 0.42, 0.5175, 0.495 },
-		},
-		["hood_swirl"] = {
-			joint = "Head",
-			cframe = { 0, 0.87, 0.2145, 0, 0, 0, 1 },
-			size = { 0.255, 0.075, 0.009 },
-		},
-		["hood_trim"] = {
-			joint = "Head",
-			cframe = { 0, 0.66, 0.1875, 0, 0, 0, 1 },
-			size = { 0.36, 0.3, 0.075 },
-		},
-		["horn_L_horn"] = {
-			joint = "Head",
-			cframe = { 0.2737, 0.6825, 0.045, 0, 0, 0, 1 },
-			size = { 0.1275, 0.315, 0.36 },
-		},
-		["horn_L_horn_dark"] = {
-			joint = "Head",
-			cframe = { 0.2685, 0.6825, 0.045, 0, 0, 0, 1 },
-			size = { 0.117, 0.294, 0.339 },
-		},
-		["horn_R_horn"] = {
-			joint = "Head",
-			cframe = { -0.2737, 0.6825, 0.045, 0, 0, 0, 1 },
-			size = { 0.1275, 0.315, 0.36 },
-		},
-		["horn_R_horn_dark"] = {
-			joint = "Head",
-			cframe = { -0.2685, 0.6825, 0.045, 0, 0, 0, 1 },
-			size = { 0.117, 0.294, 0.339 },
 		},
 		["inner_robe"] = {
 			joint = "Body",
@@ -231,20 +216,10 @@ return table.freeze({
 			cframe = { 0, 0.4275, 0.12, 0, 0, 0, 1 },
 			size = { 0.09, 0.075, 0.03 },
 		},
-		["medallion_ribbon_teal"] = {
-			joint = "Body",
-			cframe = { 0, 0.4275, 0.138, 0, 0, 0, 1 },
-			size = { 0.045, 0.045, 0.006 },
-		},
 		["mouth"] = {
 			joint = "Head",
 			cframe = { 0, 0.5738, 0.1965, 0, 0, 0, 1 },
 			size = { 0.009, 0.0375, 0.003 },
-		},
-		["muzzle"] = {
-			joint = "Head",
-			cframe = { 0, 0.5775, 0.1725, 0, 0, 0, 1 },
-			size = { 0.12, 0.075, 0.045 },
 		},
 		["necklace_bead_brown"] = {
 			joint = "Body",
@@ -276,26 +251,6 @@ return table.freeze({
 			cframe = { -0.6075, 1.11, 0.03, 0, 0, 0, 1 },
 			size = { 0.075, 0.06, 0.06 },
 		},
-		["staff_crook_staff_wood"] = {
-			joint = "Spiral",
-			cframe = { -0.5775, 1.1925, 0.03, 0, 0, 0, 1 },
-			size = { 0.135, 0.105, 0.06 },
-		},
-		["staff_ribbon_cream"] = {
-			joint = "Staff",
-			cframe = { -0.5955, 0.8925, -0.003, 0, 0, 0, 1 },
-			size = { 0.153, 0.285, 0.102 },
-		},
-		["staff_ribbon_teal"] = {
-			joint = "Staff",
-			cframe = { -0.546, 0.9075, 0.093, 0, 0, 0, 1 },
-			size = { 0.042, 0.255, 0.042 },
-		},
-		["staff_ribbon_tie"] = {
-			joint = "Staff",
-			cframe = { -0.597, 1.02, 0.03, 0, 0, 0, 1 },
-			size = { 0.03, 0.045, 0.045 },
-		},
 		["staff_shaft_staff_knot"] = {
 			joint = "Staff",
 			cframe = { -0.54, 0.4275, 0.03, 0, 0, 0, 1 },
@@ -306,11 +261,6 @@ return table.freeze({
 			cframe = { -0.54, 0.495, 0.03, 0, 0, 0, 1 },
 			size = { 0.06, 0.99, 0.06 },
 		},
-		["staff_shaft_top_staff_wood"] = {
-			joint = "Spiral",
-			cframe = { -0.54, 1.08, 0.03, 0, 0, 0, 1 },
-			size = { 0.06, 0.06, 0.06 },
-		},
 		["staff_wind_wind"] = {
 			joint = "Spiral",
 			cframe = { -0.495, 1.3125, 0.03, 0, 0, 0, 1 },
@@ -320,16 +270,6 @@ return table.freeze({
 			joint = "Spiral",
 			cframe = { -0.495, 1.32, 0.03, 0, 0, 0, 1 },
 			size = { 0.39, 0.09, 0.045 },
-		},
-		["staff_wrap"] = {
-			joint = "Staff",
-			cframe = { -0.54, 1.02, 0.03, 0, 0, 0, 1 },
-			size = { 0.084, 0.06, 0.084 },
-		},
-		["wool_fringe"] = {
-			joint = "Head",
-			cframe = { 0, 0.75, 0.165, 0, 0, 0, 1 },
-			size = { 0.18, 0.06, 0.03 },
 		},
 	},
 	clips = {

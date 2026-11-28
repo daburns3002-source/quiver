@@ -25,6 +25,26 @@ return table.freeze({
 		{ name = "Scarf", parent = "Body", rest = { 0.09, 0.21, 0.13, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
+		["M_Head_brown"] = {
+			joint = "Head",
+			cframe = { 0, 0.435, -0.015, 0, 0, 0, 1 },
+			size = { 0.22, 0.07, 0.05 },
+		},
+		["M_Head_cream"] = {
+			joint = "Head",
+			cframe = { 0, 0.355, 0.065, 0, 0, 0, 1 },
+			size = { 0.3, 0.21, 0.13 },
+		},
+		["M_Head_ink"] = {
+			joint = "Head",
+			cframe = { 0, 0.33, 0.11, 0, 0, 0, 1 },
+			size = { 0.2, 0.12, 0.04 },
+		},
+		["M_Head_white"] = {
+			joint = "Head",
+			cframe = { 0, 0.319, 0.1225, 0, 0, 0, 1 },
+			size = { 0.12, 0.122, 0.025 },
+		},
 		["arm_L_fur"] = {
 			joint = "Arm_L",
 			cframe = { 0.08, 0.16, 0.055, 0, 0, 0, 1 },
@@ -60,36 +80,6 @@ return table.freeze({
 			cframe = { 0, 0.165, -0.005, 0, 0, 0, 1 },
 			size = { 0.22, 0.09, 0.17 },
 		},
-		["cheek_L_cream"] = {
-			joint = "Head",
-			cframe = { 0.13, 0.285, 0.055, 0, 0, 0, 1 },
-			size = { 0.04, 0.05, 0.07 },
-		},
-		["cheek_R_cream"] = {
-			joint = "Head",
-			cframe = { -0.13, 0.285, 0.055, 0, 0, 0, 1 },
-			size = { 0.04, 0.05, 0.07 },
-		},
-		["ear_L_brown"] = {
-			joint = "Head",
-			cframe = { 0.075, 0.435, -0.015, 0, 0, 0, 1 },
-			size = { 0.07, 0.07, 0.05 },
-		},
-		["ear_L_cream"] = {
-			joint = "Head",
-			cframe = { 0.075, 0.445, 0.005, 0, 0, 0, 1 },
-			size = { 0.03, 0.03, 0.01 },
-		},
-		["ear_R_brown"] = {
-			joint = "Head",
-			cframe = { -0.075, 0.435, -0.015, 0, 0, 0, 1 },
-			size = { 0.07, 0.07, 0.05 },
-		},
-		["ear_R_cream"] = {
-			joint = "Head",
-			cframe = { -0.075, 0.445, 0.005, 0, 0, 0, 1 },
-			size = { 0.03, 0.03, 0.01 },
-		},
 		["foot_L_brown"] = {
 			joint = "Leg_L",
 			cframe = { 0.06, 0.02, 0.02, 0, 0, 0, 1 },
@@ -115,11 +105,6 @@ return table.freeze({
 			cframe = { 0, 0.335, 0.11, 0, 0, 0, 1 },
 			size = { 0.16, 0.03, 0 },
 		},
-		["head_cream"] = {
-			joint = "Head",
-			cframe = { 0, 0.28, 0.06, 0, 0, 0, 1 },
-			size = { 0.24, 0.06, 0.1 },
-		},
 		["head_fur"] = {
 			joint = "Head",
 			cframe = { 0, 0.325, 0, 0, 0, 0, 1 },
@@ -129,26 +114,6 @@ return table.freeze({
 			joint = "Head",
 			cframe = { 0, 0.405, 0, 0, 0, 0, 1 },
 			size = { 0.24, 0.05, 0.22 },
-		},
-		["head_ink"] = {
-			joint = "Head",
-			cframe = { 0, 0.35, 0.1, 0, 0, 0, 1 },
-			size = { 0.2, 0.08, 0.02 },
-		},
-		["head_white"] = {
-			joint = "Head",
-			cframe = { 0, 0.37, 0.11, 0, 0, 0, 1 },
-			size = { 0.12, 0.02, 0 },
-		},
-		["muzzle_cream"] = {
-			joint = "Head",
-			cframe = { 0, 0.285, 0.12, 0, 0, 0, 1 },
-			size = { 0.08, 0.05, 0.02 },
-		},
-		["muzzle_ink"] = {
-			joint = "Head",
-			cframe = { 0, 0.28, 0.125, 0, 0, 0, 1 },
-			size = { 0.06, 0.02, 0.01 },
 		},
 		["nose_pink"] = {
 			joint = "Head",
@@ -194,16 +159,6 @@ return table.freeze({
 			joint = "Tail",
 			cframe = { 0, 0.09, -0.1, 0, 0, 0, 1 },
 			size = { 0.08, 0.1, 0.08 },
-		},
-		["tooth_L"] = {
-			joint = "Head",
-			cframe = { 0.005, 0.269, 0.1325, 0, 0, 0, 1 },
-			size = { 0.0085, 0.022, 0.005 },
-		},
-		["tooth_R"] = {
-			joint = "Head",
-			cframe = { -0.005, 0.269, 0.1325, 0, 0, 0, 1 },
-			size = { 0.0085, 0.022, 0.005 },
 		},
 	},
 	clips = {

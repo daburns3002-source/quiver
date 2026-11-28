@@ -23,6 +23,31 @@ return table.freeze({
 		{ name = "Foot_R", parent = "Root", rest = { -0.15, 0.06, -0.02, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
+		["M_Body_featherblack"] = {
+			joint = "Body",
+			cframe = { 0, 0.39, -0.3, 0, 0, 0, 1 },
+			size = { 0.48, 0.34, 0.34 },
+		},
+		["M_Head_eyedark"] = {
+			joint = "Head",
+			cframe = { 0, 0.82, 0.2, 0, 0, 0, 1 },
+			size = { 0.52, 0.08, 0.02 },
+		},
+		["M_Head_eyeglint"] = {
+			joint = "Head",
+			cframe = { 0, 0.85, 0.2, 0, 0, 0, 1 },
+			size = { 0.44, 0.02, 0.02 },
+		},
+		["M_Head_eyepatchgrey"] = {
+			joint = "Head",
+			cframe = { 0, 0.82, 0.15, 0, 0, 0, 1 },
+			size = { 0.64, 0.16, 0.08 },
+		},
+		["M_Head_featherwhite"] = {
+			joint = "Head",
+			cframe = { 0, 0.78, 0.01, 0, 0, 0, 1 },
+			size = { 0.88, 0.44, 0.44 },
+		},
 		["beak_base"] = {
 			joint = "Head",
 			cframe = { 0, 0.79, 0.23, 0, 0, 0, 1 },
@@ -48,56 +73,6 @@ return table.freeze({
 			cframe = { 0, 0.19, -0.07, 0, 0, 0, 1 },
 			size = { 0.4, 0.06, 0.44 },
 		},
-		["body_back"] = {
-			joint = "Body",
-			cframe = { 0, 0.39, -0.23, 0, 0, 0, 1 },
-			size = { 0.48, 0.34, 0.2 },
-		},
-		["cheek_tuft_L"] = {
-			joint = "Head",
-			cframe = { 0.36, 0.72, -0.09, 0, 0, 0, 1 },
-			size = { 0.16, 0.2, 0.24 },
-		},
-		["cheek_tuft_R"] = {
-			joint = "Head",
-			cframe = { -0.36, 0.72, -0.09, 0, 0, 0, 1 },
-			size = { 0.16, 0.2, 0.24 },
-		},
-		["eye_L"] = {
-			joint = "Head",
-			cframe = { 0.23, 0.82, 0.2, 0, 0, 0, 1 },
-			size = { 0.06, 0.08, 0.02 },
-		},
-		["eye_R"] = {
-			joint = "Head",
-			cframe = { -0.23, 0.82, 0.2, 0, 0, 0, 1 },
-			size = { 0.06, 0.08, 0.02 },
-		},
-		["eye_glint_L"] = {
-			joint = "Head",
-			cframe = { 0.21, 0.85, 0.2, 0, 0, 0, 1 },
-			size = { 0.02, 0.02, 0.02 },
-		},
-		["eye_glint_R"] = {
-			joint = "Head",
-			cframe = { -0.21, 0.85, 0.2, 0, 0, 0, 1 },
-			size = { 0.02, 0.02, 0.02 },
-		},
-		["eye_patch_L"] = {
-			joint = "Head",
-			cframe = { 0.26, 0.82, 0.15, 0, 0, 0, 1 },
-			size = { 0.12, 0.16, 0.08 },
-		},
-		["eye_patch_R"] = {
-			joint = "Head",
-			cframe = { -0.26, 0.82, 0.15, 0, 0, 0, 1 },
-			size = { 0.12, 0.16, 0.08 },
-		},
-		["face"] = {
-			joint = "Head",
-			cframe = { 0, 0.78, 0.05, 0, 0, 0, 1 },
-			size = { 0.64, 0.44, 0.36 },
-		},
 		["foot_L"] = {
 			joint = "Foot_L",
 			cframe = { 0.15, 0.1, -0.02, 0, 0, 0, 1 },
@@ -112,11 +87,6 @@ return table.freeze({
 			joint = "Head",
 			cframe = { 0, 0.84, -0.07, 0, 0, 0, 1 },
 			size = { 0.64, 0.56, 0.52 },
-		},
-		["tail"] = {
-			joint = "Body",
-			cframe = { 0, 0.33, -0.4, 0, 0, 0, 1 },
-			size = { 0.16, 0.14, 0.14 },
 		},
 		["wing_L"] = {
 			joint = "Wing_L",

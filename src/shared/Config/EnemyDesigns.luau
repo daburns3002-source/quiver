@@ -740,7 +740,8 @@ local EnemyDesigns = {
 		StormRoc = {
 			model = "StormRoc",
 			clips = "StormRoc",
-			eyes = "^eye_[LR]_glow$",
+			-- both eyes, one part since the merge per joint (docs/PERFORMANCE.md)
+			eyes = "^M_Head_glow$",
 			eyeColor = EYE_ICE,
 			lift = 1.6,
 		},

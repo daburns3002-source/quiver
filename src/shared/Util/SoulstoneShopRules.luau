@@ -50,8 +50,8 @@ function SoulstoneShopRules.countAllowed(count: unknown): boolean
 end
 
 --[[ Everything for sale to a player who has beaten these bosses and plays
-     `class`: each egg open to them that has pets, then each crate that has
-     weapons for the class. In campaign order. ]]
+     `class`: each egg open to them that has pets, then each crate open to
+     them that has weapons for the class. In campaign order. ]]
 function SoulstoneShopRules.offers(bossesBeaten: { [string]: boolean }, class: string?): { Offer }
 	local out: { Offer } = {}
 	for _, egg in Eggs.list do
@@ -65,7 +65,10 @@ function SoulstoneShopRules.offers(bossesBeaten: { [string]: boolean }, class: s
 		end
 	end
 	for index, crate in Shop.crates do
-		if #ShopRules.cratePool(index, class) > 0 then
+		--[[ Open to them as the coin crate is (`ShopRules.crateOpen`): without
+		     it Soulstones bought a later area's crate, Mythic and all, before
+		     its launch lock was beaten (found 2026-11-28, the hacker pass). ]]
+		if ShopRules.crateOpen(index, bossesBeaten) and #ShopRules.cratePool(index, class) > 0 then
 			table.insert(out, {
 				kind = "Crate",
 				key = tostring(index),

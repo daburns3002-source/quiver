@@ -173,6 +173,9 @@ local endlessArea = 0
 --[[ `os.clock()` until which TRY AGAIN waits on a revive's prompt
      (`RoomController.holdForRevive`), 0 for no wait. ]]
 local reviveHeldUntil = 0
+--[[ `os.clock()` of the death TRY AGAIN now waits behind: revive prompts
+     may hold it only so long after that (`holdForRevive`). ]]
+local diedAt = 0
 --[[ Soulstones this run has paid each player, for the per-run cap. Per
      player rather than one number, because the cap is each player's
      (co-op-shaped from day one, non-negotiable 3). ]]
@@ -925,6 +928,7 @@ function RoomController.onPlayerDied()
 	end
 
 	state = "Dead"
+	diedAt = os.clock()
 	resumeAt = os.clock() + Balance.Run.deathPause
 	setDoorOpen(false)
 	for _, session in RunSession.all() do
@@ -1300,6 +1304,27 @@ function RoomController.atCheckpoint(): boolean
 	return state == "Checkpoint"
 end
 
+--[[ Whether everyone the open checkpoint waits on has picked: every living
+     player but `gone`, who is leaving. A dead player is not waited on — the
+     run is over for them anyway. ]]
+local function checkpointAnswered(gone: Player?): boolean
+	for _, other in RunSession.all() do
+		if other.player ~= gone and other.alive and not picked[other.player] then
+			return false
+		end
+	end
+	return true
+end
+
+--[[ Everybody has picked: on with the run, through `stepEndless`, so the
+     extra card a pick granted is dealt in the one place that deals them. ]]
+local function closeCheckpoint()
+	table.clear(picked)
+	state = "Cleared"
+	resumeAt = nil
+	broadcast()
+end
+
 --[[
 	A player picked at the checkpoint: `choice` is an index into
 	`Balance.Endless.checkpoint.picks`, or 0 to bank and leave.
@@ -1362,23 +1387,27 @@ function RoomController.endlessPick(player: Player, choice: unknown): boolean
 	end
 	log.info("%s takes %s at floor %d", player.Name, pick.name, progress)
 
-	--[[ Still waiting on somebody. A dead player is not waited on — the run
-	     is over for them anyway. ]]
-	for _, other in RunSession.all() do
-		if other.alive and not picked[other.player] then
-			return true
-		end
+	-- still waiting on somebody
+	if not checkpointAnswered(nil) then
+		return true
 	end
-
-	--[[ Everybody has picked: on with the run, through `stepEndless`, so the
-	     extra card a pick granted is dealt in the one place that deals
-	     them. ]]
-	table.clear(picked)
-	state = "Cleared"
-	resumeAt = nil
-	broadcast()
+	closeCheckpoint()
 	return true
 end
+
+--[[ A player who leaves at an open checkpoint is no longer waited on. With
+     their teammate's pick already in, nothing was left to move the run on,
+     and it stood at the checkpoint for good (found 2026-11-28, the
+     bored-player pass). Their own Endless bookkeeping goes with them. ]]
+Players.PlayerRemoving:Connect(function(player)
+	picked[player] = nil
+	endlessBanked[player] = nil
+	endlessBestBefore[player] = nil
+	if state == "Checkpoint" and next(picked) ~= nil and checkpointAnswered(player) then
+		log.info("%s left at the checkpoint: on with the run", player.Name)
+		closeCheckpoint()
+	end
+end)
 
 --[[
 	Testing only, Studio: the playtest sandbox (`Config/Sandbox`). The room
@@ -1521,6 +1550,8 @@ function RoomController.requestLobby(): boolean
 	if state == "Lobby" or sandbox then
 		return false
 	end
+	-- a teammate's chests still shut are opened for them, not lost
+	task.spawn(VictoryChests.settle)
 	toLobby()
 	log.info("left the run for the lobby")
 	return true
@@ -1537,6 +1568,8 @@ function RoomController.requestRestart(): boolean
 	if state == "Dead" and os.clock() < reviveHeldUntil then
 		return false
 	end
+	-- a teammate's chests still shut are opened for them, not lost
+	task.spawn(VictoryChests.settle)
 
 	--[[ The tutorial won: on to the lobby, where the portals start the
 	     campaign's runs (`Config/Tutorial`). ]]
@@ -1616,7 +1649,11 @@ end
      from under it. BACK TO LOBBY is anyone's to press. ]]
 function RoomController.holdForRevive(seconds: number)
 	if state == "Dead" then
-		reviveHeldUntil = math.max(reviveHeldUntil, os.clock() + seconds)
+		--[[ Never past two prompts' worth after the death: asked for again
+		     and again, the hold kept a teammate's TRY AGAIN shut for as
+		     long as the asker liked (found 2026-11-28, the hacker pass). ]]
+		local limit = diedAt + 2 * seconds
+		reviveHeldUntil = math.min(limit, math.max(reviveHeldUntil, os.clock() + seconds))
 	end
 end
 

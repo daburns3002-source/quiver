@@ -94,6 +94,10 @@ local bought = Remotes.event(Remotes.Purchased)
 local starterOwed: { [Player]: boolean } = {}
 --[[ Where each player's last product prompt was opened from. ]]
 local askedFrom: { [Player]: string } = {}
+--[[ When each player was last shown a product's prompt, and the least
+     seconds between two (`promptProduct`). ]]
+local promptedAt: { [Player]: number } = {}
+local PROMPT_GAP = 1
 --[[ Receipts whose grant has been shown this session (a retry of one is
      only saved again, never shown twice). ]]
 local shown: { [string]: boolean } = {}
@@ -263,6 +267,13 @@ function Purchases.processReceipt(receipt: { [string]: any }): Enum.ProductPurch
 end
 
 local function promptProduct(player: Player, product: RobuxStore.Product, from: string)
+	--[[ One prompt a second at most: a mashed BUY asked Roblox for one on
+	     every tap (found 2026-11-28, the little-kid pass). ]]
+	local now = os.clock()
+	if now - (promptedAt[player] or -math.huge) < PROMPT_GAP then
+		return
+	end
+	promptedAt[player] = now
 	askedFrom[player] = from
 	local ok, problem = pcall(function()
 		MarketplaceService:PromptProductPurchase(player, product.id)
@@ -431,6 +442,7 @@ function Purchases.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		askedFrom[player] = nil
+		promptedAt[player] = nil
 		starterOwed[player] = nil
 	end)
 	task.spawn(function()

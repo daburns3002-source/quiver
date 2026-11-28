@@ -150,6 +150,9 @@ local rowWidth = 0
 --[[ The hand on screen, so a redeal the server declines can put it back. ]]
 local shown: { offer: { string }, level: number, source: string?, rerolls: number? }? = nil
 local dealToken = 0
+--[[ How many times the screen has been hidden: a redeal's fall-back must
+     not put the old hand back up over a death (`reroll`). ]]
+local hides = 0
 
 local slots: { Slot } = {}
 local selected: number? = nil
@@ -769,6 +772,7 @@ local function reroll()
 	leaving = { kind = "Reroll", at = os.clock(), picked = nil }
 
 	local token = dealToken
+	local hidden = hides
 	task.delay(TIMING.rerollDuration, function()
 		local handler = onReroll
 		if handler then
@@ -780,7 +784,7 @@ local function reroll()
 		     empty panel. ]]
 		task.delay(1, function()
 			local hand = shown
-			if dealToken == token and hand then
+			if dealToken == token and hides == hidden and hand then
 				DraftScreen.show(hand.offer, hand.level, hand.source, hand.rerolls)
 			end
 		end)
@@ -2235,6 +2239,7 @@ end
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()
+	hides += 1
 	locked = true
 	leaving = nil
 	clearSlots()

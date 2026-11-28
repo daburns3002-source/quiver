@@ -109,6 +109,33 @@ local function pick(player: Player, index: unknown)
 	opened:FireClient(player, chosen, prizes, reveal)
 end
 
+--[[ The run is moving on with chests still shut: in co-op a teammate
+     pressed NEXT LEVEL or BACK TO LOBBY before this player had picked, their
+     screen went with the run, and the chest was never opened (found
+     2026-11-28, the little-kid pass). Each is opened for them, one of the
+     three at random. No reveal is sent: there is no screen left to show it
+     on. ]]
+function VictoryChests.settle()
+	-- taken away first: a pick that lands meanwhile finds no offer
+	local owed = table.clone(offers)
+	table.clear(offers)
+	for player, offer in owed do
+		if player.Parent and PlayerData.get(player) and #offer.prizes > 0 then
+			local chosen = random:NextInteger(1, #offer.prizes)
+			local given = give(player, offer, offer.prizes[chosen])
+			log.info(
+				"%s's chest %d opened for them: %d %s",
+				player.Name,
+				chosen,
+				given.amount,
+				given.kind
+			)
+			PlayerData.touch(player)
+			Wallet.send(player)
+		end
+	end
+end
+
 function VictoryChests.start()
 	Inbound.on(Remotes.VictoryChest, pick)
 	Players.PlayerRemoving:Connect(function(player)

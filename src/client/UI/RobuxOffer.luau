@@ -38,6 +38,11 @@ local RobuxOffer = {}
 
 local WIDTH = 400
 local MARGIN = 12
+--[[ Seconds an offer's Robux button takes no tap after it appears. The
+     offers pop up where a mashing finger already is (DEFEAT's TRY AGAIN,
+     Victory's BACK TO LOBBY), and that tap opened Roblox's purchase prompt
+     (found 2026-11-28, the little-kid pass). ]]
+local ARM = 0.9
 
 local gui: ScreenGui? = nil
 --[[ The offer up now, if any, and how to answer it from outside. ]]
@@ -87,6 +92,7 @@ local function show(
 	-- whatever was up before is answered by this one
 	close()
 	current = name
+	local shownAt = os.clock()
 	local camera = Workspace.CurrentCamera
 	local view = if camera then camera.ViewportSize else Vector2.new(1280, 720)
 	local w = WIDTH * 2
@@ -157,7 +163,11 @@ local function show(
 		mainTop,
 		w - 2 * pad,
 		buttonH,
-		main.action
+		function()
+			if os.clock() - shownAt >= ARM then
+				main.action()
+			end
+		end
 	)
 	Chunky.button(
 		sheet,
@@ -257,6 +267,8 @@ function RobuxOffer.after(proceed: () -> ())
 	end
 	starterOwed = false
 	local bought = false
+	-- one ask at a time: a mashed BUY sent one on every tap
+	local askedAt = -math.huge
 	local eggs: { RobuxConfig.Egg } = product.eggs or {}
 	local eggKey = if eggs[1] then eggs[1].key else nil
 	local function leave()
@@ -275,7 +287,8 @@ function RobuxOffer.after(proceed: () -> ())
 			action = function()
 				if bought then
 					leave()
-				else
+				elseif os.clock() - askedAt >= 3 then
+					askedAt = os.clock()
 					Remotes.event(Remotes.StoreBuy):FireServer(product.key, "Starter")
 				end
 			end,

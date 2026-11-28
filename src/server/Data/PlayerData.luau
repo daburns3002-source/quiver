@@ -48,6 +48,12 @@ local SOON = 6
      40 s, for a last server still letting go behind a queue of saves. ]]
 local LOAD_TRIES = 10
 local LOAD_WAIT = 4
+--[[ Tries at the leaving save, and the seconds between them: one failed or
+     throttled call no longer loses the last of a session and leaves its
+     lock held for `SaveLock.STALE` (found 2026-11-28, the bored-player
+     pass). ]]
+local LEAVE_TRIES = 4
+local LEAVE_WAIT = 2
 
 type Record = { profile: SaveSchema.Profile, lock: SaveLock.Lock? }
 
@@ -125,6 +131,36 @@ local function tryLoad(player: Player): (SaveSchema.Profile?, boolean, boolean)
 	return profile, saving, fresh
 end
 
+--[[ Lets go of a lock `tryLoad` took for a player who had left by the time
+     it answered. No entry was ever made for them, so the leaving save had
+     nothing to release, and the lock stood for `SaveLock.STALE`: quit on
+     the loading screen and every rejoin for ten minutes was sent away
+     (found 2026-11-28, the bored-player pass). The stored profile is
+     written back as it was. ]]
+local function letGo(player: Player)
+	local current = store
+	if not current then
+		return
+	end
+	local userId = player.UserId
+	local ok, problem = pcall(function()
+		current:UpdateAsync(key(player), function(old: any): any
+			if not old or not SaveLock.mayWrite(old.lock, jobId) then
+				return nil
+			end
+			-- back on this server already: the lock is their new session's
+			local back = Players:GetPlayerByUserId(userId)
+			if back and back ~= player then
+				return nil
+			end
+			return { profile = old.profile, lock = nil }
+		end)
+	end)
+	if not ok then
+		log.warn("letting go of %s's lock failed: %s", player.Name, tostring(problem))
+	end
+end
+
 local function load(player: Player)
 	if not store then
 		entries[player] =
@@ -133,8 +169,15 @@ local function load(player: Player)
 		return
 	end
 	for _ = 1, LOAD_TRIES do
+		-- gone during the wait: take no lock for them
+		if not player.Parent then
+			return
+		end
 		local profile, saving, fresh = tryLoad(player)
 		if not player.Parent then
+			if profile and saving then
+				letGo(player)
+			end
 			return
 		end
 		if profile then
@@ -153,15 +196,16 @@ end
 
 --[[ Writes the profile over the record this server holds; `release`
      lets the lock go (the player left, the server is closing). Returns
-     whether the record now holds this profile. ]]
-local function save(player: Player, release: boolean): boolean
+     whether the record now holds this profile, and whether the call itself
+     failed (so it is worth another try; a write that was refused is not). ]]
+local function save(player: Player, release: boolean): (boolean, boolean)
 	local entry = entries[player]
 	local current = store
 	if not entry or not entry.saving or not current then
-		return false
+		return false, false
 	end
 	if entry.leaving and not release then
-		return false -- only the leaving save, which lets the lock go
+		return false, false -- only the leaving save, which lets the lock go
 	end
 	local profile = entry.profile
 	local written = false
@@ -187,9 +231,9 @@ local function save(player: Player, release: boolean): boolean
 	if not ok then
 		entry.dirty = true -- tried again on the next pass
 		log.warn("save of %s failed: %s", player.Name, tostring(problem))
-		return false
+		return false, true
 	end
-	return written
+	return written, false
 end
 
 --[[ Saves now and says whether the record holds the profile: what a Robux
@@ -271,7 +315,22 @@ function PlayerData.start()
 				task.spawn(callback, player, entry.profile)
 			end
 		end
-		save(player, true)
+		--[[ The leaving save, tried again when the call fails. The entry
+		     stays until it is through (no autosave touches a leaving one),
+		     and the tries stop if they come back to this server meanwhile:
+		     the record is their new session's by then. ]]
+		local userId = player.UserId
+		for try = 1, LEAVE_TRIES do
+			local _, failed = save(player, true)
+			if not failed or try == LEAVE_TRIES then
+				break
+			end
+			task.wait(LEAVE_WAIT)
+			local back = Players:GetPlayerByUserId(userId)
+			if back and back ~= player then
+				break
+			end
+		end
 		entries[player] = nil
 	end)
 	game:BindToClose(function()

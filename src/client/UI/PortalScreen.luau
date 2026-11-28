@@ -79,6 +79,10 @@ local profile: SaveSchema.Profile? = nil
 local portalIndex: number? = nil
 local picked = 1
 local starting = false
+--[[ When PLAY was last pressed, and how long STARTING... may stand with no
+     run to show for it: a teleport takes about 20 s when it works. ]]
+local startedAt = 0
+local START_WAIT = 30
 --[[ The HARD tab is on (`Util/HardRules`): only once the area's boss is
      beaten, and back to NORMAL for each new area. ]]
 local hardOn = false
@@ -563,9 +567,22 @@ local function start()
 		return
 	end
 	starting = true
+	startedAt = os.clock()
 	SoundFx.play("card_click")
 	Remotes.event(Remotes.PortalStart):FireServer(index, picked, hardOn)
 	fill(index)
+	--[[ A start the server refuses says nothing back, and one whose teleport
+	     fails says so only in the notice line: either way this screen stayed
+	     on STARTING... with PLAY and its ways back shut (found 2026-11-28,
+	     the little-kid pass). Still here `START_WAIT` seconds on, the same
+	     press, it is pressable again. ]]
+	local asked = startedAt
+	task.delay(START_WAIT, function()
+		if starting and startedAt == asked and portalIndex == index then
+			starting = false
+			fill(index)
+		end
+	end)
 end
 
 --[[ The NORMAL / HARD tabs: the levels are drawn again for the mode, the
@@ -970,6 +987,19 @@ function PortalScreen.start()
 	local player = Players.LocalPlayer
 	build(player:WaitForChild("PlayerGui") :: PlayerGui)
 
+	--[[ The teleport failed (`Run/Party`): PLAY is pressable again. ]]
+	Remotes.event(Remotes.PartyNotice).OnClientEvent:Connect(function(text: unknown)
+		local index = portalIndex
+		if
+			starting
+			and index
+			and type(text) == "string"
+			and string.sub(text, 1, 15) == "COULD NOT START"
+		then
+			starting = false
+			fill(index)
+		end
+	end)
 	Remotes.event(Remotes.PortalOpen).OnClientEvent:Connect(function(index)
 		if type(index) == "number" and index > 0 then
 			PortalScreen.open(index)

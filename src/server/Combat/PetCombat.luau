@@ -23,6 +23,7 @@
 	(`Shared/Util/PetDash`); the plan goes to the clients with the attack.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -719,5 +720,10 @@ end
 function PetCombat.forget(player: Player)
 	states[player] = nil
 end
+
+--[[ Nothing called `forget`, so a player who left with pets out in a run
+     was kept for the life of the server (found 2026-11-28, the bored-player
+     pass). ]]
+Players.PlayerRemoving:Connect(PetCombat.forget)
 
 return PetCombat

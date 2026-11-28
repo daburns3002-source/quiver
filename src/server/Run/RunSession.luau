@@ -143,6 +143,10 @@ export type Session = {
 	     where damage landed: a dodge, a guard and a shelter that took it
 	     all to nothing never arm it, because nothing hit. ]]
 	lastHurtAt: number,
+	--[[ The health a body was lost at while its player was alive (Reset
+	     Character, an exploit, a fall out of the world): the next body
+	     carries on from it (`bindCharacter`). ]]
+	carried: number?,
 	--[[ Swings started this run, for Whirlwind's every-nth spin. ]]
 	swingCount: number,
 	--[[ Battle Cry: kill stacks, and when they lapse (os.clock). ]]
@@ -1623,10 +1627,20 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.character = character
 	session.humanoid = humanoid
 	session.root = root
-	session.health = session.maxHealth
+	--[[ A body lost while its player was alive is the player's own doing
+	     (Reset Character, or an exploit killing the Humanoid). The new one
+	     came back at full health mid-run, a free heal on demand, and a
+	     downed player stood themselves up (found 2026-11-28, the
+	     speedrunner pass). It carries on with what the old one had. ]]
+	local carried = session.carried
+	session.carried = nil
+	session.health = if carried
+		then math.clamp(carried, 1, session.maxHealth)
+		else session.maxHealth
 	--[[ A body back while sitting a room out (a teammate's revive,
-	     `sitOut`) stays out until the next room stands it up. ]]
-	session.alive = not session.out
+	     `sitOut`) stays out until the next room stands it up, and one back
+	     while down is still down. ]]
+	session.alive = not session.out and not session.downed
 	session.lastFiredAt = 0
 	session.swingIndex = 0
 	session.player:SetAttribute("Combo", nil)
@@ -1670,6 +1684,12 @@ function RunSession.allowJump(session: Session, allowed: boolean)
 end
 
 function RunSession.unbindCharacter(session: Session)
+	--[[ Lost while alive, in a run: the next body has this much, not a full
+	     bar. In the lobby a body is swapped for a new look and nothing is at
+	     stake, so there it comes back whole as it always did. ]]
+	if session.alive and Workspace:GetAttribute("InLobby") ~= true then
+		session.carried = session.health
+	end
 	session.character = nil
 	session.humanoid = nil
 	session.root = nil

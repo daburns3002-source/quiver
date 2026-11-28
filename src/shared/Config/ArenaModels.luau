@@ -181,9 +181,11 @@ end
 
 local BogheartForest = require(script.Parent.BogheartForest)
 local DrownedForest = require(script.Parent.DrownedForest)
+local WindsweptForest = require(script.Parent.WindsweptForest)
 
 local DROWNED_OUTER: { ArenaPart } = outer("Drowned", DrownedForest)
 local BOGHEART_OUTER: { ArenaPart } = outer("Bogheart", BogheartForest)
+local WINDSWEPT_OUTER: { ArenaPart } = outer("Windswept", WindsweptForest)
 
 --[[ Act 1, area 3: the Drowned Village, built from the owner's kit
      (`Config/ArenaKits.Drowned`), inside its own outer flood
@@ -236,6 +238,35 @@ local function bogheart(): ArenaModel
 	}
 end
 
+--[[ Act 2, area 5: the Windswept Cliffs (`Config/ArenaKits.Windswept`,
+     docs/WINDSWEPT-CLIFFS.md), a slate plateau in the sky
+     (`Config/WindsweptForest`, built by outer5_build.py): its own cliff
+     under the walls, the cloud sea below, grassy spires, prayer flags and
+     wind, with its own life (`Balance.Ambience.Windswept`). Its low boxes
+     are drops into the cloud (`void`), drawn as the kit's cloud gap, with a
+     plank bridge over the middle; a push can send a player over one, or
+     over the plateau's edge (`edges`, `Arena/CliffFalls`). Past it all,
+     the cloud's own white. Bright high daylight. ]]
+local CLOUD_SEA = Color3.fromRGB(226, 234, 246)
+local function cliffs(): ArenaModel
+	return {
+		parts = WINDSWEPT_OUTER,
+		outsideColor = CLOUD_SEA,
+		ambience = "Windswept",
+		kit = "Windswept",
+		lowCover = "Water",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
+		edges = true,
+		lighting = {
+			brightness = 1.6,
+			ambient = Color3.fromRGB(120, 130, 150),
+			outdoorAmbient = Color3.fromRGB(140, 150, 172),
+			gradeBrightness = 0.02,
+		},
+	}
+end
+
 local ArenaModels = {
 	GladeLogs = glade("Thicket"),
 	--[[ Was the pond, until the owner took the water out of the Mossy Glade
@@ -263,6 +294,12 @@ local ArenaModels = {
 	BogheartStream = bogheart(),
 	BogheartOpen = bogheart(),
 	BogheartBoss = bogheart(),
+	--[[ The Windswept Cliffs: the open plateau, the ones split by a drop
+	     with a bridge over it, the ledged ones, and the boss's peak. ]]
+	CliffsOpen = cliffs(),
+	CliffsBridge = cliffs(),
+	CliffsLedge = cliffs(),
+	CliffsBoss = cliffs(),
 }
 
 return table.freeze(ArenaModels)

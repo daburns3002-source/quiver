@@ -313,9 +313,11 @@ Left for later:
   yet.
 - **Small gains, skipped**: Babacorn 14 → 13, Mosslet 21 → 17, Thornling
   27 → 24.
-- **Area 5's models** (Cliff Goat 39 → 37, Gust Shaman 60 → 48, Harpy
-  59 → 29, Storm Roc 41 → 29, Tempest Roc 36), being built by another
-  session: merge them once that lands.
+- **Area 5's models**: merged as they came in (#700, 2026-11-28): Harpy
+  59 → 29, Storm Roc 41 → 29, Gust Shaman 60 → 48, and the pets (Woolly
+  Alpaca 187 → 45, Zephyr Whale 138 → 25, Flagtail Panda 72 → 22, Gale
+  Glider 71 → 30, Whistle Marmot 36 → 27, Cliff Puffin 21 → 15). Cliff Goat
+  (39 → 37), the Rocling (22 → 19) and the Tempest Roc (nothing) stay whole.
 - **The 40 upgrade and pet effects** (1–33 parts each): not looked at.
 
 ## Loading ahead: the next room and the cards (2026-10-26)

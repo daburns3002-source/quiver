@@ -114,6 +114,10 @@ local function show(floor: number, name: string, list: { Prize })
 	shade.BackgroundTransparency = 0.45
 	shade.BorderSizePixel = 0
 	shade.Size = UDim2.fromScale(1, 1)
+	--[[ Takes the taps that land on it: a plain Frame let them through to
+	     the shop's buy buttons behind (found 2026-11-28, the little-kid
+	     pass). ]]
+	shade.Active = true
 	shade.Parent = screen
 
 	local box = Instance.new("Frame")

@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Config = require(ReplicatedStorage.Shared.Config.SoulstoneShop)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -51,6 +52,30 @@ return function(t: TestRunner.Helper)
 					t.notNil(index, "a crate's key is its place")
 					if index then
 						t.isTrue(#ShopRules.cratePool(index, chest.class) > 0, "an empty crate")
+						t.isTrue(ShopRules.crateOpen(index, {}), "a crate not open to them")
+					end
+				end
+			end
+		end
+	end)
+
+	--[[ Found 2026-11-28 (the hacker pass): Soulstones bought any area's
+	     crate, because only the eggs asked whether theirs was open. ]]
+	t.test("a crate waits on what the coin crate waits on", function()
+		for index, crate in Shop.crates do
+			local unlock = LaunchLocks.crateUnlock(crate)
+			if unlock then
+				for _, chest in Shop.chests do
+					local key = tostring(index)
+					t.isNil(
+						SoulstoneShopRules.find({}, chest.class, "Crate", key),
+						`{crate.name}'s crate is sold before {unlock} is beaten`
+					)
+					if #ShopRules.cratePool(index, chest.class) > 0 then
+						t.notNil(
+							SoulstoneShopRules.find({ [unlock] = true }, chest.class, "Crate", key),
+							`{crate.name}'s crate is not sold once {unlock} is beaten`
+						)
 					end
 				end
 			end

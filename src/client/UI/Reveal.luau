@@ -1315,9 +1315,19 @@ local function present(look: Look, prizes: { Prize }, chanceOf: (Prize) -> numbe
 	end
 	pendingUntil = 0
 	showing = true
-	play(look, prizes, chanceOf, function()
-		showing = false
+	--[[ A reveal that throws must not leave `showing` set: every station,
+	     every hatch and the end screen's buttons wait on it (found
+	     2026-11-28, the little-kid pass). ]]
+	local ok, problem = pcall(function(): any
+		play(look, prizes, chanceOf, function()
+			showing = false
+		end)
+		return nil
 	end)
+	if not ok then
+		showing = false
+		warn("[Reveal] could not play: " .. tostring(problem))
+	end
 end
 --[[ The chest a crate of `area` opens as: its model, its cut frames, its
      single picture, Victory's chest, or one drawn here. ]]

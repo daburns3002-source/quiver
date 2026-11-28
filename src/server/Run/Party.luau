@@ -480,6 +480,11 @@ function Party.init()
 				message
 			)
 			player:SetAttribute(Party.ROUTE, "Story")
+		else
+			--[[ A portal's start: say so, or PLAY's screen stayed on
+			     STARTING... with its way back shut (found 2026-11-28, the
+			     little-kid pass; `UI/PortalScreen` listens for this). ]]
+			notice:FireClient(player, "COULD NOT START. TRY AGAIN")
 		end
 	end)
 end

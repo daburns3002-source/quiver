@@ -114,6 +114,9 @@ local PHONE_WIDTH_SHARE = 0.98
 local WIDTH_SHARE = 0.94
 --[[ Roblox's largest TextSize. ]]
 local MAX_TEXT = 100
+--[[ Seconds after a sent press before the buttons take another, if the
+     screen is still up (`rearm`). ]]
+local REARM = 3
 
 local gui: ScreenGui? = nil
 local scaler: UIScale? = nil
@@ -1251,6 +1254,18 @@ function EndScreen.show(summary: Summary)
 
 	local shownAt = os.clock()
 	local pressed = false
+	--[[ A press the server refuses says nothing back (co-op: TRY AGAIN under
+	     a teammate's revive prompt), and `pressed` stayed set, so both
+	     buttons were dead for as long as the screen stood (found 2026-11-28,
+	     the speedrunner and little-kid passes). Still up `REARM` seconds
+	     after a press was sent, it takes another. ]]
+	local function rearm()
+		task.delay(REARM, function()
+			if gui == screen then
+				pressed = false
+			end
+		end)
+	end
 	--[[ Victory's three chests are still to be picked (`UI/VictoryChests`):
 	     the buttons wait for them, as they wait for a reveal. ]]
 	local chestsOwed = won and summary.streak ~= nil
@@ -1273,6 +1288,7 @@ function EndScreen.show(summary: Summary)
 		task.delay(math.max(0, wait), function()
 			if onRestart and gui == screen then
 				onRestart()
+				rearm()
 			end
 		end)
 	end)
@@ -1288,6 +1304,7 @@ function EndScreen.show(summary: Summary)
 		Kit.ring(lobbyPress.Parent :: GuiObject)
 		if onLobby and gui == screen then
 			onLobby()
+			rearm()
 		end
 	end)
 

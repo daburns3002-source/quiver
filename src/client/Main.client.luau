@@ -200,6 +200,23 @@ end
 
 task.spawn(hideDefaultHealthGui)
 
+--[[ Roblox's own Reset Character is off. Mid-run it brought a fresh body,
+     at full health until 2026-11-28 (the server now keeps the health it had,
+     `RunSession.bindCharacter`), dropped wherever Roblox spawns one, and
+     nothing in the game needs it (found by the speedrunner pass). `SetCore`
+     throws until the core scripts have registered it, hence the tries. ]]
+task.spawn(function()
+	for _ = 1, 20 do
+		local ok = pcall(function()
+			StarterGui:SetCore("ResetButtonCallback", false)
+		end)
+		if ok then
+			return
+		end
+		task.wait(0.5)
+	end
+end)
+
 local function currentRoot(): BasePart?
 	local character = player.Character
 	if not character then

@@ -42,6 +42,13 @@ local MARGIN = 12
 local gui: ScreenGui? = nil
 local profile: SaveSchema.Profile? = nil
 local isOpen = false
+--[[ When a buy was last asked for and not yet answered, or nil. Every tap
+     of a mashed button used to be its own purchase, three a second, each
+     paid for and only the last one shown (found 2026-11-28, the little-kid
+     pass): now one at a time, until its prize comes back or `BUY_WAIT`
+     seconds pass. ]]
+local askedAt: number? = nil
+local BUY_WAIT = 4
 
 --[[ A Soulstone: a purple gem cut as a diamond, drawn rather than
      uploaded. Fills `parent`, which should be square. ]]
@@ -196,6 +203,11 @@ local function draw(): Frame?
 				buttonW,
 				rowH - 44,
 				function()
+					local asked = askedAt
+					if asked and os.clock() - asked < BUY_WAIT then
+						return
+					end
+					askedAt = os.clock()
 					Remotes.event(Remotes.SoulstoneBuy):FireServer(offer.kind, offer.key, count)
 				end
 			)
@@ -261,6 +273,10 @@ function SoulstoneShop.start()
 	screen.Parent = playerGui
 	gui = screen
 
+	-- a purchase's prize is back (`UI/EndlessPrize` shows it): the next may go
+	Remotes.event(Remotes.EndlessPrize).OnClientEvent:Connect(function()
+		askedAt = nil
+	end)
 	Remotes.event(Remotes.ProfileChanged).OnClientEvent:Connect(function(next_)
 		profile = next_
 		if isOpen then

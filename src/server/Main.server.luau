@@ -406,6 +406,16 @@ local function routeJoin(player: Player)
 	     (and so anyone who has beaten 1-1) has seen it. Studio's forced
 	     tutorial is the owner's run-through from the intro, story and all. ]]
 	local profile = PlayerData.get(player)
+	--[[ No profile after the wait is nearly always a returning player whose
+	     last server is still letting go of their save, not a new one (a new
+	     player has no record to wait on). Sent to the tutorial's server
+	     they sat through the story and its rooms again (found 2026-11-28,
+	     the bored-player pass). The title here instead: BEGIN ADVENTURE
+	     asks again, with the profile in by then (`IntroBegin`). ]]
+	if owed and not forced and profile == nil then
+		player:SetAttribute(Party.ROUTE, "Lobby")
+		return
+	end
 	local seen = not forced and (not owed or (profile ~= nil and profile.tutorialDone))
 	if owed and Party.canTravel() and RoomController.inLobby() then
 		player:SetAttribute(Party.ROUTE, "Tutorial")
@@ -941,8 +951,11 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	end
 
 	--[[ And while anyone is still on the intro's title screen
-	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. ]]
-	if RunSession.anyAtTitle() then
+	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. Not in the
+	     lobby, where nothing fights anyway: there one player sitting on the
+	     title stopped every other player's portal screen from opening (found
+	     2026-11-28, the bored-player pass). ]]
+	if not RoomController.inLobby() and RunSession.anyAtTitle() then
 		wasHeld = true
 		return
 	end

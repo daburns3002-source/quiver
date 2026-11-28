@@ -16,6 +16,95 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The four-playtester pass: a speedrunner, a hacker, a button-mashing kid and a bored quitter (2026-11-28)
+
+**Seen:** nothing on live yet. The owner asked for four fake players to try to break the game "before a real
+player does". Studio was booked, so each played by reading the code as its persona (every skip, every remote
+with hostile arguments, every button mashed, every moment to idle or quit at) and each finding was then read
+again against the code before anything was changed. Thirteen were real; they are listed by what a player
+would have seen.
+
+**Soulstones bought any area's crate.** `SoulstoneBuy("Crate", "4", 5)` opened Bogheart's crate, Mythic and
+all, for a player who had beaten nothing: `SoulstoneShopRules.offers` asked `EggRules.open` of an egg but
+nothing of a crate. It now asks `ShopRules.crateOpen`, as the coin crate does (`tests/SoulstoneShop.spec`:
+"a crate waits on what the coin crate waits on").
+
+**Walking into a portal did nothing while somebody sat on the title screen.** `Main`'s Heartbeat returned
+for `RunSession.anyAtTitle()` before the lobby block that opens portal screens, so in the public lobby one
+player on the title (or away from the keyboard there) shut every other player's portals; PLAY still worked.
+The title hold now applies only out of the lobby. Found by two of the four on their own.
+
+**"Your progress is still saving from your last server", for ten minutes, after quitting on the loading
+screen.** `PlayerData.load` took the save's lock, saw the player had gone, and returned: no entry, so the
+leaving save had nothing to release, and the lock stood for `SaveLock.STALE`. It is let go now (`letGo`), and
+no lock is taken for a player who left during the wait between tries. The leaving save itself was one call;
+a failed or throttled one lost the end of the session and kept the lock. It is tried up to four times, two
+seconds apart, and stops if the player is back on the same server.
+
+**A returning player put through the story and the tutorial again.** Joining while the last server still
+held their save gave no profile in the 8 s `routeJoin` waits, and no profile "owes the tutorial". No profile
+now shows the title here; BEGIN ADVENTURE asks again with the profile in.
+
+**DEFEAT's and Victory's buttons dead for good (co-op).** A press the server refuses says nothing back (TRY
+AGAIN under a teammate's revive prompt) and `pressed` was never cleared; BACK TO LOBBY shares it. Still up
+three seconds after a press was sent, the screen takes another. Found by two of the four.
+
+**Reset Character was a full heal.** Roblox brings a new body and `bindCharacter` gave it full health and
+`alive`, mid-boss, and a downed player stood themselves up. A body lost while alive now hands its health to
+the next one, one back while down stays down, and the client turns Reset Character off.
+
+**A teammate leaving at an Endless checkpoint left the run there for good.** The "everyone has picked" check
+ran only inside a pick. It runs again when a player leaves.
+
+**A dead player could keep TRY AGAIN shut.** Each `StoreBuy("Revive")` pushed the revive hold another 30 s.
+The hold now ends no later than two prompts' worth after the death.
+
+**PLAY's screen stuck on STARTING... with no way back.** A teleport that failed after `TeleportAsync`
+returned cleared the server's `busy` but told the client nothing. `Party` sends its COULD NOT START notice
+for it, `PortalScreen` listens for that, and STARTING... gives up after 30 s on its own.
+
+**A mashed Soulstone button bought three times a second.** Each tap was its own purchase, each paid and
+granted, only the last shown; the prize's shade let taps through to the buttons behind. One purchase at a
+time until its prize is back, and the shade takes its taps.
+
+**Robux buttons arrived under a mashing finger.** REVIVE pops in 1.2 s after DEFEAT and the Starter Pack on
+BACK TO LOBBY, and a tap opened Roblox's prompt. An offer's Robux button takes no tap for its first 0.9 s,
+the Starter Pack's BUY asks once per three seconds, and the server shows a player one prompt a second at
+most.
+
+**A teammate's NEXT LEVEL threw away the chests you had not opened (co-op).** The run moved on and the
+screen went with it. `VictoryChests.settle` opens one of the three for each such player as the run restarts
+or leaves for the lobby.
+
+**Smaller.** A reveal that throws no longer leaves every station and the end screen waiting on it
+(`Reveal.present`). A redeal's fall-back no longer puts the old hand back up over a death. `PetCombat.forget`
+had no caller; a player who left with pets out was kept for the life of the server.
+
+**Read and left as they are.** Anyone in a co-op run may press BACK TO LOBBY for the party, and BANK &
+LEAVE at a checkpoint ends the run for both: written down as meant (`RoomController.holdForRevive`: "BACK TO LOBBY is anyone's to press";
+`endlessPick`: banking "ends the run as a win"). A
+draft or a checkpoint waits on an idle teammate with no clock, the known caveat. Chests unopened when a
+player closes the game are not owed (`Run/VictoryChests`' header). The invite reward by a made-up launch
+link and the code-guess limit resetting on rejoin are worth little and were not changed. No fail-safe for an
+enemy stuck out of reach was added: none of the four found one that can get there, and the bot's run-throughs
+never met one.
+
+**Measured (Studio, 2026-11-28, the branch synced whole):** in-Roblox suite 1448 of 1448. In Play: the
+client's `ResetButtonCallback` reads false; the Soulstone shop sells a new Ranger Mossy Glade's crate and
+not Thornwood's, the Drowned Village's, Bogheart's or the Windswept Cliffs', and each once its lock is
+beaten; `RunSession`'s bind and unbind on a session of their own: a body lost at 100 of 225 in a run comes
+back at 100, one back after a real death at 225, one back while down stays down, one swapped in the lobby
+at 60 comes back at 225. No client errors in the Play. **Not played:** the co-op and teleport cases (a
+second player at the title, a teammate's revive prompt, a checkpoint leaver, a failed teleport, a save
+that fails as a player leaves); Studio's Play has one player and no teleports, so those are read and
+typed, not seen.
+
+**What held up:** all 54 inbound remotes were read by the hacker; no price or amount is taken from a client,
+every claim is marked before it pays, receipts are idempotent and no Debug remote answers outside Studio.
+The run's steps are the server's: there is no remote for "next room" or "run complete".
+
+---
+
 ## Four Bogheart enemies drawn bare, six Drowned weapons with no glow, Blaze's "Arrows" on melee cards (2026-11-26)
 
 **Seen:** the content sweep (Studio, every upgrade per class, every weapon, pet and enemy, a window each, its

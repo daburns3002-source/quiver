@@ -78,7 +78,7 @@ local PetSounds: { [string]: { Cue } } = {
 	GaleGlider = { { sound = "fx_wind_gust", at = 0.3 } },
 	FlagtailPanda = { { sound = "fx_whirlwind", at = 0.4 } },
 	GaleWilf = { { sound = "pet_glowcap_wilf", at = 0.5 } },
-	Rocling = { { sound = "fx_chain_lightning", at = 1.0 } },
+	Rocling = { { sound = "fx_chain_lightning", at = 0.4 } },
 	ZephyrWhale = { { sound = "fx_wind_gust", at = 0.45 } },
 }
 

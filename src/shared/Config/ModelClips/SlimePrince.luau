@@ -489,11 +489,6 @@ return table.freeze({
 			cframe = { 0, 0.1687, -0.0565, 0, 0, 0, 1 },
 			size = { 0.5676, 0.1366, 0.4852 },
 		},
-		["M_crown_gememerald"] = {
-			joint = "crown",
-			cframe = { 0, 0.506, 0, 0, 0, 0, 1 },
-			size = { 0.4083, 0.076, 0.3923 },
-		},
 		["M_crown_gold"] = {
 			joint = "crown",
 			cframe = { 0, 0.536, 0, 0, 0, 0, 1 },
@@ -553,6 +548,26 @@ return table.freeze({
 			joint = "rig_squash",
 			cframe = { 0, 0.212, 0.1174, 0, 0, 0, 1 },
 			size = { 0.036, 0.036, 0.0101 },
+		},
+		["crown_gem_back"] = {
+			joint = "crown",
+			cframe = { 0, 0.508, -0.1861, 0, 1, 0, 0 },
+			size = { 0.072, 0.072, 0.0202 },
+		},
+		["crown_gem_front"] = {
+			joint = "crown",
+			cframe = { 0, 0.508, 0.1861, 0, 0, 0, 1 },
+			size = { 0.072, 0.072, 0.0202 },
+		},
+		["crown_gem_left"] = {
+			joint = "crown",
+			cframe = { 0.1908, 0.492, 0.1608, 0, 0.3827, 0, 0.9239 },
+			size = { 0.048, 0.048, 0.0134 },
+		},
+		["crown_gem_right"] = {
+			joint = "crown",
+			cframe = { -0.1908, 0.492, 0.1608, 0, -0.3827, 0, 0.9239 },
+			size = { 0.048, 0.048, 0.0134 },
 		},
 		["hand_left"] = {
 			joint = "arm_left",

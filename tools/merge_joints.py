@@ -17,7 +17,11 @@ them alone:
 - any part the game's code looks up by name (`FindFirstChild("Crown")`,
   `Name == "Crown"`: King Bloblin's crown);
 - a textured primitive (its UVs and picture are its own);
-- a part resting at zero size, or under a joint that does (a clip grows it).
+- a part resting at zero size, or under a joint that does (a clip grows it);
+- the pieces of a joint some clip shears (a stretched parent turning it),
+  when merged they would land further from their true shape than apart:
+  a part is posed as a box turned and sized along its own axes, so the
+  bigger the box the further its ends drift (see `drifting`).
 A model is left whole if merging would change which of its parts
 `EnemyModel` draws as tucked-away blocks (under a hundredth of its largest).
 
@@ -47,6 +51,10 @@ APART = re.compile(r"^Eye")
 LOOKUP = re.compile(r'(?:Name == |name == |FindFirstChild\(|WaitForChild\()"([A-Za-z0-9_]+)"')
 TUCKED_SHARE = 0.01
 ZERO = 1e-6
+# How much further (studs, at the GLB's size) a merged part may land from its
+# true pose than its pieces did, in the worst moment of any clip.
+DRIFT = 0.01
+SAMPLES = 21
 
 
 def code_names():
@@ -57,6 +65,125 @@ def code_names():
             continue
         names.update(LOOKUP.findall(path.read_text(encoding="utf-8")))
     return names
+
+
+def sample(track, time, path):
+    """A glTF channel's value at `time` (linear, step or cubic spline's
+    key values), rotations normalised."""
+    times, values, how = track
+    if how == "CUBICSPLINE":
+        values = values[1::3]
+    if time <= times[0]:
+        v = values[0]
+    elif time >= times[-1]:
+        v = values[-1]
+    else:
+        k = int(np.searchsorted(times, time)) - 1
+        f = 0.0 if how == "STEP" else (time - times[k]) / max(times[k + 1] - times[k], 1e-9)
+        a, b = values[k], values[k + 1]
+        if path == "rotation" and np.dot(a, b) < 0:
+            b = -b
+        v = a + (b - a) * f
+    if path == "rotation":
+        v = v / max(np.linalg.norm(v), 1e-12)
+    return v
+
+
+def posed(gltf, binary, nodes, parent, rest, joints):
+    """Each joint's world matrix at SAMPLES moments of every clip."""
+    out = []
+    for anim in gltf.get("animations", []):
+        tracks = {}
+        for ch in anim["channels"]:
+            s = anim["samplers"][ch["sampler"]]
+            times = glb.accessor(gltf, binary, s["input"]).reshape(-1)
+            values = glb.accessor(gltf, binary, s["output"])
+            tracks[(ch["target"]["node"], ch["target"]["path"])] = (times, values, s.get("interpolation", "LINEAR"))
+        if not tracks:
+            continue
+        end = max(t[0][-1] for t in tracks.values())
+        for step in range(SAMPLES):
+            time = end * step / (SAMPLES - 1)
+            world = {}
+
+            def world_at(i):
+                if i not in world:
+                    t, q, s = rest[i]
+                    t = sample(tracks[(i, "translation")], time, "translation") if (i, "translation") in tracks else t
+                    q = sample(tracks[(i, "rotation")], time, "rotation") if (i, "rotation") in tracks else q
+                    s = sample(tracks[(i, "scale")], time, "scale") if (i, "scale") in tracks else s
+                    m = glb.affine(t, q, s)
+                    world[i] = world_at(parent[i]) @ m if i in parent else m
+                return world[i]
+
+            out.append({j: world_at(j) for j in joints})
+    return out
+
+
+def turn_of(m):
+    """The rotation nearest a linear part (its polar factor)."""
+    u, _, vt = np.linalg.svd(m)
+    r = u @ vt
+    if np.linalg.det(r) < 0:
+        r = u @ np.diag([1, 1, -1]) @ vt
+    return r
+
+
+def box_drift(points, turn, delta):
+    """How far a part's mesh lands from its true pose when posed as
+    ModelClip.place does: its box moved, turned by the joint's move of its
+    first two axes (made square) and sized by how each axis stretches,
+    against every point moved by the joint itself."""
+    m, t = delta[:3, :3], delta[:3, 3]
+    local = points @ turn
+    centre = (local.min(0) + local.max(0)) / 2
+    axes = m @ turn
+    lengths = np.linalg.norm(axes, axis=0)
+    if lengths.min() < ZERO:
+        return 0.0
+    x = axes[:, 0] / lengths[0]
+    y = axes[:, 1] - (axes[:, 1] @ x) * x
+    y /= max(np.linalg.norm(y), 1e-12)
+    square = np.stack([x, y, np.cross(x, y)], axis=1)
+    approx = (m @ (turn @ centre) + t) + ((local - centre) * lengths) @ square.T
+    return float(np.linalg.norm(approx - (points @ m.T + t), axis=1).max())
+
+
+def drifting(gltf, binary, nodes, world_of, groups, poses):
+    """The groups that would drift off their shape if merged. A part is
+    posed as a box turned and sized along its own axes (ModelClip.place),
+    which is exact unless a clip shears its joint (a stretched parent
+    turning a child), and then the further a point sits from the box's
+    centre the further it drifts: Glade Fox's merged head and tail landed
+    0.076 studs off, its separate pieces 0.023. A group whose merged part
+    would drift DRIFT further than its pieces keeps its pieces apart."""
+    out = set()
+    for key, members in groups.items():
+        if len(members) < 2:
+            continue
+        j = key[0]
+        rest_inv = np.linalg.inv(world_of(j))
+        pts = {}
+        for i, k in members:
+            prim = gltf["meshes"][nodes[i]["mesh"]]["primitives"][k]
+            v = glb.accessor(gltf, binary, prim["attributes"]["POSITION"])
+            w = world_of(i)
+            pts[(i, k)] = v @ w[:3, :3].T + w[:3, 3]
+        whole = np.concatenate(list(pts.values()))
+        joint_turn = turn_of(world_of(j)[:3, :3])
+        merged = pieces = 0.0
+        for pose in poses:
+            delta = pose[j] @ rest_inv
+            linear = delta[:3, :3]
+            unit = linear / np.maximum(np.linalg.norm(linear, axis=0), 1e-12)
+            if np.abs(unit.T @ unit - np.eye(3)).max() < 1e-4:
+                continue  # no shear: every box lands exactly
+            merged = max(merged, box_drift(whole, joint_turn, delta))
+            for (i, k), p in pts.items():
+                pieces = max(pieces, box_drift(p, turn_of(world_of(i)[:3, :3]), delta))
+        if merged > pieces + DRIFT:
+            out.add(key)
+    return out
 
 
 def analyse(path, spelled):
@@ -111,6 +238,9 @@ def analyse(path, spelled):
                 alone.append((i, k))
             else:
                 groups.setdefault((j, mi), []).append((i, k))
+    poses = posed(gltf, binary, nodes, parent, rest, {key[0] for key in groups})
+    for key in drifting(gltf, binary, nodes, world_of, groups, poses):
+        alone.extend(groups.pop(key))
     return gltf, binary, nodes, world_of, groups, alone
 
 
@@ -258,6 +388,15 @@ def models():
     return {n: e for n, e in manifest.items() if not n.startswith("_") and e["glb"].startswith(KINDS)}
 
 
+def source(entry):
+    """The model's own GLB: once merged, the manifest points at the
+    `_merged` copy, and a merge always starts again from the original."""
+    path = ROOT / entry["glb"]
+    if path.stem.endswith("_merged"):
+        return path.with_name(path.stem[: -len("_merged")] + path.suffix)
+    return path
+
+
 def main():
     args = sys.argv[1:]
     out_dir = None
@@ -270,7 +409,7 @@ def main():
     if args == ["--report"] or not args:
         total_b = total_a = 0
         for name, entry in sorted(every.items()):
-            path = ROOT / entry["glb"]
+            path = source(entry)
             if not path.exists():
                 print(f"{name:20} missing {entry['glb']}")
                 continue
@@ -285,7 +424,7 @@ def main():
         return
     for name in args:
         entry = every[name]
-        path = ROOT / entry["glb"]
+        path = source(entry)
         g, b, nodes, world_of, groups, alone, before, after = plan(path, spelled)
         if not tucked_unchanged(g, b, world_of, groups, alone):
             print(f"{name}: left whole, merging would change its tucked parts")

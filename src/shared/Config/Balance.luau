@@ -15647,6 +15647,43 @@ local Balance = {
 			shaftColor = Color3.fromRGB(170, 240, 245),
 			shaftTransparency = 0.9,
 		},
+		--[[ The Windswept Cliffs (2026-11-27): wisps of cloud and wind
+		     blown fast across the plateau instead of leaves, birds wheeling
+		     high, a thin bright mist, no fireflies; sunlight in the open. ]]
+		Windswept = {
+			gap = 3,
+			reach = 46,
+			ends = 16,
+			leafFrom = { 8, 12 },
+			canopy = { 0, 0.2 },
+			hover = 3,
+			clearance = 1.5,
+			leavesPerSecond = 2.2,
+			leafPool = 40,
+			leafFall = { 0.15, 0.35 },
+			leafRest = 0.8,
+			leafFade = 1.2,
+			leafColors = {
+				Color3.fromRGB(244, 248, 255),
+				Color3.fromRGB(200, 236, 255),
+			},
+			gustSpeed = 1.2,
+			fireflyDensity = 0,
+			fireflyMax = 0,
+			mistDensity = 1,
+			fireflyColor = Color3.fromRGB(255, 255, 255),
+			mistColor = Color3.fromRGB(236, 242, 250),
+			butterflies = 0,
+			butterflyColors = { Color3.fromRGB(245, 241, 230) },
+			birds = 3,
+			birdGap = { 12, 22 },
+			birdHeight = 24,
+			birdSpeed = 22,
+			birdColor = Color3.fromRGB(60, 66, 90),
+			lightShafts = 2,
+			shaftColor = Color3.fromRGB(255, 250, 230),
+			shaftTransparency = 0.88,
+		},
 	},
 
 	--[[ How the Mythics' area attacks look (`Fx/MythicFx`), from the owner's

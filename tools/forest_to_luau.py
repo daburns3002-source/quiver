@@ -98,6 +98,22 @@ FORESTS = {
         "matte": ("Ground",),
         "separate": False,
     },
+    "windswept": {
+        "source": "assets/models/arenas/windswept_cliffs_outer_ids.json",
+        "target": "src/shared/Config/WindsweptForest.luau",
+        "about": [
+            "The Windswept Cliffs' sky round the plateau as Claude imported it",
+            "(assets/concepts/blocky/arenas/area05_windswept_cliffs.jpg, built by",
+            "assets/models/arenas/outer5_build.py): the plateau's own cliff under",
+            "the walls, a sea of cloud far below, slate spires with grass tops,",
+            "prayer flags, floating rocks, wind streaks and a plank bridge out of",
+            "each gate, with a hole where the room goes.",
+        ],
+        # Wind streaks, drawn white in the GLB for the game to tint.
+        "glow": {"Wind": (200, 236, 255)},
+        "matte": ("CloudNW", "CloudNE", "CloudSW", "CloudSE"),
+        "separate": False,
+    },
 }
 FOREST = FORESTS[sys.argv[1] if len(sys.argv) > 1 else "glade"]
 SOURCE = ROOT / FOREST["source"]

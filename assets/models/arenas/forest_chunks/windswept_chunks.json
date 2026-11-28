@@ -1,0 +1,192 @@
+{
+ "key": "Windswept",
+ "chunks": [
+  {
+   "name": "WindsweptGlow_1",
+   "glow": true,
+   "matte": false,
+   "tint": [
+    200,
+    236,
+    255
+   ],
+   "centre": [
+    -5.825000762939453,
+    2.2039999999999997,
+    -7.825000000000003
+   ],
+   "size": [
+    128.35,
+    8.407324314117432,
+    96.3499984741211
+   ],
+   "tris": 336,
+   "members": [
+    "Wind_001",
+    "Wind_002",
+    "Wind_003",
+    "Wind_004",
+    "Wind_005",
+    "Wind_006",
+    "Wind_007"
+   ]
+  },
+  {
+   "name": "WindsweptMatte_1",
+   "glow": false,
+   "matte": true,
+   "tint": null,
+   "centre": [
+    -39.0,
+    -15.301000000000002,
+    -1.0
+   ],
+   "size": [
+    75.0,
+    3.3980407714843768,
+    120.0
+   ],
+   "tris": 10068,
+   "members": [
+    "CloudNW_001",
+    "CloudSW_001"
+   ]
+  },
+  {
+   "name": "WindsweptMatte_2",
+   "glow": false,
+   "matte": true,
+   "tint": null,
+   "centre": [
+    37.5,
+    -15.300300443649293,
+    -1.0
+   ],
+   "size": [
+    78.0,
+    3.400068355560304,
+    120.0
+   ],
+   "tris": 10272,
+   "members": [
+    "CloudNE_001",
+    "CloudSE_001"
+   ]
+  },
+  {
+   "name": "WindsweptPlain_1",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -1.3777404479980504,
+    -3.3962407045364387,
+    0.0
+   ],
+   "size": [
+    142.00747784423828,
+    27.20848159980774,
+    122.0
+   ],
+   "tris": 6408,
+   "members": [
+    "Spire_001",
+    "Spire_002",
+    "Spire_003",
+    "Spire_004",
+    "Spire_005",
+    "Spire_006",
+    "Spire_007",
+    "Spire_008",
+    "Spire_009",
+    "Spire_010",
+    "Spire_011",
+    "Spire_012",
+    "Spire_013",
+    "Spire_014",
+    "Spire_015",
+    "Spire_016",
+    "Spire_017",
+    "Spire_018",
+    "Spire_019",
+    "Spire_020",
+    "Spire_021",
+    "Spire_022",
+    "Spire_023",
+    "Spire_024",
+    "Spire_025",
+    "Spire_026",
+    "Spire_027",
+    "Spire_028",
+    "Spire_029",
+    "Spire_030",
+    "Spire_031",
+    "Spire_032",
+    "Float_001",
+    "Float_002",
+    "Float_003",
+    "Float_004",
+    "Float_005",
+    "Float_006",
+    "Float_007",
+    "Bridge_001",
+    "Bridge_002",
+    "Cliff_001",
+    "Cliff_002",
+    "Cliff_003",
+    "Cliff_004",
+    "Cliff_005",
+    "Cliff_006",
+    "Cliff_007",
+    "Cliff_008",
+    "Cliff_009",
+    "Cliff_010",
+    "Cliff_011",
+    "Cliff_012",
+    "Cliff_013",
+    "Cliff_014",
+    "Cliff_015",
+    "Cliff_016",
+    "Cliff_017",
+    "Cliff_018",
+    "Cliff_019",
+    "Cliff_020",
+    "Cliff_021",
+    "Cliff_022",
+    "Cliff_023",
+    "Cliff_024",
+    "Cliff_025",
+    "Cliff_026",
+    "Cliff_027",
+    "Cliff_028",
+    "Cliff_029",
+    "Cliff_030",
+    "Cliff_031",
+    "Cliff_032",
+    "Cliff_033",
+    "Cliff_034",
+    "Cliff_035",
+    "Cliff_036",
+    "Cliff_037",
+    "Cliff_038",
+    "Cliff_039",
+    "Cliff_040",
+    "Cliff_041",
+    "Cliff_042",
+    "Cliff_043",
+    "Cliff_044",
+    "Cliff_045",
+    "Cliff_046",
+    "Cliff_047",
+    "Cliff_048",
+    "Plateau_001",
+    "Plateau_002",
+    "Flags_001",
+    "Flags_002",
+    "Flags_003",
+    "Flags_004"
+   ]
+  }
+ ],
+ "crowns": []
+}

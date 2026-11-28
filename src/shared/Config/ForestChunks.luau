@@ -363,6 +363,39 @@ local forests: { [string]: Forest } = {
 		},
 		crowns = {},
 	},
+	Windswept = {
+		parts = {
+			{
+				name = "WindsweptGlow_1",
+				meshId = "rbxassetid://85049967589430",
+				size = Vector3.new(128.350, 8.407, 96.350),
+				offset = Vector3.new(-5.825, 2.204, -7.825),
+				glow = true,
+				tint = Color3.fromRGB(200, 236, 255),
+			},
+			{
+				name = "WindsweptMatte_1",
+				meshId = "rbxassetid://71489138109018",
+				size = Vector3.new(75.000, 3.398, 120.000),
+				offset = Vector3.new(-39.000, -15.301, -1.000),
+				matte = true,
+			},
+			{
+				name = "WindsweptMatte_2",
+				meshId = "rbxassetid://94046594894963",
+				size = Vector3.new(78.000, 3.400, 120.000),
+				offset = Vector3.new(37.500, -15.300, -1.000),
+				matte = true,
+			},
+			{
+				name = "WindsweptPlain_1",
+				meshId = "rbxassetid://134409725817318",
+				size = Vector3.new(142.007, 27.208, 122.000),
+				offset = Vector3.new(-1.378, -3.396, 0.000),
+			},
+		},
+		crowns = {},
+	},
 }
 
 return table.freeze(forests)

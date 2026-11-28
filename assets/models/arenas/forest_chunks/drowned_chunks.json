@@ -1,0 +1,158 @@
+{
+ "key": "Drowned",
+ "chunks": [
+  {
+   "name": "DrownedGlow_1",
+   "glow": true,
+   "matte": false,
+   "tint": [
+    255,
+    196,
+    110
+   ],
+   "centre": [
+    -8.0,
+    5.624999928474426,
+    -1.5
+   ],
+   "size": [
+    79.0,
+    1.8500001430511475,
+    70.0
+   ],
+   "tris": 60,
+   "members": [
+    "Lamp_001",
+    "Lamp_002",
+    "Lamp_003",
+    "Lamp_004",
+    "Lamp_005"
+   ]
+  },
+  {
+   "name": "DrownedPlain_1",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -39.0,
+    6.300000037252904,
+    -1.0
+   ],
+   "size": [
+    75.0,
+    15.00000011920929,
+    120.0
+   ],
+   "tris": 15372,
+   "members": [
+    "Rock_011",
+    "Tree_007",
+    "House_007",
+    "Rock_009",
+    "Rock_007",
+    "Boat_004",
+    "Rock_001",
+    "Tree_002",
+    "Tree_001",
+    "Fence_001",
+    "Arch_001",
+    "House_001",
+    "Barrel_002",
+    "Post_001",
+    "Ground_NW",
+    "Ground_SW"
+   ]
+  },
+  {
+   "name": "DrownedPlain_2",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    3.9041346588134758,
+    10.349999894201757,
+    -4.460463836669923
+   ],
+   "size": [
+    145.19173068237305,
+    23.099999833106995,
+    113.07907232666015
+   ],
+   "tris": 14112,
+   "members": [
+    "House_009",
+    "Tree_004",
+    "House_002",
+    "Rock_003",
+    "Barrel_004",
+    "Post_002",
+    "Rock_004",
+    "Rock_006",
+    "Ground_NE",
+    "Tower_001",
+    "House_003",
+    "Boat_001",
+    "Plank_002",
+    "Rock_008",
+    "Reeds_006",
+    "Rock_002",
+    "Pot_001",
+    "Reeds_002",
+    "Reeds_008",
+    "House_004",
+    "Reeds_011",
+    "Reeds_001",
+    "Reeds_005"
+   ]
+  },
+  {
+   "name": "DrownedPlain_3",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    1.6612647247314456,
+    5.800000037252904,
+    -0.008004745483397357
+   ],
+   "size": [
+    149.67747055053712,
+    14.00000011920929,
+    118.0160094909668
+   ],
+   "tris": 14244,
+   "members": [
+    "Reeds_010",
+    "Reeds_007",
+    "Reeds_004",
+    "Rock_010",
+    "Reeds_012",
+    "Reeds_003",
+    "Tree_003",
+    "Barrel_001",
+    "House_005",
+    "Reeds_009",
+    "Fence_002",
+    "Boat_002",
+    "Pot_002",
+    "Tree_006",
+    "Post_004",
+    "Raft_001",
+    "Ground_SE",
+    "Post_003",
+    "Tree_005",
+    "Plank_001",
+    "House_006",
+    "Rock_005",
+    "Boat_003",
+    "House_008",
+    "Pot_003",
+    "Barrel_003",
+    "Rock_012",
+    "Plank_003"
+   ]
+  }
+ ],
+ "crowns": []
+}

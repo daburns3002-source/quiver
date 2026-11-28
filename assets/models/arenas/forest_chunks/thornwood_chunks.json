@@ -1,0 +1,727 @@
+{
+ "key": "Thornwood",
+ "chunks": [
+  {
+   "name": "ThornwoodGlow_1",
+   "glow": true,
+   "matte": false,
+   "tint": [
+    255,
+    63,
+    217
+   ],
+   "centre": [
+    -7.216000000000001,
+    3.13,
+    7.289999999999999
+   ],
+   "size": [
+    129.79000000000002,
+    1.1,
+    94.854
+   ],
+   "tris": 192,
+   "members": [
+    "Berry_001",
+    "Berry_001_2",
+    "Berry_001_3",
+    "Berry_001_4",
+    "Berry_001_5",
+    "Berry_001_6",
+    "Berry_001_7",
+    "Berry_001_8",
+    "Berry_001_9",
+    "Berry_001_10",
+    "Berry_001_11",
+    "Berry_001_12",
+    "Berry_001_13",
+    "Berry_001_14",
+    "Berry_001_15",
+    "Berry_001_16"
+   ]
+  },
+  {
+   "name": "ThornwoodMatte_1",
+   "glow": false,
+   "matte": true,
+   "tint": null,
+   "centre": [
+    0.0,
+    -0.7,
+    0.0
+   ],
+   "size": [
+    150.0,
+    1.0000000447034836,
+    120.0
+   ],
+   "tris": 5974,
+   "members": [
+    "Ground_NE",
+    "Ground_NW",
+    "Ground_SE",
+    "Ground_SW",
+    "Path_NE",
+    "Path_NW",
+    "Path_SE",
+    "Path_SW"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_1",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -38.831,
+    6.455910756587982,
+    -28.078000000000003
+   ],
+   "size": [
+    72.11070823669434,
+    15.161297627449036,
+    61.901559352874756
+   ],
+   "tris": 17152,
+   "members": [
+    "Bush_0112",
+    "Bush_011",
+    "Trunk20",
+    "CanopyMesh20",
+    "Trunk22",
+    "CanopyMesh22",
+    "Bush_0192",
+    "Bush_019",
+    "Logs_NW2",
+    "CanopyMesh39",
+    "Trunk39",
+    "Logs_NW",
+    "Logs_NW3",
+    "Bramble_NW_b",
+    "Bramble_NW_b2",
+    "CanopyMesh",
+    "Trunk",
+    "Bramble_NW_a3",
+    "Bramble_NW_a",
+    "Grass_NW"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_2",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -38.577092089653014,
+    6.834377130746842,
+    -29.004000000000005
+   ],
+   "size": [
+    71.15418417930603,
+    16.072319373607638,
+    60.65752840042114
+   ],
+   "tris": 14964,
+   "members": [
+    "Bramble_NW_c2",
+    "Bramble_NW_c",
+    "Bush_0092",
+    "Bramble_NW_a2",
+    "Bush_009",
+    "Sprouts_NW2",
+    "Sprouts_NW",
+    "Trunk27",
+    "CanopyMesh27",
+    "Bush_0082",
+    "Trunk36",
+    "CanopyMesh36",
+    "Bush_008",
+    "Bush_014",
+    "Bush_0142",
+    "CanopyMesh9",
+    "Trunk9",
+    "Trunk45",
+    "Trunk453",
+    "Trunk452"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_3",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -41.4697420425415,
+    6.334412157058715,
+    9.6676755759716
+   ],
+   "size": [
+    65.09600636291503,
+    14.930457485198975,
+    90.95156320142746
+   ],
+   "tris": 16241,
+   "members": [
+    "Bramble_NW_d2",
+    "Bramble_NW_d",
+    "CanopyMesh6",
+    "Trunk6",
+    "Trunk25",
+    "Crow_001",
+    "Trunk412",
+    "Trunk41",
+    "CanopyMesh25",
+    "Trunk413",
+    "Rocks_NW",
+    "Bush_0062",
+    "Bush_006",
+    "CanopyMesh38",
+    "Trunk38",
+    "CanopyMesh40",
+    "Trunk40",
+    "CanopyMesh14",
+    "Trunk14",
+    "CanopyMesh19",
+    "Trunk19",
+    "Crow_003",
+    "Trunk43",
+    "Trunk433",
+    "Trunk432",
+    "Spike_007",
+    "Spike_0072",
+    "Bush_0042",
+    "Bush_004",
+    "Sprouts_SW",
+    "Sprouts_SW2",
+    "Bramble_SW_b",
+    "Bramble_SW_b2"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_4",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -42.147119901657106,
+    6.9123550136089325,
+    28.81862558738142
+   ],
+   "size": [
+    63.83980310440064,
+    16.19444914484024,
+    61.08765956671536
+   ],
+   "tris": 16136,
+   "members": [
+    "Bush_020",
+    "Bush_0202",
+    "Spike_006",
+    "Spike_0062",
+    "Trunk8",
+    "CanopyMesh8",
+    "Trunk10",
+    "CanopyMesh10",
+    "Rocks_SW",
+    "Trunk30",
+    "CanopyMesh30",
+    "Logs_SW",
+    "Logs_SW2",
+    "Logs_SW3",
+    "Bramble_SW_a3",
+    "Bramble_SW_d",
+    "Bramble_SW_a",
+    "Bramble_SW_d2",
+    "Bramble_SW_e2",
+    "Bush_003",
+    "Bramble_SW_e"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_5",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    -38.994,
+    6.98144712626934,
+    28.63688277003169
+   ],
+   "size": [
+    70.32833480834961,
+    16.18939467263222,
+    61.75410586446523
+   ],
+   "tris": 15917,
+   "members": [
+    "Bush_0032",
+    "Bramble_SW_a2",
+    "Bramble_SW_c",
+    "Bramble_SW_c2",
+    "Grass_SW",
+    "Trunk5",
+    "CanopyMesh5",
+    "Trunk3",
+    "CanopyMesh3",
+    "Trunk23",
+    "CanopyMesh23",
+    "Bush_0132",
+    "Bush_013"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_6",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    33.48891227173805,
+    5.796277204036712,
+    -29.783
+   ],
+   "size": [
+    82.51974461221694,
+    13.91348426914215,
+    59.91539008915424
+   ],
+   "tris": 14828,
+   "members": [
+    "Bush_012",
+    "Bush_0122",
+    "Spike_008",
+    "Spike_0082",
+    "CanopyMesh7",
+    "Trunk7",
+    "CanopyMesh31",
+    "Trunk31",
+    "CanopyMesh35",
+    "Spike_0022",
+    "Spike_002",
+    "Trunk35",
+    "Bush_005",
+    "Bush_0052",
+    "Grass_NE",
+    "Bramble_NE_d2",
+    "Bramble_NE_d",
+    "Bramble_NE_a2"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_7",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    39.67231255865097,
+    6.507937386035919,
+    -28.415999999999997
+   ],
+   "size": [
+    69.60655796337127,
+    15.228101634025576,
+    61.49253845214844
+   ],
+   "tris": 17410,
+   "members": [
+    "Bramble_NE_c2",
+    "Bramble_NE_b2",
+    "Bramble_NE_b",
+    "Bush_002",
+    "Bush_0022",
+    "CanopyMesh28",
+    "Trunk28",
+    "Trunk2",
+    "CanopyMesh2",
+    "Bramble_NE_a",
+    "Bramble_NE_a3",
+    "Logs_NE",
+    "Logs_NE2",
+    "Logs_NE3",
+    "CanopyMesh15",
+    "Trunk15",
+    "Trunk24",
+    "CanopyMesh24",
+    "Bush_0172",
+    "Bush_017",
+    "Spike_003",
+    "Spike_0032"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_8",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    37.496266907095915,
+    6.65531027507782,
+    -2.5375980949401864
+   ],
+   "size": [
+    73.76646391224861,
+    15.747484750747681,
+    113.39654070663453
+   ],
+   "tris": 14143,
+   "members": [
+    "Bramble_NE_c",
+    "Sprouts_NE",
+    "Sprouts_NE2",
+    "Rocks_NE",
+    "Spike_004",
+    "Spike_0042",
+    "Trunk37",
+    "CanopyMesh37",
+    "Trunk16",
+    "CanopyMesh16",
+    "CanopyMesh4",
+    "Trunk4",
+    "Trunk443",
+    "Trunk44",
+    "Trunk442",
+    "Crow_004",
+    "Trunk32",
+    "CanopyMesh32",
+    "Trunk18",
+    "CanopyMesh18",
+    "CanopyMesh21",
+    "Trunk21",
+    "Logs_SE",
+    "Logs_SE3",
+    "Logs_SE2",
+    "Bush_0102",
+    "Bush_010",
+    "CanopyMesh12",
+    "Trunk12",
+    "Bush_016",
+    "Bush_0162",
+    "Spike_001",
+    "Spike_0012",
+    "Sprouts_SE",
+    "Crow_002",
+    "Trunk42",
+    "Trunk423",
+    "Trunk422",
+    "Sprouts_SE2",
+    "Trunk29",
+    "CanopyMesh29",
+    "Bush_015",
+    "Bush_0152",
+    "Bramble_SE_c2"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_9",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    37.241,
+    6.021818592190742,
+    29.030429977357386
+   ],
+   "size": [
+    74.58919015154243,
+    14.36061536002159,
+    61.33129929053783
+   ],
+   "tris": 16941,
+   "members": [
+    "CanopyMesh33",
+    "Trunk33",
+    "Trunk46",
+    "Trunk463",
+    "Trunk462",
+    "Trunk13",
+    "CanopyMesh13",
+    "Rocks_SE",
+    "Bush_007",
+    "Bush_0072",
+    "Bush_0182",
+    "Bush_018",
+    "Bramble_SE_a2",
+    "Bramble_SE_c",
+    "Grass_SE",
+    "Bramble_SE_b2"
+   ]
+  },
+  {
+   "name": "ThornwoodPlain_10",
+   "glow": false,
+   "matte": false,
+   "tint": null,
+   "centre": [
+    38.01611550498008,
+    6.425581384778022,
+    28.798795008897784
+   ],
+   "size": [
+    72.44416643953323,
+    15.180100948095323,
+    61.39094640493393
+   ],
+   "tris": 17252,
+   "members": [
+    "Bramble_SE_b",
+    "Bramble_SE_a",
+    "Bramble_SE_d2",
+    "Bramble_SE_a3",
+    "Bramble_SE_d",
+    "CanopyMesh11",
+    "Trunk11",
+    "Trunk26",
+    "CanopyMesh26",
+    "Bush_001",
+    "Bush_0012",
+    "Trunk17",
+    "CanopyMesh17",
+    "Trunk34",
+    "CanopyMesh34",
+    "Spike_005",
+    "Spike_0052"
+   ]
+  }
+ ],
+ "crowns": [
+  {
+   "x": -48.626,
+   "z": -43.981,
+   "reach": 14.074,
+   "top": 14.0365
+  },
+  {
+   "x": 44.98,
+   "z": -49.628,
+   "reach": 10.794,
+   "top": 12.392
+  },
+  {
+   "x": -36.416,
+   "z": 50.351,
+   "reach": 13.829,
+   "top": 14.063
+  },
+  {
+   "x": 67.65,
+   "z": -15.543,
+   "reach": 13.193,
+   "top": 14.529
+  },
+  {
+   "x": -38.295,
+   "z": 27.976,
+   "reach": 14.062,
+   "top": 15.075999999999999
+  },
+  {
+   "x": -40.57,
+   "z": -16.227,
+   "reach": 11.753,
+   "top": 12.350999999999999
+  },
+  {
+   "x": 15.428,
+   "z": -54.719,
+   "reach": 5.662,
+   "top": 12.720500000000001
+  },
+  {
+   "x": -64.951,
+   "z": 28.964,
+   "reach": 12.759,
+   "top": 15.009500000000001
+  },
+  {
+   "x": -15.017,
+   "z": -49.022,
+   "reach": 7.934,
+   "top": 13.254
+  },
+  {
+   "x": -62.35,
+   "z": 50.259,
+   "reach": 7.246,
+   "top": 12.9245
+  },
+  {
+   "x": 41.737,
+   "z": 31.81,
+   "reach": 13.61,
+   "top": 14.0155
+  },
+  {
+   "x": 47.671,
+   "z": 11.512,
+   "reach": 10.444,
+   "top": 13.299
+  },
+  {
+   "x": 23.071,
+   "z": 50.423,
+   "reach": 6.428,
+   "top": 13.043
+  },
+  {
+   "x": -39.017,
+   "z": 8.022,
+   "reach": 8.446,
+   "top": 12.8125
+  },
+  {
+   "x": 60.399,
+   "z": -49.014,
+   "reach": 13.358,
+   "top": 14.122
+  },
+  {
+   "x": 49.734,
+   "z": -19.624,
+   "reach": 8.565,
+   "top": 13.2045
+  },
+  {
+   "x": 59.088,
+   "z": 36.087,
+   "reach": 5.225,
+   "top": 12.9365
+  },
+  {
+   "x": 30.749,
+   "z": 2.173,
+   "reach": 9.2,
+   "top": 13.365499999999999
+  },
+  {
+   "x": -63.804,
+   "z": 12.497,
+   "reach": 12.911,
+   "top": 13.799499999999998
+  },
+  {
+   "x": -67.627,
+   "z": -25.68,
+   "reach": 5.917,
+   "top": 12.574
+  },
+  {
+   "x": 66.657,
+   "z": 4.286,
+   "reach": 9.681,
+   "top": 12.9185
+  },
+  {
+   "x": -64.895,
+   "z": -48.965,
+   "reach": 10.922,
+   "top": 13.3435
+  },
+  {
+   "x": -14.338,
+   "z": 52.425,
+   "reach": 11.053,
+   "top": 12.748000000000001
+  },
+  {
+   "x": 61.541,
+   "z": -30.399,
+   "reach": 9.988,
+   "top": 12.488999999999999
+  },
+  {
+   "x": -58.036,
+   "z": -14.445,
+   "reach": 11.822,
+   "top": 13.384
+  },
+  {
+   "x": 45.407,
+   "z": 50.565,
+   "reach": 11.565,
+   "top": 12.683
+  },
+  {
+   "x": -31.73,
+   "z": -33.355,
+   "reach": 11.481,
+   "top": 13.397
+  },
+  {
+   "x": 43.233,
+   "z": -34.721,
+   "reach": 9.539,
+   "top": 12.284500000000001
+  },
+  {
+   "x": 63.035,
+   "z": 22.046,
+   "reach": 8.047,
+   "top": 13.174
+  },
+  {
+   "x": -50.392,
+   "z": 51.714,
+   "reach": 6.594,
+   "top": 12.31
+  },
+  {
+   "x": 16.796,
+   "z": -42.268,
+   "reach": 5.99,
+   "top": 12.2805
+  },
+  {
+   "x": 45.297,
+   "z": -2.427,
+   "reach": 4.493,
+   "top": 13.3275
+  },
+  {
+   "x": 9.409,
+   "z": 52.438,
+   "reach": 11.231,
+   "top": 13.202
+  },
+  {
+   "x": 61.741,
+   "z": 52.484,
+   "reach": 10.672,
+   "top": 13.504
+  },
+  {
+   "x": 30.242,
+   "z": -52.948,
+   "reach": 8.159,
+   "top": 12.753
+  },
+  {
+   "x": -31.274,
+   "z": -50.658,
+   "reach": 13.795,
+   "top": 14.8705
+  },
+  {
+   "x": 28.886,
+   "z": -20.487,
+   "reach": 5.524,
+   "top": 12.303
+  },
+  {
+   "x": -35.716,
+   "z": -4.374,
+   "reach": 6.949,
+   "top": 12.3945
+  },
+  {
+   "x": -52.0,
+   "z": -27.374,
+   "reach": 5.554,
+   "top": 12.5095
+  },
+  {
+   "x": -57.845,
+   "z": -0.891,
+   "reach": 6.129,
+   "top": 12.777000000000001
+  }
+ ]
+}

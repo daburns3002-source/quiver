@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ForestChunks = require(ReplicatedStorage.Shared.Config.ForestChunks)
 local TestRunner = require(script.Parent.TestRunner)
 local ThornwoodForest = require(ReplicatedStorage.Shared.Config.ThornwoodForest)
 
@@ -35,7 +36,12 @@ return function(t: TestRunner.Helper)
 			{ "ThornHedges", "ThornHollow", "ThornBoulders", "ThornBrambles", "ThornBoss" }
 		do
 			local model = (ArenaModels :: any)[name]
-			t.isTrue(model.parts == ThornwoodForest, name .. " is not in Thornwood's wood")
+			local chunks = ForestChunks.Thornwood
+			t.isTrue(model.forest == "Thornwood", name .. " is not in Thornwood's wood")
+			t.isTrue(
+				model.parts == (if chunks then chunks.parts else ThornwoodForest),
+				name .. " does not draw Thornwood's wood"
+			)
 			t.isTrue(
 				Balance.Ambience[model.ambience] ~= nil,
 				name .. "'s ambience has no Balance entry"

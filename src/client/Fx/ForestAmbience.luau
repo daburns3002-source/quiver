@@ -17,8 +17,10 @@
 	`Balance.Ambience`, an entry per area (the glade's Forest, Thornwood's
 	crows and pollen), named by that attribute.
 
-	The handoff also sways each tree in the gusts. The glades' trees are
-	one merged mesh, so that waits until they are split into trees.
+	The handoff also sways each tree in the gusts. The outer forests are
+	drawn as a few merged chunks (`Config/ForestChunks`, owner 2026-11-27:
+	about a hundred draws a room saved), so their trees cannot sway one by
+	one; their crowns come from that config instead of from parts.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -28,6 +30,7 @@ local Workspace = game:GetService("Workspace")
 local AmbienceVolumes = require(ReplicatedStorage.Shared.Util.AmbienceVolumes)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local ForestChunks = require(ReplicatedStorage.Shared.Config.ForestChunks)
 
 local ForestAmbience = {}
 
@@ -128,6 +131,25 @@ local function addCrown(part: Instance)
 		top = top,
 	})
 	crownsTop = math.max(crownsTop, top)
+	crownsChanged = true
+end
+
+--[[ The crowns of a merged outer forest (the room's `Forest` attribute),
+     read from its config: the chunks name no trees. ]]
+local function addForestCrowns(key: unknown)
+	local forest = if type(key) == "string" then ForestChunks[key] else nil
+	if not forest then
+		return
+	end
+	for _, crown in forest.crowns do
+		table.insert(crowns, {
+			x = crown.x,
+			z = crown.z,
+			radius = crown.reach * CROWN_REACH,
+			top = crown.top,
+		})
+		crownsTop = math.max(crownsTop, crown.top)
+	end
 	crownsChanged = true
 end
 
@@ -518,6 +540,7 @@ function ForestAmbience.start()
 			arenaConnection = nil
 		end
 		if arena then
+			addForestCrowns(arena:GetAttribute("Forest"))
 			for _, d in arena:GetDescendants() do
 				addCrown(d)
 			end

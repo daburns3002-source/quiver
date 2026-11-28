@@ -123,7 +123,7 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
 | Mossy Glade kit (9 pieces) | 5,018 | 9 | 7% buried faces |
 | Thornwood kit (5 pieces) | 5,032 | 5 | 4% buried faces |
 | Bramble Hedge v2 | 2,364 | 1 | no buried faces; 16 per room |
-| Mossy Glade outer forest (`GladeForest`) | ~63k in view | 253 meshes | each tree its own mesh, for sway |
+| Mossy Glade outer forest (`GladeForest`) | 92,522 | 7 chunks (was 252 meshes) | merged 2026-11-27, see below |
 | Weapons and skins (35 imports) | 154–4,252 each, 51k in all | 1–5 each | one in hand at a time |
 | Round enemies (Moss, Brood, Baby Slime, Splitter Spitter, Ember Wilf) | 3,347–7,515 each | 1–3 each | already merged |
 
@@ -163,9 +163,8 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
    flashes) must keep those parts apart. It needs every model re-imported
    (File → Import 3D, Merge Meshes off) and its configs regenerated. Not
    started.
-2. **Merge the outer forest into a few chunks.** 100 of a room's ~190
-   draws are the forest's trees, each its own mesh. A few merged chunks would
-   draw in about ten, but that gives up the planned per-tree sway.
+2. **Merge the outer forest into a few chunks.** Done 2026-11-27 (the
+   owner's pick): see [The outer forest in chunks](#the-outer-forest-in-chunks-2026-11-27).
 3. **Shadows off on the Low tier.** Done 2026-11-27 (the owner's pick):
    see [Shadows on the Low tier](#shadows-on-the-low-tier-2026-11-27).
 4. **Clean out `ServerStorage.Imports`.** About 100 import models (the
@@ -192,6 +191,56 @@ minimized for the whole session. To take it: `DevTier` "Low", Play, and
 `tools/studio/perf_room.luau` once with `Lighting.GlobalShadows` forced on
 and once as the tier leaves it, same room (the shadow pass does not show in
 `RenderBreakdown`'s draws, so compare GPU and render-thread ms).
+
+## The outer forest in chunks (2026-11-27)
+
+Every tree of an area's outer forest (the scenery past the walls) was its
+own mesh, 72 to 304 of them, none alike, so none could share a draw.
+`tools/forest_chunks.py` merges each forest by how Arena draws it (plain,
+matte, each glow tint) and by place into chunks of at most 19,000
+triangles, uploaded as meshes; `Config/ForestChunks` puts them in the
+rooms in place of the per-tree layout. The trees inside the walls are
+untouched. Checked in Studio: each chunk's mesh holds the triangles its
+layout says (92,522, 167,150, 43,788 and 35,880 a forest), at its config's
+size within 0.001 studs, and the chunks fill the same box as the trees did.
+`Fx/ForestAmbience` takes its crowns (what lives on the canopy sits on them) from the
+chunks' layout, since there are no crown parts left to read. The outer
+trees can no longer sway one by one, which the owner accepted.
+
+| Forest | Meshes before | After | Triangles |
+|---|---:|---:|---:|
+| Mossy Glade (`GladeForest`) | 252 | 7 | 92,522 |
+| Thornwood | 248 | 12 | 167,150 |
+| Drowned Village | 72 | 4 | 43,788 |
+| Bogheart Caverns | 304 | 6 | 35,880 |
+
+What a room draws of its forest, from the game camera's own view
+(`Camera/TopDownCamera`, the focus at five places along the room): the
+engine skips a part whose box is wholly outside the view, so a tree out of
+sight cost nothing, but a chunk is drawn whole if any of it shows.
+
+| Forest | Screen | Draws, per tree → chunks | Triangles, per tree → chunks |
+|---|---|---:|---:|
+| Mossy Glade | PC 1920 x 1080 | 93–100 → 7 | 59–60k → 93k |
+| Mossy Glade | phone sideways | 39–46 → 6–7 | 30–49k → 76–93k |
+| Mossy Glade | phone upright | 33–45 → 7 | 47–49k → 93k |
+| Thornwood | PC | 119–125 → 12 | 152k → 167k |
+| Thornwood | phone sideways | 51–79 → 8–12 | 71–147k → 101–167k |
+| Thornwood | phone upright | 61–64 → 12 | 129–131k → 167k |
+| Drowned Village | PC | 33–38 → 4 | 33–36k → 44k |
+| Drowned Village | phones | 18–24 → 4 | 20–30k → 44k |
+| Bogheart Caverns | PC | 83–93 → 6 | 26–27k → 36k |
+| Bogheart Caverns | phones | 29–46 → 6 | 13–23k → 36k |
+
+The glade's PC figures match what Studio drew on 2026-10-25 (100 draws,
+about 64k triangles, above). So a room makes 30–120 fewer draws and
+draws up to about 45k more triangles. **Not measured:** the GPU and
+render-thread time with Studio drawing (it was minimized for the whole
+session); take them with `tools/studio/perf_room.luau` on main against
+the commit before this one. If triangles turn out to cost a phone more
+than the draws saved, smaller chunks (`MAX_TRIS` in the tool) trade some
+draws back for culling, and removing a forest's entry from
+`Config/ForestChunks` draws it per tree again.
 
 ## Loading ahead: the next room and the cards (2026-10-26)
 

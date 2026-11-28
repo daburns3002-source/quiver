@@ -107,6 +107,7 @@ return function(t: TestRunner.Helper)
 				Thornwood = true,
 				DrownedVillage = true,
 				BogheartCaverns = true,
+				WindsweptCliffs = true,
 			}
 			local without = table.clone(bosses)
 			without[a.area] = nil

@@ -44,9 +44,10 @@ local RunSession = require(ServerScriptService.Server.Run.RunSession)
 local TestRunner = require(script.Parent.TestRunner)
 
 --[[ Whether a pet's whole job is keeping its owner from harm: a shell, a
-     shelter or a coat. ]]
+     shelter, a coat or a wall. ]]
 local function protects(spec: any): boolean
-	return spec ~= nil and (spec.guard == true or spec.shelter ~= nil or spec.coat ~= nil)
+	return spec ~= nil
+		and (spec.guard == true or spec.shelter ~= nil or spec.coat ~= nil or spec.wall ~= nil)
 end
 
 return function(t: TestRunner.Helper)
@@ -70,7 +71,9 @@ return function(t: TestRunner.Helper)
 	t.test("a pet protects in one way only", function()
 		for key, spec in PetCombatConfig.pets do
 			local ways = 0
-			for _, has in { spec.guard == true, spec.shelter ~= nil, spec.coat ~= nil } do
+			for _, has in
+				{ spec.guard == true, spec.shelter ~= nil, spec.coat ~= nil, spec.wall ~= nil }
+			do
 				if has then
 					ways += 1
 				end

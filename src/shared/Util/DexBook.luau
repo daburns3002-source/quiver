@@ -88,7 +88,8 @@ local RANK = {
 --[[ The areas in the order the game plays them, so enemies group by where
      they are met rather than by name. An area not listed here sorts after
      all of them, which is what a new one does until it is added. ]]
-DexBook.AREAS = { "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns" }
+DexBook.AREAS =
+	{ "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns", "WindsweptCliffs" }
 local AREAS: { [string]: number } = {}
 for index, area in DexBook.AREAS do
 	AREAS[area] = index

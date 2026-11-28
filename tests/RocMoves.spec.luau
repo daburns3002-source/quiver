@@ -15,7 +15,7 @@ local BossMoves = require(ServerScriptService.Server.Enemies.BossMoves)
 local RocMoves = require(ServerScriptService.Server.Enemies.RocMoves)
 local TestRunner = require(script.Parent.TestRunner)
 
-local boss = Balance.Benched.TempestRoc.boss :: Balance.EnemyBoss
+local boss = Balance.Enemies.TempestRoc.boss :: Balance.EnemyBoss
 local roc = boss.roc :: Balance.BossRoc
 
 local FRAME = 1 / 60

@@ -531,6 +531,10 @@ Remotes.PlayerShoved = "PlayerShoved"
      (`Arena/CliffFalls`): who, and where they landed back on the floor. ]]
 Remotes.PlayerFell = "PlayerFell"
 
+--[[ Server → all clients. A Wind Tunnel gust is coming (`Arena/WindGusts`):
+     the way it blows (a flat unit vector) and the seconds until it pushes. ]]
+Remotes.WindGust = "WindGust"
+
 --[[ Server → one client. A boss holds this player still for the given
      seconds (the Slime Lash's grab); 0 lets go. Time-limited, so a boss
      that dies mid-grab cannot leave anyone stuck. ]]

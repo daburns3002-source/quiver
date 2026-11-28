@@ -97,7 +97,14 @@ local Shop = {
 			stocked = true,
 			atLaunch = "DrownedVillage",
 		},
-		{ area = "WindsweptCliffs", name = "WINDSWEPT CLIFFS", price = 10000 },
+		-- stocked with its levels (2026-11-27, docs/WINDSWEPT-CLIFFS.md)
+		{
+			area = "WindsweptCliffs",
+			name = "WINDSWEPT CLIFFS",
+			price = 10000,
+			stocked = true,
+			atLaunch = "BogheartCaverns",
+		},
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },
 

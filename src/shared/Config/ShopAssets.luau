@@ -34,6 +34,8 @@ local ShopAssets = {
 		-- the Drowned Village's and Bogheart's (Codex, `items34_raw.png`, 2026-11-13)
 		TollBronze = "rbxassetid://98531169043073",
 		BogPearl = "rbxassetid://91760436326016",
+		-- the Tempest Roc's (assets/ui/shop/icons/StormFeather.png, 2026-11-26)
+		StormFeather = "rbxassetid://125127338283880",
 	} :: { [string]: string },
 	weapons = {
 		TwigBow = "rbxassetid://138984353895385",

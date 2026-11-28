@@ -217,9 +217,28 @@ has.
 
 | Stage | PR | State |
 |---|---|---|
-| Enemies (Harpy, Gust Shaman, Cliff Goat, Storm Roc; flyer; push shots) | | not started |
-| The Tempest Roc | | not started |
-| Arena (kit, three layouts, edges, outer cliffs) | | not started |
-| Pets and egg | | not started |
-| Weapons | | not started |
-| Levels, portal, economy, crate, story | | not started |
+| Enemies (Harpy, Gust Shaman, Cliff Goat, Storm Roc; flyer; push shots) | #689 | merged 2026-11-27 |
+| The Tempest Roc | #689 | merged 2026-11-27 (with the enemies and the edges) |
+| Weapons | #699 | merged 2026-11-28 |
+| Pets and egg (and area 5's models merged per joint) | #700 | merged 2026-11-28 |
+| Arena (kit, three layouts, edges, outer cliffs in chunks) | #701 | merged 2026-11-28 |
+| Levels, Wind Tunnel, portal, economy, crate, story | this PR | 2026-11-28 |
+
+**Checked in Studio (2026-11-28)**, the four branches together: a bot run
+of 5-1..5-15, one after the other, the player kept alive, two of the eight
+pets out each level. Every level won, the Tempest Roc in 5-15's last room,
+no script errors on the client or the server. Per level (seconds, damage the
+player would have taken): 5-1 139 s 115, 5-2 123 s 58, 5-3 124 s 0, 5-4
+199 s 0, 5-5 196 s 0, 5-6 215 s 0, 5-7 234 s 336, 5-8 231 s 0, 5-9 265 s 0,
+5-10 253 s 0, 5-11 274 s 108, 5-12 268 s 0, 5-13 289 s 0, 5-14 264 s 0,
+5-15 357 s 356. The bot ran a strong loadout (an S-tier weapon at 3x), so
+these say every room can be won and the gates reached, not how hard the
+area is. A Wind Tunnel gust in 5-6 warned 1.5 s ahead and carried the
+player 4.2 studs.
+
+**Left for later** (not part of the six stages):
+- The pets' own attack pieces: older pieces stand in (`Config/PetAttacks`).
+- The area's sound sprite (harpy, gust, goat, Roc, thunder, edge fall): one
+  audio upload, approved; stand-ins play until then.
+- Area 5's trails (the Trails spec wants three an area).
+- How hard 5-1..5-15 really are: a bot run on a level-1 loadout.

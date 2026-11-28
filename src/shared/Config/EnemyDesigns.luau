@@ -723,7 +723,7 @@ local EnemyDesigns = {
 			clips = "Harpy",
 			eyes = "eyeglow",
 			eyeColor = EYE_ICE,
-			lift = 1.2,
+			lift = 1,
 		},
 		GustShaman = {
 			model = "GustShaman",

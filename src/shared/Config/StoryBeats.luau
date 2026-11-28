@@ -62,7 +62,8 @@ local StoryBeats = {}
 
 --[[ The areas in story order, the order beats play in when more than one is
      owed at once. ]]
-StoryBeats.order = { "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns" }
+StoryBeats.order =
+	{ "MossyGlade", "Thornwood", "DrownedVillage", "BogheartCaverns", "WindsweptCliffs" }
 
 --[[ Seconds: black before the first still, a still dissolving into the
      next, the words coming up after their still, the black after the last. ]]
@@ -107,6 +108,11 @@ StoryBeats.pictures = {
 	b4b = { left = "rbxassetid://82859706757050", right = "rbxassetid://139062074499777" },
 	b4c = { left = "rbxassetid://107160632018196", right = "rbxassetid://127133838770273" },
 	b4d = { left = "rbxassetid://92744465655031", right = "rbxassetid://88952928826693" },
+	-- the Windswept Cliffs' (2026-11-26, assets/ui/story/beats/b5*.jpg)
+	b5a = { left = "rbxassetid://90747476094606", right = "rbxassetid://73875066713483" },
+	b5b = { left = "rbxassetid://90659247795315", right = "rbxassetid://82660565267978" },
+	b5c = { left = "rbxassetid://83211541394967", right = "rbxassetid://120632893141591" },
+	b5d = { left = "rbxassetid://135938713408422", right = "rbxassetid://107459413929187" },
 } :: { [string]: { left: string, right: string } }
 
 local glade: Beat = {
@@ -255,6 +261,47 @@ local caverns: Beat = {
 		{
 			picture = "b4d",
 			words = "WANTED: THE TEMPEST ROC",
+			sub = "Its storms keep everyone off the cliffs.",
+			poster = true,
+			hold = 4.2,
+			from = WIDE,
+			to = { zoom = 1.14, x = 0.5, y = 0.44 },
+			sound = "new_item",
+		},
+	},
+}
+
+--[[ The Windswept Cliffs (2026-11-27, docs/WINDSWEPT-CLIFFS.md): the
+     storm breaks, and the cold comes down from the next pass. ]]
+local cliffs: Beat = {
+	boss = "The Tempest Roc",
+	stills = {
+		{
+			picture = "b5a",
+			words = "The Tempest Roc crashes down and drops a Tempest Feather!",
+			hold = 3.4,
+			from = WIDE,
+			to = { zoom = 1.12, x = 0.5, y = 0.5 },
+			sound = "reveal_glitter",
+		},
+		{
+			picture = "b5b",
+			words = "The storm clears, and the bridges stop swaying.",
+			hold = 3.6,
+			from = { zoom = 1.2, x = 0.42, y = 0.5 },
+			to = { zoom = 1.2, x = 0.58, y = 0.5 },
+		},
+		{
+			picture = "b5c",
+			words = "But the wind turns cold... snow is falling on the pass.",
+			hold = 3.2,
+			from = WIDE,
+			to = { zoom = 1.1, x = 0.5, y = 0.46 },
+			sound = "fx_wind_gust",
+		},
+		{
+			picture = "b5d",
+			words = "WANTED: RIMEHEART, THE YETI KING",
 			sub = "To be continued...",
 			poster = true,
 			hold = 4.2,
@@ -271,6 +318,7 @@ StoryBeats.beats = {
 	Thornwood = thornwood,
 	DrownedVillage = village,
 	BogheartCaverns = caverns,
+	WindsweptCliffs = cliffs,
 } :: { [string]: Beat }
 
 return table.freeze(StoryBeats)

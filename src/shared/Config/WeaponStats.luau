@@ -84,7 +84,7 @@ local WeaponStats = {
 		`tests/ConfigConsistency.spec` now holds to areas that have stages
 		to earn them in.
 	]]
-	areaScale = { 1, 1.125, 1.25, 1.375 } :: { number },
+	areaScale = { 1, 1.125, 1.25, 1.375, 1.5 } :: { number },
 
 	weapons = {
 		-- The classes' own (area 1, Common).
@@ -412,6 +412,76 @@ local WeaponStats = {
 			area = 4,
 			innate = { PhantomBlades = 1 },
 			effect = "Prism shards: two ghost daggers circle you and cut what they touch.",
+		},
+
+		--[[ The Windswept Cliffs, area 5 (docs/WINDSWEPT-CLIFFS.md, owner's
+		     go 2026-11-26): Tripo models of Codex's front views
+		     (`assets/concepts/blocky/weapons/skins/windswept/`), one dagger
+		     each. Each Legendary's and Mythic's effect is a card its own
+		     class can draw; Wind Arrows, Phoenix Arrow, Arcane Shield, Shield
+		     Throw and Quickstep were no weapon's before. ]]
+		SlatewoodBow = { rarity = "Uncommon", area = 5 },
+		HarpyBow = { rarity = "Rare", area = 5 },
+		GalestringLongbow = { rarity = "Epic", area = 5 },
+		RocsWingBow = {
+			rarity = "Legendary",
+			area = 5,
+			innate = { WindArrows = 1 },
+			effect = "Roc's wing: arrows knock enemies twice as far and blow their shots away.",
+		},
+		SkyrenderBow = {
+			rarity = "Mythic",
+			area = 5,
+			innate = { PhoenixArrow = 1 },
+			effect = "Skyrender: every 8th arrow is a thunderbird that tears through everything.",
+		},
+
+		CloudspunStaff = { rarity = "Uncommon", area = 5 },
+		GustcallerStaff = { rarity = "Rare", area = 5 },
+		PrayerflagStaff = { rarity = "Epic", area = 5 },
+		TempestStaff = {
+			rarity = "Legendary",
+			area = 5,
+			innate = { ArcaneShield = 1 },
+			effect = "Tempest ward: a wall of wind blocks one hit, then comes back.",
+		},
+		EyeOfTheStorm = {
+			rarity = "Mythic",
+			area = 5,
+			innate = { ChainLightning = 1 },
+			effect = "Eye of the storm: every orb arcs on to two more.",
+		},
+
+		LedgestoneBlade = { rarity = "Uncommon", area = 5 },
+		RamhornCleaver = { rarity = "Rare", area = 5 },
+		WindcutterBlade = { rarity = "Epic", area = 5 },
+		StormtalonBlade = {
+			rarity = "Legendary",
+			area = 5,
+			innate = { ShieldThrow = 1 },
+			effect = "Stormtalon: your dash flings a talon that bounces between three enemies.",
+		},
+		ThunderheadBlade = {
+			rarity = "Mythic",
+			area = 5,
+			innate = { BladeStorm = 1 },
+			effect = "Thunderhead: every fifth swing throws a thundercloud sword out and back.",
+		},
+
+		FlintTalon = { rarity = "Uncommon", area = 5 },
+		HarpyClaw = { rarity = "Rare", area = 5 },
+		StormQuill = { rarity = "Epic", area = 5 },
+		ThunderbeakDagger = {
+			rarity = "Legendary",
+			area = 5,
+			innate = { Quickstep = 1 },
+			effect = "Tailwind: a kill brings your dash back sooner.",
+		},
+		ZephyrFang = {
+			rarity = "Mythic",
+			area = 5,
+			innate = { VengefulSpirit = 1 },
+			effect = "Zephyr: a fan of feathers flies with your strikes.",
 		},
 
 		--[[ Neon Circuit (owner, 2026-11-18; docs/WEAPONS-THEMED.md): a themed

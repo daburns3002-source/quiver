@@ -172,6 +172,29 @@ local ShopAssets = {
 		CaplightBlade = "rbxassetid://84960466576463",
 		GulpfangBlade = "rbxassetid://96938087300130",
 		DeepglowBlade = "rbxassetid://99421700524406",
+		--[[ The Windswept Cliffs (area 5): Codex's single-view art each Tripo
+		     model was made from, keyed out and leaned by
+		     `assets/ui/shop/windswept_icons.py`, the daggers crossed in pairs. ]]
+		SlatewoodBow = "rbxassetid://133742907801002",
+		HarpyBow = "rbxassetid://130585073767301",
+		GalestringLongbow = "rbxassetid://88124773959801",
+		RocsWingBow = "rbxassetid://89053002794151",
+		SkyrenderBow = "rbxassetid://99949228439441",
+		CloudspunStaff = "rbxassetid://96604832922790",
+		GustcallerStaff = "rbxassetid://74596668918659",
+		PrayerflagStaff = "rbxassetid://88248538769309",
+		TempestStaff = "rbxassetid://90365967811478",
+		EyeOfTheStorm = "rbxassetid://126701549126145",
+		LedgestoneBlade = "rbxassetid://82580002455346",
+		RamhornCleaver = "rbxassetid://94632151829982",
+		WindcutterBlade = "rbxassetid://93270409602047",
+		StormtalonBlade = "rbxassetid://124484462633933",
+		ThunderheadBlade = "rbxassetid://73573310500453",
+		FlintTalon = "rbxassetid://92570983118719",
+		HarpyClaw = "rbxassetid://120117726588354",
+		StormQuill = "rbxassetid://136521562218402",
+		ThunderbeakDagger = "rbxassetid://106782679292573",
+		ZephyrFang = "rbxassetid://75217226709521",
 	} :: { [string]: string },
 }
 

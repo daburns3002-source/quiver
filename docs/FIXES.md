@@ -89,6 +89,16 @@ link and the code-guess limit resetting on rejoin are worth little and were not 
 enemy stuck out of reach was added: none of the four found one that can get there, and the bot's run-throughs
 never met one.
 
+**Measured (Studio, 2026-11-28, the branch synced whole):** in-Roblox suite 1448 of 1448. In Play: the
+client's `ResetButtonCallback` reads false; the Soulstone shop sells a new Ranger Mossy Glade's crate and
+not Thornwood's, the Drowned Village's, Bogheart's or the Windswept Cliffs', and each once its lock is
+beaten; `RunSession`'s bind and unbind on a session of their own: a body lost at 100 of 225 in a run comes
+back at 100, one back after a real death at 225, one back while down stays down, one swapped in the lobby
+at 60 comes back at 225. No client errors in the Play. **Not played:** the co-op and teleport cases (a
+second player at the title, a teammate's revive prompt, a checkpoint leaver, a failed teleport, a save
+that fails as a player leaves); Studio's Play has one player and no teleports, so those are read and
+typed, not seen.
+
 **What held up:** all 54 inbound remotes were read by the hacker; no price or amount is taken from a client,
 every claim is marked before it pays, receipts are idempotent and no Debug remote answers outside Studio.
 The run's steps are the server's: there is no remote for "next room" or "run complete".

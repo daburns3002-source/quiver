@@ -138,6 +138,36 @@ right.
 
 ---
 
+### The idle clock (built 2026-11-28)
+
+A card screen and an Endless checkpoint hold the world for the whole party, and they used to hold
+it for as long as one player left them open: a teammate away from the keyboard stopped the run for
+good, and BACK TO LOBBY was the only way on (the four-playtester pass; owner the same day: "Yes,
+add it"). With more than one player in the run the server now answers a screen left open
+(`Shared/Util/IdlePick`, numbers in `Coop.idle`):
+
+- **A card screen**, 30 seconds after it opens: the rarest card in the hand, the leftmost of
+  equals. A redeal starts the 30 seconds again, and so does the next hand of a double level-up.
+- **An Endless checkpoint**, 30 seconds after it opens: FULL HEAL for whoever has not picked.
+  Never BANK & LEAVE, which ends the run for everybody, and never the Soulstone cache: nothing
+  is paid for being away.
+- **Alone, nothing is timed.** It counts the players in the run now, not the party's locked
+  size, so a player whose teammate has left reads as long as they like.
+
+The pick goes through the same server functions as a pressed one (`RunSession.chooseAbility`,
+`RoomController.endlessPick`), so nothing about it is new to validate.
+
+On screen (`UI/IdleClock`), one gold pill: **PICKING FOR YOU IN 9** over the open screen's own
+heading for the chooser's last ten seconds; **WAITING FOR ALEX: 23** at the top of the screen for
+a teammate with no screen of their own; **PICKED FOR YOU: MULTISHOT** once it is done. The clocks
+it reads are Player attributes in server time (`DraftPickBy`, `CheckpointPickBy`).
+
+Not timed: the end screen (anyone may press its buttons), MENU's panel and a first-time tip
+(each already on a budget of its own).
+
+Studio's Play has one player: `IdlePickSolo` on Workspace (Studio only) times a lone player's
+screens so the clock can be watched there.
+
 ## Co-op Endless
 
 Falls out almost free once Endless is a stage mode and the party loop runs it. The two

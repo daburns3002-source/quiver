@@ -63,6 +63,7 @@ local HatcheryPointer = require(script.Parent.Fx.HatcheryPointer)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
+local IdleClock = require(script.Parent.UI.IdleClock)
 local IntroCutscene = require(script.Parent.UI.IntroCutscene)
 local LobbyHud = require(script.Parent.UI.LobbyHud)
 local LobbyMotes = require(script.Parent.Fx.LobbyMotes)
@@ -726,6 +727,23 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent
 			FirstTips.show("Reroll")
 		end
 	end)
+
+--[[ Co-op's idle clock (`Shared/Util/IdlePick`): its line, and the server's
+     word that it has picked for this player. The screen it answered shuts
+     as it would on the player's own pick; nothing is sent back. ]]
+IdleClock.start()
+Remotes.event(Remotes.IdlePick).OnClientEvent:Connect(function(kind: unknown, name: unknown)
+	if kind == "Card" then
+		DraftScreen.hide()
+		RunPaused.set(false)
+	elseif kind == "Gift" then
+		EndlessCheckpoint.close()
+	else
+		return
+	end
+	SoundFx.play("card_pick")
+	IdleClock.picked(if type(name) == "string" then name else "")
+end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
 

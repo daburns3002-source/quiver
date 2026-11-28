@@ -327,6 +327,15 @@ Remotes.PortalStart = "PortalStart"
 Remotes.PartyNotice = "PartyNotice"
 
 --[[
+	Server → one client. Co-op: your card screen or checkpoint stood open
+	past the idle clock and the server has answered it (`Util/IdlePick`):
+	`kind` is "Card" or "Gift", `name` what was taken. The screen shuts and
+	a line says so (`UI/IdleClock`). Sent before the pick is applied, so a
+	card owed straight after opens over a screen already shut.
+]]
+Remotes.IdlePick = "IdlePick"
+
+--[[
 	Client → server. INVITE on the party panel (`UI/PartyScreen`): the user
 	id of a player in this server to ask into a party. The server checks
 	everything (`Run/Parties`, `Util/PartyRules`): both free in this lobby,

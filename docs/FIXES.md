@@ -16,6 +16,39 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Co-op: one player away from the keyboard held the run at a card screen or a checkpoint (2026-11-28)
+
+**Seen:** not on live; the bored-quitter and speedrunner passes of the four-playtester pass both read it
+out of the code, and it was left as the one decision for the owner ("Yes, add it", the same day). A card
+screen holds the world for everybody (`RunSession.anyChoosing`) and so does an Endless checkpoint until
+every living player has picked; neither had a clock, so a teammate who walked away with one open stopped
+the run for as long as they were gone. The other player saw a room standing still, with nothing to say
+why, and BACK TO LOBBY was the only way on.
+
+**Fix:** co-op's idle clock (`Shared/Util/IdlePick`, `docs/COOP.md` "The idle clock"). With more than
+one player in the run, the server answers a card screen 30 s after it opens (the rarest card, the
+leftmost of equals) and a checkpoint 30 s after it opens (FULL HEAL; never the bank, never the cache),
+through the same functions a pressed pick goes through. The chooser is counted down for the last ten
+seconds over the screen's own heading, the teammate is told who the run waits for, and a line says what
+was picked. Alone nothing is timed, and that is counted by who is in the run now: a player whose
+teammate has left is alone.
+
+**Two things found building it.** `label.TextWrapped = false` on a `Kit.label` turns its `TextScaled`
+off, and the words drew 8 pixels tall: leave the wrap alone. And there is no free strip on a card
+screen (on a phone its panel starts 8 pixels from the top), so the countdown stands on the panel's
+heading, the one place that covers no card (`DraftScreen.headingBox`).
+
+**Measured:** `tests/IdlePick.spec` (8 tests: the pick, the gift, the seconds, the line, and that every
+card in the game has a tier to pick by); the suite 1456 of 1456 in Studio. Played in Studio with
+`IdlePickSolo` (Studio's Play has one player): a hand of two Rares and an Uncommon left alone showed
+PICKING FOR YOU IN 9 over LEVEL UP!, was answered at 30 s with the leftmost Rare, said PICKED FOR YOU:
+BLOODTHIRST, and the run went on; twice more on other hands.
+
+**Not played:** the checkpoint's clock (Endless is behind 1-10 on Studio's fresh profile) and the
+WAITING FOR line (it needs a second player). Both are on the tracker for the owner and a friend.
+
+---
+
 ## The four-playtester pass: a speedrunner, a hacker, a button-mashing kid and a bored quitter (2026-11-28)
 
 **Seen:** nothing on live yet. The owner asked for four fake players to try to break the game "before a real
@@ -83,7 +116,8 @@ had no caller; a player who left with pets out was kept for the life of the serv
 **Read and left as they are.** Anyone in a co-op run may press BACK TO LOBBY for the party, and BANK &
 LEAVE at a checkpoint ends the run for both: written down as meant (`RoomController.holdForRevive`: "BACK TO LOBBY is anyone's to press";
 `endlessPick`: banking "ends the run as a win"). A
-draft or a checkpoint waits on an idle teammate with no clock, the known caveat. Chests unopened when a
+draft or a checkpoint waits on an idle teammate with no clock, the known caveat (since built: the
+entry above). Chests unopened when a
 player closes the game are not owed (`Run/VictoryChests`' header). The invite reward by a made-up launch
 link and the code-guess limit resetting on rejoin are worth little and were not changed. No fail-safe for an
 enemy stuck out of reach was added: none of the four found one that can get there, and the bot's run-throughs

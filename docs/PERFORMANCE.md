@@ -154,15 +154,9 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
 
 ## Options the owner decides
 
-1. **Merge clip-driven models' parts per joint (re-import).** The table's
-   last column: 1,819 parts to 621, Glimmerhorn 348 → 64, Slime Prince
-   148 → 49. The engine's own part moves are now the biggest piece of the
-   animator's cost (about 0.30 of 0.62 above), and they scale with parts.
-   The catch: merged parts must carry their colours as vertex colours on a
-   white part, and code that tints parts by name (eyes, gems, glows, hit
-   flashes) must keep those parts apart. It needs every model re-imported
-   (File → Import 3D, Merge Meshes off) and its configs regenerated. Not
-   started.
+1. **Merge clip-driven models' parts per joint (re-import).** Started
+   2026-11-27 (the owner's pick): 11 models done, see
+   [Merged per joint](#merged-per-joint-2026-11-27).
 2. **Merge the outer forest into a few chunks.** Done 2026-11-27 (the
    owner's pick): see [The outer forest in chunks](#the-outer-forest-in-chunks-2026-11-27).
 3. **Shadows off on the Low tier.** Done 2026-11-27 (the owner's pick):
@@ -262,6 +256,67 @@ the commit before this one. If triangles turn out to cost a phone more
 than the draws saved, smaller chunks (`MAX_TRIS` in the tool) trade some
 draws back for culling, and removing a forest's entry from
 `Config/ForestChunks` draws it per tree again.
+
+## Merged per joint (2026-11-27)
+
+`tools/merge_joints.py` makes every primitive that rides the same joint
+and wears the same GLB material one mesh, in its joint's frame, so the
+animator poses one part where it posed several. It merges by material, not
+by vertex colour as the table above assumed (621 parts): `EnemyModel`'s
+tints and hit flashes recolour whole parts, which vertex colours on a white
+part would not follow. Kept apart: eyes, any part the code finds by name, a
+textured part, a part resting at zero size, and a joint's pieces whose
+merged box would drift from the true shape when a clip shears it (see the
+tool). The merged GLBs were uploaded through Open Cloud, read back in
+Studio (`tools/studio/dump_assets.luau`, `tools/assets_to_imports.py`) and
+the configs regenerated.
+
+| Model | Parts before | After | Worst distance from the true pose, before / after (studs) |
+|---|---:|---:|---|
+| Glimmerhorn (pet) | 348 | 180 | 0.0001 / 0.0000 |
+| Thornwake (pet) | 228 | 83 | 0.0000 / 0.0000 |
+| Slime Prince (pet) | 148 | 77 | 0.0098 / 0.0102 |
+| Mossback Snail (pet) | 137 | 21 | 0.0000 / 0.0000 |
+| Cave Cricket (pet) | 72 | 28 | 0.0000 / 0.0000 |
+| Stumpy (pet) | 68 | 21 | 0.0152 / 0.0184 |
+| Firefly Bun (pet) | 59 | 30 | 0.0000 / 0.0000 |
+| Hootmoss (pet) | 58 | 40 | 0.0025 / 0.0027 |
+| Fern Frog (pet) | 50 | 44 | 0.0208 / 0.0078 |
+| Toadstool Tot (pet) | 39 | 16 | 0.0019 / 0.0019 |
+| Bramble Lurker (enemy) | 29 | 20 | 0.0306 / 0.0306 |
+| **11 models** | **1,236** | **560** | |
+
+Checked in Studio against the old models (main): the same triangles at
+rest, every one in the same place and colour, and posed the way
+`Fx/ModelAnimator` poses them at 21 moments of every clip against each
+triangle moved exactly by its joint (a part can only be turned and sized
+along its own axes, so a clip that shears a joint leaves every model a
+little off that, before as after). Hitboxes are not the model's, so they
+are unchanged.
+
+`Fx/ModelAnimator` posing two of each of the 11 every frame (plain parts at
+the models' sizes, so only the posing is timed; Edit, test PC, two runs):
+
+| | Parts | ms a frame |
+|---|---:|---:|
+| Before | 2,472 | 7.77–7.79 |
+| After | 1,120 | 4.25–4.34 (1.8x faster) |
+
+Left for later:
+- **Glade Fox** stays as it was: its tail shears in Attack, and the old
+  import's pieces happen to sit on the model's own axes, which that squash
+  leaves square (0.009 studs off); a merged or newly imported piece would
+  sit 0.084 off.
+- **Enemies and bosses with nothing to merge per material**: Bramble Boar,
+  Bramble Sow, Burr Thistle, King Bloblin, Broodmother. Fewer parts there
+  need vertex colours, which `EnemyModel`'s tints and flashes cannot use
+  yet.
+- **Small gains, skipped**: Babacorn 14 → 13, Mosslet 21 → 17, Thornling
+  27 → 24.
+- **Area 5's models** (Cliff Goat 39 → 37, Gust Shaman 60 → 48, Harpy
+  59 → 29, Storm Roc 41 → 29, Tempest Roc 36), being built by another
+  session: merge them once that lands.
+- **The 40 upgrade and pet effects** (1–33 parts each): not looked at.
 
 ## Loading ahead: the next room and the cards (2026-10-26)
 

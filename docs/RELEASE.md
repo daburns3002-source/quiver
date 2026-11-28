@@ -71,13 +71,34 @@ to Mossy Glade's; hard levels open in order (1-1 on hard first).
       published game was published before the bot went back in.
 - [ ] Decide the **balance questions** below.
 
-## Questions for the owner (design or balance, not changed)
+## Questions for the owner (design or balance)
 
-- **1-4 is a cliff** for every class, standing still: 5 to 20 would-be deaths against 0 to 3 in 1-3
-  (the `hitGrace` breath stops after 1-3). Soften 1-4 and 1-5?
-- **The Assassin takes the most damage** of the four in melee: 9 to 17 would-be deaths a level
+Would-be deaths below are from the stand-still bot (one run a level, random cards, so read about
+3 either way as noise; Studio at 60 fps; P1 gear on 1-3 and 1-4, P2 from 1-5; the Assassin dashes
+whenever its dash is back and an enemy is near). Raw runs in the shared notes,
+`soften-1-4-bot-runs.md`.
+
+- ~~**1-4 is a cliff** for every class, standing still: 5 to 20 would-be deaths against 0 to 3 in
+  1-3 (the `hitGrace` breath stops after 1-3). Soften 1-4 and 1-5?~~ **Answered 2026-11-27, "Soften
+  1-4 and 1-5": done.** The breath after a hit now runs on through 1-4 (0.6 s, as 1-1 to 1-3) and
+  1-5 (0.5 s), and stops at 1-6 (`Balance.Stages`, held by `MossyLevels.spec`). No waves were
+  thinned: the breath alone was enough. 1-3, 1-4, 1-5, 1-6, before → after:
+
+  | | Before | After |
+  |---|---|---|
+  | Ranger | 1, 13, 9, 0 | 1, 4, 0, 1 |
+  | Arcanist | 8, 16, 4, 6 | 0, 4, 4, 4 |
+  | Warden | 1, 4, 3, 3 | 2, 0, 1, 4 |
+  | Assassin | 2, 14, 11, 8 | 2, 3, 2, 4 |
+
+- ~~**The Assassin takes the most damage** of the four in melee: 9 to 17 would-be deaths a level
   from 1-4 on (the Warden's November numbers were 0 to 7). Leave it, or more health or a longer
-  dash guard?
+  dash guard?~~ **Answered 2026-11-27, "Longer dash guard": done.** After the Shadow Dash lands
+  nothing can hurt the Assassin for 1.1 s (it was 0.2 s; `Config/Classes`, the Assassin only; its
+  health is unchanged). `DashCut.spec` now holds the dash's safe time under half its 2.5 s wait (it
+  was a quarter). A 0.75 s guard was tried first: 5, 7, 11, 8, 13 on 1-6 to 1-10, still twice the
+  Warden. The Assassin, 1-4 to 1-10: before 14, 11, 8, 9, 12, 12, 19; after 3, 2, 4, 6, 5, 5, 8,
+  against the Warden's 0 to 7.
 - **Season 1 starts 2026-12-01**: a launch in November shows "NO SEASON RIGHT NOW" until then.
 
 ## Still unchecked

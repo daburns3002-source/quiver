@@ -342,6 +342,13 @@ def write(path, out_path, gltf, binary, nodes, world_of, groups, alone):
                 ix = glb.accessor(gltf, bytes(blob), prim["indices"])[:, 0].astype(np.int64)
             else:
                 ix = np.arange(len(p), dtype=np.int64)
+            # only the vertices this primitive draws: a mesh's primitives often
+            # share one vertex buffer, and the rest would widen the merged
+            # mesh's bounds, which Config/ModelClips reads as the part's box
+            # (the import drops them, so the fit saw the Bramble Lurker's
+            # root parts 0.14 studs from where its data put them)
+            used, ix = np.unique(ix, return_inverse=True)
+            p, nm = p[used], nm[used]
             if np.linalg.det(rel[:3, :3]) < 0:
                 ix = ix.reshape(-1, 3)[:, ::-1].reshape(-1)
             pos.append(p)

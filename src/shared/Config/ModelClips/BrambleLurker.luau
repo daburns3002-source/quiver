@@ -214,18 +214,18 @@ return table.freeze({
 		},
 		["M_BrambleLurker_Thorn"] = {
 			joint = "BrambleLurker",
-			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
-			size = { 2.1096, 2.052, 1.5756 },
+			cframe = { -0.0123, 1.0845, 0.0346, 0, 0, 0, 1 },
+			size = { 2.0872, 1.7817, 1.5756 },
 		},
 		["M_BrambleLurker_Vine"] = {
 			joint = "BrambleLurker",
-			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
-			size = { 2.1096, 2.052, 1.5756 },
+			cframe = { 0, 0.9237, 0.0346, 0, 0, 0, 1 },
+			size = { 2.1073, 2.0008, 1.5288 },
 		},
 		["M_BrambleLurker_VineShade"] = {
 			joint = "BrambleLurker",
-			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
-			size = { 2.1096, 2.052, 1.5756 },
+			cframe = { 0, 0.9141, -0.0034, 0, 0, 0, 1 },
+			size = { 2.1073, 1.9816, 1.4527 },
 		},
 		["Thorns"] = {
 			joint = "Bulb",

@@ -25,41 +25,6 @@ return table.freeze({
 		{ name = "Leg_R", parent = "Root", rest = { -0.24, 0.25, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["Body_core"] = {
-			joint = "Torso",
-			cframe = { 0, 0.68, 0, 0, 0, 0, 1 },
-			size = { 1, 0.86, 0.9 },
-		},
-		["Body_corner_BL"] = {
-			joint = "Torso",
-			cframe = { 0.431, 0.68, -0.381, 0, 0, 0, 1 },
-			size = { 0.15, 0.86, 0.15 },
-		},
-		["Body_corner_BR"] = {
-			joint = "Torso",
-			cframe = { -0.431, 0.68, -0.381, 0, 0, 0, 1 },
-			size = { 0.15, 0.86, 0.15 },
-		},
-		["Body_corner_FL"] = {
-			joint = "Torso",
-			cframe = { 0.431, 0.68, 0.381, 0, 0, 0, 1 },
-			size = { 0.15, 0.86, 0.15 },
-		},
-		["Body_corner_FR"] = {
-			joint = "Torso",
-			cframe = { -0.431, 0.68, 0.381, 0, 0, 0, 1 },
-			size = { 0.15, 0.86, 0.15 },
-		},
-		["Crystal_lower"] = {
-			joint = "Crystals",
-			cframe = { 0.56, 0.68, 0.11, 0, 0, 0, 1 },
-			size = { 0.18, 0.12, 0.32 },
-		},
-		["Crystal_upper"] = {
-			joint = "Crystals",
-			cframe = { 0.56, 0.895, -0.07, 0, 0, 0, 1 },
-			size = { 0.18, 0.12, 0.32 },
-		},
 		["Eye_L"] = {
 			joint = "Eyes",
 			cframe = { 0.24, 0.723, 0.455, 0, 0, 0, 1 },
@@ -90,275 +55,75 @@ return table.freeze({
 			cframe = { -0.28, 0.658, 0.4705, 0, 0, 0, 1 },
 			size = { 0.06, 0.05, 0.01 },
 		},
-		["Leg_L_back"] = {
+		["M_Crystals_Crystal"] = {
+			joint = "Crystals",
+			cframe = { 0.56, 0.7875, 0.02, 0, 0, 0, 1 },
+			size = { 0.18, 0.335, 0.5 },
+		},
+		["M_Leg_L_Bark"] = {
 			joint = "Leg_L",
-			cframe = { 0.24, 0.1625, -0.22, 0, 0, 0, 1 },
-			size = { 0.29, 0.255, 0.24 },
+			cframe = { 0.24, 0.1625, 0, 0, 0, 0, 1 },
+			size = { 0.29, 0.255, 0.68 },
 		},
-		["Leg_L_back_sole"] = {
+		["M_Leg_L_BarkDark"] = {
 			joint = "Leg_L",
-			cframe = { 0.24, 0.0225, -0.22, 0, 0, 0, 1 },
-			size = { 0.296, 0.045, 0.246 },
+			cframe = { 0.24, 0.0225, 0, 0, 0, 0, 1 },
+			size = { 0.296, 0.045, 0.686 },
 		},
-		["Leg_L_front"] = {
-			joint = "Leg_L",
-			cframe = { 0.24, 0.1625, 0.22, 0, 0, 0, 1 },
-			size = { 0.29, 0.255, 0.24 },
-		},
-		["Leg_L_front_sole"] = {
-			joint = "Leg_L",
-			cframe = { 0.24, 0.0225, 0.22, 0, 0, 0, 1 },
-			size = { 0.296, 0.045, 0.246 },
-		},
-		["Leg_R_back"] = {
+		["M_Leg_R_Bark"] = {
 			joint = "Leg_R",
-			cframe = { -0.24, 0.1625, -0.22, 0, 0, 0, 1 },
-			size = { 0.29, 0.255, 0.24 },
+			cframe = { -0.24, 0.1625, 0, 0, 0, 0, 1 },
+			size = { 0.29, 0.255, 0.68 },
 		},
-		["Leg_R_back_sole"] = {
+		["M_Leg_R_BarkDark"] = {
 			joint = "Leg_R",
-			cframe = { -0.24, 0.0225, -0.22, 0, 0, 0, 1 },
-			size = { 0.296, 0.045, 0.246 },
+			cframe = { -0.24, 0.0225, 0, 0, 0, 0, 1 },
+			size = { 0.296, 0.045, 0.686 },
 		},
-		["Leg_R_front"] = {
-			joint = "Leg_R",
-			cframe = { -0.24, 0.1625, 0.22, 0, 0, 0, 1 },
-			size = { 0.29, 0.255, 0.24 },
+		["M_Sapling_BarkDark"] = {
+			joint = "Sapling",
+			cframe = { -0.075, 1.195, 0, 0, 0, 0, 1 },
+			size = { 0.13, 0.17, 0.06 },
 		},
-		["Leg_R_front_sole"] = {
-			joint = "Leg_R",
-			cframe = { -0.24, 0.0225, 0.22, 0, 0, 0, 1 },
-			size = { 0.296, 0.045, 0.246 },
+		["M_Sapling_Leaf"] = {
+			joint = "Sapling",
+			cframe = { -0.0576, 1.2875, -0.0299, 0, 0, 0, 1 },
+			size = { 0.3878, 0.285, 0.2328 },
+		},
+		["M_Torso_Bark"] = {
+			joint = "Torso",
+			cframe = { 0, 0.6875, 0, 0, 0, 0, 1 },
+			size = { 1.012, 0.875, 0.912 },
+		},
+		["M_Torso_BarkDark"] = {
+			joint = "Torso",
+			cframe = { 0, 0.68, 0, 0, 0, 0, 1 },
+			size = { 1.012, 0.86, 0.912 },
+		},
+		["M_Torso_GrowthRing"] = {
+			joint = "Torso",
+			cframe = { 0, 1.1205, 0, 0, 0, 0, 1 },
+			size = { 0.7, 0.01, 0.6 },
+		},
+		["M_Torso_Moss"] = {
+			joint = "Torso",
+			cframe = { 0, 0.326, 0, 0, 0, 0, 1 },
+			size = { 1.172, 0.152, 1.072 },
+		},
+		["M_Torso_MossDark"] = {
+			joint = "Torso",
+			cframe = { 0, 0.305, 0, 0, 0, 0, 1 },
+			size = { 1.272, 0.21, 1.172 },
 		},
 		["Mouth_shape"] = {
 			joint = "Mouth",
 			cframe = { 0, 0.608, 0.455, 0, 0, 0, 1 },
 			size = { 0.16, 0.07, 0.03 },
 		},
-		["Sapling_branch"] = {
-			joint = "Sapling",
-			cframe = { -0.095, 1.195, 0, 0, 0, 0, 1 },
-			size = { 0.09, 0.035, 0.035 },
-		},
-		["Sapling_leaf_high"] = {
-			joint = "Sapling",
-			cframe = { 0.04, 1.345, -0.05, 0, -0.0899, 0, 0.996 },
-			size = { 0.17, 0.17, 0.17 },
-		},
-		["Sapling_leaf_low"] = {
-			joint = "Sapling",
-			cframe = { -0.165, 1.22, 0, 0, 0.1098, 0, 0.994 },
-			size = { 0.15, 0.15, 0.15 },
-		},
-		["Sapling_stem"] = {
-			joint = "Sapling",
-			cframe = { -0.04, 1.195, 0, 0, 0, 0, 1 },
-			size = { 0.06, 0.17, 0.06 },
-		},
-		["Skirt_band"] = {
-			joint = "Torso",
-			cframe = { 0, 0.325, 0, 0, 0, 0, 1 },
-			size = { 1.16, 0.15, 1.06 },
-		},
-		["Skirt_corner0"] = {
-			joint = "Torso",
-			cframe = { 0.58, 0.3275, 0.53, 0, 0, 0, 1 },
-			size = { 0.11, 0.155, 0.11 },
-		},
-		["Skirt_corner1"] = {
-			joint = "Torso",
-			cframe = { -0.58, 0.3275, 0.53, 0, 0, 0, 1 },
-			size = { 0.11, 0.155, 0.11 },
-		},
-		["Skirt_corner2"] = {
-			joint = "Torso",
-			cframe = { 0.58, 0.3275, -0.53, 0, 0, 0, 1 },
-			size = { 0.11, 0.155, 0.11 },
-		},
-		["Skirt_corner3"] = {
-			joint = "Torso",
-			cframe = { -0.58, 0.3275, -0.53, 0, 0, 0, 1 },
-			size = { 0.11, 0.155, 0.11 },
-		},
-		["Skirt_tab0"] = {
-			joint = "Torso",
-			cframe = { -0.464, 0.305, 0.546, 0, 0, 0, 1 },
-			size = { 0.228, 0.21, 0.08 },
-		},
-		["Skirt_tab1"] = {
-			joint = "Torso",
-			cframe = { -0.232, 0.326, 0.521, 0, 0, 0, 1 },
-			size = { 0.228, 0.152, 0.03 },
-		},
-		["Skirt_tab10"] = {
-			joint = "Torso",
-			cframe = { 0.571, 0.326, -0.424, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab11"] = {
-			joint = "Torso",
-			cframe = { 0.596, 0.305, -0.212, 0, 0, 0, 1 },
-			size = { 0.08, 0.21, 0.208 },
-		},
-		["Skirt_tab12"] = {
-			joint = "Torso",
-			cframe = { 0.571, 0.326, 0, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab13"] = {
-			joint = "Torso",
-			cframe = { 0.596, 0.305, 0.212, 0, 0, 0, 1 },
-			size = { 0.08, 0.21, 0.208 },
-		},
-		["Skirt_tab14"] = {
-			joint = "Torso",
-			cframe = { 0.571, 0.326, 0.424, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab15"] = {
-			joint = "Torso",
-			cframe = { -0.571, 0.326, -0.424, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab16"] = {
-			joint = "Torso",
-			cframe = { -0.596, 0.305, -0.212, 0, 0, 0, 1 },
-			size = { 0.08, 0.21, 0.208 },
-		},
-		["Skirt_tab17"] = {
-			joint = "Torso",
-			cframe = { -0.571, 0.326, 0, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab18"] = {
-			joint = "Torso",
-			cframe = { -0.596, 0.305, 0.212, 0, 0, 0, 1 },
-			size = { 0.08, 0.21, 0.208 },
-		},
-		["Skirt_tab19"] = {
-			joint = "Torso",
-			cframe = { -0.571, 0.326, 0.424, 0, 0, 0, 1 },
-			size = { 0.03, 0.152, 0.208 },
-		},
-		["Skirt_tab2"] = {
-			joint = "Torso",
-			cframe = { 0, 0.305, 0.546, 0, 0, 0, 1 },
-			size = { 0.228, 0.21, 0.08 },
-		},
 		["Skirt_tab3"] = {
 			joint = "Torso",
 			cframe = { 0.232, 0.326, 0.521, 0, 0, 0, 1 },
 			size = { 0.228, 0.152, 0.03 },
-		},
-		["Skirt_tab4"] = {
-			joint = "Torso",
-			cframe = { 0.464, 0.305, 0.546, 0, 0, 0, 1 },
-			size = { 0.228, 0.21, 0.08 },
-		},
-		["Skirt_tab5"] = {
-			joint = "Torso",
-			cframe = { -0.464, 0.326, -0.521, 0, 0, 0, 1 },
-			size = { 0.228, 0.152, 0.03 },
-		},
-		["Skirt_tab6"] = {
-			joint = "Torso",
-			cframe = { -0.232, 0.305, -0.546, 0, 0, 0, 1 },
-			size = { 0.228, 0.21, 0.08 },
-		},
-		["Skirt_tab7"] = {
-			joint = "Torso",
-			cframe = { 0, 0.326, -0.521, 0, 0, 0, 1 },
-			size = { 0.228, 0.152, 0.03 },
-		},
-		["Skirt_tab8"] = {
-			joint = "Torso",
-			cframe = { 0.232, 0.305, -0.546, 0, 0, 0, 1 },
-			size = { 0.228, 0.21, 0.08 },
-		},
-		["Skirt_tab9"] = {
-			joint = "Torso",
-			cframe = { 0.464, 0.326, -0.521, 0, 0, 0, 1 },
-			size = { 0.228, 0.152, 0.03 },
-		},
-		["Top_rim_B"] = {
-			joint = "Torso",
-			cframe = { 0, 1.11, -0.4335, 0, 0, 0, 1 },
-			size = { 1.012, 0.03, 0.045 },
-		},
-		["Top_rim_F"] = {
-			joint = "Torso",
-			cframe = { 0, 1.11, 0.4335, 0, 0, 0, 1 },
-			size = { 1.012, 0.03, 0.045 },
-		},
-		["Top_rim_L"] = {
-			joint = "Torso",
-			cframe = { 0.4835, 1.11, 0, 0, 0, 0, 1 },
-			size = { 0.045, 0.03, 0.822 },
-		},
-		["Top_rim_R"] = {
-			joint = "Torso",
-			cframe = { -0.4835, 1.11, 0, 0, 0, 0, 1 },
-			size = { 0.045, 0.03, 0.822 },
-		},
-		["Top_ring0_B"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, -0.289, 0, 0, 0, 1 },
-			size = { 0.7, 0.01, 0.022 },
-		},
-		["Top_ring0_F"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, 0.289, 0, 0, 0, 1 },
-			size = { 0.7, 0.01, 0.022 },
-		},
-		["Top_ring0_L"] = {
-			joint = "Torso",
-			cframe = { 0.339, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.556 },
-		},
-		["Top_ring0_R"] = {
-			joint = "Torso",
-			cframe = { -0.339, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.556 },
-		},
-		["Top_ring1_B"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, -0.169, 0, 0, 0, 1 },
-			size = { 0.44, 0.01, 0.022 },
-		},
-		["Top_ring1_F"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, 0.169, 0, 0, 0, 1 },
-			size = { 0.44, 0.01, 0.022 },
-		},
-		["Top_ring1_L"] = {
-			joint = "Torso",
-			cframe = { 0.209, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.316 },
-		},
-		["Top_ring1_R"] = {
-			joint = "Torso",
-			cframe = { -0.209, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.316 },
-		},
-		["Top_ring2_B"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, -0.064, 0, 0, 0, 1 },
-			size = { 0.18, 0.01, 0.022 },
-		},
-		["Top_ring2_F"] = {
-			joint = "Torso",
-			cframe = { 0, 1.1205, 0.064, 0, 0, 0, 1 },
-			size = { 0.18, 0.01, 0.022 },
-		},
-		["Top_ring2_L"] = {
-			joint = "Torso",
-			cframe = { 0.079, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.106 },
-		},
-		["Top_ring2_R"] = {
-			joint = "Torso",
-			cframe = { -0.079, 1.1205, 0, 0, 0, 0, 1 },
-			size = { 0.022, 0.01, 0.106 },
 		},
 		["Top_wood"] = {
 			joint = "Torso",

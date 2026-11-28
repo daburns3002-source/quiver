@@ -30,16 +30,6 @@ return table.freeze({
 			cframe = { 0, 0.165, 0.14, 0, 0, 0, 1 },
 			size = { 0.66, 0.25, 0.4 },
 		},
-		["Body_Main"] = {
-			joint = "Upper",
-			cframe = { 0, 0.48, 0, 0, 0, 0, 1 },
-			size = { 1, 0.4, 0.8 },
-		},
-		["Body_Underside"] = {
-			joint = "Upper",
-			cframe = { 0, 0.205, -0.2, 0, 0, 0, 1 },
-			size = { 0.5, 0.17, 0.3 },
-		},
 		["EyeBlock_L_Mesh"] = {
 			joint = "Upper",
 			cframe = { 0.33, 0.785, 0.275, 0, 0, 0, 1 },
@@ -215,65 +205,45 @@ return table.freeze({
 			cframe = { 0.3642, 1.0033, -0.3903, -0.5401, 0, -0.3781, 0.7519 },
 			size = { 0.045, 0.06, 0.02 },
 		},
-		["Leg_BL_Foot"] = {
-			joint = "Leg_BL",
-			cframe = { 0.3791, 0.04, -0.1844, 0, 0.0998, 0, 0.995 },
-			size = { 0.1912, 0.08, 0.2106 },
-		},
-		["Leg_BL_Haunch"] = {
-			joint = "Leg_BL",
-			cframe = { 0.37, 0.165, -0.43, 0, 0, 0, 1 },
-			size = { 0.28, 0.33, 0.34 },
-		},
-		["Leg_BR_Foot"] = {
-			joint = "Leg_BR",
-			cframe = { -0.3791, 0.04, -0.1844, 0, -0.0998, 0, 0.995 },
-			size = { 0.1912, 0.08, 0.2106 },
-		},
-		["Leg_BR_Haunch"] = {
-			joint = "Leg_BR",
-			cframe = { -0.37, 0.165, -0.43, 0, 0, 0, 1 },
-			size = { 0.28, 0.33, 0.34 },
-		},
-		["Leg_FL_Foot"] = {
-			joint = "Leg_FL",
-			cframe = { 0.4618, 0.04, 0.3321, 0, 0.1889, 0, 0.982 },
-			size = { 0.1612, 0.08, 0.2773 },
-		},
 		["Leg_FL_FootTop"] = {
 			joint = "Leg_FL",
 			cframe = { 0.4539, 0.08, 0.3121, 0, 0.1889, 0, 0.982 },
 			size = { 0.12, 0.005, 0.1 },
-		},
-		["Leg_FL_Upper"] = {
-			joint = "Leg_FL",
-			cframe = { 0.435, 0.175, 0.29, 0, 0, 0, 1 },
-			size = { 0.13, 0.23, 0.15 },
-		},
-		["Leg_FR_Foot"] = {
-			joint = "Leg_FR",
-			cframe = { -0.4618, 0.04, 0.3321, 0, -0.1889, 0, 0.982 },
-			size = { 0.1612, 0.08, 0.2773 },
 		},
 		["Leg_FR_FootTop"] = {
 			joint = "Leg_FR",
 			cframe = { -0.4539, 0.08, 0.3121, 0, -0.1889, 0, 0.982 },
 			size = { 0.12, 0.005, 0.1 },
 		},
-		["Leg_FR_Upper"] = {
+		["M_Leg_BL_FrogGreen"] = {
+			joint = "Leg_BL",
+			cframe = { 0.37, 0.165, -0.3337, 0, 0, 0, 1 },
+			size = { 0.28, 0.33, 0.5325 },
+		},
+		["M_Leg_BR_FrogGreen"] = {
+			joint = "Leg_BR",
+			cframe = { -0.37, 0.165, -0.3337, 0, 0, 0, 1 },
+			size = { 0.28, 0.33, 0.5325 },
+		},
+		["M_Leg_FL_FrogGreen"] = {
+			joint = "Leg_FL",
+			cframe = { 0.4611, 0.145, 0.3322, 0, 0, 0, 1 },
+			size = { 0.236, 0.29, 0.3006 },
+		},
+		["M_Leg_FR_FrogGreen"] = {
 			joint = "Leg_FR",
-			cframe = { -0.435, 0.175, 0.29, 0, 0, 0, 1 },
-			size = { 0.13, 0.23, 0.15 },
+			cframe = { -0.4611, 0.145, 0.3322, 0, 0, 0, 1 },
+			size = { 0.236, 0.29, 0.3006 },
 		},
-		["Mouth_L"] = {
+		["M_Upper_EyeBlack"] = {
 			joint = "Upper",
-			cframe = { -0.0265, 0.46, 0.403, 0, 0, -0.3146, 0.9492 },
-			size = { 0.072, 0.019, 0.012 },
+			cframe = { 0, 0.46, 0.403, 0, 0, 0, 1 },
+			size = { 0.1188, 0.055, 0.012 },
 		},
-		["Mouth_R"] = {
+		["M_Upper_FrogGreen"] = {
 			joint = "Upper",
-			cframe = { 0.0265, 0.46, 0.403, 0, 0, 0.3146, 0.9492 },
-			size = { 0.072, 0.019, 0.012 },
+			cframe = { 0, 0.4, 0, 0, 0, 0, 1 },
+			size = { 1, 0.56, 0.8 },
 		},
 	},
 	clips = {

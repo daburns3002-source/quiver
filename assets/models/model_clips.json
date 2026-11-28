@@ -24,7 +24,7 @@
   ]
  },
  "FernFrog": {
-  "glb": "assets/models/pets/forest/fern_frog.glb",
+  "glb": "assets/models/pets/forest/fern_frog_merged.glb",
   "loops": [
    "Idle",
    "Hop",
@@ -35,7 +35,7 @@
   ]
  },
  "ToadstoolTot": {
-  "glb": "assets/models/pets/forest/toadstool_tot.glb",
+  "glb": "assets/models/pets/forest/toadstool_tot_merged.glb",
   "loops": [
    "Idle",
    "Walk",
@@ -47,7 +47,7 @@
   ]
  },
  "MossbackSnail": {
-  "glb": "assets/models/pets/forest/mossback_snail.glb",
+  "glb": "assets/models/pets/forest/mossback_snail_merged.glb",
   "loops": [
    "Idle",
    "Crawl",
@@ -59,7 +59,7 @@
   ]
  },
  "FireflyBun": {
-  "glb": "assets/models/pets/forest/firefly_bun.glb",
+  "glb": "assets/models/pets/forest/firefly_bun_merged.glb",
   "loops": [
    "Idle",
    "Hover",
@@ -70,7 +70,7 @@
   ]
  },
  "Stumpy": {
-  "glb": "assets/models/pets/forest/stumpy.glb",
+  "glb": "assets/models/pets/forest/stumpy_merged.glb",
   "loops": [
    "Idle",
    "Walk",
@@ -94,7 +94,7 @@
   ]
  },
  "Hootmoss": {
-  "glb": "assets/models/pets/forest/hootmoss.glb",
+  "glb": "assets/models/pets/forest/hootmoss_merged.glb",
   "loops": [
    "Idle",
    "Waddle",
@@ -106,7 +106,7 @@
   ]
  },
  "SlimePrince": {
-  "glb": "assets/models/pets/forest/slime_prince.glb",
+  "glb": "assets/models/pets/forest/slime_prince_merged.glb",
   "loops": [
    "Idle",
    "Hop",
@@ -118,7 +118,7 @@
   ]
  },
  "Glimmerhorn": {
-  "glb": "assets/models/pets/forest/glimmerhorn.glb",
+  "glb": "assets/models/pets/forest/glimmerhorn_merged.glb",
   "loops": [
    "Idle",
    "Trot",
@@ -317,7 +317,7 @@
   ]
  },
  "BrambleLurker": {
-  "glb": "assets/models/enemies/blocky/bramble_lurker.glb",
+  "glb": "assets/models/enemies/blocky/bramble_lurker_merged.glb",
   "loops": [
    "Idle",
    "Move"
@@ -403,7 +403,7 @@
   ]
  },
  "Thornwake": {
-  "glb": "assets/models/pets/thornwood/thornwake.glb",
+  "glb": "assets/models/pets/thornwood/thornwake_merged.glb",
   "loops": [
    "Idle",
    "Hover",
@@ -414,7 +414,7 @@
   ]
  },
  "CaveCricket": {
-  "glb": "assets/models/pets/bogheart/cave_cricket.glb",
+  "glb": "assets/models/pets/bogheart/cave_cricket_merged.glb",
   "loops": [
    "Idle",
    "Follow"

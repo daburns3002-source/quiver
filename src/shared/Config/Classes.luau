@@ -180,7 +180,10 @@ local Classes: { [string]: Class } = {
 		     Its guard after landing was 0.2 s: in the release check's bot
 		     the Assassin took the most damage of the four, 9 to 17 would-be
 		     deaths a level from 1-4 on against the Warden's 0 to 7 (owner,
-		     2026-11-27: "Longer dash guard", not more health). ]]
+		     2026-11-27: "Longer dash guard", not more health). With the bot
+		     dashing whenever the dash was back, 0.75 s still left it at
+		     twice the Warden; at 1.1 s its 1-4 to 1-10 went from 14, 11, 8,
+		     9, 12, 12, 19 to 3, 2, 4, 6, 5, 5, 8 (`docs/RELEASE.md`). ]]
 		dash = {
 			cooldown = 2.5,
 			damage = 1.5,

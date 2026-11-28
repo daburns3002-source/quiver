@@ -2354,6 +2354,10 @@ export type RoomConfig = {
 	name: string,
 	obstacles: { Obstacle },
 	enemyCount: number,
+	--[[ A Wind Tunnel room (the Windswept Cliffs, from 5-6 on, one fight
+	     in three): a gust crosses it every `WindGust.every` seconds
+	     (`Arena/WindGusts`). Written by `tools/area_levels.py`. ]]
+	gust: boolean?,
 	--[[
 		Which archetypes this room draws from, cycled to fill `enemyCount`.
 
@@ -12557,6 +12561,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 4,
 		roster = { cliffGoat, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-6",
@@ -12592,6 +12597,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-6",
@@ -12663,6 +12669,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-6",
@@ -12743,6 +12750,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 4,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-7",
@@ -12778,6 +12786,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-7",
@@ -12849,6 +12858,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-7",
@@ -12929,6 +12939,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 4,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-8",
@@ -12964,6 +12975,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-8",
@@ -13035,6 +13047,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-8",
@@ -13115,6 +13128,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 4,
 		roster = { harpy, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-9",
@@ -13150,6 +13164,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { harpy, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-9",
@@ -13221,6 +13236,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { harpy, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-9",
@@ -13256,6 +13272,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 6,
 		roster = { harpy, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-9",
@@ -13298,6 +13315,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { harpy, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-9",
@@ -13358,6 +13376,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-10",
@@ -13393,6 +13412,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-10",
@@ -13464,6 +13484,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-10",
@@ -13499,6 +13520,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 6,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-10",
@@ -13541,6 +13563,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-10",
@@ -13601,6 +13624,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-11",
@@ -13636,6 +13660,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-11",
@@ -13707,6 +13732,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-11",
@@ -13742,6 +13768,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 7,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-11",
@@ -13784,6 +13811,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { gustShaman, cliffGoat, harpy, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-11",
@@ -13844,6 +13872,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, cliffGoat, gustShaman, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-12",
@@ -13879,6 +13908,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, cliffGoat, gustShaman, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-12",
@@ -13950,6 +13980,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, cliffGoat, gustShaman, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-12",
@@ -13985,6 +14016,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 7,
 		roster = { cliffGoat, cliffGoat, gustShaman, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-12",
@@ -14027,6 +14059,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { cliffGoat, cliffGoat, gustShaman, harpy },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-12",
@@ -14087,6 +14120,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-13",
@@ -14122,6 +14156,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-13",
@@ -14193,6 +14228,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-13",
@@ -14228,6 +14264,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 7,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-13",
@@ -14270,6 +14307,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-13",
@@ -14330,6 +14368,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-14",
@@ -14365,6 +14404,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-14",
@@ -14436,6 +14476,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-14",
@@ -14471,6 +14512,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 7,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-14",
@@ -14513,6 +14555,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 8,
 		roster = { harpy, gustShaman, cliffGoat, gustShaman },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-14",
@@ -14573,6 +14616,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 5,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-15",
@@ -14608,6 +14652,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-15",
@@ -14679,6 +14724,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 6,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-15",
@@ -14714,6 +14760,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		obstacles = {},
 		enemyCount = 7,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-15",
@@ -14756,6 +14803,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 7,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs Angel 5-15",
@@ -14785,6 +14833,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 8,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Windswept Cliffs 5-15",
@@ -14827,6 +14876,7 @@ local windsweptLevelRooms: { RoomConfig } = {
 		},
 		enemyCount = 8,
 		roster = { cliffGoat, harpy, gustShaman, cliffGoat },
+		gust = true,
 	},
 	{
 		name = "Tempest Peak",
@@ -16737,6 +16787,18 @@ local Balance = {
 	]]
 	Shove = {
 		duration = 0.22,
+	},
+
+	--[[ The Windswept Cliffs' Wind Tunnel rooms (docs/WINDSWEPT-CLIFFS.md,
+	     Levels; `RoomConfig.gust`, `Arena/WindGusts`): every `every`
+	     seconds a gust crosses the room, one way and then the other, shown
+	     by white streaks `warn` seconds before it pushes each player `push`
+	     studs (a push that can carry them over an edge). Enemies are not
+	     moved. ]]
+	WindGust = {
+		every = 8,
+		warn = 1.5,
+		push = 4,
 	},
 
 	Telegraph = {

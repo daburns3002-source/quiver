@@ -94,6 +94,7 @@ local VictoryChests = require(script.Parent.VictoryChests)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
 local WeeklyTournament = require(script.Parent.WeeklyTournament)
+local WindGusts = require(script.Parent.Parent.Arena.WindGusts)
 
 --[[ Seconds into a level before its coin bonuses are said (`Util/RunBonus`):
      past the loading screen. ]]
@@ -302,6 +303,7 @@ local function clearFight()
 	ClassUpgrades.clear()
 	AssassinUpgrades.clear()
 	Pickups.clear()
+	WindGusts.stop()
 	collectAt = nil
 end
 
@@ -423,6 +425,7 @@ local function enterRoom(position: number)
 
 	local began = os.clock()
 	buildArena(room)
+	WindGusts.start(room.gust == true, began)
 	RunSession.setRoom(position)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	setCombatEncounter(position)
@@ -1715,6 +1718,9 @@ function RoomController.step(now: number)
 	if state == "Dead" or state == "Complete" then
 		return
 	end
+
+	--[[ A Wind Tunnel room's gusts, while its fight is on. ]]
+	WindGusts.step(now, state == "Fighting")
 
 	--[[ And an Endless checkpoint waits on its screen, not on a clock, so
 	     the run stands still until every living player has picked

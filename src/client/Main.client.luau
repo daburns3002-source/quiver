@@ -134,6 +134,7 @@ local WeaponGlow = require(script.Parent.Fx.WeaponGlow)
 local WeaponPose = require(script.Parent.Fx.WeaponPose)
 local WeaponPreload = require(script.Parent.Fx.WeaponPreload)
 local Weapons = require(Shared.Config.Weapons)
+local WindGustFx = require(script.Parent.Fx.WindGustFx)
 
 type ShotEvent = Types.ShotEvent
 
@@ -553,6 +554,12 @@ Remotes.event(Remotes.PlayerShoved).OnClientEvent:Connect(function(direction, di
 	end
 end)
 --[[ Pushed over a Windswept Cliffs edge (`Arena/CliffFalls`). ]]
+-- a Wind Tunnel gust's streaks, before it pushes (`Arena/WindGusts`)
+Remotes.event(Remotes.WindGust).OnClientEvent:Connect(function(direction, warn)
+	if typeof(direction) == "Vector3" and type(warn) == "number" then
+		WindGustFx.show(direction, warn)
+	end
+end)
 Remotes.event(Remotes.PlayerFell).OnClientEvent:Connect(function(who, landing)
 	if typeof(who) == "Instance" and who:IsA("Player") and typeof(landing) == "Vector3" then
 		CliffFallFx.onFell(who, landing)

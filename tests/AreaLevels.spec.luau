@@ -156,4 +156,36 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+	--[[ The Wind Tunnel (docs/WINDSWEPT-CLIFFS.md, Levels): only on the
+	     Windswept Cliffs, from 5-6 on, about one fight in three, and never
+	     an Angel or a level's last room. ]]
+	t.test("Wind Tunnel rooms are the cliffs' later fights, one in three", function()
+		for _, area in AREAS do
+			for number, stage in stages(area.portal) do
+				local rooms: { number } = stage.rooms or {}
+				local gusts, fights = 0, 0
+				for position, index in rooms do
+					local room = Balance.Rooms[index]
+					if room.gust then
+						gusts += 1
+						t.isTrue(
+							area.prefix == "5" and number >= 6,
+							`{room.name} gusts outside 5-6..5-15`
+						)
+						t.isTrue(room.encounter == nil, `{room.name}: an Angel room gusts`)
+						t.isTrue(position < #rooms, `{room.name}: the last room gusts`)
+					end
+					if room.encounter == nil and position < #rooms then
+						fights += 1
+					end
+				end
+				if area.prefix == "5" and number >= 6 then
+					t.isTrue(
+						gusts >= math.floor(fights / 3) - 1 and gusts <= math.ceil(fights / 3) + 1,
+						`{area.prefix}-{number}: {gusts} gusts in {fights} fights`
+					)
+				end
+			end
+		end
+	end)
 end

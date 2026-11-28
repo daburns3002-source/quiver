@@ -169,6 +169,9 @@ AREAS = [
         "heart": ("Peak Clearing", a5.HEART[0], a5.HEART[1]),
         "boss": ("Tempest Peak", "tempestRoc"),
         "elite": {4: "stormRoc, harpy, harpy", 9: "stormRoc, cliffGoat, gustShaman, cliffGoat"},
+        #: Wind Tunnel rooms: from 5-6 on, every third fight a gust
+        #: crosses (`RoomConfig.gust`, `Arena/WindGusts`).
+        "gust": {"from": 6, "every": 3},
         "mixes": [
             ("harpy", "harpy, gustShaman"),
             ("gustShaman, harpy", "cliffGoat, harpy"),
@@ -203,7 +206,7 @@ def obstacles(arena, pieces):
     return "\t\tobstacles = {\n" + "\n".join(rows) + "\n\t\t},\n"
 
 
-def row(name, arena, pieces, count, who, encounter=None):
+def row(name, arena, pieces, count, who, encounter=None, gust=False):
     assert (
         a34.walkable(pieces) if arena.startswith(("Drowned", "Bogheart", "Cliffs")) else thorn.walkable(pieces)
     ), name
@@ -215,6 +218,7 @@ def row(name, arena, pieces, count, who, encounter=None):
         + f"\t\tenemyCount = {count},\n"
         f"\t\troster = {{ {who} }},\n"
         + (f'\t\tencounter = "{encounter}",\n' if encounter else "")
+        + ("\t\tgust = true,\n" if gust else "")
         + "\t},\n"
     )
 
@@ -241,7 +245,9 @@ def area_rooms(rng, spec):
             elif n < rooms:
                 count = max(count, round(lerp(first, last, (n - 1) / max(1, rooms - 2))))
                 arena, pieces = spec["layout"](rng, n)
-                rows.append(row(f"{spec['title']} {level}", arena, pieces, count, who))
+                gust = spec.get("gust")
+                windy = bool(gust) and li + 1 >= gust["from"] and n % gust["every"] == 0
+                rows.append(row(f"{spec['title']} {level}", arena, pieces, count, who, gust=windy))
             elif final:
                 name, boss = spec["boss"]
                 _, arena, pieces = spec["heart"]

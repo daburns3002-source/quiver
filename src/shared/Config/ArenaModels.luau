@@ -180,8 +180,8 @@ local function thornwood(): ArenaModel
 end
 
 local BogheartForest = require(script.Parent.BogheartForest)
-local WindsweptForest = require(script.Parent.WindsweptForest)
 local DrownedForest = require(script.Parent.DrownedForest)
+local WindsweptForest = require(script.Parent.WindsweptForest)
 
 local DROWNED_OUTER: { ArenaPart } = outer("Drowned", DrownedForest)
 local BOGHEART_OUTER: { ArenaPart } = outer("Bogheart", BogheartForest)

@@ -8,9 +8,10 @@
 	  { parts = { { name, meshId, textureId, color = {r, g, b}, material,
 	                transparency, size = {x, y, z}, cframe = {12 numbers} } } }
 
-	`cframe` is the part's place relative to the model's pivot. Save the
-	output as assets/models/model_imports.json and run
-	tools/imports_to_luau.py, which writes Config/PetModels.
+	`cframe` is the part's place relative to the model's pivot. Add the
+	output's models to assets/models/model_imports.json (keep its other
+	entries: they record imports no longer in the place, see below) and
+	run tools/imports_to_luau.py, which writes Config/PetModels.
 
 	Claude Design GLBs all import as "AuxScene" (the GLB's scene name, not
 	its file name), so a name that repeats is keyed "AuxScene#<n>", n being
@@ -32,10 +33,15 @@ end
 	Imports are moved out of the Workspace into ServerStorage.Imports once
 	their ids are dumped: left in the world, every playtest replicates and
 	draws them, and 65 of them took a playtest from 60 FPS to 26 (docs/FIXES.md).
-	So a dump reads both places. One that read only the Workspace after the
-	move would miss every stored import, and imports_to_luau.py prunes any
-	module it does not regenerate — the pets and King Bloblin with them.
-	Stored imports are keyed "#S<n>" so they never collide with a Workspace one.
+	So a dump reads both places. Stored imports are keyed "#S<n>" so they
+	never collide with a Workspace one.
+
+	Once their ids are in the code, the stored imports leave the place
+	for good, saved as assets/imports/*.rbxm (2026-11-27: 319 models, 9 MB
+	of a 23 MB place, docs/PERFORMANCE.md). model_imports.json keeps their
+	dump, which is why a new dump is added to it, never written over it;
+	and imports_to_luau.py deletes a module it did not write only with
+	--prune (it used to always, which would now take the pets with it).
 ]]
 local children, tags = {}, {}
 for _, child in workspace:GetChildren() do

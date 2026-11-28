@@ -17,6 +17,12 @@
 	holds only Camera and Terrain. Moving rather than deleting keeps the
 	imports dumpable: both dump scripts read ServerStorage.Imports too.
 
+	The folder does not stay in the place either: once its imports' ids
+	are in the code, it is saved as assets/imports/<date>.rbxm (Explorer >
+	Save to File) and deleted (2026-11-27: 319 models, 9 MB of a 23 MB
+	place, docs/PERFORMANCE.md). Load one back with File > Insert from
+	File to dump it again.
+
 	**Studio does not save itself.** The owner has to save the place
 	afterwards, or the move is gone when Studio closes.
 ]]

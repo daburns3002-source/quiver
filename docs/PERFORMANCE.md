@@ -167,10 +167,31 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
    owner's pick): see [The outer forest in chunks](#the-outer-forest-in-chunks-2026-11-27).
 3. **Shadows off on the Low tier.** Done 2026-11-27 (the owner's pick):
    see [Shadows on the Low tier](#shadows-on-the-low-tier-2026-11-27).
-4. **Clean out `ServerStorage.Imports`.** About 100 import models (the
-   pet effects imported twice) ship with the place and load on every server,
-   though the game builds from mesh ids and never reads them. Keep a copy in
-   a separate place file for the dump scripts, then delete the folder.
+4. **Clean out `ServerStorage.Imports`.** Done 2026-11-27 (the owner's
+   pick): see [The place without its imports](#the-place-without-its-imports-2026-11-27).
+
+## The place without its imports (2026-11-27)
+
+`ServerStorage.Imports` held every Studio import once its ids were dumped:
+319 models, 47,280 instances, read by nothing in the game (only the dump
+scripts in `tools/studio`, for an import not yet dumped). Every server
+loaded it. It is saved as `assets/imports/2026-11-27.rbxm` (checked by
+loading it back: all 47,280 instances alike in class, path, mesh, texture,
+size, colour, material and place) and deleted from the place.
+
+Serialized size (`SerializationService`, every saved service's children,
+Edit, on the test PC):
+
+| | Place | `ServerStorage` |
+|---|---:|---:|
+| Before | 24.32 MB | 13.86 MB |
+| After | **15.16 MB** (−38%) | 4.70 MB |
+
+What else is big in the place, left alone here: `ServerStorage.RBX_ANIMSAVES`
+(3.65 MB, 260,259 instances: the Animation Editor's saves) and about 107
+models other sessions left in the Edit Workspace (`TripoImports`, render
+rigs, weapon and pet-effect previews, 6.58 MB), which `Server/Util/WorldSweep`
+destroys at every server start but which still ship in the file.
 
 ## Shadows on the Low tier (2026-11-27)
 

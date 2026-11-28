@@ -176,6 +176,57 @@ local Pets: { [string]: Pet } = {
 		area = "BogheartCaverns",
 		egg = "BogheartEgg",
 	},
+	--[[ The Windswept Cliffs (docs/WINDSWEPT-CLIFFS.md, 2026-11-26): eight,
+	     the owner's rule, with the Gale Wilf, the Rocling (the Tempest Roc's
+	     heir) and the Zephyr Whale among them. ]]
+	WhistleMarmot = {
+		name = "WHISTLE MARMOT",
+		rarity = "Common",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	CliffPuffin = {
+		name = "CLIFF PUFFIN",
+		rarity = "Common",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	WoollyAlpaca = {
+		name = "WOOLLY ALPACA",
+		rarity = "Uncommon",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	GaleGlider = {
+		name = "GALE GLIDER",
+		rarity = "Rare",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	FlagtailPanda = {
+		name = "FLAGTAIL PANDA",
+		rarity = "Epic",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	GaleWilf = {
+		name = "GALE WILF",
+		rarity = "Legendary",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	Rocling = {
+		name = "ROCLING",
+		rarity = "Legendary",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
+	ZephyrWhale = {
+		name = "ZEPHYR WHALE",
+		rarity = "Mythic",
+		area = "WindsweptCliffs",
+		egg = "WindsweptEgg",
+	},
 }
 
 return table.freeze(Pets)

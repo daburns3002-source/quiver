@@ -130,6 +130,16 @@ local GearAssets = {
 		GlowcapWilf = "rbxassetid://86027144186651",
 		Gulpling = "rbxassetid://97124284184604",
 		PrismLeviathan = "rbxassetid://113063820686924",
+		-- the Windswept Cliffs: Codex's 2D art each model was made from,
+		-- keyed out (assets/ui/pets/windswept_icons.py, assets/ui/pets/icons)
+		WhistleMarmot = "rbxassetid://86223808007903",
+		CliffPuffin = "rbxassetid://81704026565222",
+		WoollyAlpaca = "rbxassetid://77044994985433",
+		GaleGlider = "rbxassetid://121029528386373",
+		FlagtailPanda = "rbxassetid://95565025412427",
+		GaleWilf = "rbxassetid://102532808548815",
+		Rocling = "rbxassetid://104279710130426",
+		ZephyrWhale = "rbxassetid://122070078709772",
 	} :: { [string]: string },
 	crates = {
 		MossyGlade = {
